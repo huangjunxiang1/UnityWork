@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Init
+public class LInit
 {
-    public void Enter()
+    public static void Init()
     {
-
+       
     }
 }

@@ -9,7 +9,7 @@ public class Engine : MonoBehaviour
     {
         DontDestroyOnLoad(this.gameObject);
 
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Main");
+        MInit.Init();
     }
 
     // Update is called once per frame

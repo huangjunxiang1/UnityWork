@@ -87,13 +87,6 @@
       "dependencies": {},
       "url": "https://packages.unity.cn"
     },
-    "com.unity.inputsystem": {
-      "version": "1.0.2",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.cn"
-    },
     "com.unity.jobs": {
       "version": "0.8.0-preview.23",
       "depth": 0,
@@ -158,24 +151,12 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.render-pipelines.high-definition-config": {
-      "version": "10.6.0",
-      "depth": 1,
-      "source": "registry",
+      "version": "file:../LocalPackages/com.unity.render-pipelines.high-definition-config",
+      "depth": 0,
+      "source": "local",
       "dependencies": {
         "com.unity.render-pipelines.core": "10.6.0"
-      },
-      "url": "https://packages.unity.cn"
-    },
-    "com.unity.render-pipelines.universal": {
-      "version": "10.5.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.mathematics": "1.1.0",
-        "com.unity.render-pipelines.core": "10.5.1",
-        "com.unity.shadergraph": "10.5.1"
-      },
-      "url": "https://packages.unity.cn"
+      }
     },
     "com.unity.searcher": {
       "version": "4.3.2",
