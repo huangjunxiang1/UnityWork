@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -18,7 +19,7 @@ namespace Main
     {
         static AService Service;
         static long ChannelID;
-        static Dictionary<Type, Queue<TaskCompletionSource<IResponse>>> asyncResponseTask  = new Dictionary<Type, Queue<TaskCompletionSource<IResponse>>>();
+        static Dictionary<Type, Queue<TaskCompletionSource<IMessage>>> asyncResponseTask  = new Dictionary<Type, Queue<TaskCompletionSource<IMessage>>>();
 
         public static void Connect(NetType type, IPEndPoint ipEndPoint)
         {
@@ -65,17 +66,21 @@ namespace Main
         static void OnRead(long channelId, MemoryStream memoryStream)
         {
             ushort opcode = BitConverter.ToUInt16(memoryStream.GetBuffer(), Packet.KcpOpcodeIndex);
-            Type type = MessageTypeCache.GetopType(opcode);
+            Type type = TypesCache.GetOPType(opcode);
             if (type == null)
             {
-                Loger.Error("未知返回类型 " + type);
+                Loger.Error("未知返回类型 code:" + opcode);
                 return;
             }
-            object response = ProtoBuf.Serializer.Deserialize(type, memoryStream);
-            if (asyncResponseTask.TryGetValue(response.GetType(), out var queue))
+            IMessage message = (IMessage)ProtoBuf.Serializer.Deserialize(type, memoryStream);
+
+            //自动注册的事件一般是底层事件 所以先执行底层监听
+            SysEvent.Excute(message);
+
+            if (asyncResponseTask.TryGetValue(message.GetType(), out var queue))
             {
                 while (queue.Count > 0)
-                    queue.Dequeue().TrySetResult(response as IResponse);
+                    queue.Dequeue().TrySetResult(message);
             }
         }
        
@@ -88,23 +93,23 @@ namespace Main
             var ms = new MemoryStream(Packet.OpcodeLength);
             ms.Seek(Packet.OpcodeLength, SeekOrigin.Begin);
             ms.SetLength(Packet.OpcodeLength);
-            ushort opCode = MessageTypeCache.GetopCode(message.GetType());
+            ushort opCode =TypesCache.GetOPCode(message.GetType());
             ms.GetBuffer().WriteTo(0, opCode);
             ProtoBuf.Serializer.Serialize(ms, message);
             ms.Seek(0, SeekOrigin.Begin);
             Service.SendStream(ChannelID, actorId, ms);
         }
-        public static Task<IResponse> SendAsync(IRequest message)
+        public static Task<IMessage> SendAsync(IRequest message)
         {
             return SendAsync(0, message);
         }
-        public static Task<IResponse> SendAsync(long actorId, IRequest message)
+        public static Task<IMessage> SendAsync(long actorId, IRequest message)
         {
-            TaskCompletionSource<IResponse> task = new TaskCompletionSource<IResponse>();
-            var responseType = MessageTypeCache.GetResponseType(message.GetType());
+            TaskCompletionSource<IMessage> task = new TaskCompletionSource<IMessage>();
+            var responseType = TypesCache.GetResponseType(message.GetType());
             if (!asyncResponseTask .TryGetValue(responseType, out var queue))
             {
-                queue = new Queue<TaskCompletionSource<IResponse>>();
+                queue = new Queue<TaskCompletionSource<IMessage>>();
                 asyncResponseTask[responseType] = queue;
             }
             queue.Enqueue(task);
@@ -124,5 +129,6 @@ namespace Main
             if (ChannelID == 0) return;
             Service.Update();
         }
+
     }
 }
