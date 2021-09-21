@@ -13,7 +13,7 @@ public class MInit
     static long UnitId;
     static Dictionary<long, GameObject> units = new Dictionary<long, GameObject>();
     static Dictionary<long, float> speeds = new Dictionary<long, float>();
-    public static void Init()
+    public static async void Init()
     {
         SynchronizationContext.SetSynchronizationContext(ThreadSynchronizationContext.Instance);
         MessageTypeCache.AddTypes(typeof(MInit).Assembly.GetTypes());
@@ -25,10 +25,29 @@ public class MInit
         ProtoBuf.Serializer.NonGeneric.PrepareSerializer(typeof(C2R_Login));
 
         var msg = new C2R_Login() { Account = "t1", Password = "1" };
-        SysNet.Send(msg);
+        R2C_Login r2CLogin = (await SysNet.SendAsync(msg)) as R2C_Login;
+
+        SysNet.DisConnect();
+        SysNet.Connect(NetType.KCP, MUtil.ToIPEndPoint(r2CLogin.Address));
+        var C2G_LoginGate = new C2G_LoginGate() { Key = r2CLogin.Key, GateId = r2CLogin.GateId };
+        G2C_LoginGate G2C_LoginGate = (await SysNet.SendAsync(C2G_LoginGate)) as G2C_LoginGate;
+
+        ping();
+
+        G2C_EnterMap G2C_EnterMap = (await SysNet.SendAsync(new C2G_EnterMap())) as G2C_EnterMap;
+        UnitId = G2C_EnterMap.UnitId;
+        createUnits(G2C_EnterMap.Units);
+    }
+    static async void ping()
+    {
+        while (true)
+        {
+            await Task.Delay(1000);
+            await SysNet.SendAsync(new C2G_Ping());
+        }
     }
 
-    public static void GetRecv(object response)
+   /* public static void GetRecv(object response)
     {
         Loger.Log("getMessage->" + response);
         if (response is G2C_Ping)
@@ -116,7 +135,7 @@ public class MInit
             Timer.Add(0, act);
         }
     }
-    static Action act = null;
+    static Action act = null;*/
     static void createUnits(List<UnitInfo> Units)
     {
         foreach (var item in Units)

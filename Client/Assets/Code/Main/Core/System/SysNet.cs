@@ -18,6 +18,7 @@ namespace Main
     {
         static AService Service;
         static long ChannelID;
+        static Dictionary<Type, Queue<TaskCompletionSource<IResponse>>> asyncResponseTask  = new Dictionary<Type, Queue<TaskCompletionSource<IResponse>>>();
 
         public static void Connect(NetType type, IPEndPoint ipEndPoint)
         {
@@ -64,22 +65,25 @@ namespace Main
         static void OnRead(long channelId, MemoryStream memoryStream)
         {
             ushort opcode = BitConverter.ToUInt16(memoryStream.GetBuffer(), Packet.KcpOpcodeIndex);
-            object response = ProtoBuf.Serializer.Deserialize(MessageTypeCache.GetopType(opcode), memoryStream);
-            MInit.GetRecv(response);
+            Type type = MessageTypeCache.GetopType(opcode);
+            if (type == null)
+            {
+                Loger.Error("未知返回类型 " + type);
+                return;
+            }
+            object response = ProtoBuf.Serializer.Deserialize(type, memoryStream);
+            if (asyncResponseTask.TryGetValue(response.GetType(), out var queue))
+            {
+                while (queue.Count > 0)
+                    queue.Dequeue().TrySetResult(response as IResponse);
+            }
         }
        
-        public static void Send(IMessage message)
+        public static void Send(IRequest message)
         {
-            var ms = new MemoryStream(Packet.OpcodeLength);
-            ms.Seek(Packet.OpcodeLength, SeekOrigin.Begin);
-            ms.SetLength(Packet.OpcodeLength);
-            ushort opCode = MessageTypeCache.GetopCode(message.GetType());
-            ms.GetBuffer().WriteTo(0, opCode);
-            ProtoBuf.Serializer.Serialize(ms, message);
-            ms.Seek(0, SeekOrigin.Begin);
-            Service.SendStream(ChannelID, 0, ms);
+            Send(0,message);
         }
-        public static void Send(long actorId, IMessage message)
+        public static void Send(long actorId, IRequest message)
         {
             var ms = new MemoryStream(Packet.OpcodeLength);
             ms.Seek(Packet.OpcodeLength, SeekOrigin.Begin);
@@ -89,6 +93,23 @@ namespace Main
             ProtoBuf.Serializer.Serialize(ms, message);
             ms.Seek(0, SeekOrigin.Begin);
             Service.SendStream(ChannelID, actorId, ms);
+        }
+        public static Task<IResponse> SendAsync(IRequest message)
+        {
+            return SendAsync(0, message);
+        }
+        public static Task<IResponse> SendAsync(long actorId, IRequest message)
+        {
+            TaskCompletionSource<IResponse> task = new TaskCompletionSource<IResponse>();
+            var responseType = MessageTypeCache.GetResponseType(message.GetType());
+            if (!asyncResponseTask .TryGetValue(responseType, out var queue))
+            {
+                queue = new Queue<TaskCompletionSource<IResponse>>();
+                asyncResponseTask[responseType] = queue;
+            }
+            queue.Enqueue(task);
+            Send(actorId, message);
+            return task.Task;
         }
 
         public static void DisConnect()
