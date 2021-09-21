@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Main.Core
+namespace Main
 {
     public static class SysEvent 
     {

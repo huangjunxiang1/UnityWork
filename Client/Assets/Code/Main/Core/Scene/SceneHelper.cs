@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 
-namespace Main.Core
+namespace Main
 {
     public static class SceneHelper
     {

@@ -15,6 +15,8 @@ public class Engine : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        Main.ThreadSynchronizationContext.Instance.Update();
+        Main.SysNet.Update();
+        Timer.Update();
     }
 }
