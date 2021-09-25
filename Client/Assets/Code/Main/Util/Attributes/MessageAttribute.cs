@@ -1,11 +1,8 @@
 ﻿namespace Main
 {
-    public class MessageAttribute: BaseAttribute
+    public class MessageAttribute : BaseAttribute
     {
-        public ushort Opcode
-        {
-            get;
-        }
+        public ushort Opcode { get; }
 
         public MessageAttribute(ushort opcode)
         {

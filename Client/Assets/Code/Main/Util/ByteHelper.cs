@@ -113,9 +113,9 @@ public static class ByteHelper
 			| bytes[offset + 1] << 8
 			| bytes[offset + 2] << 16
 			| bytes[offset + 3] << 24
-			| bytes[offset + 3] << 32
-			| bytes[offset + 3] << 40
-			| bytes[offset + 3] << 48
-			| bytes[offset + 3] << 56;
+			| bytes[offset + 4] << 32
+			| bytes[offset + 5] << 40
+			| bytes[offset + 6] << 48
+			| bytes[offset + 7] << 56;
 	}
 }

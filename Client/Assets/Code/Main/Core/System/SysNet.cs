@@ -17,40 +17,80 @@ namespace Main
     }
     public static class SysNet
     {
-        static AService Service;
-        static long ChannelID;
-        static Dictionary<Type, Queue<TaskCompletionSource<IMessage>>> asyncResponseTask  = new Dictionary<Type, Queue<TaskCompletionSource<IMessage>>>();
+        static AService _Service;
+        static long _ChannelID;
+        static Dictionary<Type, Queue<TaskCompletionSource<IMessage>>> _asyncResponseTask  = new Dictionary<Type, Queue<TaskCompletionSource<IMessage>>>();
 
+        static void _onError(long channelId, int error)
+        {
+            Loger.Error("Net Error Code:" + error);
+            _ChannelID = 0;
+            SysEvent.ExcuteEvent((int)EventID.NetError);
+        }
+        static void _onResponse(long channelId, MemoryStream memoryStream)
+        {
+            ushort opcode = BitConverter.ToUInt16(memoryStream.GetBuffer(), Packet.KcpOpcodeIndex);
+            Type type = TypesCache.GetOPType(opcode);
+            bool hasRsp = type != null;
+            IMessage message = null;
+            if (hasRsp)
+                message = (IMessage)ProtoBuf.Serializer.Deserialize(type, memoryStream);
+
+            //自动注册的事件一般是底层事件 所以先执行底层监听
+            bool has = SysEvent.ExcuteMessage(opcode, message);
+            if (MGameSetting.Debug)
+            {
+                if (message != null && opcode != OuterOpcode.G2C_Ping)
+                    Loger.Log("getMsg:" + JsonUtility.ToJson(message));
+                if (!has && (hasRsp && !_asyncResponseTask.ContainsKey(type)))
+                    Loger.Error("没有注册的消息返回 msgID:" + opcode + "  msg:" + type);
+            }
+
+            if (hasRsp)
+            {
+                if (_asyncResponseTask.TryGetValue(type, out var queue))
+                {
+                    while (queue.Count > 0)
+                        queue.Dequeue().TrySetResult(message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 链接服务器IP
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="ipEndPoint"></param>
         public static void Connect(NetType type, IPEndPoint ipEndPoint)
         {
             switch (type)
             {
                 case NetType.TCP:
                     {
-                        Service?.Dispose();
-                        Service = new TService(ThreadSynchronizationContext.Instance, ServiceType.Outer);
-                        Service.ErrorCallback += OnError;
-                        Service.ReadCallback += OnRead;
+                        _Service?.Dispose();
+                        _Service = new TService(ThreadSynchronizationContext.Instance, ServiceType.Outer);
+                        _Service.ErrorCallback += _onError;
+                        _Service.ReadCallback += _onResponse;
 
                         byte[] byte8 = new byte[8];
                         System.Random random = new System.Random(Guid.NewGuid().GetHashCode());
                         random.NextBytes(byte8);
-                        ChannelID = BitConverter.ToInt64(byte8, 0);
-                        Service.GetOrCreate(ChannelID, ipEndPoint);
+                        _ChannelID = BitConverter.ToInt64(byte8, 0);
+                        _Service.GetOrCreate(_ChannelID, ipEndPoint);
                     }
                     break;
                 case NetType.KCP:
                     {
-                        Service?.Dispose();
-                        Service = new KService(ThreadSynchronizationContext.Instance, ServiceType.Outer);
-                        Service.ErrorCallback += OnError;
-                        Service.ReadCallback += OnRead;
+                        _Service?.Dispose();
+                        _Service = new KService(ThreadSynchronizationContext.Instance, ServiceType.Outer);
+                        _Service.ErrorCallback += _onError;
+                        _Service.ReadCallback += _onResponse;
 
                         byte[] byte8 = new byte[8];
                         System.Random random = new System.Random(Guid.NewGuid().GetHashCode());
                         random.NextBytes(byte8);
-                        ChannelID = BitConverter.ToInt64(byte8, 0);
-                        Service.GetOrCreate(ChannelID, ipEndPoint);
+                        _ChannelID = BitConverter.ToInt64(byte8, 0);
+                        _Service.GetOrCreate(_ChannelID, ipEndPoint);
                     }
                     break;
                 default:
@@ -58,32 +98,10 @@ namespace Main
             }
         }
 
-        static void OnError(long channelId, int error)
-        {
-            Loger.Error("Net Error Code:" + error);
-            ChannelID = 0;
-        }
-        static void OnRead(long channelId, MemoryStream memoryStream)
-        {
-            ushort opcode = BitConverter.ToUInt16(memoryStream.GetBuffer(), Packet.KcpOpcodeIndex);
-            Type type = TypesCache.GetOPType(opcode);
-            if (type == null)
-            {
-                Loger.Error("未知返回类型 code:" + opcode);
-                return;
-            }
-            IMessage message = (IMessage)ProtoBuf.Serializer.Deserialize(type, memoryStream);
-
-            //自动注册的事件一般是底层事件 所以先执行底层监听
-            SysEvent.Excute(message);
-
-            if (asyncResponseTask.TryGetValue(message.GetType(), out var queue))
-            {
-                while (queue.Count > 0)
-                    queue.Dequeue().TrySetResult(message);
-            }
-        }
-       
+        /// <summary>
+        /// 非返回的消息发送
+        /// </summary>
+        /// <param name="message"></param>
         public static void Send(IRequest message)
         {
             Send(0,message);
@@ -97,38 +115,54 @@ namespace Main
             ms.GetBuffer().WriteTo(0, opCode);
             ProtoBuf.Serializer.Serialize(ms, message);
             ms.Seek(0, SeekOrigin.Begin);
-            Service.SendStream(ChannelID, actorId, ms);
+            _Service.SendStream(_ChannelID, actorId, ms);
         }
-        public static Task<IMessage> SendAsync(IRequest message)
+
+        /// <summary>
+        /// 异步返回的消息发送
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public static TaskCompletionSource<IMessage> SendAsync(IRequest request)
         {
-            return SendAsync(0, message);
+            return SendAsync(0, request);
         }
-        public static Task<IMessage> SendAsync(long actorId, IRequest message)
+        public static TaskCompletionSource<IMessage> SendAsync(long actorId, IRequest request)
         {
-            TaskCompletionSource<IMessage> task = new TaskCompletionSource<IMessage>();
-            var responseType = TypesCache.GetResponseType(message.GetType());
-            if (!asyncResponseTask .TryGetValue(responseType, out var queue))
+            var responseType = TypesCache.GetResponseType(request.GetType());
+            if (responseType == null)
+            {
+                Loger.Error("没有responseType类型");
+                return null;
+            }
+            if (!_asyncResponseTask.TryGetValue(responseType, out var queue))
             {
                 queue = new Queue<TaskCompletionSource<IMessage>>();
-                asyncResponseTask[responseType] = queue;
+                _asyncResponseTask[responseType] = queue;
             }
+            TaskCompletionSource<IMessage> task = new TaskCompletionSource<IMessage>();
             queue.Enqueue(task);
-            Send(actorId, message);
-            return task.Task;
+            Send(actorId, request);
+            return task;
         }
 
+        /// <summary>
+        /// 断开当前链接
+        /// </summary>
         public static void DisConnect()
         {
-            if (ChannelID == 0) return;
-            Service.Remove(ChannelID);
-            ChannelID = 0;
+            if (_ChannelID == 0) return;
+            _Service.Remove(_ChannelID);
+            _ChannelID = 0;
         }
 
+        /// <summary>
+        /// 更新网络状态和数据
+        /// </summary>
         public static void Update()
         {
-            if (ChannelID == 0) return;
-            Service.Update();
+            if (_ChannelID == 0) return;
+            _Service.Update();
         }
-
     }
 }

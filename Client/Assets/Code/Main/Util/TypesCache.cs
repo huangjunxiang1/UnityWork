@@ -7,26 +7,26 @@ using System.Threading.Tasks;
 
 public static class TypesCache
 {
-    public static List<Type> Types = new List<Type>(1000);
+    public static Type[] Types { get; private set; }
     readonly static Dictionary<Type, ushort> _opCode = new Dictionary<Type, ushort>();
     readonly static Dictionary<ushort, Type> _opType = new Dictionary<ushort, Type>();
     readonly static Dictionary<Type, Type> _requestResponse = new Dictionary<Type, Type>();
 
-    public static void AddTypes(Type[] types)
+    public static void InitTypes(Type[] types)
     {
-        Types.AddRange(types);
+        Types = types;
         int len = types.Length;
         for (int i = 0; i < len; i++)
         {
             Type type = types[i];
             if (!typeof(IMessage).IsAssignableFrom(type))
                 continue;
-            var att = type.GetCustomAttributes(typeof(MessageAttribute), false);
-            if (att == null || att.Length <= 0)
+            var mas = type.GetCustomAttributes(typeof(MessageAttribute), false);
+            if (mas == null || mas.Length <= 0)
                 continue;
-            ushort code = (att[0] as MessageAttribute).Opcode;
-            _opCode[type] = code;
-            _opType[code] = type;
+            ushort opCode = ((MessageAttribute)mas[0]).Opcode;
+            _opCode[type] = opCode;
+            _opType[opCode] = type;
 
             // 检查request response
             if (typeof(IRequest).IsAssignableFrom(type))
@@ -37,14 +37,14 @@ public static class TypesCache
                     continue;
                 }
 
-                att = type.GetCustomAttributes(typeof(ResponseTypeAttribute), false);
-                if (att.Length == 0)
+                var ras = type.GetCustomAttributes(typeof(ResponseTypeAttribute), false);
+                if (ras.Length == 0)
                 {
                     Loger.Error($"not found responseType: {type}");
                     continue;
                 }
 
-                _requestResponse.Add(type, (att[0] as ResponseTypeAttribute).Type);
+                _requestResponse.Add(type, ((ResponseTypeAttribute)ras[0]).Type);
             }
         }
     }

@@ -13,7 +13,7 @@ public class MAppSetting : MonoBehaviour
 
     private void OnEnable()
     {
-        Main.MGameSetting.Debug = Debug;
-        Main.MGameSetting.NetModel = NetModel;
+        MGameSetting.Debug = Debug;
+        MGameSetting.NetModel = NetModel;
     }
 }
