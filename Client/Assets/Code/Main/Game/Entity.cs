@@ -21,7 +21,7 @@ namespace Game
 
         static long idValue;
 
-        List<TaskCompletionSource<IMessage>> _taskLst;
+        List<TaskAwaiter<IMessage>> _taskLst;
 
         /// <summary>
         /// ID  可自定义赋值
@@ -44,7 +44,8 @@ namespace Game
             {
                 int len = _taskLst.Count;
                 for (int i = 0; i < len; i++)
-                    _taskLst[i].TrySetCanceled();
+                    _taskLst[i].TryCancel();
+                _taskLst.Clear();
             }
         }
 
@@ -53,16 +54,20 @@ namespace Game
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected Task<IMessage> SendAsync(IRequest request)
+        protected TaskAwaiter<IMessage> SendAsync(IRequest request)
         {
             return SendAsync(0, request);
         }
-        protected Task<IMessage> SendAsync(long actorId, IRequest request)
+        protected TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request)
         {
-            if (_taskLst == null) _taskLst = new List<TaskCompletionSource<IMessage>>();
-            var task = SysNet.SendAsync(actorId, request);
+            if (_taskLst == null) _taskLst = new List<TaskAwaiter<IMessage>>();
+            var task = SysNet.SendAsync(actorId, request, _taskCallEnd);
             _taskLst.Add(task);
-            return task.Task;
+            return task;
+        }
+        void _taskCallEnd(TaskAwaiter<IMessage> task)
+        {
+            _taskLst.Remove(task);
         }
     }
 }

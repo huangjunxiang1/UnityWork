@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using Main;
 
 public class TaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
 {
@@ -11,11 +12,20 @@ public class TaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
     {
 
     }
+    public TaskAwaiter(Action<TaskAwaiter> moveNextCallBack)
+    {
+        this._moveNextCallBack = moveNextCallBack;
+    }
 
     Action _call;
+    Action<TaskAwaiter> _moveNextCallBack;
+    bool _isDisposed;
     
+    /// <summary>
+    /// 是否已完成
+    /// </summary>
     public bool IsCompleted { get; private set; }
-    
+
     public TaskAwaiter GetAwaiter()
     {
         return this;
@@ -25,17 +35,28 @@ public class TaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
 
     }
 
+    /// <summary>
+    /// 取消
+    /// </summary>
     public void TryCancel()
     {
-        this.TryCancel(false);
+        this._isDisposed = true;
+        this._call = null;
     }
-    public void TryCancel(bool isCompleted)
-    {
-        this.IsCompleted = isCompleted;
-    }
+
+    /// <summary>
+    /// 执行下一步
+    /// </summary>
     public void TryMoveNext()
     {
+        if (this._isDisposed) return;
+
+        this._isDisposed = true;
+        this.IsCompleted = true;
         this._call?.Invoke();
+        this._call = null;
+        this._moveNextCallBack?.Invoke(this);
+        this._moveNextCallBack = null;
     }
 
     void INotifyCompletion.OnCompleted(Action continuation)

@@ -36,10 +36,12 @@ public class MInit
         Timer.Add(5, 1, () =>
         {
             Loger.Error("TrySetResult");
-            task1.TryCancel();
+            task1.TrySetResult(77);
             Loger.Error("TrySetResult  end");
         });
         int a = await task1;
-        Loger.Error("get "+a);
+        Loger.Error("get "+a); 
+        int b = await task1;
+        Loger.Error("get " + b);
     }
 }

@@ -19,7 +19,7 @@ namespace Main
     {
         static AService _Service;
         static long _ChannelID;
-        static Dictionary<Type, Queue<TaskCompletionSource<IMessage>>> _asyncResponseTask  = new Dictionary<Type, Queue<TaskCompletionSource<IMessage>>>();
+        static Dictionary<Type, Queue<TaskAwaiter<IMessage>>> _asyncResponseTask = new Dictionary<Type, Queue<TaskAwaiter<IMessage>>>();
 
         static void _onError(long channelId, int error)
         {
@@ -104,14 +104,14 @@ namespace Main
         /// <param name="message"></param>
         public static void Send(IRequest message)
         {
-            Send(0,message);
+            Send(0, message);
         }
         public static void Send(long actorId, IRequest message)
         {
             var ms = new MemoryStream(Packet.OpcodeLength);
             ms.Seek(Packet.OpcodeLength, SeekOrigin.Begin);
             ms.SetLength(Packet.OpcodeLength);
-            ushort opCode =TypesCache.GetOPCode(message.GetType());
+            ushort opCode = TypesCache.GetOPCode(message.GetType());
             ms.GetBuffer().WriteTo(0, opCode);
             ProtoBuf.Serializer.Serialize(ms, message);
             ms.Seek(0, SeekOrigin.Begin);
@@ -123,11 +123,11 @@ namespace Main
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static TaskCompletionSource<IMessage> SendAsync(IRequest request)
+        public static TaskAwaiter<IMessage> SendAsync(IRequest request)
         {
             return SendAsync(0, request);
         }
-        public static TaskCompletionSource<IMessage> SendAsync(long actorId, IRequest request)
+        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request)
         {
             var responseType = TypesCache.GetResponseType(request.GetType());
             if (responseType == null)
@@ -135,12 +135,34 @@ namespace Main
                 Loger.Error("没有responseType类型");
                 return null;
             }
-            if (!_asyncResponseTask.TryGetValue(responseType, out var queue))
+            if (!_asyncResponseTask.TryGetValue(responseType, out Queue<TaskAwaiter<IMessage>> queue))
             {
-                queue = new Queue<TaskCompletionSource<IMessage>>();
+                queue = new Queue<TaskAwaiter<IMessage>>();
                 _asyncResponseTask[responseType] = queue;
             }
-            TaskCompletionSource<IMessage> task = new TaskCompletionSource<IMessage>();
+            TaskAwaiter<IMessage> task = new TaskAwaiter<IMessage>();
+            queue.Enqueue(task);
+            Send(actorId, request);
+            return task;
+        }
+        public static TaskAwaiter<IMessage> SendAsync(IRequest request, Action<TaskAwaiter<IMessage>> moveNextCallBack)
+        {
+            return SendAsync(0, request, moveNextCallBack);
+        }
+        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request, Action<TaskAwaiter<IMessage>> moveNextCallBack)
+        {
+            var responseType = TypesCache.GetResponseType(request.GetType());
+            if (responseType == null)
+            {
+                Loger.Error("没有responseType类型");
+                return null;
+            }
+            if (!_asyncResponseTask.TryGetValue(responseType, out Queue<TaskAwaiter<IMessage>> queue))
+            {
+                queue = new Queue<TaskAwaiter<IMessage>>();
+                _asyncResponseTask[responseType] = queue;
+            }
+            TaskAwaiter<IMessage> task = new TaskAwaiter<IMessage>(moveNextCallBack);
             queue.Enqueue(task);
             Send(actorId, request);
             return task;
