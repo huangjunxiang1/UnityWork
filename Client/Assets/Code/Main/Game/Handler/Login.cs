@@ -28,10 +28,6 @@ namespace Game
                 await Task.Delay(1000);
                 _ = SysNet.SendAsync(new C2G_Ping());
             }
-            static void test()
-            {
-                Loger.Error(0);
-            }
         }
     }
 }

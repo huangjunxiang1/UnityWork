@@ -106,7 +106,7 @@ public class ResImport
             str.AppendLine(@"    }");
             str.Append(@"}");
 
-            File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/UI/Auto/{go.name}.cs", str.ToString());
+            File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/UI/UGUI/Auto/{go.name}.cs", str.ToString());
         }
 
         AssetDatabase.Refresh();

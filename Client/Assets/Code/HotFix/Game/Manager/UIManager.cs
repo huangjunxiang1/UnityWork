@@ -11,7 +11,9 @@ class UIManager : LManager<UIManager>
 {
     public UIManager()
     {
-        _uiRoot = new WObject((int)ObjectType.UIRoot, new GameObject("UIRoot"));
+        GameObject uiRoot = new GameObject("UIRoot");
+        uiRoot.layer = LayerMask.NameToLayer("UI");
+        _uiRoot = new WObject((int)ObjectType.UIRoot, uiRoot);
         WRoot.Inst.AddChild(_uiRoot);
     }
 
@@ -25,11 +27,15 @@ class UIManager : LManager<UIManager>
             Loger.Error("没有UI配置 class：" + typeof(T));
             return default;
         }
+
         T ui = new T();
         _uiLst.Add(ui);
         ui.Init(config);
         ui.Binding();
         ui.UI.transform.SetParent(_uiRoot.GameObject.transform);
+        ui.UI.transform.localPosition = default;
+        ui.UI.transform.localScale = Vector3.one;
+        ui.UI.transform.rotation = default;
         ui.Enter(data);
         return ui;
     }

@@ -58,6 +58,30 @@ public class Eventer
     }
 
     /// <summary>
+    /// 是否已经包含了
+    /// </summary>
+    /// <param name="call"></param>
+    /// <returns></returns>
+    public bool Contains(Action call)
+    {
+        for (int i = 0; i < _evtLst.Count; i++)
+        {
+            if (_evtLst[i].isP0 && !_evtLst[i].isDisposed && _evtLst[i].action0 == call)
+                return true;
+        }
+        return false;
+    }
+    public bool Contains(Action<EventerContent> call)
+    {
+        for (int i = 0; i < _evtLst.Count; i++)
+        {
+            if (!_evtLst[i].isP0 && !_evtLst[i].isDisposed && _evtLst[i].action1 == call)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// 移除事件
     /// </summary>
     /// <param name="call"></param>
