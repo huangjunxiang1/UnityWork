@@ -1,0 +1,2 @@
+﻿  Test1.cpp
+D:\UnityWork\Client\Lib\Recast\Test1\Test1\Test1.cpp(38): error C4700: 使用了未初始化的局部变量“p1”
