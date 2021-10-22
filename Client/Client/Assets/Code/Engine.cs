@@ -4,6 +4,8 @@ using UnityEngine;
 using System;
 using System.Linq;
 using Main;
+using Game;
+using System.Threading.Tasks;
 
 public class Engine : MonoBehaviour
 {
@@ -30,7 +32,7 @@ public class Engine : MonoBehaviour
         Timer.Update();
     }
 
-    public static void EnterGame()
+    void EnterGame()
     {
         var a1 = typeof(TypesCache).Assembly.GetTypes();
 
@@ -67,6 +69,6 @@ public class Engine : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        SysEvent.ExcuteEvent((int)EventIDM.QuitGame);
+        SysEvent.ExcuteEvent((int)EIDM.QuitGame);
     }
 }

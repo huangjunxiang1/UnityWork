@@ -11,7 +11,7 @@ namespace Game
     {
         public EntityL() : this(++idValue)
         {
-
+           
         }
         public EntityL(long id)
         {

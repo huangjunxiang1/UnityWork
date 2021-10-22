@@ -31,6 +31,11 @@ namespace Main
                 GameObject.DestroyImmediate(obj);
         }
 
+        public static AssetBundle LoadBundle(string path)
+        {
+            return default;
+        }
+
         public static byte[] LoadConfigBytes(string name)
         {
             return File.ReadAllBytes(Application.dataPath + "/Res/Config/" + name);

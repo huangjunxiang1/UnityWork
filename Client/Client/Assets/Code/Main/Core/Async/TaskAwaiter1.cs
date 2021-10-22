@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using Main;
 
-public class TaskAwaiter<T> : ICriticalNotifyCompletion
+[AsyncMethodBuilder(typeof(TaskAwaiterBuilder<>))]
+public sealed class TaskAwaiter<T> : ICriticalNotifyCompletion
 {
     public TaskAwaiter()
     {
@@ -39,10 +40,17 @@ public class TaskAwaiter<T> : ICriticalNotifyCompletion
     /// <summary>
     /// 取消
     /// </summary>
-    public void TryCancel()
+    public void TryCancel(bool completed = false)
     {
         this._isDisposed = true;
         this._call = null;
+
+        if (completed)
+        {
+            try { this._onComplete?.Invoke(this); }
+            catch (Exception ex) { Loger.Error("TryCancel Error:" + ex); }
+            this._onComplete = null;
+        }
     }
 
     /// <summary>
@@ -56,10 +64,35 @@ public class TaskAwaiter<T> : ICriticalNotifyCompletion
         this._result = result;
         this._isDisposed = true;
         this.IsCompleted = true;
-        this._call?.Invoke();
-        this._call = null;
-        this._onComplete?.Invoke(this);
+
+        try { this._onComplete?.Invoke(this); }
+        catch (Exception ex) { Loger.Error("TrySetResult Error:" + ex); }
         this._onComplete = null;
+
+        try { this._call.Invoke(); }
+        catch (Exception ex) { Loger.Error("TrySetResult Error:" + ex); }
+        this._call = null;
+    }
+
+
+    /// <summary>
+    /// 错误
+    /// </summary>
+    /// <param name="e"></param>
+    public void SetException(Exception e)
+    {
+        if (this._isDisposed) return;
+
+        Loger.Error($"TaskAwaiter<{typeof(T)}> Error " + e);
+
+        //先回调Complete  再继续走异步的下一步
+        try { this._onComplete?.Invoke(this); }
+        catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
+        this._onComplete = null;
+
+        try { this._call.Invoke(); }
+        catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
+        this._call = null;
     }
 
     void INotifyCompletion.OnCompleted(Action continuation)

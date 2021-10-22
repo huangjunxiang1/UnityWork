@@ -27,7 +27,7 @@ class SceneManager : ManagerL<SceneManager>
         RecastNav.Fini();
     }
 
-    [Event((int)EventIDL.InScene)]
+    [Event((int)EIDL.InScene)]
     void EnterScene(EventerContent e)
     {
         if (CurScene != 0)
@@ -36,7 +36,7 @@ class SceneManager : ManagerL<SceneManager>
         string p = Application.dataPath + "/../../MapObj/Main.bin";
         bool b = RecastNav.LoadMap(CurScene, p);
         if (b)
-            Loger.Log("加载成功");
+            Loger.Log("地图数据加载成功");
         else
             Loger.Error("地图数据加载失败");
 

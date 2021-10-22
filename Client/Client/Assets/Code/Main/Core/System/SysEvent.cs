@@ -41,12 +41,10 @@ namespace Main
 
         readonly static Dictionary<int, List<MsgData>> _msgMap = new Dictionary<int, List<MsgData>>();
         readonly static Dictionary<int, List<EvtData>> _evtMap = new Dictionary<int, List<EvtData>>();
+        readonly static Dictionary<int, int> _msgCalling = new Dictionary<int, int>();
+        readonly static Dictionary<int, int> _evtCalling = new Dictionary<int, int>();
+        readonly static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>();
         static bool _rigistedStaticMethodEvt = false;
-        static bool _isCalling = false;//是否正在call事件或消息
-        static int _isCallEventID;//正在call的事件ID
-        static int _isCallOpCode;//正在call的消息ID
-        static int _isCallIndex = -1;//当前正在执行的事件下标
-        static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>();
 
         static MethodData[] _getFilterMethods(Type t)
         {
@@ -301,7 +299,7 @@ namespace Main
                 ms = _getFilterMethods(ilWarp.ILInstance.Type.ReflectionType);
             else
 #endif
-                ms = _getFilterMethods(target.GetType());
+            ms = _getFilterMethods(target.GetType());
 
             for (int i = 0; i < ms.Length; i++)
             {
@@ -338,14 +336,19 @@ namespace Main
                             e.action1 = (Action<IMessage>)m.info.CreateDelegate(typeof(Action<IMessage>), target);
                     }
 
-                    if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
+                    if (!_msgCalling.TryGetValue(m.opCode, out var idx))
                         evts.Add(e);
                     else
                     {
-                        int idx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder);
-                        if (idx == -1) idx = 0;
-                        if (_isCalling && _isCallOpCode == m.opCode && idx <= _isCallIndex) _isCallIndex++;
-                        evts.Insert(idx, e);
+                        if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
+                            evts.Add(e);
+                        else
+                        {
+                            int lastIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder);
+                            if (lastIdx == -1) lastIdx = 0;
+                            if (lastIdx <= idx) _msgCalling[m.opCode]++;
+                            evts.Insert(lastIdx, e);
+                        }
                     }
                 }
                 else if (m.type == 1)
@@ -379,14 +382,19 @@ namespace Main
                             e.action1 = (Action<EventerContent>)m.info.CreateDelegate(typeof(Action<EventerContent>), target);
                     }
 
-                    if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
+                    if (!_evtCalling.TryGetValue(m.eventID, out var idx))
                         evts.Add(e);
                     else
                     {
-                        int idx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder);
-                        if (idx == -1) idx = 0;
-                        if (_isCalling && _isCallEventID == m.eventID && idx <= _isCallIndex) _isCallIndex++;
-                        evts.Insert(idx, e);
+                        if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
+                            evts.Add(e);
+                        else
+                        {
+                            int lastIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder);
+                            if (lastIdx == -1) lastIdx = 0;
+                            if (lastIdx <= idx) _evtCalling[m.eventID]++;
+                            evts.Insert(lastIdx, e);
+                        }
                     }
                 }
             }
@@ -406,7 +414,7 @@ namespace Main
                 t = ilWarp.ILInstance.Type.ReflectionType;
             else
 #endif
-                t = target.GetType();
+            t = target.GetType();
 
             if (_methodCache.TryGetValue(t, out MethodData[] ms))
             {
@@ -420,7 +428,7 @@ namespace Main
                         {
                             if (lst[j].target == target)
                             {
-                                if (_isCalling && _isCallOpCode == m.opCode) lst[j].isCanceled = true;
+                                if (_msgCalling.ContainsKey(m.opCode)) lst[j].isCanceled = true;
                                 else lst.RemoveAt(j);
                             }
                         }
@@ -432,7 +440,7 @@ namespace Main
                         {
                             if (lst[j].target == target)
                             {
-                                if (_isCalling && _isCallEventID == m.eventID) lst[j].isCanceled = true;
+                                if (_evtCalling.ContainsKey(m.eventID)) lst[j].isCanceled = true;
                                 else lst.RemoveAt(j);
                             }
                         }
@@ -452,12 +460,16 @@ namespace Main
             if (_msgMap.TryGetValue(opCode, out var evts))
             {
                 hasEvt = true;
-                _isCalling = true;
-                _isCallOpCode = opCode;
-                _isCallIndex = 0;
-                for (; _isCallIndex < evts.Count; _isCallIndex++)
+
+                if (_msgCalling.ContainsKey(opCode))
                 {
-                    MsgData e = evts[_isCallIndex];
+                    Loger.Error("消息执行队列循环");
+                    return true;
+                }
+                int idx = _msgCalling[opCode] = 0;
+                for (; idx < evts.Count; idx = ++_msgCalling[opCode])
+                {
+                    MsgData e = evts[idx];
                     if (e.isCanceled) continue;
                     try
                     {
@@ -469,8 +481,7 @@ namespace Main
                         Loger.Error("消息执行出错 error:" + ex.ToString());
                     }
                 }
-                _isCalling = false;
-                _isCallOpCode = 0;
+                _msgCalling.Remove(opCode);
             }
             return hasEvt;
         }
@@ -482,77 +493,41 @@ namespace Main
         /// <param name="data"></param>
         public static void ExcuteEvent(int eventID)
         {
-            if (_evtMap.TryGetValue(eventID, out var evts))
-            {
-                _isCalling = true;
-                _isCallEventID = eventID;
-                _isCallIndex = 0;
-                for (; _isCallIndex < evts.Count; _isCallIndex++)
-                {
-                    EvtData e = evts[_isCallIndex];
-                    if (e.isCanceled) continue;
-                    try
-                    {
-                        if (e.isP0) e.action0();
-                        else e.action1(new EventerContent());
-                    }
-                    catch (Exception ex)
-                    {
-                        Loger.Error("事件执行出错 error:" + ex.ToString());
-                    }
-                }
-                _isCalling = false;
-                _isCallEventID = 0;
-            }
+            ExcuteEvent(eventID, 0, null);
         }
         public static void ExcuteEvent(int eventID, object data)
         {
-            if (_evtMap.TryGetValue(eventID, out var evts))
-            {
-                _isCalling = true;
-                _isCallEventID = eventID;
-                _isCallIndex = 0;
-                for (; _isCallIndex < evts.Count; _isCallIndex++)
-                {
-                    EvtData e = evts[_isCallIndex];
-                    if (e.isCanceled) continue;
-                    try
-                    {
-                        if (e.isP0) e.action0();
-                        else e.action1(new EventerContent(data));
-                    }
-                    catch (Exception ex)
-                    {
-                        Loger.Error("事件执行出错 error:" + ex.ToString());
-                    }
-                }
-                _isCalling = false;
-                _isCallEventID = 0;
-            }
+            ExcuteEvent(eventID, 0, data);
         }
         public static void ExcuteEvent(int eventID, int value)
         {
+            ExcuteEvent(eventID, value, null);
+        }
+        public static void ExcuteEvent(int eventID, int value, object data)
+        {
             if (_evtMap.TryGetValue(eventID, out var evts))
             {
-                _isCalling = true;
-                _isCallEventID = eventID;
-                _isCallIndex = 0;
-                for (; _isCallIndex < evts.Count; _isCallIndex++)
+                if (_evtCalling.ContainsKey(eventID))
                 {
-                    EvtData e = evts[_isCallIndex];
+                    Loger.Error("事件执行队列循环");
+                    return;
+                }
+                int idx = _evtCalling[eventID] = 0;
+                for (; idx < evts.Count; idx = ++_evtCalling[eventID])
+                {
+                    EvtData e = evts[idx];
                     if (e.isCanceled) continue;
                     try
                     {
                         if (e.isP0) e.action0();
-                        else e.action1(new EventerContent(value));
+                        else e.action1(new EventerContent(value, data));
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
                 }
-                _isCalling = false;
-                _isCallEventID = 0;
+                _evtCalling.Remove(eventID);
             }
         }
     }

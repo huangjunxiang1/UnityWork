@@ -1,0 +1,11 @@
+{
+  "name": "ExportCSharpCode",
+  "displayName": "ExportCSharpCode",
+  "description": "ExportCSharpCode",
+  "version": "1.0",
+  "author": {
+    "name": "Administrator"
+  },
+  "icon": "",
+  "main": "main.lua"
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<packageDescription id="zvziziwi">
+  <resources>
+    <component id="odqh0" name="FUILoading.xml" path="/UI/" exported="true"/>
+    <component id="qgu21" name="bar.xml" path="/Common/bar/"/>
+    <component id="qgu22" name="FUILogin.xml" path="/UI/" exported="true"/>
+    <component id="qgu23" name="cb_item.xml" path="/Common/comBox/"/>
+    <component id="qgu24" name="cb_popup.xml" path="/Common/comBox/"/>
+    <component id="qgu25" name="CB.xml" path="/Common/comBox/"/>
+    <component id="qgu27" name="btn.xml" path="/Common/btn/"/>
+  </resources>
+  <publish name="ComPkg" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2" genCode="true"/>
+</packageDescription>

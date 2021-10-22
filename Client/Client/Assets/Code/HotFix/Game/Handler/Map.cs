@@ -16,13 +16,13 @@ namespace Game
             G2C_EnterMap rep = message as G2C_EnterMap;
             Main.SceneHelper.LoadScene("Main");
 
-            SysEvent.ExcuteEvent((int)EventIDL.InScene, 10001);
+            SysEvent.ExcuteEvent((int)EIDL.InScene, 10001);
         }
 
-        [Event((int)EventIDM.QuitGame)]
+        [Event((int)EIDM.QuitGame)]
         static void QuitGame()
         {
-            SysEvent.ExcuteEvent((int)EventIDL.OutScene);
+            SysEvent.ExcuteEvent((int)EIDL.OutScene);
         }
     }
 }

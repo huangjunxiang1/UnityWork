@@ -34,6 +34,11 @@ namespace Game
             }
         }
 
+        public void Init()
+        {
+
+        }
+
         public override void AddChild(WObject child)
         {
             base.AddChild(child);

@@ -9,14 +9,18 @@ using System.Threading.Tasks;
 /// </summary>
 public class Eventer
 {
-    public Eventer(object sender)
+    public Eventer(object creater)
     {
-        this._sender = sender;
+        this.Creater = creater;
     }
 
-    readonly object _sender;
     readonly List<Temp> _evtLst = new List<Temp>();
     bool _isExcuting = false;
+
+    /// <summary>
+    /// 创建者
+    /// </summary>
+    public object Creater { get; }
 
     /// <summary>
     /// 是否启用
@@ -113,7 +117,7 @@ public class Eventer
     }
 
     /// <summary>
-    /// 清楚所有事件
+    /// 清除所有事件
     /// </summary>
     public void Clear()
     {
@@ -161,7 +165,7 @@ public class Eventer
             }
             else
             {
-                try { t.action1(new EventerContent(this._sender, value, data)); }
+                try { t.action1(new EventerContent(this.Creater, value, data)); }
                 catch (Exception ex)
                 { Loger.Error("Eventer Error:" + ex); }
             }

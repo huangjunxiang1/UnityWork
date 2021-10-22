@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace Main
         {
             Loger.Error("Net Error Code:" + error);
             _ChannelID = 0;
-            SysEvent.ExcuteEvent((int)EventIDM.NetError, error);
+            SysEvent.ExcuteEvent((int)EIDM.NetError, error);
         }
         static void _onResponse(long channelId, MemoryStream memoryStream)
         {
