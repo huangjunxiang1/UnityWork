@@ -9,7 +9,7 @@ class ManagerL<T> : EntityL where T : ManagerL<T>, new()
 {
     public static T Inst { get; } = new T();
 
-    public virtual void init()
+    public virtual void Init()
     {
 
     }

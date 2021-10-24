@@ -21,14 +21,9 @@ public class Init
         GameSetting.UIModel = UIModel.FGUI;
 
         WRoot.Inst.Init();
-        SceneManager.Inst.init();
-        WObjectManager.Inst.init();
+        SceneMgr.Inst.Init();
+        WObjectManager.Inst.Init();
 
-        var ui = UIS.Open<FUILoading>(1);
-        ui.OnDispose.Add(inLogin);
-    }
-    static void inLogin()
-    {
-        UIS.Open<FUILogin>();
+        _ = SceneMgr.Inst.InLoginScene();
     }
 }

@@ -59,19 +59,11 @@ partial class FUILogin
             this.Dispose();
             if (GameSetting.UIModel == UIModel.UGUI)
             {
-                UIS.Open<UUILoading>(1).OnDispose.Add(() =>
-                {
-                    Main.SceneHelper.LoadScene("Main");
-                    SysEvent.ExcuteEvent((int)EIDL.InScene, 10001);
-                });
+                 //ugui 只做个展示  实际使用fgui
             }
             else
             {
-                UIS.Open<FUILoading>(1).OnDispose.Add(() =>
-                {
-                    Main.SceneHelper.LoadScene("Main");
-                    SysEvent.ExcuteEvent((int)EIDL.InScene, 10001);
-                });
+                _ = SceneMgr.Inst.InScene(10001);
             }
         }
         else if (_gameTypeCB.selectedIndex == 1)

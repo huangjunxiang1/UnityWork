@@ -67,24 +67,6 @@ partial class UUILogin
     }
     void login()
     {
-        if (_DropdownGameTypeDropdown.value == 0)
-        {
-            this.Dispose();
-            UIS.Open<UUILoading>(1).OnDispose.Add(() =>
-            {
-                Main.SceneHelper.LoadScene("Main");
-                SysEvent.ExcuteEvent((int)EIDL.InScene, 10001);
-            });
-        }
-        else if (_DropdownGameTypeDropdown.value == 1)
-        {
-            SysNet.Connect(NetType.KCP, Util.ToIPEndPoint(AppSetting.LoginAddress));
-            var msg = new C2R_Login()
-            {
-                Account = _acInputField.text,
-                Password = _pwInputField.text
-            };
-            SysNet.Send(msg);
-        }
+        //ugui 只做个展示  实际使用fgui
     }
 }

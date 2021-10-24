@@ -8,6 +8,8 @@
     <component id="qgu24" name="cb_popup.xml" path="/Common/comBox/"/>
     <component id="qgu25" name="CB.xml" path="/Common/comBox/"/>
     <component id="qgu27" name="btn.xml" path="/Common/btn/"/>
+    <component id="n68q8" name="FUIFighting.xml" path="/UI/" exported="true"/>
+    <component id="n68q9" name="btnBack.xml" path="/Common/btn/"/>
   </resources>
   <publish name="ComPkg" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2" genCode="true"/>
 </packageDescription>

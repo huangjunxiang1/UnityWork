@@ -6,11 +6,13 @@ using System.Linq;
 using Main;
 using Game;
 using System.Threading.Tasks;
+using System.Reflection;
 
 public class Engine : MonoBehaviour
 {
 
-    public bool Ilruntime;
+    public CodeRuntime Runtime;
+    public bool AssetBundle;
     public bool Debug;
 
     // Start is called before the first frame update
@@ -18,7 +20,7 @@ public class Engine : MonoBehaviour
     {
         DontDestroyOnLoad(this.gameObject);
 
-        AppSetting.ILRunTime = Ilruntime;
+        AppSetting.Runtime = Runtime;
         AppSetting.Debug = Debug;
 
         EnterGame();
@@ -34,38 +36,79 @@ public class Engine : MonoBehaviour
 
     void EnterGame()
     {
-        var a1 = typeof(TypesCache).Assembly.GetTypes();
+        Type[] a1 = typeof(TypesCache).Assembly.GetTypes();
 
-#if ILRuntime
-        ILRuntime.Runtime.Enviorment.AppDomain app = new ILRuntime.Runtime.Enviorment.AppDomain();
-        if (AppSetting.Debug)
+        if (AppSetting.Runtime == CodeRuntime.Native)
         {
-            System.IO.MemoryStream dll = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
-            System.IO.MemoryStream pdb = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb"));
-            app.LoadAssembly(dll, pdb, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
+#if !ILRuntime && !Assembly
+            Type[] a2 = typeof(Init).Assembly.GetTypes();
+
+            Type[] ts = new Type[a1.Length + a2.Length];
+            a1.CopyTo(ts, 0);
+            a2.CopyTo(ts, a1.Length);
+            TypesCache.InitTypes(ts);
+
+            Init.Main();
+#else
+            Loger.Error("当前Runtime宏定义不正确");
+#endif
         }
-        else
+        else if (AppSetting.Runtime == CodeRuntime.Assembly)
         {
-            System.IO.MemoryStream dll = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
-            app.LoadAssembly(dll);
+#if !Assembly
+            Loger.Error("当前Runtime宏定义不正确");
+#endif
+            Assembly asm;
+            if (AppSetting.Debug)
+            {
+                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll");
+                byte[] pdb = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb");
+                asm = Assembly.Load(dll, pdb);
+            }
+            else
+            {
+                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll");
+                asm = Assembly.Load(dll);
+            }
+
+            Type[] a2 = asm.GetTypes();
+
+            Type[] ts = new Type[a1.Length + a2.Length];
+            a1.CopyTo(ts, 0);
+            a2.CopyTo(ts, a1.Length);
+            TypesCache.InitTypes(ts);
+
+            asm.GetType("Init").GetMethod("Main").Invoke(null, null);
         }
-        ILRuntimeInit.Init(app);
-
-        var a2 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
-#else
-        var a2 = typeof(Init).Assembly.GetTypes();
+        else if (AppSetting.Runtime == CodeRuntime.ILRuntime)
+        {
+#if !ILRuntime
+            Loger.Error("当前Runtime宏定义不正确");
 #endif
+            ILRuntime.Runtime.Enviorment.AppDomain app = new ILRuntime.Runtime.Enviorment.AppDomain();
+            if (AppSetting.Debug)
+            {
+                System.IO.MemoryStream dll = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
+                System.IO.MemoryStream pdb = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb"));
+                app.LoadAssembly(dll, pdb, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
+            }
+            else
+            {
+                System.IO.MemoryStream dll = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
+                app.LoadAssembly(dll);
+            }
+            ILRuntimeInit.Init(app);
 
-        Type[] ts = new Type[a1.Length + a2.Length];
-        a1.CopyTo(ts, 0);
-        a2.CopyTo(ts, a1.Length);
-        TypesCache.InitTypes(ts);
+            Type[] a2 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
 
-#if ILRuntime
-        app.Invoke("Init", "Main", null, null);
-#else
-        Init.Main();
-#endif
+            Type[] ts = new Type[a1.Length + a2.Length];
+            a1.CopyTo(ts, 0);
+            a2.CopyTo(ts, a1.Length);
+            TypesCache.InitTypes(ts);
+
+            app.Invoke("Init", "Main", null, null);
+        }
+
     }
     private void OnApplicationQuit()
     {

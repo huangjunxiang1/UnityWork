@@ -8,10 +8,11 @@ using System;
 partial class FUILoading
 {
     float cur = 0;
-    float max = 0.1f;
+    public float max = 0.7f;
     protected override void OnEnter(params object[] data)
     {
-        max = Convert.ToSingle(data[0]);
+        if (data.Length >= 1)
+            max = Convert.ToSingle(data[0]);
         refView();
         _loadingBar.value = 0;
         _loadingBar.max = 1;
@@ -31,10 +32,7 @@ partial class FUILoading
             _loadingBar.value = cur;
             if (cur >= 1)
             {
-                Timer.Add(2, 1, () =>
-                {
-                    this.Dispose();
-                });
+                Timer.Add(2, 1, this.Dispose);
             }
         }
     }

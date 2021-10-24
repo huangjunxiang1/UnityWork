@@ -31,12 +31,13 @@ public class AppSettingEditor : Editor
     void refAsmdefAndDefine()
     {
         string all = File.ReadAllText(Application.dataPath + "/Code/HotFix/HotFix.asmdef");
-      
+
         int idx1 = all.IndexOf("includePlatforms");
         int idx11 = all.IndexOf("[", idx1 + 1);
         int idx22 = all.IndexOf("]", idx1);
         StringBuilder str = new StringBuilder();
-        if (setting.Ilruntime)
+        if (setting.Runtime == CodeRuntime.Assembly
+            || setting.Runtime == CodeRuntime.ILRuntime)
         {
             str.Append(all.Substring(0, idx11 + 1));
             str.Append("\"Editor\"");
@@ -56,13 +57,22 @@ public class AppSettingEditor : Editor
         for (int i = 0; i < groups.Length; i++)
         {
             List<string> defs = PlayerSettings.GetScriptingDefineSymbolsForGroup(groups[i]).Split(';').ToList();
-            if (setting.Ilruntime)
+
+            if (setting.Runtime == CodeRuntime.ILRuntime)
             {
                 if (!defs.Contains("ILRuntime"))
                     defs.Add("ILRuntime");
             }
             else
                 defs.RemoveAll(t => t == "ILRuntime");
+
+            if (setting.Runtime == CodeRuntime.Assembly)
+            {
+                if (!defs.Contains("Assembly"))
+                    defs.Add("Assembly");
+            }
+            else
+                defs.RemoveAll(t => t == "Assembly");
 
             if (setting.Debug)
             {

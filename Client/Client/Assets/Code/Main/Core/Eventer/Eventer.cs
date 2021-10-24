@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 /// </summary>
 public class Eventer
 {
+    public Eventer() { }
     public Eventer(object creater)
     {
         this.Creater = creater;

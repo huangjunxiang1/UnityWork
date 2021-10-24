@@ -18,41 +18,11 @@ static const int NAVMESHSET_VERSION = 1;
 
 int main()
 {
-    const char* path = "D:/UnityWork/Client/MapObj/Main2.bin";
+    const char* path = "D:/UnityWork/Client/MapObj/Main.bin";
     char* p = (char*)path;
 
-
-    std::fstream ofile;
-    ofile.open(path);
-    if (ofile.fail())
-    {
-        std::cout << "失败";
-        return 0;
-    }
-    
-    {
-        long l, m;
-        ifstream in(filename, ios::in | ios::binary);
-        l = in.tellg();
-        in.seekg(0, end);
-        m = in.tellg();
-        in.close();
-        std::cout << "size of " << filename;
-        std::cout << " is " << (m - l) << " bytes.\n";
-    }
-
-    char* p1;
-    int idx = 0;
-    if (!ofile.eof())
-    {
-        ofile >> p1[idx++];
-    }
-    ofile.close();
-    std::cout << "长度";
-    std::cout << *p1;
-
     bool b1 = recast_init();
-    bool b2 = recast_loadmapOnData(10001, p1);
+    bool b2 = recast_loadmap(10001, path);
 
     std::cout << "\n";
     std::cout << b1 ;

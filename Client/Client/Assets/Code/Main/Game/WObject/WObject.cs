@@ -60,11 +60,16 @@ namespace Game
         /// </summary>
         public override void Dispose()
         {
+            if (this.Disposed) return;
+
             base.Dispose();
-            for (int i = 0; i < _childLst.Count; i++)
-                _childLst[i].Dispose();
+            var lst = GetChildren();
+            for (int i = lst.Count - 1; i >= 0; i--)
+                lst[i].Dispose();
             _childMap.Clear();
             _childLst.Clear();
+            if (this.Parent != null)
+                this.Parent.Remove(this.ID);
             if (this.GameObject)
                 AssetLoad.Return(this.GameObject);
             if (_onDispose != null) _onDispose.Call();
@@ -132,6 +137,14 @@ namespace Game
             _childMap.Remove(id);
             _childLst.Remove(child);
             child.Parent = null;
+        }
+        public void RemoveAllChildren()
+        {
+            var lst = GetChildren();
+            for (int i = lst.Count - 1; i >= 0; i--)
+                lst[i].Dispose();
+            _childMap.Clear();
+            _childLst.Clear();
         }
     }
 }

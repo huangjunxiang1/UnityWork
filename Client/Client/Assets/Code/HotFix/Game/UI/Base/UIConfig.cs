@@ -19,10 +19,11 @@ class UIConfig
 
     public static Dictionary<Type, UIConfig> UIConfigMap = new Dictionary<Type, UIConfig>()
     {
-        { typeof(UUILoading),         new UIConfig(null, 50)},
         { typeof(UUILogin),          new UIConfig(null, 0)},
+        { typeof(UUILoading),         new UIConfig(null, 50)},
 
-        { typeof(FUILoading),         new UIConfig(null, 50)},
         { typeof(FUILogin),          new UIConfig(null, 0)},
+        { typeof(FUIFighting),         new UIConfig(null, 20)},
+        { typeof(FUILoading),         new UIConfig(null, 50)},
     };
 }

@@ -44,9 +44,11 @@ namespace Game
             SysEvent.RemoveListener(this);
             if (_taskLst != null)
             {
-                int len = _taskLst.Count;
+                var lst = new List<TaskAwaiter<IMessage>>(_taskLst.Count);
+                lst.AddRange(_taskLst);
+                int len = lst.Count;
                 for (int i = 0; i < len; i++)
-                    _taskLst[i].TryCancel();
+                    lst[i].TryCancel();
                 _taskLst.Clear();
             }
         }

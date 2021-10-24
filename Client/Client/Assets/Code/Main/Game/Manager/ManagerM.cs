@@ -11,7 +11,7 @@ namespace Game
     {
         public static T Inst { get; } = new T();
 
-        public void init()
+        public void Init()
         {
 
         }

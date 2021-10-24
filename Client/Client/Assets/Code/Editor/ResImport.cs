@@ -9,17 +9,8 @@ using System.Text;
 
 public class ResImport 
 {
-    [MenuItem("xx/xx")]
-    static void test()
-    {
-        Texture2D tex = new Texture2D(1, 1);
-        tex.SetPixel(0, 0, Color.clear);
-        tex.Apply();
-        string path = Application.dataPath + "/Art/UISprite/0.png";
-        File.WriteAllBytes(path, tex.EncodeToPNG());
-    }
 
-    [MenuItem("WTool/CreateUICode")]
+    [MenuItem("Tools/CreateUICode")]
     static void CreateUICode()
     {
         if (Selection.gameObjects == null || Selection.gameObjects.Length == 0)

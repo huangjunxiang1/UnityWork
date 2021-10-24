@@ -8,6 +8,7 @@ using Main;
 using System.Diagnostics;
 using System.Security;
 
+[DebuggerNonUserCode]
 [AsyncMethodBuilder(typeof(TaskAwaiterBuilder))]
 public sealed class TaskAwaiter : ICriticalNotifyCompletion
 {
@@ -44,6 +45,8 @@ public sealed class TaskAwaiter : ICriticalNotifyCompletion
     /// </summary>
     public void TryCancel(bool completed = false)
     {
+        if (this._isDisposed) return;
+
         this._isDisposed = true;
         this._call = null;
 
@@ -70,7 +73,8 @@ public sealed class TaskAwaiter : ICriticalNotifyCompletion
         catch (Exception ex) { Loger.Error("TrySetResult Error:" + ex); }
         this._onComplete = null;
 
-        try { this._call.Invoke(); }
+        //如果异步使用弃元 则不会有下一步的回调
+        try { this._call?.Invoke(); }
         catch (Exception ex) { Loger.Error("TrySetResult Error:" + ex); }
         this._call = null;
     }
@@ -83,6 +87,8 @@ public sealed class TaskAwaiter : ICriticalNotifyCompletion
     {
         if (this._isDisposed) return;
 
+        this._isDisposed = true;
+
         Loger.Error("TaskAwaiter Error " + e);
 
         //先回调Complete  再继续走异步的下一步
@@ -90,7 +96,8 @@ public sealed class TaskAwaiter : ICriticalNotifyCompletion
         catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
         this._onComplete = null;
 
-        try { this._call.Invoke(); }
+        //如果异步使用弃元 则不会有下一步的回调
+        try { this._call?.Invoke(); }
         catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
         this._call = null;
     }
