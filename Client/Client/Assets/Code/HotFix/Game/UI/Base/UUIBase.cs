@@ -26,11 +26,11 @@ abstract class UUIBase : UIBase
     }
 
 
-    public override void InitConfig(UIConfig config, params object[] data)
+    public override async void InitConfig(UIConfig config, params object[] data)
     {
         base.InitConfig(config);
 
-        this.UI = (RectTransform)AssetLoad.Load<GameObject>("UI/UUI/UIPrefab/" + this.GetType().Name + ".prefab").transform;
+        this.UI = (RectTransform)(await AssetLoad.PrefabLoader.LoadAsync("UI/UUI/UIPrefab/" + this.GetType().Name + ".prefab")).transform;
         this.UI.SetParent(UIS.UGUIRoot);
         this.UI.localScale = Vector3.one;
         this.UI.rotation = default;
@@ -50,7 +50,7 @@ abstract class UUIBase : UIBase
         //先执行退出逻辑
         this.OnExit();
         base.Dispose();
-        AssetLoad.Return(this.UI.gameObject);
+        AssetLoad.PrefabLoader.Release(this.UI.gameObject);
         this.UI = null;
     }
 }

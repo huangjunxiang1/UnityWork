@@ -18,6 +18,8 @@ namespace Game
         List<Vector3> _totalPos;
         List<long> _totalTimes;
         long _startUtc;
+        TaskAwaiter<GameObject> _pathLineTask;
+        GameObject _pathLine;
 
 
         public Animator Animator { get; }
@@ -36,7 +38,7 @@ namespace Game
         {
             MovePath(new List<Vector3>(2) { this.Position, pos });
         }
-        public void MovePath(List<Vector3> posLst)
+        public async void MovePath(List<Vector3> posLst)
         {
             _totalPos = posLst;
             _totalTimes = new List<long>(posLst.Count - 1);
@@ -48,11 +50,36 @@ namespace Game
             _startUtc = Timer.ServerTime;
             if (!Timer.Contains(_moveUpdate))
                 Timer.Add(0, -1, _moveUpdate);
+
+            if (!_pathLine && _pathLineTask == null)
+            {
+                _pathLineTask = CreateTask<GameObject>();
+                _pathLine = await AssetLoad.PrefabLoader.LoadAsync("3D/Util/pathLine.prefab", _pathLineTask);
+                _pathLineTask = null;
+                _pathLine.transform.rotation = Quaternion.Euler(90, 0, 0);
+                LineRenderer line = _pathLine.GetComponent<LineRenderer>();
+                line.positionCount = posLst.Count;
+                line.SetPositions(posLst.ToArray());
+            }
         }
         public void Stop(Vector3 pos)
         {
             this.Position = pos;
             Timer.Remove(_moveUpdate);
+            if (_pathLine)
+            {
+                AssetLoad.PrefabLoader.Release(_pathLine);
+                _pathLine = null;
+            }
+        }
+        public override void Dispose()
+        {
+            base.Dispose();
+            if (_pathLine)
+            {
+                AssetLoad.PrefabLoader.Release(_pathLine);
+                _pathLine = null;
+            }
         }
 
         void _moveUpdate()
@@ -76,6 +103,11 @@ namespace Game
             {
                 this.Position = _totalPos[_totalPos.Count - 1];
                 Timer.Remove(_moveUpdate);
+                if (_pathLine)
+                {
+                    AssetLoad.PrefabLoader.Release(_pathLine);
+                    _pathLine = null;
+                }
             }
         }
     }

@@ -16,7 +16,7 @@ namespace Game
         }
 
         //挂载数据
-        public double value;
+        public int value;
         public object data;
 
         //缓存数据
@@ -60,8 +60,6 @@ namespace Game
         /// </summary>
         public override void Dispose()
         {
-            if (this.Disposed) return;
-
             base.Dispose();
             var lst = GetChildren();
             for (int i = lst.Count - 1; i >= 0; i--)
@@ -71,7 +69,7 @@ namespace Game
             if (this.Parent != null)
                 this.Parent.Remove(this.ID);
             if (this.GameObject)
-                AssetLoad.Return(this.GameObject);
+                AssetLoad.PrefabLoader.Release(this.GameObject);
             if (_onDispose != null) _onDispose.Call();
         }
 

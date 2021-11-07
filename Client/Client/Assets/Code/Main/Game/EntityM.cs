@@ -21,7 +21,7 @@ namespace Game
 
         static long idValue;
 
-        List<TaskAwaiter<IMessage>> _taskLst;
+        List<TaskAwaiter> _taskLst;
 
         /// <summary>
         /// ID  可自定义赋值
@@ -38,7 +38,11 @@ namespace Game
         /// </summary>
         public virtual void Dispose()
         {
-            if (this.Disposed) return;
+            if (this.Disposed)
+            {
+                Loger.Error("重复Dispose->" + this.GetType().FullName);
+                return;
+            }
 
             this.Disposed = true;
             SysEvent.RemoveListener(this);
@@ -49,6 +53,24 @@ namespace Game
                     _taskLst[i].TryCancel();
                 _taskLst.Clear();
             }
+        }
+
+        //创建一个异步并管理起来
+        public TaskAwaiter CreateTask()
+        {
+            if (_taskLst == null) _taskLst = new List<TaskAwaiter>();
+            TaskAwaiter task = new TaskAwaiter();
+            _taskLst.Add(task);
+            _waitRemove(task);
+            return task;
+        }
+        public TaskAwaiter<T> CreateTask<T>()
+        {
+            if (_taskLst == null) _taskLst = new List<TaskAwaiter>();
+            TaskAwaiter<T> task = new TaskAwaiter<T>();
+            _taskLst.Add(task);
+            _waitRemove(task);
+            return task;
         }
 
         /// <summary>
@@ -62,13 +84,13 @@ namespace Game
         }
         protected TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request)
         {
-            if (_taskLst == null) _taskLst = new List<TaskAwaiter<IMessage>>();
-            var task = SysNet.SendAsync(actorId, request, _onComplete);
-            _taskLst.Add(task);
-            return task;
+            return SysNet.SendAsync(actorId, request, CreateTask<IMessage>());
         }
-        void _onComplete(TaskAwaiter<IMessage> task)
+
+        //完成之后从管理列表移除
+        async void _waitRemove(TaskAwaiter task)
         {
+            await task;
             _taskLst.Remove(task);
         }
     }

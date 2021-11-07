@@ -131,11 +131,11 @@ namespace Main
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static TaskAwaiter<IMessage> SendAsync(IRequest request)
+        public static TaskAwaiter<IMessage> SendAsync(IRequest request, TaskAwaiter<IMessage> customTask = null)
         {
-            return SendAsync(0, request);
+            return SendAsync(0, request, customTask);
         }
-        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request)
+        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request, TaskAwaiter<IMessage> customTask = null)
         {
             Type t;
 #if ILRuntime
@@ -143,7 +143,7 @@ namespace Main
                 t = ilRequest.ILInstance.Type.ReflectionType;
             else
 #endif
-                t = request.GetType();
+            t = request.GetType();
 
             var responseType = TypesCache.GetResponseType(request.GetType());
             if (responseType == null)
@@ -156,40 +156,11 @@ namespace Main
                 queue = new Queue<TaskAwaiter<IMessage>>();
                 _requestTask[responseType] = queue;
             }
-            TaskAwaiter<IMessage> task = new TaskAwaiter<IMessage>();
-            queue.Enqueue(task);
+            if (customTask == null)
+                customTask = new TaskAwaiter<IMessage>();
+            queue.Enqueue(customTask);
             Send(actorId, request);
-            return task;
-        }
-        public static TaskAwaiter<IMessage> SendAsync(IRequest request, Action<TaskAwaiter<IMessage>> onComplete)
-        {
-            return SendAsync(0, request, onComplete);
-        }
-        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request, Action<TaskAwaiter<IMessage>> onComplete)
-        {
-            Type t;
-#if ILRuntime
-            if (request is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilRequest)
-                t = ilRequest.ILInstance.Type.ReflectionType;
-            else
-#endif
-                t = request.GetType();
-
-            var responseType = TypesCache.GetResponseType(t);
-            if (responseType == null)
-            {
-                Loger.Error("没有responseType类型 requestType:"+ request.GetType());
-                return null;
-            }
-            if (!_requestTask.TryGetValue(responseType, out Queue<TaskAwaiter<IMessage>> queue))
-            {
-                queue = new Queue<TaskAwaiter<IMessage>>();
-                _requestTask[responseType] = queue;
-            }
-            TaskAwaiter<IMessage> task = new TaskAwaiter<IMessage>(onComplete);
-            queue.Enqueue(task);
-            Send(actorId, request);
-            return task;
+            return customTask;
         }
 
         /// <summary>

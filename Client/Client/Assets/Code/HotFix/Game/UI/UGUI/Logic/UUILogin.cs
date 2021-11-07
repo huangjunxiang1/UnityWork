@@ -54,16 +54,10 @@ partial class UUILogin
     {
         if (v == 0)
         {
-            //这里直接立即调用  this.Dispose(); ugui会报错
-            Timer.Add(0.01f, 1, () =>
-              {
-                  GameSetting.UIModel = UIModel.FGUI;
-                  UIS.Open<FUILogin>();
-                  this.Dispose();
-              });
+            GameSetting.UIModel = UIModel.FGUI;
+            UIS.Open<FUILogin>();
+            this.Dispose();
         }
-        else
-            GameSetting.UIModel = UIModel.UGUI;
     }
     void login()
     {

@@ -5,40 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using System.IO;
-using UnityEditor;
+using FairyGUI;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Main
 {
     public static class AssetLoad
     {
-        public static UnityEngine.Object Load(string path)
-        {
-            UnityEngine.Object o = AssetDatabase.LoadMainAssetAtPath("Assets/Res/" + path);
-            if (o is GameObject go)
-                return GameObject.Instantiate(go);
-            return o;
-        }
-        public static T Load<T>(string path) where T : UnityEngine.Object
-        {
-            T o = AssetDatabase.LoadAssetAtPath<T>("Assets/Res/" + path);
-            if (o is GameObject go)
-                return GameObject.Instantiate(go) as T;
-            return o;
-        }
-        public static void Return(UnityEngine.Object obj)
-        {
-            if (obj is GameObject)
-                GameObject.DestroyImmediate(obj);
-        }
+        public const string Directory = "Assets/Res/";
 
-        public static AssetBundle LoadBundle(string path)
-        {
-            return default;
-        }
+#if UNITY_EDITOR
+        //Editor模式加载的是原始资源  所以要用加载出来的拷贝一份再用
+        public static AssetBaseLoader<GameObject> PrefabLoader { get; } = new AssetCopyLoader<GameObject>();
+#else
+        public static AssetBaseLoader<GameObject> PrefabLoader { get; } = new AssetPrimitiveLoader<GameObject>();
+#endif
+        public static AssetBaseLoader<Texture> TextureLoader { get; } = new AssetCounterLoader<Texture>();
+        public static AssetBaseLoader<TextAsset> TextAssetLoader { get; } = new AssetPrimitiveLoader<TextAsset>();
+        public static AssetBaseLoader<AudioClip> AudioLoader { get; } = new AssetPrimitiveLoader<AudioClip>();
+        public static AssetBaseLoader<ScriptableObject> ScriptObjectLoader { get; } = new AssetPrimitiveLoader<ScriptableObject>();
 
-        public static byte[] LoadConfigBytes(string name)
-        {
-            return File.ReadAllBytes(Application.dataPath + "/Res/Config/" + name);
-        }
+        //默认保存一个通用加载器  
+        public static AssetBaseLoader<UnityEngine.Object> DefaultLoader { get; } = new AssetPrimitiveLoader<UnityEngine.Object>();
     }
 }

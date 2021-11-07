@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using Game;
 using FairyGUI;
+using Main;
 
 enum UIModel
 {
@@ -17,30 +18,14 @@ static class UIS
 {
     static UIS()
     {
-        //ugui init
-        {
-            GameObject root = new GameObject("UIRoot", typeof(RectTransform));
-            root.layer = LayerMask.NameToLayer("UI");
-            GameObject.DontDestroyOnLoad(root);
-            UGUIRoot = root.transform as RectTransform;
-            UGUIRoot.sizeDelta = new Vector2(Screen.width, Screen.height);
-            UGUIRoot.pivot = Vector2.zero;
-            UGUIRoot.position = Vector3.zero;
-            UGUICamera = GameObject.Find("UGUICamera").GetComponent<Camera>();
-
-            UGUIRoot.gameObject.SetActive(GameSetting.UIModel == UIModel.UGUI);
-            UGUICamera.gameObject.SetActive(GameSetting.UIModel == UIModel.UGUI);
-        }
-      
-        //fgui init
-        {
-            //加载图集包和组件包
-            UIPackage.AddPackage("Assets/Res/UI/FUI/ResPkg/ResPkg");
-            UIPackage.AddPackage("Assets/Res/UI/FUI/ComPkg/ComPkg");
-
-            GRoot.inst.visible = GameSetting.UIModel == UIModel.FGUI;
-            StageCamera.main.gameObject.SetActive(GameSetting.UIModel == UIModel.FGUI);
-        }
+        GameObject root = new GameObject("UIRoot", typeof(RectTransform));
+        root.layer = LayerMask.NameToLayer("UI");
+        GameObject.DontDestroyOnLoad(root);
+        UGUIRoot = root.transform as RectTransform;
+        UGUIRoot.sizeDelta = new Vector2(Screen.width, Screen.height);
+        UGUIRoot.pivot = Vector2.zero;
+        UGUIRoot.position = Vector3.zero;
+        UGUICamera = GameObject.Find("UGUICamera").GetComponent<Camera>();
     }
 
     static List<UIBase> _uiLst = new List<UIBase>();
@@ -50,6 +35,51 @@ static class UIS
     /// </summary>
     public static RectTransform UGUIRoot { get; }
     public static Camera UGUICamera { get; }
+
+    public static async TaskAwaiter Init()
+    {
+        //ugui init
+        {
+            UGUIRoot.gameObject.SetActive(GameSetting.UIModel == UIModel.UGUI);
+            UGUICamera.gameObject.SetActive(GameSetting.UIModel == UIModel.UGUI);
+        }
+
+        //fgui init
+        {
+            GRoot.inst.visible = GameSetting.UIModel == UIModel.FGUI;
+            StageCamera.main.gameObject.SetActive(GameSetting.UIModel == UIModel.FGUI);
+            UIPackage.AddPackage((await AssetLoad.TextAssetLoader.LoadAsync("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
+            UIPackage.AddPackage((await AssetLoad.TextAssetLoader.LoadAsync("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
+            NTexture.CustomDestroyMethod += textureUnLoad;
+        }
+    }
+    async static void fguiLoader(string name, string extension, System.Type type, PackageItem item)
+    {
+        switch (item.type)
+        {
+            case PackageItemType.Sound:
+                {
+                    var task = AssetLoad.AudioLoader.LoadAsync($"UI/FUI/{item.owner.name}/{name}{extension}");
+                    await task;
+                    item.owner.SetItemAsset(item, task.GetResult(), DestroyMethod.Custom);
+                }
+                break;
+            case PackageItemType.Atlas:
+                {
+                    var task = AssetLoad.TextureLoader.LoadAsync($"UI/FUI/{item.owner.name}/{name}{extension}");
+                    await task;
+                    item.owner.SetItemAsset(item, task.GetResult(), DestroyMethod.Custom);
+                }
+                break;
+            default:
+                Loger.Error("未定义加载->" + item.type);
+                break;
+        }
+    }
+    static void textureUnLoad(Texture texture)
+    {
+        AssetLoad.TextureLoader.Release(texture);
+    }
 
     public static T Open<T>(params object[] data) where T : UIBase, new()
     {

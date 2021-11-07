@@ -9,52 +9,22 @@ using System.Diagnostics;
 
 [DebuggerNonUserCode]
 [AsyncMethodBuilder(typeof(TaskAwaiterBuilder<>))]
-public sealed class TaskAwaiter<T> : ICriticalNotifyCompletion
+public sealed class TaskAwaiter<T> : TaskAwaiter
 {
-    public TaskAwaiter()
+    public TaskAwaiter() : base()
     {
-        
-    }
-    public TaskAwaiter(Action<TaskAwaiter<T>> onComplete)
-    {
-        this._onComplete = onComplete;
+
     }
 
-    Action _call;
-    Action<TaskAwaiter<T>> _onComplete;
-    bool _isDisposed;
     T _result;
 
-    /// <summary>
-    /// 是否已完成
-    /// </summary>
-    public bool Completed { get; private set; }
-
-    public TaskAwaiter<T> GetAwaiter()
+    public new TaskAwaiter<T> GetAwaiter()
     {
         return this;
     }
-    public T GetResult()
+    public new T GetResult()
     {
         return _result;
-    }
-
-    /// <summary>
-    /// 取消
-    /// </summary>
-    public void TryCancel(bool completed = false)
-    {
-        if (this._isDisposed) return;
-
-        this._isDisposed = true;
-        this._call = null;
-
-        if (completed)
-        {
-            try { this._onComplete?.Invoke(this); }
-            catch (Exception ex) { Loger.Error("TryCancel Error:" + ex); }
-            this._onComplete = null;
-        }
     }
 
     /// <summary>
@@ -63,53 +33,9 @@ public sealed class TaskAwaiter<T> : ICriticalNotifyCompletion
     /// <param name="result"></param>
     public void TrySetResult(T result)
     {
-        if (this._isDisposed) return;
+        if (this.IsDisposed ) return;
 
         this._result = result;
-        this._isDisposed = true;
-        this.Completed = true;
-
-        //先回调Complete  再继续走异步的下一步
-        try { this._onComplete?.Invoke(this); }
-        catch (Exception ex) { Loger.Error("TrySetResult Error:" + ex); }
-        this._onComplete = null;
-
-        //如果异步使用弃元 则不会有下一步的回调
-        try { this._call?.Invoke(); }
-        catch (Exception ex) { Loger.Error("TrySetResult Error:" + ex); }
-        this._call = null;
-    }
-
-
-    /// <summary>
-    /// 错误
-    /// </summary>
-    /// <param name="e"></param>
-    public void SetException(Exception e)
-    {
-        if (this._isDisposed) return;
-
-        this._isDisposed = true;
-
-        Loger.Error($"TaskAwaiter<{typeof(T)}> Error " + e);
-
-        //先回调Complete  再继续走异步的下一步
-        try { this._onComplete?.Invoke(this); }
-        catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
-        this._onComplete = null;
-
-        //如果异步使用弃元 则不会有下一步的回调
-        try { this._call?.Invoke(); }
-        catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
-        this._call = null;
-    }
-
-    void INotifyCompletion.OnCompleted(Action continuation)
-    {
-        this._call = continuation;
-    }
-    void ICriticalNotifyCompletion.UnsafeOnCompleted(Action continuation)
-    {
-        this._call = continuation;
+        base.TrySetResult();
     }
 }

@@ -10,19 +10,23 @@ using System.Threading.Tasks;
 public class EventerContent
 {
     public EventerContent() { }
+    public EventerContent(object sender) { this.Sender = sender; }
     public EventerContent(object sender, int value, object data)
     {
         this.Sender = sender;
         this.ValueInt = value;
         this.Data = data;
     }
-    public EventerContent(int value, object data)
+    public EventerContent(object sender, int value)
     {
+        this.Sender = sender;
         this.ValueInt = value;
-        this.Data = data;
     }
-    public EventerContent(int value) { this.ValueInt = value; }
-    public EventerContent(object data) { this.Data = data; }
+    public EventerContent(object sender, object data)
+    {
+        this.Sender = sender;
+        this.Data = data; 
+    }
 
     /// <summary>
     /// 事件发起者

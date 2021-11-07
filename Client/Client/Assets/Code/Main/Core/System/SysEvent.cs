@@ -520,7 +520,7 @@ namespace Main
                     try
                     {
                         if (e.isP0) e.action0();
-                        else e.action1(new EventerContent(value, data));
+                        else e.action1(new EventerContent(null, value, data));
                     }
                     catch (Exception ex)
                     {

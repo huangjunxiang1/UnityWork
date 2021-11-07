@@ -58,6 +58,9 @@ public class Engine : MonoBehaviour
 #if !Assembly
             Loger.Error("当前Runtime宏定义不正确");
 #endif
+#if UNITY_IL2CPP
+           Loger.Error("IL2CPP模式无法运行");
+#endif
             Assembly asm;
             if (AppSetting.Debug)
             {

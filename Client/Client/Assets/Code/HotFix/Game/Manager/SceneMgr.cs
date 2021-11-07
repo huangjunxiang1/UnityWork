@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.AI;
 
 class SceneMgr : ManagerL<SceneMgr>
 {
@@ -51,16 +52,8 @@ class SceneMgr : ManagerL<SceneMgr>
         CurScene = 1;
         WRoot.Inst.RemoveAllChildren();
 
-        TaskAwaiter task = new TaskAwaiter();
-        void loadRet(UnityEngine.SceneManagement.Scene s, LoadSceneMode m)
-        {
-            SceneManager.sceneLoaded -= loadRet;
-            task.TrySetResult();
-        }
-        SceneManager.sceneLoaded += loadRet;
-        SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
+        await SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
 
-        await task;
         ui.max = 1;
         UIS.Open<FUILogin>();
 
@@ -80,16 +73,8 @@ class SceneMgr : ManagerL<SceneMgr>
         CurScene = SceneID;
         WRoot.Inst.RemoveAllChildren();
         
-        TaskAwaiter task = new TaskAwaiter();
-        void loadRet(UnityEngine.SceneManagement.Scene s, LoadSceneMode m)
-        {
-            SceneManager.sceneLoaded -= loadRet;
-            task.TrySetResult();
-        }
-        SceneManager.sceneLoaded += loadRet;
-        SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
+        await SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
 
-        await task;
         ui.max = 1;
         UIS.Open<FUIFighting>();
 
@@ -113,6 +98,8 @@ class SceneMgr : ManagerL<SceneMgr>
         WRoot.Inst.AddChild(role);
         CM.Follow(role.GameObject.transform);
         CM.LookAt(role.GameObject.transform);
+        role.Position = new Vector3(1, 0, 1);
+        role.GameObject.transform.localScale = Vector3.one * 2;
 
         float wheel = 1f;
 
@@ -121,7 +108,7 @@ class SceneMgr : ManagerL<SceneMgr>
         {
             float _wheel = Input.GetAxis("Mouse ScrollWheel");
             wheel -= _wheel;
-            wheel = Mathf.Clamp(wheel, 0.1f, 2);
+            wheel = Mathf.Clamp(wheel, 0.1f, 3);
             CM.Wheel(wheel);
             if (Input.GetMouseButtonDown(1))
             {

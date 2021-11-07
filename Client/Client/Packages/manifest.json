@@ -2,6 +2,7 @@
   "dependencies": {
     "com.ourpalm.ilruntime": "1.6.7",
     "com.unity.2d.sprite": "1.0.0",
+    "com.unity.addressables": "1.18.19",
     "com.unity.burst": "1.4.11",
     "com.unity.cinemachine": "2.8.0",
     "com.unity.collab-proxy": "1.13.5",
