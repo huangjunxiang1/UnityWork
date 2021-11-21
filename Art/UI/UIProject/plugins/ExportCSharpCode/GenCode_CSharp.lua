@@ -16,6 +16,12 @@ local function genCode(handler)
 
     local classCnt = classes.Count
     local writer = CodeWriter.new()
+
+        writer:reset()
+
+        writer:writeln('using FairyGUI;')
+        writer:writeln('using FairyGUI.Utils;')
+
     for i=0,classCnt-1 do
         local classInfo = classes[i]
 
@@ -23,10 +29,6 @@ local function genCode(handler)
        
         local members = classInfo.members
 
-        writer:reset()
-
-        writer:writeln('using FairyGUI;')
-        writer:writeln('using FairyGUI.Utils;')
         writer:writeln()
         writer:writeln('partial class %s : FUIBase', classInfo.className)
         writer:startBlock()
@@ -76,10 +78,10 @@ local function genCode(handler)
 
         writer:endBlock() --class
 
-        writer:save(exportCodePath..'/'..classInfo.className..'.cs')
 
         end
     end
+        writer:save(exportCodePath..'/'..'FUI.cs')
 end
 
 return genCode

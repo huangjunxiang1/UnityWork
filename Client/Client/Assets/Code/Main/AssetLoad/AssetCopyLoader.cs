@@ -24,11 +24,29 @@ namespace Main
             return ret;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> task = null)
+        public override TaskAwaiter<T> LoadAsync(string path)
         {
-            if (task == null)
-                task = new TaskAwaiter<T>();
+            TaskAwaiter<T> task = new TaskAwaiter<T>(path);
             getTaskAndWait(path, task);
+            return task;
+        }
+
+        public override TaskAwaiter<T> LoadAsyncRef(string path, ref TaskAwaiter<T> task)
+        {
+            if (task == null || task.IsCompleted || task.IsDisposed)
+            {
+                task = LoadAsync(path);
+            }
+            else
+            {
+                if (!path.Equals(task.Token))
+                {
+                    task.TryCancel();
+                    task = LoadAsync(path);
+                }
+                else
+                    task.Reset();
+            }
             return task;
         }
 

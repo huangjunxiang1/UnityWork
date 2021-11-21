@@ -12,7 +12,8 @@ namespace Main
     public abstract class AssetBaseLoader<T> where T : UnityEngine.Object
     {
         public abstract T Load(string path);
-        public abstract TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> task = null);
+        public abstract TaskAwaiter<T> LoadAsync(string path);
+        public abstract TaskAwaiter<T> LoadAsyncRef(string path, ref TaskAwaiter<T> task);
         public abstract void Release(T target);
     }
 }

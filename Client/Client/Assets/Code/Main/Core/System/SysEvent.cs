@@ -39,11 +39,11 @@ namespace Main
             public int eventID;//事件ID
         }
 
-        readonly static Dictionary<int, List<MsgData>> _msgMap = new Dictionary<int, List<MsgData>>();
-        readonly static Dictionary<int, List<EvtData>> _evtMap = new Dictionary<int, List<EvtData>>();
-        readonly static Dictionary<int, int> _msgCalling = new Dictionary<int, int>();
-        readonly static Dictionary<int, int> _evtCalling = new Dictionary<int, int>();
-        readonly static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>();
+        readonly static Dictionary<int, List<MsgData>> _msgMap = new Dictionary<int, List<MsgData>>(997);
+        readonly static Dictionary<int, List<EvtData>> _evtMap = new Dictionary<int, List<EvtData>>(997);
+        readonly static Dictionary<int, int> _msgCalling = new Dictionary<int, int>(17);
+        readonly static Dictionary<int, int> _evtCalling = new Dictionary<int, int>(17);
+        readonly static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>(997);
         static bool _rigistedStaticMethodEvt = false;
 
         static MethodData[] _getFilterMethods(Type t)
@@ -61,12 +61,11 @@ namespace Main
                     if (method.IsStatic) continue;
 #endif
 
+                    var ps = method.GetParameters();
                     var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
-                    if (mas.Length > 0)
+                    for (int k = 0; k < mas.Length; k++)
                     {
-                        var ps = method.GetParameters();
-
-                        MsgAttribute a = (MsgAttribute)mas[0];
+                        MsgAttribute a = (MsgAttribute)mas[k];
                         MethodData e = new MethodData();
                         e.info = method;
                         e.type = 0;
@@ -102,49 +101,45 @@ namespace Main
 
                         evts.Add(e);
                     }
-                    else
-                    {
-                        var eas = method.GetCustomAttributes(typeof(EventAttribute), false);
-                        if (eas.Length > 0)
-                        {
-                            var ps = method.GetParameters();
 
-                            EventAttribute a = (EventAttribute)eas[0];
-                            MethodData e = new MethodData();
-                            e.info = method;
-                            e.type = 1;
-                            e.eventID = a.EventID;
-                            e.sortOrder = a.SortOrder;
+                    var eas = method.GetCustomAttributes(typeof(EventAttribute), false);
+                    for (int k = 0; k < eas.Length; k++)
+                    {
+                        EventAttribute a = (EventAttribute)eas[k];
+                        MethodData e = new MethodData();
+                        e.info = method;
+                        e.type = 1;
+                        e.eventID = a.EventID;
+                        e.sortOrder = a.SortOrder;
 
 #if ILRuntime
-                            if (t is ILRuntime.Reflection.ILRuntimeType)
-                            {
-                                if (ps.Length == 0)
-                                    e.pCnt = 0;
-                                else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
-                                    e.pCnt = 1;
-                                else
-                                {
-                                    Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                    continue;
-                                }
-                            }
+                        if (t is ILRuntime.Reflection.ILRuntimeType)
+                        {
+                            if (ps.Length == 0)
+                                e.pCnt = 0;
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
+                                e.pCnt = 1;
                             else
-#endif
                             {
-                                if (ps.Length == 0)
-                                    e.pCnt = 0;
-                                else if (ps.Length == 1 && ps[0].ParameterType == typeof(EventerContent))
-                                    e.pCnt = 1;
-                                else
-                                {
-                                    Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                    continue;
-                                }
+                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
+                                continue;
                             }
-
-                            evts.Add(e);
                         }
+                        else
+#endif
+                        {
+                            if (ps.Length == 0)
+                                e.pCnt = 0;
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(EventerContent))
+                                e.pCnt = 1;
+                            else
+                            {
+                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
+                                continue;
+                            }
+                        }
+
+                        evts.Add(e);
                     }
                 }
                 result = _methodCache[t] = evts.ToArray();
@@ -175,9 +170,9 @@ namespace Main
 #endif
 
                     var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
-                    if (mas.Length > 0)
+                    for (int k = 0; k < mas.Length; k++)
                     {
-                        var a = mas[0] as MsgAttribute;
+                        var a = (MsgAttribute)mas[k];
                         if (!_msgMap.TryGetValue(a.OpCode, out var evts))
                         {
                             evts = new List<MsgData>();
@@ -226,59 +221,57 @@ namespace Main
                             evts.Insert(idx, e);
                         }
                     }
-                    else
-                    {
-                        var eas = method.GetCustomAttributes(typeof(EventAttribute), false);
-                        if (eas.Length > 0)
-                        {
-                            var a = eas[0] as EventAttribute;
-                            if (!_evtMap.TryGetValue(a.EventID, out var evts))
-                            {
-                                evts = new List<EvtData>();
-                                _evtMap[a.EventID] = evts;
-                            }
 
-                            var ps = method.GetParameters();
-                            EvtData e = new EvtData();
-                            e.isCanceled = false;
-                            e.sortOrder = a.SortOrder;
-                            e.isP0 = ps.Length == 0;
+                    var eas = method.GetCustomAttributes(typeof(EventAttribute), false);
+                    for (int k = 0; k < eas.Length; k++)
+                    {
+                        var a = (EventAttribute)eas[k];
+                        if (!_evtMap.TryGetValue(a.EventID, out var evts))
+                        {
+                            evts = new List<EvtData>();
+                            _evtMap[a.EventID] = evts;
+                        }
+
+                        var ps = method.GetParameters();
+                        EvtData e = new EvtData();
+                        e.isCanceled = false;
+                        e.sortOrder = a.SortOrder;
+                        e.isP0 = ps.Length == 0;
 
 #if ILRuntime
-                            if (type is ILRuntime.Reflection.ILRuntimeType)
-                            {
-                                if (ps.Length == 0)
-                                    e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
-                                else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
-                                    e.action1 = p => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, new object[] { p }, default);
-                                else
-                                {
-                                    Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
-                                    continue;
-                                }
-                            }
+                        if (type is ILRuntime.Reflection.ILRuntimeType)
+                        {
+                            if (ps.Length == 0)
+                                e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
+                                e.action1 = p => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, new object[] { p }, default);
                             else
+                            {
+                                Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
+                                continue;
+                            }
+                        }
+                        else
 #endif
-                            {
-                                if (ps.Length == 0)
-                                    e.action0 = (Action)method.CreateDelegate(typeof(Action));
-                                else if (ps.Length == 1 && ps[0].ParameterType == typeof(EventerContent))
-                                    e.action1 = (Action<EventerContent>)method.CreateDelegate(typeof(Action<EventerContent>));
-                                else
-                                {
-                                    Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
-                                    continue;
-                                }
-                            }
-
-                            if (evts.Count == 0 || a.SortOrder >= evts[evts.Count - 1].sortOrder)
-                                evts.Add(e);
+                        {
+                            if (ps.Length == 0)
+                                e.action0 = (Action)method.CreateDelegate(typeof(Action));
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(EventerContent))
+                                e.action1 = (Action<EventerContent>)method.CreateDelegate(typeof(Action<EventerContent>));
                             else
                             {
-                                int idx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder);
-                                if (idx == -1) idx = 0;
-                                evts.Insert(idx, e);
+                                Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
+                                continue;
                             }
+                        }
+
+                        if (evts.Count == 0 || a.SortOrder >= evts[evts.Count - 1].sortOrder)
+                            evts.Add(e);
+                        else
+                        {
+                            int idx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder);
+                            if (idx == -1) idx = 0;
+                            evts.Insert(idx, e);
                         }
                     }
                 }
@@ -520,7 +513,7 @@ namespace Main
                     try
                     {
                         if (e.isP0) e.action0();
-                        else e.action1(new EventerContent(null, value, data));
+                        else e.action1(new EventerContent(e.target, value, data));
                     }
                     catch (Exception ex)
                     {

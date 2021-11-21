@@ -180,7 +180,7 @@ MonoBehaviour:
     m_Value: 1.5
   limitMin:
     m_OverrideState: 1
-    m_Value: 10.787558
+    m_Value: 3
   limitMax:
     m_OverrideState: 1
     m_Value: 15

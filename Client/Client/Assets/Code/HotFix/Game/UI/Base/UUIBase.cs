@@ -50,7 +50,8 @@ abstract class UUIBase : UIBase
         //先执行退出逻辑
         this.OnExit();
         base.Dispose();
-        AssetLoad.PrefabLoader.Release(this.UI.gameObject);
+        //ui不做池管理
+        AssetLoad.PrefabLoader.ReleaseDontReturnPool(this.UI.gameObject);
         this.UI = null;
     }
 }

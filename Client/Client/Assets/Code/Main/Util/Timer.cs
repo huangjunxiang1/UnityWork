@@ -63,6 +63,7 @@ public static class Timer
     {
         for (int i = 0; i < _timerLst.Count; i++)
         {
+            if (_timerLst[i].isDisposed) continue;
             if (_timerLst[i].action == call) return true;
         }
         return false;
@@ -102,6 +103,7 @@ public static class Timer
     {
         for (int i = 0; i < _utcTimerLst.Count; i++)
         {
+            if (_utcTimerLst[i].isDisposed) continue;
             if (_utcTimerLst[i].action == call) return true;
         }
         return false;

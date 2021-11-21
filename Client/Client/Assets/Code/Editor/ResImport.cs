@@ -13,35 +13,39 @@ public class ResImport
     [MenuItem("Tools/CreateUICode")]
     static void CreateUICode()
     {
-        if (Selection.gameObjects == null || Selection.gameObjects.Length == 0)
+        List<GameObject> uis=new List<GameObject>();
+        var fis = Directory.GetFiles(Application.dataPath + "/Res/UI/UUI/UIPrefab/");
+
+        foreach (var f in fis)
         {
-            Loger.Error("未选中UI对象");
-            return;
+            FileInfo fi = new FileInfo(f);
+            var temp = AssetDatabase.LoadMainAssetAtPath("Assets/Res/UI/UUI/UIPrefab/" + fi.Name);
+            if (!(temp is GameObject go))
+                continue;
+            uis.Add(go);
         }
-        foreach (var item in Selection.gameObjects)
+
+        StringBuilder str = new StringBuilder();
+
+        str.AppendLine(@"using System;");
+        str.AppendLine(@"using System.Collections.Generic;");
+        str.AppendLine(@"using System.Linq;");
+        str.AppendLine(@"using System.Text;");
+        str.AppendLine(@"using System.Threading.Tasks;");
+        str.AppendLine(@"using Main;");
+        str.AppendLine(@"using UnityEngine;");
+        str.AppendLine(@"using UnityEngine.UI;");
+        str.AppendLine(@"using Game;");
+
+        foreach (var go in uis)
         {
-            if (item.GetComponent<Canvas>() == null)
+            if (go.GetComponent<Canvas>() == null)
             {
-                Loger.Error("选中的不是Canvas对象");
+                Loger.Error(go.name + "不是Canvas对象");
                 return;
             }
-        }
 
-        for (int i = 0; i < Selection.gameObjects.Length; i++)
-        {
-            StringBuilder str = new StringBuilder();
             StringBuilder str2 = new StringBuilder();
-            GameObject go = Selection.gameObjects[i];
-
-            str.AppendLine(@"using System;");
-            str.AppendLine(@"using System.Collections.Generic;");
-            str.AppendLine(@"using System.Linq;");
-            str.AppendLine(@"using System.Text;");
-            str.AppendLine(@"using System.Threading.Tasks;");
-            str.AppendLine(@"using Main;");
-            str.AppendLine(@"using UnityEngine;");
-            str.AppendLine(@"using UnityEngine.UI;");
-            str.AppendLine(@"using Game;");
             str.AppendLine(@"");
             str.AppendLine(@$"partial class {go.name} : UUIBase");
             str.AppendLine(@"{");
@@ -53,7 +57,7 @@ public class ResImport
                 if (child.name.StartsWith("_"))
                 {
                     var coms = child.GetComponents<Component>().ToList();
-                    coms.RemoveAll(t=>
+                    coms.RemoveAll(t =>
                     {
                         if (t is Mask) return true;
                         if (t is ContentSizeFitter) return true;
@@ -83,10 +87,10 @@ public class ResImport
                         if (k != 0) p += "/";
                     }
 
-                    foreach (var item in coms)
+                    foreach (var item1 in coms)
                     {
-                        str.AppendLine($@"    public {item.GetType().FullName} {item.name}{item.GetType().Name};");
-                        str2.AppendLine($@"        this.{item.name}{item.GetType().Name} = this.UI.transform.Find(""{p}"").GetComponent(typeof({item.GetType().FullName})) as {item.GetType().FullName};");
+                        str.AppendLine($@"    public {item1.GetType().FullName} {item1.name}{item1.GetType().Name};");
+                        str2.AppendLine($@"        this.{item1.name}{item1.GetType().Name} = this.UI.transform.Find(""{p}"").GetComponent(typeof({item1.GetType().FullName})) as {item1.GetType().FullName};");
                     }
                 }
             }
@@ -97,10 +101,9 @@ public class ResImport
             str.AppendLine(str2.ToString());
             str.AppendLine(@"    }");
             str.Append(@"}");
-
-            File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/UI/UGUI/Auto/{go.name}.cs", str.ToString());
         }
 
+        File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/UI/UGUI/Auto/UUI.cs", str.ToString());
         AssetDatabase.Refresh();
     }
 }

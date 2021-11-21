@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 572.93115, g: 426.54858, b: 403.91943, a: 1}
+  m_IndirectSpecularColor: {r: 8467.954, g: 7055.953, b: 8124.9375, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -483,8 +483,8 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 0.9811321, g: 0.9811321, b: 0.9811321, a: 1}
-  m_Intensity: 13000
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 130000
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -527,8 +527,8 @@ Light:
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
-  m_ColorTemperature: 16030
-  m_UseColorTemperature: 0
+  m_ColorTemperature: 8415
+  m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 4.5905e-41, y: 0, z: 0, w: 1}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
@@ -568,7 +568,7 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 13000
+  m_Intensity: 130000
   m_EnableSpotReflector: 1
   m_LuxAtDistance: 1
   m_InnerSpotPercent: 0
@@ -600,11 +600,11 @@ MonoBehaviour:
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
   m_FlareSize: 2
-  m_FlareTint: {r: 1, g: 0.033018887, b: 0.033018887, a: 1}
+  m_FlareTint: {r: 1, g: 0.07075471, b: 0.18719529, a: 1}
   m_FlareFalloff: 4
   m_SurfaceTexture: {fileID: 0}
-  m_SurfaceTint: {r: 0.9811321, g: 0.9811321, b: 0.9811321, a: 1}
-  m_Distance: 2605678.5
+  m_SurfaceTint: {r: 1, g: 1, b: 1, a: 1}
+  m_Distance: 2605827
   m_UseRayTracedShadows: 1
   m_NumRayTracingSamples: 4
   m_FilterTracedShadow: 1
@@ -679,9 +679,9 @@ LensFlare:
   m_GameObject: {fileID: 705507993}
   m_Enabled: 1
   m_Flare: {fileID: 12100000, guid: 77ac6e49d8b54cf43a4adab61b41ad1e, type: 2}
-  m_Color: {r: 0.025802288, g: 0.9433962, b: 0, a: 1}
+  m_Color: {r: 0.6698113, g: 0.6078649, b: 0.21800463, a: 1}
   m_Brightness: 5
-  m_FadeSpeed: 14.09
+  m_FadeSpeed: 14.47
   m_IgnoreLayers:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -732,7 +732,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh27154
+  m_Name: pb_Mesh27330
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1075,7 +1075,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh27166
+  m_Name: pb_Mesh27342
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1349,12 +1349,12 @@ MonoBehaviour:
   m_AreaLightShape: 0
   m_Intensity: 4000000
   m_EnableSpotReflector: 1
-  m_LuxAtDistance: 1
+  m_LuxAtDistance: 40.94
   m_InnerSpotPercent: 65.1
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 3.3
   m_VolumetricDimmer: 16
-  m_LightUnit: 2
+  m_LightUnit: 0
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
   m_AffectDiffuse: 1
@@ -1445,7 +1445,7 @@ MonoBehaviour:
   useOldInspector: 0
   useVolumetric: 1
   featuresFoldout: 1
-  showAdditionalSettings: 4
+  showAdditionalSettings: 13
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
@@ -1460,8 +1460,8 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 1, g: 0.18396229, b: 0.18396229, a: 1}
-  m_Intensity: 4000000
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Intensity: 9149149
   m_Range: 37.6
   m_SpotAngle: 43
   m_InnerSpotAngle: 21.80208
@@ -1504,8 +1504,8 @@ Light:
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 5, y: 5}
   m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
+  m_ColorTemperature: 8000
+  m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 30.9, w: 31.101606}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1

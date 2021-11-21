@@ -10,25 +10,25 @@ public class ResImportAutoSetting : AssetPostprocessor
     {
         if (this.assetPath.StartsWith("Assets/Art/UI/uui"))
         {
-            uiSprite();
+            if (this.assetImporter is TextureImporter ti)
+                uiSprite(ti);
             return;
         }
         if (this.assetPath.StartsWith("Assets/Res/UI/FUI"))
         {
-            fguiTex();
+            if (this.assetImporter is TextureImporter ti)
+                fguiTex(ti);
             return;
         }
     }
 
-    void uiSprite()
+    void uiSprite(TextureImporter ti)
     {
-        TextureImporter ti = this.assetImporter as TextureImporter;
         ti.textureType = TextureImporterType.Sprite;
     }
 
-    void fguiTex()
+    void fguiTex(TextureImporter ti)
     {
-        TextureImporter ti = this.assetImporter as TextureImporter;
         ti.mipmapEnabled = false;
     }
 }

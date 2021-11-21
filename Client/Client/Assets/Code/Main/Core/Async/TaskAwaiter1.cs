@@ -15,6 +15,10 @@ public sealed class TaskAwaiter<T> : TaskAwaiter
     {
 
     }
+    public TaskAwaiter(object token) : base(token)
+    {
+
+    }
 
     T _result;
 
@@ -33,7 +37,7 @@ public sealed class TaskAwaiter<T> : TaskAwaiter
     /// <param name="result"></param>
     public void TrySetResult(T result)
     {
-        if (this.IsDisposed ) return;
+        if (this.IsDisposed) return;
 
         this._result = result;
         base.TrySetResult();

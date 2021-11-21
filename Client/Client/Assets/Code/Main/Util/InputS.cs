@@ -36,6 +36,5 @@ public static class InputS
             if (Input.GetMouseButtonDown(0))
                 OnMouseButtonDown.Call();
         }
-       
     }
 }

@@ -23,7 +23,6 @@ public class Init
 
         WRoot.Inst.Init();
         SceneMgr.Inst.Init();
-        WObjectManager.Inst.Init();
 
         //≥ı ºªØUI≈‰÷√
         await UIS.Init();

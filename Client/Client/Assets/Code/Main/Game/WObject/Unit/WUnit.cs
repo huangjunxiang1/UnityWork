@@ -51,16 +51,13 @@ namespace Game
             if (!Timer.Contains(_moveUpdate))
                 Timer.Add(0, -1, _moveUpdate);
 
-            if (!_pathLine && _pathLineTask == null)
-            {
-                _pathLineTask = CreateTask<GameObject>();
-                _pathLine = await AssetLoad.PrefabLoader.LoadAsync("3D/Util/pathLine.prefab", _pathLineTask);
-                _pathLineTask = null;
-                _pathLine.transform.rotation = Quaternion.Euler(90, 0, 0);
-                LineRenderer line = _pathLine.GetComponent<LineRenderer>();
-                line.positionCount = posLst.Count;
-                line.SetPositions(posLst.ToArray());
-            }
+            if (!_pathLine)
+                _pathLine = await LoadPrefabAsyncRef("3D/Util/pathLine.prefab", ref _pathLineTask);
+            _pathLine.transform.SetParent(WRoot.Inst.GameObject.transform);
+            _pathLine.transform.rotation = Quaternion.Euler(90, 0, 0);
+            LineRenderer line = _pathLine.GetComponent<LineRenderer>();
+            line.positionCount = posLst.Count;
+            line.SetPositions(posLst.ToArray());
         }
         public void Stop(Vector3 pos)
         {

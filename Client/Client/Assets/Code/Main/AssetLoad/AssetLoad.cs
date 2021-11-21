@@ -15,12 +15,8 @@ namespace Main
     {
         public const string Directory = "Assets/Res/";
 
-#if UNITY_EDITOR
-        //Editor模式加载的是原始资源  所以要用加载出来的拷贝一份再用
-        public static AssetBaseLoader<GameObject> PrefabLoader { get; } = new AssetCopyLoader<GameObject>();
-#else
-        public static AssetBaseLoader<GameObject> PrefabLoader { get; } = new AssetPrimitiveLoader<GameObject>();
-#endif
+        public static AssetPrefabLoader PrefabLoader { get; } = new AssetPrefabLoader();
+
         public static AssetBaseLoader<Texture> TextureLoader { get; } = new AssetCounterLoader<Texture>();
         public static AssetBaseLoader<TextAsset> TextAssetLoader { get; } = new AssetPrimitiveLoader<TextAsset>();
         public static AssetBaseLoader<AudioClip> AudioLoader { get; } = new AssetPrimitiveLoader<AudioClip>();

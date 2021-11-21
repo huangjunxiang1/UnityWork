@@ -10,13 +10,16 @@ partial class FUILogin
     protected override void OnEnter(params object[] data)
     {
         _btnLogin.onClick.Add(login);
-        _gameTypeCB.values = new string[]
+        _gameTypeCB.items = new string[]
         {
-            "单机模式",
-            "联网模式",
+            "Inner",
+            "Outer",
         };
+        _gameTypeCB.selectedIndex = 0;
         _uiType.onChanged.Add(onUIModel);
         _uiType.selectedIndex = 0;
+        _acc.text = "t1";
+        _pw.text = "1";
     }
 
     protected override void OnExit()
@@ -56,25 +59,18 @@ partial class FUILogin
     {
         if (_gameTypeCB.selectedIndex == 0)
         {
-            this.Dispose();
-            if (GameSetting.UIModel == UIModel.UGUI)
-            {
-                 //ugui 只做个展示  实际使用fgui
-            }
-            else
-            {
-                _ = SceneMgr.Inst.InScene(10001);
-            }
+            SysNet.Connect(NetType.TCP, Util.ToIPEndPoint(AppSetting.LoginAddressInner));
         }
         else if (_gameTypeCB.selectedIndex == 1)
         {
-            SysNet.Connect(NetType.KCP, Util.ToIPEndPoint(AppSetting.LoginAddress));
-            var msg = new C2R_Login()
-            {
-                Account = _acc.text,
-                Password = _pw.text
-            };
-            SysNet.Send(msg);
+            SysNet.Connect(NetType.TCP, Util.ToIPEndPoint(AppSetting.LoginAddressOuter));
         }
+
+        var msg = new C2R_Login()
+        {
+            Account = _acc.text,
+            Password = _pw.text
+        };
+        SysNet.Send(msg);
     }
 }

@@ -144,6 +144,21 @@ namespace Main
 
 	}
 
+	[Message(OuterOpcode.M2C_DestroyUnit)]
+	[ProtoContract]
+	public partial class M2C_DestroyUnit : IActorMessage
+	{
+		[ProtoMember(90)]
+		public int RpcId { get; set; }
+
+		[ProtoMember(93)]
+		public long ActorId { get; set; }
+
+		[ProtoMember(2)]
+		public long Units { get; set; }
+
+	}
+
 	[Message(OuterOpcode.C2M_PathfindingResult)]
 	[ProtoContract]
 	public partial class C2M_PathfindingResult: IActorLocationMessage

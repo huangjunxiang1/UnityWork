@@ -46,7 +46,6 @@ namespace Main
                     value.wait.WaitForCompletion();
                     value.target = value.wait.Result;
                     value.isLoading = false;
-                    value.wait = default;
                     pathMap[value.target] = path;
                 }
             }
@@ -54,10 +53,9 @@ namespace Main
             return value.target;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> task = null)
+        public override TaskAwaiter<T> LoadAsync(string path)
         {
-            if (task == null)
-                task = new TaskAwaiter<T>();
+            TaskAwaiter<T> task = new TaskAwaiter<T>(path);
             if (counter.TryGetValue(path, out Temp value))
             {
                 value.count++;
@@ -65,6 +63,25 @@ namespace Main
             }
             else
                 getTaskAndWait(path, task);
+            return task;
+        }
+
+        public override TaskAwaiter<T> LoadAsyncRef(string path, ref TaskAwaiter<T> task)
+        {
+            if (task == null || task.IsCompleted || task.IsDisposed)
+            {
+                task = LoadAsync(path);
+            }
+            else
+            {
+                if (!path.Equals(task.Token))
+                {
+                    task.TryCancel();
+                    task = LoadAsync(path);
+                }
+                else
+                    task.Reset();
+            }
             return task;
         }
 

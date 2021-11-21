@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <packageDescription id="b4meoqof">
   <resources>
-    <image id="kx1d0" name="f9d5c084396d06f6-0c7006bf1d0bb8d5-91234bccfdd2f9ec49fc7cd61ec9822f.jpg" path="/" exported="true"/>
+    <image id="kx1d0" name="f9d5c084396d06f6-0c7006bf1d0bb8d5-91234bccfdd2f9ec49fc7cd61ec9822f.jpg" path="/" exported="true" atlas="alone_npot" duplicatePadding="true"/>
   </resources>
   <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ResPkg" packageCount="2"/>
 </packageDescription>

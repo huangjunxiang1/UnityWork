@@ -12,8 +12,8 @@ public class Engine : MonoBehaviour
 {
 
     public CodeRuntime Runtime;
-    public bool AssetBundle;
     public bool Debug;
+   /* public ServiceType ServiceType;*/
 
     // Start is called before the first frame update
     void Start()
@@ -22,6 +22,7 @@ public class Engine : MonoBehaviour
 
         AppSetting.Runtime = Runtime;
         AppSetting.Debug = Debug;
+        /*AppSetting.ServiceType = ServiceType;*/
 
         EnterGame();
     }

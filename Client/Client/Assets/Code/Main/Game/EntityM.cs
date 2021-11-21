@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Main;
+using UnityEngine;
 
 namespace Game
 {
@@ -56,21 +57,27 @@ namespace Game
         }
 
         //创建一个异步并管理起来
-        public TaskAwaiter CreateTask()
+        public TaskAwaiter<T> AddTask<T>(TaskAwaiter<T> task)
         {
             if (_taskLst == null) _taskLst = new List<TaskAwaiter>();
-            TaskAwaiter task = new TaskAwaiter();
             _taskLst.Add(task);
-            _waitRemove(task);
+            waitRemove(task);
             return task;
         }
-        public TaskAwaiter<T> CreateTask<T>()
+        public TaskAwaiter AddTask(TaskAwaiter task)
         {
             if (_taskLst == null) _taskLst = new List<TaskAwaiter>();
-            TaskAwaiter<T> task = new TaskAwaiter<T>();
             _taskLst.Add(task);
-            _waitRemove(task);
+            waitRemove(task);
             return task;
+        }
+        public void RemoveTask(TaskAwaiter task)
+        {
+            _taskLst.Remove(task);
+        }
+        public void RemoveTask<T>(TaskAwaiter<T> task)
+        {
+            _taskLst.Remove(task);
         }
 
         /// <summary>
@@ -84,11 +91,58 @@ namespace Game
         }
         protected TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request)
         {
-            return SysNet.SendAsync(actorId, request, CreateTask<IMessage>());
+            return AddTask(SysNet.SendAsync(actorId, request));
+        }
+
+       /// <summary>
+       /// 资源加载
+       /// </summary>
+       /// <param name="path"></param>
+       /// <param name="task"></param>
+       /// <returns></returns>
+        protected TaskAwaiter<GameObject> LoadPrefabAsyncRef(string path, ref TaskAwaiter<GameObject> task)
+        {
+            if (task != null)
+                this.RemoveTask(task);
+            AssetLoad.PrefabLoader.LoadAsyncRef(path, ref task);
+            this.AddTask(task);
+            return task;
+        }
+        protected TaskAwaiter<Texture> LoadTexAsyncRef(string path, ref TaskAwaiter<Texture> task)
+        {
+            if (task != null)
+                this.RemoveTask(task);
+            AssetLoad.TextureLoader.LoadAsyncRef(path, ref task);
+            this.AddTask(task);
+            return task;
+        }
+        protected TaskAwaiter<TextAsset> LoadTextAssetAsyncRef(string path, ref TaskAwaiter<TextAsset> task)
+        {
+            if (task != null)
+                this.RemoveTask(task);
+            AssetLoad.TextAssetLoader.LoadAsyncRef(path, ref task);
+            this.AddTask(task);
+            return task;
+        }
+        protected TaskAwaiter<AudioClip> LoadAudioAsyncRef(string path, ref TaskAwaiter<AudioClip> task)
+        {
+            if (task != null)
+                this.RemoveTask(task);
+            AssetLoad.AudioLoader.LoadAsyncRef(path, ref task);
+            this.AddTask(task);
+            return task;
+        }
+        protected TaskAwaiter<ScriptableObject> LoadScriptableObjectAsyncRef(string path, ref TaskAwaiter<ScriptableObject> task)
+        {
+            if (task != null)
+                this.RemoveTask(task);
+            AssetLoad.ScriptObjectLoader.LoadAsyncRef(path, ref task);
+            this.AddTask(task);
+            return task;
         }
 
         //完成之后从管理列表移除
-        async void _waitRemove(TaskAwaiter task)
+        async void waitRemove(TaskAwaiter task)
         {
             await task;
             _taskLst.Remove(task);

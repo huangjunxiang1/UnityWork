@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class WBuffer
+public unsafe class WBuffer
 {
     public WBuffer(byte[] data)
     {
@@ -17,12 +17,16 @@ public class WBuffer
     }
 
     const byte byteFlag = 128;
-    static readonly byte[] _temp4Bytes = new byte[4];
     public readonly static byte[] EmptyBytes = new byte[0];
 
     byte[] bytes;
 
     public int Position { get; set; }
+
+    /// <summary>
+    /// 数据是否压缩
+    /// </summary>
+    public bool Compress { get; set; } = true;
 
     public bool ReadBool()
     {
@@ -34,20 +38,35 @@ public class WBuffer
     }
     public uint ReadUint()
     {
-        uint ret = 0;
-
-        for (int i = 0; i < sizeof(int); i++)
+        fixed (byte* ptr = &bytes[Position])
         {
-            byte v = bytes[Position++];
-            if (v < byteFlag)
+            uint ret = 0;
+            if (Compress)
             {
-                ret |= (uint)v << (7 * i);
-                return ret;
+                for (int i = 0; i < sizeof(int); i++)
+                {
+                    byte v = ptr[i];
+                    if (v < byteFlag)
+                    {
+                        ret |= (uint)v << (7 * i);
+                        Position += i + 1;
+                        return ret;
+                    }
+                    else
+                        ret |= (uint)(v & 0x7F) << (7 * i);
+                }
+                Position += sizeof(int) + 1;
+                return ret | ((uint)ptr[sizeof(int) + 1] << (7 * 4));
             }
             else
-                ret |= (uint)(v & 0x7F) << (7 * i);
+            {
+                Position += sizeof(int);
+                return (uint)(ptr[0]
+                    | ptr[1] << 8
+                    | ptr[2] << 16
+                    | ptr[3] << 24);
+            }
         }
-        return ret | ((uint)bytes[Position++] << (7 * 4));
     }
     public long ReadLong()
     {
@@ -55,29 +74,46 @@ public class WBuffer
     }
     public ulong ReadUlong()
     {
-        ulong ret = 0; 
-
-        for (int i = 0; i < sizeof(long); i++)
+        fixed (byte* ptr = &bytes[Position])
         {
-            byte v = bytes[Position++];
-            if (v < byteFlag)
+            if (Compress)
             {
-                ret |= (ulong)v << (7 * i);
-                return ret;
+                ulong ret = 0;
+
+                for (int i = 0; i < sizeof(long); i++)
+                {
+                    byte v = ptr[i];
+                    if (v < byteFlag)
+                    {
+                        ret |= (ulong)v << (7 * i);
+                        Position += i + 1;
+                        return ret;
+                    }
+                    else
+                        ret |= (ulong)(v & 0x7F) << (7 * i);
+                }
+                Position += sizeof(ulong) + 1;
+                return ret | ((ulong)ptr[sizeof(ulong) + 1] << (7 * 8));
             }
             else
-                ret |= (ulong)(v & 0x7F) << (7 * i);
+            {
+                Position += sizeof(ulong);
+                return (ulong)(ptr[0]
+                    | ptr[1] << 8
+                    | ptr[2] << 16
+                    | ptr[3] << 24
+                    | ptr[4] << 32
+                    | ptr[5] << 40
+                    | ptr[6] << 48
+                    | ptr[7] << 56);
+            }
         }
-        return ret | ((ulong)bytes[Position++] << (7 * 8));
     }
     public float ReadFloat()
     {
-        _temp4Bytes[0] = bytes[Position + 0];
-        _temp4Bytes[1] = bytes[Position + 1];
-        _temp4Bytes[2] = bytes[Position + 2];
-        _temp4Bytes[3] = bytes[Position + 3];
-        Position += 4;
-        return BitConverter.ToSingle(_temp4Bytes, 0);
+        int idx = Position;
+        Position += sizeof(float);
+        return BitConverter.ToSingle(bytes, idx);
     }
     public string ReadString()
     {
@@ -93,8 +129,12 @@ public class WBuffer
         if (len == 0) return EmptyBytes;
 
         byte[] ret = new byte[len];
-        for (int i = 0; i < len; i++)
-            ret[i] = bytes[Position++];
+        fixed (byte* ptr = &bytes[Position], ptr2 = ret)
+        {
+            for (int i = 0; i < len; i++)
+                ptr2[i] = ptr[i];
+        }
+        Position += len;
         return ret;
     }
 
@@ -109,20 +149,41 @@ public class WBuffer
     }
     public void Write(uint uv)
     {
-        int byteCnt;
-        if (uv < 1 << 7) byteCnt = 1;
-        else if (uv < 1 << 14) byteCnt = 2;
-        else if (uv < 1 << 21) byteCnt = 3;
-        else if (uv < 1 << 28) byteCnt = 4;
-        else byteCnt = 5;
-
-        if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt + 1));
-        for (int i = 0; i < byteCnt - 1; i++)
+        if (Compress)
         {
-            bytes[Position++] = (byte)(uv | byteFlag);
-            uv >>= 7;
+            int byteCnt;
+            if (uv < 1 << 7) byteCnt = 1;
+            else if (uv < 1 << 14) byteCnt = 2;
+            else if (uv < 1 << 21) byteCnt = 3;
+            else if (uv < 1 << 28) byteCnt = 4;
+            else byteCnt = 5;
+
+            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt + 1));
+
+            fixed (byte* ptr = &bytes[Position])
+            {
+                for (int i = 0; i < byteCnt - 1; i++)
+                {
+                    ptr[i] = (byte)(uv | byteFlag);
+                    uv >>= 7;
+                }
+                ptr[byteCnt - 1] = (byte)uv;
+                Position += byteCnt;
+            }
         }
-        bytes[Position++] = (byte)uv;
+        else
+        {
+            if (Position + sizeof(uint) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(uint)));
+
+            fixed (byte* ptr = &bytes[Position])
+            {
+                ptr[0] = (byte)uv;
+                ptr[1] = (byte)(uv >> 8);
+                ptr[2] = (byte)(uv >> 16);
+                ptr[3] = (byte)(uv >> 24);
+            }
+            Position += sizeof(uint);
+        }
     }
     public void Write(long v)
     {
@@ -130,35 +191,63 @@ public class WBuffer
     }
     public void Write(ulong uv)
     {
-        int byteCnt;
-        ulong t = 1;
-        if (uv < t << 7) byteCnt = 1;
-        else if (uv < t << 14) byteCnt = 2;
-        else if (uv < t << 21) byteCnt = 3;
-        else if (uv < t << 28) byteCnt = 4;
-        else if (uv < t << 35) byteCnt = 5;
-        else if (uv < t << 42) byteCnt = 6;
-        else if (uv < t << 49) byteCnt = 7;
-        else if (uv < t << 56) byteCnt = 8;
-        else byteCnt = 9;
-
-        if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt + 1));
-        for (int i = 0; i < byteCnt - 1; i++)
+        if (Compress)
         {
-            bytes[Position++] = (byte)(uv | byteFlag);
-            uv >>= 7;
+            int byteCnt;
+            ulong t = 1;
+            if (uv < t << 7) byteCnt = 1;
+            else if (uv < t << 14) byteCnt = 2;
+            else if (uv < t << 21) byteCnt = 3;
+            else if (uv < t << 28) byteCnt = 4;
+            else if (uv < t << 35) byteCnt = 5;
+            else if (uv < t << 42) byteCnt = 6;
+            else if (uv < t << 49) byteCnt = 7;
+            else if (uv < t << 56) byteCnt = 8;
+            else byteCnt = 9;
+
+            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt + 1));
+
+            fixed (byte* ptr = &bytes[Position])
+            {
+                for (int i = 0; i < byteCnt - 1; i++)
+                {
+                    ptr[i] = (byte)(uv | byteFlag);
+                    uv >>= 7;
+                }
+                ptr[byteCnt - 1] = (byte)uv;
+                Position += byteCnt;
+            }
         }
-        bytes[Position++] = (byte)uv;
+        else
+        {
+            if (Position + sizeof(ulong) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(ulong)));
+
+            fixed (byte* ptr = &bytes[Position])
+            {
+                ptr[0] = (byte)uv;
+                ptr[1] = (byte)(uv >> 8);
+                ptr[2] = (byte)(uv >> 16);
+                ptr[3] = (byte)(uv >> 24);
+                ptr[4] = (byte)(uv >> 32);
+                ptr[5] = (byte)(uv >> 40);
+                ptr[6] = (byte)(uv >> 48);
+                ptr[7] = (byte)(uv >> 56);
+            }
+            Position += sizeof(ulong);
+        }
     }
     public void Write(float v)
     {
-        if (Position + 4 >= bytes.Length) ReSize(bytes.Length * 2 + 4);
+        if (Position + sizeof(float) >= bytes.Length) ReSize(bytes.Length * 2 + sizeof(float));
         byte[] bs = BitConverter.GetBytes(v);
-        bytes[Position + 0] = bs[0];
-        bytes[Position + 1] = bs[1];
-        bytes[Position + 2] = bs[2];
-        bytes[Position + 3] = bs[3];
-        Position += 4;
+        fixed (byte* ptr = &bytes[Position], ptr2 = bs)
+        {
+            ptr[0] = ptr2[0];
+            ptr[1] = ptr2[1];
+            ptr[2] = ptr2[2];
+            ptr[3] = ptr2[3];
+        }
+        Position += sizeof(float);
     }
     public void Write(string v)
     {
@@ -187,9 +276,12 @@ public class WBuffer
     {
         if (Position + sizeof(int) + 1 + length >= bytes.Length) ReSize(bytes.Length * 2 + sizeof(int) + 1 + length);
         Write(length);
-        int len = index + length;
-        for (; index < len; index++)
-            bytes[Position++] = v[index];
+
+        fixed (byte* ptr = &bytes[Position], ptr2 = &v[index])
+        {
+            for (int i = 0; i < length; i++)
+                ptr[i] = ptr2[i];
+        }
     }
 
     public byte[] GetBytes()
@@ -199,18 +291,24 @@ public class WBuffer
     public byte[] ToBytes()
     {
         byte[] b = new byte[Position];
-
-        for (int i = 0; i < Position; i++)
-            b[i] = bytes[i];
-
+        fixed (byte* ptr = bytes, ptr2 = b)
+        {
+            int len = Position;
+            for (int i = 0; i < len; i++)
+                ptr2[i] = ptr[i];
+        }
         return b;
     }
 
     public void ReSize(int newSize)
     {
         byte[] b = new byte[newSize];
-        for (int i = 0; i < bytes.Length; i++)
-            b[i] = bytes[i];
+        fixed (byte* ptr = bytes, ptr2 = b)
+        {
+            int len = bytes.Length;
+            for (int i = 0; i < len; i++)
+                ptr2[i] = ptr[i];
+        }
         bytes = b;
     }
 }

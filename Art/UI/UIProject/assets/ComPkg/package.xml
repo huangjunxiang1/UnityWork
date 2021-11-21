@@ -11,5 +11,5 @@
     <component id="n68q8" name="FUIFighting.xml" path="/UI/" exported="true"/>
     <component id="n68q9" name="btnBack.xml" path="/Common/btn/"/>
   </resources>
-  <publish name="ComPkg" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2" genCode="true"/>
+  <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2" genCode="true"/>
 </packageDescription>

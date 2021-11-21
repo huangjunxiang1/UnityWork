@@ -16,14 +16,20 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     {
 
     }
+    public TaskAwaiter(object token)
+    {
+        this.Token = token;
+    }
 
     Action _call;
 
-    public bool IsDisposed { get; protected set; }
+    public object Token { get; }
+
+    public bool IsDisposed { get; private set; }
     /// <summary>
     /// 是否已完成
     /// </summary>
-    public bool IsCompleted { get; protected set; }
+    public bool IsCompleted { get; private set; }
 
     public TaskAwaiter GetAwaiter()
     {
@@ -76,6 +82,11 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         //如果异步使用弃元 则不会有下一步的回调
         try { this._call?.Invoke(); }
         catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
+        this._call = null;
+    }
+
+    public void Reset()
+    {
         this._call = null;
     }
 

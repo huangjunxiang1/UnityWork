@@ -20,7 +20,7 @@ namespace Main
     {
         static AService _Service;
         static long _ChannelID;
-        static Dictionary<Type, Queue<TaskAwaiter<IMessage>>> _requestTask = new Dictionary<Type, Queue<TaskAwaiter<IMessage>>>();
+        static readonly Dictionary<Type, Queue<TaskAwaiter<IMessage>>> _requestTask = new Dictionary<Type, Queue<TaskAwaiter<IMessage>>>();
 
         static void _onError(long channelId, int error)
         {
@@ -37,19 +37,20 @@ namespace Main
             if (hasRsp)
             {
                 message = (IMessage)ProtoBuf.Serializer.Deserialize(type, memoryStream);
+#if DebugEnable
                 if (opcode != OuterOpcode.G2C_Ping)
                     PrintField.Print($"收到消息 opCode:" + opcode + "  content:{0}", message);
+#endif
             }
             else
                 Loger.Log($"收到消息 opCode:{opcode}");
 
             //自动注册的事件一般是底层事件 所以先执行底层监听
             bool has = SysEvent.ExcuteMessage(opcode, message);
-            if (AppSetting.Debug)
-            {
-                if (!has && (hasRsp && !_requestTask.ContainsKey(type)))
-                    Loger.Error("没有注册的消息返回 msgID:" + opcode + "  msg:" + type);
-            }
+#if DebugEnable
+            if (!has && (hasRsp && !_requestTask.ContainsKey(type)))
+                Loger.Error("没有注册的消息返回 msgID:" + opcode + "  msg:" + type);
+#endif
 
             if (hasRsp)
             {
@@ -122,8 +123,10 @@ namespace Main
             ms.Seek(0, SeekOrigin.Begin);
             _Service.SendStream(_ChannelID, actorId, ms);
 
+#if DebugEnable
             if (opCode != OuterOpcode.C2G_Ping)
                 PrintField.Print($"发送消息 opCode:" + opCode + "  content:{0}", message);
+#endif
         }
 
         /// <summary>
@@ -131,11 +134,11 @@ namespace Main
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static TaskAwaiter<IMessage> SendAsync(IRequest request, TaskAwaiter<IMessage> customTask = null)
+        public static TaskAwaiter<IMessage> SendAsync(IRequest request)
         {
-            return SendAsync(0, request, customTask);
+            return SendAsync(0, request);
         }
-        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request, TaskAwaiter<IMessage> customTask = null)
+        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request)
         {
             Type t;
 #if ILRuntime
@@ -145,22 +148,21 @@ namespace Main
 #endif
             t = request.GetType();
 
-            var responseType = TypesCache.GetResponseType(request.GetType());
-            if (responseType == null)
+            var rsp = TypesCache.GetResponseType(t);
+            if (rsp == null)
             {
-                Loger.Error("没有responseType类型");
+                Loger.Error("没有responseType类型 req=" + t);
                 return null;
             }
-            if (!_requestTask.TryGetValue(responseType, out Queue<TaskAwaiter<IMessage>> queue))
+            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<IMessage>> queue))
             {
                 queue = new Queue<TaskAwaiter<IMessage>>();
-                _requestTask[responseType] = queue;
+                _requestTask[rsp] = queue;
             }
-            if (customTask == null)
-                customTask = new TaskAwaiter<IMessage>();
-            queue.Enqueue(customTask);
+            TaskAwaiter<IMessage> task = new TaskAwaiter<IMessage>();
+            queue.Enqueue(task);
             Send(actorId, request);
-            return customTask;
+            return task;
         }
 
         /// <summary>
@@ -169,7 +171,8 @@ namespace Main
         public static void DisConnect()
         {
             if (_ChannelID == 0) return;
-            _Service.Remove(_ChannelID);
+            _Service.Dispose();
+            _Service = null;
             _ChannelID = 0;
         }
 

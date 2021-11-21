@@ -25,6 +25,7 @@ namespace ExportExcel
 
                 {
                     TabM_Cs.AppendLine("using System.Collections.Generic;");
+                    TabM_Cs.AppendLine("using UnityEngine;");
                     TabM_Cs.AppendLine("");
                     TabM_Cs.AppendLine("public static class TabM");
                     TabM_Cs.AppendLine("{");
@@ -61,7 +62,6 @@ namespace ExportExcel
                     TabM_Cs5.AppendLine("    }");
 
                     StringBuilder csContent = new StringBuilder(10000);
-                    csContent.AppendLine("using UnityEngine;");
                     csContent.AppendLine("");
                     csContent.AppendLine("public class " + csName);
                     csContent.AppendLine("{");
@@ -183,7 +183,7 @@ namespace ExportExcel
 
                 File.WriteAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/Main/Tab/TabM.cs", mainCS.TabCS.ToString());
                 for (int i = 0; i < mainCS.className.Count; i++)
-                    File.WriteAllText(Environment.CurrentDirectory + $"/../../../../Client/Assets/Code/Main/Tab/{mainCS.className[i]}.cs", mainCS.classContent[i].ToString());
+                    File.AppendAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/Main/Tab/TabM.cs", mainCS.classContent[i]);
                 File.WriteAllBytes(Environment.CurrentDirectory + "/../../../../Client/Assets/Res/Config/TabM.bytes", mainCS.buff);
 
             }
@@ -202,6 +202,7 @@ namespace ExportExcel
 
                 {
                     TabM_Cs.AppendLine("using System.Collections.Generic;");
+                    TabM_Cs.AppendLine("using UnityEngine;");
                     TabM_Cs.AppendLine("");
                     TabM_Cs.AppendLine("public static class TabL");
                     TabM_Cs.AppendLine("{");
@@ -238,7 +239,6 @@ namespace ExportExcel
                     TabM_Cs5.AppendLine("    }");
 
                     StringBuilder csContent = new StringBuilder(10000);
-                    csContent.AppendLine("using UnityEngine;");
                     csContent.AppendLine("");
                     csContent.AppendLine("public class " + csName);
                     csContent.AppendLine("{");
@@ -364,9 +364,9 @@ namespace ExportExcel
 
                 mainCS.TabCS = TabM_Cs.ToString();
 
-                File.WriteAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.TabCS.ToString());
+                File.WriteAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.TabCS.ToString()); 
                 for (int i = 0; i < mainCS.className.Count; i++)
-                    File.WriteAllText(Environment.CurrentDirectory + $"/../../../../Client/Assets/Code/HotFix/Tab/{mainCS.className[i]}.cs", mainCS.classContent[i].ToString());
+                    File.AppendAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.classContent[i]);
                 File.WriteAllBytes(Environment.CurrentDirectory + "/../../../../Client/Assets/Res/Config/TabL.bytes", mainCS.buff);
 
             }
