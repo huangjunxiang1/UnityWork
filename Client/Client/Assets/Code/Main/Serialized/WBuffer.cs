@@ -34,71 +34,67 @@ public unsafe class WBuffer
     }
     public int ReadInt()
     {
-        return (int)ReadUint();
-    }
-    public uint ReadUint()
-    {
         fixed (byte* ptr = &bytes[Position])
         {
-            uint ret = 0;
             if (Compress)
             {
+                int ret = 0;
                 for (int i = 0; i < sizeof(int); i++)
                 {
                     byte v = ptr[i];
                     if (v < byteFlag)
                     {
-                        ret |= (uint)v << (7 * i);
+                        ret |= v << (7 * i);
                         Position += i + 1;
                         return ret;
                     }
                     else
-                        ret |= (uint)(v & 0x7F) << (7 * i);
+                        ret |= (v & 0x7F) << (7 * i);
                 }
                 Position += sizeof(int) + 1;
-                return ret | ((uint)ptr[sizeof(int) + 1] << (7 * 4));
+                return ret | (ptr[sizeof(int) + 1] << (7 * 4));
             }
             else
             {
                 Position += sizeof(int);
-                return (uint)(ptr[0]
+                return (ptr[0]
                     | ptr[1] << 8
                     | ptr[2] << 16
                     | ptr[3] << 24);
             }
         }
     }
-    public long ReadLong()
+    public uint ReadUint()
     {
-        return (long)ReadUlong();
+        return (uint)ReadInt();
     }
-    public ulong ReadUlong()
+    public long ReadLong()
     {
         fixed (byte* ptr = &bytes[Position])
         {
             if (Compress)
             {
-                ulong ret = 0;
+                long ret = 0;
 
                 for (int i = 0; i < sizeof(long); i++)
                 {
                     byte v = ptr[i];
                     if (v < byteFlag)
                     {
-                        ret |= (ulong)v << (7 * i);
+                        ret |= (long)v << (7 * i);
                         Position += i + 1;
                         return ret;
                     }
                     else
-                        ret |= (ulong)(v & 0x7F) << (7 * i);
+                        ret |= (long)(v & 0x7F) << (7 * i);
                 }
                 Position += sizeof(ulong) + 1;
-                return ret | ((ulong)ptr[sizeof(ulong) + 1] << (7 * 8));
+                return ret | ((long)ptr[sizeof(ulong) + 1] << (7 * 8));
             }
             else
             {
                 Position += sizeof(ulong);
-                return (ulong)(ptr[0]
+                return (ptr[0]
                     | ptr[1] << 8
                     | ptr[2] << 16
                     | ptr[3] << 24
@@ -108,6 +104,10 @@ public unsafe class WBuffer
                     | ptr[7] << 56);
             }
         }
+    }
+    public ulong ReadUlong()
+    {
+        return (ulong)ReadLong();
     }
     public float ReadFloat()
     {
@@ -140,7 +140,7 @@ public unsafe class WBuffer
 
     public void Write(bool v)
     {
-        if (Position >= bytes.Length) ReSize(bytes.Length * 2);
+        if (Position >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(bool)));
         bytes[Position++] = v ? (byte)1 : (byte)0;
     }
     public void Write(int v)
@@ -158,7 +158,7 @@ public unsafe class WBuffer
             else if (uv < 1 << 28) byteCnt = 4;
             else byteCnt = 5;
 
-            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt + 1));
+            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
 
             fixed (byte* ptr = &bytes[Position])
             {
@@ -194,18 +194,17 @@ public unsafe class WBuffer
         if (Compress)
         {
             int byteCnt;
-            ulong t = 1;
-            if (uv < t << 7) byteCnt = 1;
-            else if (uv < t << 14) byteCnt = 2;
-            else if (uv < t << 21) byteCnt = 3;
-            else if (uv < t << 28) byteCnt = 4;
-            else if (uv < t << 35) byteCnt = 5;
-            else if (uv < t << 42) byteCnt = 6;
-            else if (uv < t << 49) byteCnt = 7;
-            else if (uv < t << 56) byteCnt = 8;
+            if (uv < 1ul << 7) byteCnt = 1;
+            else if (uv < 1ul << 14) byteCnt = 2;
+            else if (uv < 1ul << 21) byteCnt = 3;
+            else if (uv < 1ul << 28) byteCnt = 4;
+            else if (uv < 1ul << 35) byteCnt = 5;
+            else if (uv < 1ul << 42) byteCnt = 6;
+            else if (uv < 1ul << 49) byteCnt = 7;
+            else if (uv < 1ul << 56) byteCnt = 8;
             else byteCnt = 9;
 
-            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt + 1));
+            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
 
             fixed (byte* ptr = &bytes[Position])
             {
@@ -238,7 +237,7 @@ public unsafe class WBuffer
     }
     public void Write(float v)
     {
-        if (Position + sizeof(float) >= bytes.Length) ReSize(bytes.Length * 2 + sizeof(float));
+        if (Position + sizeof(float) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(float)));
         byte[] bs = BitConverter.GetBytes(v);
         fixed (byte* ptr = &bytes[Position], ptr2 = bs)
         {
@@ -258,7 +257,7 @@ public unsafe class WBuffer
         }
 
         int len = Encoding.UTF8.GetByteCount(v);
-        if (Position + sizeof(int) + 1 + len >= bytes.Length) ReSize(bytes.Length * 2 + sizeof(int) + 1 + len);
+        if (Position + sizeof(int) + 1 + len >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(int) + 1 + len));
         Write(len);
         Encoding.UTF8.GetBytes(v, 0, v.Length, bytes, Position);
         Position += len;
@@ -274,7 +273,7 @@ public unsafe class WBuffer
     }
     public void Write(byte[] v, int index, int length)
     {
-        if (Position + sizeof(int) + 1 + length >= bytes.Length) ReSize(bytes.Length * 2 + sizeof(int) + 1 + length);
+        if (Position + sizeof(int) + 1 + length >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + length));
         Write(length);
 
         fixed (byte* ptr = &bytes[Position], ptr2 = &v[index])
@@ -302,6 +301,13 @@ public unsafe class WBuffer
 
     public void ReSize(int newSize)
     {
+#if DebugEnable
+        if (bytes != null && newSize <= bytes.Length)
+        {
+            Loger.Error("newSize is too short");
+            return;
+        }
+#endif
         byte[] b = new byte[newSize];
         fixed (byte* ptr = bytes, ptr2 = b)
         {

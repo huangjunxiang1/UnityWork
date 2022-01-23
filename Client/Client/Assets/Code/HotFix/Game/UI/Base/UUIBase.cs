@@ -51,6 +51,7 @@ abstract class UUIBase : UIBase
         this.OnExit();
         base.Dispose();
         //ui不做池管理
+        AssetLoad.PrefabLoader.ReleaseAllTexture(this.UI.gameObject);
         AssetLoad.PrefabLoader.ReleaseDontReturnPool(this.UI.gameObject);
         this.UI = null;
     }

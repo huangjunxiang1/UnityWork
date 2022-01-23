@@ -5,7 +5,7 @@ public static class TabM
 {
     public static _test2[] _test2Array { get; private set; }
 
-    static Dictionary<int, _test2> _map_test2 = new Dictionary<int, _test2>();
+    static Dictionary<int, _test2> _map_test2;
 
     public static void Init(byte[] bytes)
     {
@@ -13,6 +13,7 @@ public static class TabM
 
         int len0 = buffer.ReadInt();
         _test2Array = new _test2[len0];
+        _map_test2 = new Dictionary<int, _test2>(len0);
         for (int i = 0; i < len0; i++)
         {
             var t = new _test2(buffer);

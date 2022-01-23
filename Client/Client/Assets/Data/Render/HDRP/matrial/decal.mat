@@ -9,8 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: decal
   m_Shader: {fileID: 4800000, guid: 1d64af84bdc970c4fae0c1e06dd95b73, type: 3}
-  m_ShaderKeywords: _COLORMAP _DISABLE_SSR_TRANSPARENT _EMISSIVEMAP _MASKMAP _MATERIAL_AFFECTS_ALBEDO
-    _MATERIAL_AFFECTS_MASKMAP _MATERIAL_AFFECTS_NORMAL _NORMALMAP _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _COLORMAP _DISABLE_SSR_TRANSPARENT _EMISSIVEMAP _MATERIAL_AFFECTS_MASKMAP
+    _MATERIAL_AFFECTS_NORMAL _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -30,7 +30,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: 06653c5a319e362459c02caa6d300d8e, type: 3}
+        m_Texture: {fileID: 2800000, guid: a0632a18e7c665641b94fea66506ab50, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMap:
@@ -50,7 +50,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissiveColorMap:
-        m_Texture: {fileID: 2800000, guid: 06653c5a319e362459c02caa6d300d8e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 4a4821d80a1fc774fb76eac6213544e7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
@@ -70,11 +70,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
-        m_Texture: {fileID: 2800000, guid: 961424863157ea249b68023e46154847, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 10300, guid: 0000000000000000f000000000000000, type: 0}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMapOS:
@@ -124,7 +124,7 @@ Material:
     - _ATDistance: 1
     - _AddPrecomputedVelocity: 0
     - _AffectAO: 0
-    - _AffectAlbedo: 1
+    - _AffectAlbedo: 0
     - _AffectEmission: 1
     - _AffectMetal: 1
     - _AffectNormal: 1
@@ -145,8 +145,8 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalBlend: 0.5
-    - _DecalColorMask0: 15
+    - _DecalBlend: 1
+    - _DecalColorMask0: 0
     - _DecalColorMask1: 15
     - _DecalColorMask2: 11
     - _DecalColorMask3: 8
@@ -171,7 +171,7 @@ Material:
     - _DstBlend: 0
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
-    - _EmissiveIntensity: 456418.97
+    - _EmissiveIntensity: 9503321
     - _EmissiveIntensityUnit: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
@@ -209,7 +209,7 @@ Material:
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
-    - _Smoothness: 0.5
+    - _Smoothness: 0.512
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SpecularAAScreenSpaceVariance: 0.1
@@ -242,7 +242,7 @@ Material:
     - _UVDetail: 0
     - _UVEmissive: 0
     - _Unity_Identify_HDRP_Decal: 1
-    - _UseEmissiveIntensity: 0
+    - _UseEmissiveIntensity: 1
     - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
@@ -255,9 +255,9 @@ Material:
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColorHDR: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColorLDR: {r: 0.9529412, g: 0, b: 0.8614132, a: 1}
+    - _EmissiveColor: {r: 3049542, g: 54772.098, b: 6560531.5, a: 9503321}
+    - _EmissiveColorHDR: {r: 0.990566, g: 0.07943219, b: 0.07943219, a: 1}
+    - _EmissiveColorLDR: {r: 0.6020051, g: 0.06808474, b: 0.8490566, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}

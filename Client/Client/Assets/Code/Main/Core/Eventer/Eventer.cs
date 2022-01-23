@@ -160,15 +160,29 @@ public class Eventer
 
             if (t.isP0)
             {
-                try { t.action0(); }
+#if !UNITY_EDITOR
+                try
+                {
+#endif
+                t.action0();
+#if !UNITY_EDITOR
+                }
                 catch (Exception ex)
                 { Loger.Error("Eventer Error:" + ex); }
+#endif
             }
             else
             {
-                try { t.action1(new EventerContent(this.Creater, value, data)); }
+#if !UNITY_EDITOR
+                try
+                {
+#endif
+                t.action1(new EventerContent(this.Creater, value, data));
+#if !UNITY_EDITOR
+                }
                 catch (Exception ex)
                 { Loger.Error("Eventer Error:" + ex); }
+#endif
             }
         }
 

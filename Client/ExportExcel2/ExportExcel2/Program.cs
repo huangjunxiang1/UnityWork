@@ -44,9 +44,10 @@ namespace ExportExcel
                     Console.WriteLine("开始解析->" + fi.Name);
                     string csName = fi.Name.Split('.')[0];
                     TabM_Cs2.AppendLine("    public static " + csName + "[] " + csName + "Array { get; private set; }");
-                    TabM_Cs3.AppendLine("    static Dictionary<" + t.keyType + ", " + csName + "> _map" + csName + " = new Dictionary<" + t.keyType + ", " + csName + ">();");
+                    TabM_Cs3.AppendLine("    static Dictionary<" + t.keyType + ", " + csName + "> _map" + csName + ";");
                     TabM_Cs4.AppendLine($"        int len{i} = buffer.ReadInt();");
                     TabM_Cs4.AppendLine("        " + csName + "Array = new " + csName + $"[len{i}];");
+                    TabM_Cs4.AppendLine($"        _map{csName} = new Dictionary<{t.keyType}, {csName}>(len{i});");
                     TabM_Cs4.AppendLine($"        for (int i = 0; i < len{i}; i++)");
                     TabM_Cs4.AppendLine("        {");
                     TabM_Cs4.AppendLine($"            var t = new " + csName + "(buffer);");
@@ -221,9 +222,10 @@ namespace ExportExcel
                     Console.WriteLine("开始解析->" + fi.Name);
                     string csName = fi.Name.Split('.')[0];
                     TabM_Cs2.AppendLine("    public static " + csName + "[] " + csName + "Array { get; private set; }");
-                    TabM_Cs3.AppendLine("    static Dictionary<" + t.keyType + ", " + csName + "> _map" + csName + " = new Dictionary<" + t.keyType + ", " + csName + ">();");
+                    TabM_Cs3.AppendLine("    static Dictionary<" + t.keyType + ", " + csName + "> _map" + csName + ";");
                     TabM_Cs4.AppendLine($"        int len{i} = buffer.ReadInt();");
                     TabM_Cs4.AppendLine("        " + csName + "Array = new " + csName + $"[len{i}];");
+                    TabM_Cs4.AppendLine($"        _map{csName} = new Dictionary<{t.keyType}, {csName}>(len{i});");
                     TabM_Cs4.AppendLine($"        for (int i = 0; i < len{i}; i++)");
                     TabM_Cs4.AppendLine("        {");
                     TabM_Cs4.AppendLine($"            var t = new " + csName + "(buffer);");

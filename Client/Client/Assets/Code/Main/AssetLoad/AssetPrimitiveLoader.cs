@@ -36,7 +36,7 @@ namespace Main
             }
             else
             {
-                if (!path.Equals(task.Token))
+                if (!path.Equals(task.Tag))
                 {
                     task.TryCancel();
                     task = LoadAsync(path);

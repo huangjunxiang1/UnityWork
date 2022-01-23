@@ -6,8 +6,8 @@ public static class TabL
     public static Scene[] SceneArray { get; private set; }
     public static _test1[] _test1Array { get; private set; }
 
-    static Dictionary<int, Scene> _mapScene = new Dictionary<int, Scene>();
-    static Dictionary<int, _test1> _map_test1 = new Dictionary<int, _test1>();
+    static Dictionary<int, Scene> _mapScene;
+    static Dictionary<int, _test1> _map_test1;
 
     public static void Init(byte[] bytes)
     {
@@ -15,6 +15,7 @@ public static class TabL
 
         int len0 = buffer.ReadInt();
         SceneArray = new Scene[len0];
+        _mapScene = new Dictionary<int, Scene>(len0);
         for (int i = 0; i < len0; i++)
         {
             var t = new Scene(buffer);
@@ -23,6 +24,7 @@ public static class TabL
         }
         int len1 = buffer.ReadInt();
         _test1Array = new _test1[len1];
+        _map_test1 = new Dictionary<int, _test1>(len1);
         for (int i = 0; i < len1; i++)
         {
             var t = new _test1(buffer);

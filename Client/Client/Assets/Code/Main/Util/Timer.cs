@@ -17,7 +17,8 @@ public static class Timer
     static readonly List<TempUtc> _utcTimerLst = new List<TempUtc>();
 
     static bool _isExcutingTimer;
-    static bool _isRemoved;
+    static bool _isRemovedTimer;
+    static bool _isRemovedUTCTimer;
 
     public static long ServerTime
     {
@@ -39,9 +40,11 @@ public static class Timer
         }
 
         if (count == 0) return;
+
         Temp t = new Temp();
         t.time = time;
         t.count = count;
+        t.isEveryFrame = time <= 0;
         t.action = call;
         _timerLst.Add(t);
     }
@@ -55,7 +58,7 @@ public static class Timer
                 if (_timerLst[i].action == call)
                 {
                     _timerLst[i].isDisposed = true;
-                    _isRemoved = true;
+                    _isRemovedTimer = true;
                 }
             }
     }
@@ -95,7 +98,7 @@ public static class Timer
             if (_utcTimerLst[i].action == call)
             {
                 _utcTimerLst[i].isDisposed = true;
-                _isRemoved = true;
+                _isRemovedUTCTimer = true;
             }
         }
     }
@@ -119,20 +122,21 @@ public static class Timer
             {
                 Temp t = _timerLst[i];
                 if (t.isDisposed) continue;
-                t.curTime += Time.deltaTime;
 
-                bool ex = t.curTime >= t.time;
+                if (!t.isEveryFrame)
+                    t.curTime += Time.deltaTime;
+
                 // t.time <=0 则表示每帧执行
-                if (ex || t.time <= 0)
+                if (t.isEveryFrame || t.curTime >= t.time)
                 {
-                    if (ex) t.curTime -= t.time;
+                    if (!t.isEveryFrame) t.curTime -= t.time;
                     if (t.count > 0)
                     {
                         t.curCount++;
                         if (t.curCount >= t.count)
                         {
                             t.isDisposed = true;
-                            _isRemoved = true;
+                            _isRemovedTimer = true;
                         }
                     }
                     try { t.action(); }
@@ -150,25 +154,29 @@ public static class Timer
                 TempUtc t = _utcTimerLst[i];
                 if (t.isDisposed) continue;
 
+                _isRemovedUTCTimer = false;
                 try { t.action(); }
                 catch (Exception e)
                 { Loger.Error("utcTimer error:" + e); }
             }
         }
       
-        if (_isRemoved)
+        if (_isRemovedTimer)
         {
             _timerLst.RemoveAll(t => t.isDisposed);
-
+            _isRemovedTimer = false;
+        }
+        if (_isRemovedUTCTimer)
+        {
             _utcTimerLst.RemoveAll(t => t.isDisposed);
             minUtc = 0;
-            for (int i = 0; i < _utcTimerLst.Count; i++)
+            int cnt = _utcTimerLst.Count;
+            for (int i = 0; i < cnt; i++)
             {
                 if (minUtc == 0) minUtc = _utcTimerLst[i].utc;
                 else minUtc = Math.Min(_utcTimerLst[i].utc, minUtc);
             }
-
-            _isRemoved = false;
+            _isRemovedUTCTimer = false;
         }
 
         _isExcutingTimer = false;
@@ -178,6 +186,7 @@ public static class Timer
     {
         public float time;
         public int count;
+        public bool isEveryFrame;//每帧
         public Action action;
 
         public float curTime;

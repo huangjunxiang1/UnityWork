@@ -11,7 +11,6 @@ namespace Main
     {
         class MsgData
         {
-            public bool isCanceled;
             public bool isP0;//无参回调
             public int sortOrder;
             public Action action0;
@@ -20,7 +19,6 @@ namespace Main
         }
         class EvtData
         {
-            public bool isCanceled;
             public bool isP0;//无参回调
             public int sortOrder;
             public Action action0;
@@ -45,6 +43,7 @@ namespace Main
         readonly static Dictionary<int, int> _evtCalling = new Dictionary<int, int>(17);
         readonly static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>(997);
         static bool _rigistedStaticMethodEvt = false;
+        readonly static object[] _ilRuntimePs = new object[1];
 
         static MethodData[] _getFilterMethods(Type t)
         {
@@ -181,7 +180,6 @@ namespace Main
 
                         var ps = method.GetParameters();
                         MsgData e = new MsgData();
-                        e.isCanceled = false;
                         e.sortOrder = a.SortOrder;
                         e.isP0 = ps.Length == 0;
 
@@ -191,7 +189,12 @@ namespace Main
                             if (ps.Length == 0)
                                 e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
                             else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(IMessage))
-                                e.action1 = p => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, new object[] { p }, default);
+                                e.action1 = p =>
+                                {
+                                    _ilRuntimePs[0] = p;
+                                    ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, _ilRuntimePs, default);
+                                    _ilRuntimePs[0] = null;
+                                };
                             else
                             {
                                 Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
@@ -216,9 +219,8 @@ namespace Main
                             evts.Add(e);
                         else
                         {
-                            int idx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder);
-                            if (idx == -1) idx = 0;
-                            evts.Insert(idx, e);
+                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder) + 1;
+                            evts.Insert(inserIdx, e);
                         }
                     }
 
@@ -234,7 +236,6 @@ namespace Main
 
                         var ps = method.GetParameters();
                         EvtData e = new EvtData();
-                        e.isCanceled = false;
                         e.sortOrder = a.SortOrder;
                         e.isP0 = ps.Length == 0;
 
@@ -244,7 +245,12 @@ namespace Main
                             if (ps.Length == 0)
                                 e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
                             else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
-                                e.action1 = p => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, new object[] { p }, default);
+                                e.action1 = p =>
+                                {
+                                    _ilRuntimePs[0] = p;
+                                    ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, _ilRuntimePs, default);
+                                    _ilRuntimePs[0] = null;
+                                };
                             else
                             {
                                 Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
@@ -269,9 +275,8 @@ namespace Main
                             evts.Add(e);
                         else
                         {
-                            int idx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder);
-                            if (idx == -1) idx = 0;
-                            evts.Insert(idx, e);
+                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder) + 1;
+                            evts.Insert(inserIdx, e);
                         }
                     }
                 }
@@ -307,7 +312,6 @@ namespace Main
                     }
 
                     MsgData e = new MsgData();
-                    e.isCanceled = false;
                     e.sortOrder = m.sortOrder;
                     e.isP0 = m.pCnt == 0;
                     e.target = target;
@@ -318,7 +322,12 @@ namespace Main
                         if (m.pCnt == 0)
                             e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(target, default, default, default, default);
                         else if (m.pCnt == 1)
-                            e.action1 = p => ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(target, default, default, new object[] { p }, default);
+                            e.action1 = p =>
+                            {
+                                _ilRuntimePs[0] = p;
+                                ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(null, default, default, _ilRuntimePs, default);
+                                _ilRuntimePs[0] = null;
+                            };
                     }
                     else
 #endif
@@ -337,10 +346,9 @@ namespace Main
                             evts.Add(e);
                         else
                         {
-                            int lastIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder);
-                            if (lastIdx == -1) lastIdx = 0;
-                            if (lastIdx <= idx) _msgCalling[m.opCode]++;
-                            evts.Insert(lastIdx, e);
+                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
+                            if (inserIdx <= idx) _msgCalling[m.opCode]++;
+                            evts.Insert(inserIdx, e);
                         }
                     }
                 }
@@ -353,7 +361,6 @@ namespace Main
                     }
 
                     EvtData e = new EvtData();
-                    e.isCanceled = false;
                     e.sortOrder = m.sortOrder;
                     e.isP0 = m.pCnt == 0;
                     e.target = target;
@@ -364,7 +371,12 @@ namespace Main
                         if (m.pCnt == 0)
                             e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(target, default, default, default, default);
                         else if (m.pCnt == 1)
-                            e.action1 = p => ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(target, default, default, new object[] { p }, default);
+                            e.action1 = p =>
+                            {
+                                _ilRuntimePs[0] = p;
+                                ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(null, default, default, _ilRuntimePs, default);
+                                _ilRuntimePs[0] = null;
+                            };
                     }
                     else
 #endif
@@ -383,10 +395,9 @@ namespace Main
                             evts.Add(e);
                         else
                         {
-                            int lastIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder);
-                            if (lastIdx == -1) lastIdx = 0;
-                            if (lastIdx <= idx) _evtCalling[m.eventID]++;
-                            evts.Insert(lastIdx, e);
+                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
+                            if (inserIdx <= idx) _evtCalling[m.eventID]++;
+                            evts.Insert(inserIdx, e);
                         }
                     }
                 }
@@ -417,26 +428,38 @@ namespace Main
                     if (m.type == 0)
                     {
                         var lst = _msgMap[m.opCode];
-                        for (int j = lst.Count - 1; j >= 0; j--)
+                        if (_msgCalling.TryGetValue(m.opCode, out int exIdx))
                         {
-                            if (lst[j].target == target)
+                            for (int j = lst.Count - 1; j >= 0; j--)
                             {
-                                if (_msgCalling.ContainsKey(m.opCode)) lst[j].isCanceled = true;
-                                else lst.RemoveAt(j);
+                                if (lst[j].target == target)
+                                {
+                                    lst.RemoveAt(j);
+                                    if (exIdx <= j)
+                                        _msgCalling[m.opCode] = --exIdx;
+                                }
                             }
                         }
+                        else
+                            lst.RemoveAll(t => t.target == target);
                     }
                     else if (m.type == 1)
                     {
                         var lst = _evtMap[m.eventID];
-                        for (int j = lst.Count - 1; j >= 0; j--)
+                        if (_evtCalling.TryGetValue(m.eventID, out int exIdx))
                         {
-                            if (lst[j].target == target)
+                            for (int j = lst.Count - 1; j >= 0; j--)
                             {
-                                if (_evtCalling.ContainsKey(m.eventID)) lst[j].isCanceled = true;
-                                else lst.RemoveAt(j);
+                                if (lst[j].target == target)
+                                {
+                                    lst.RemoveAt(j);
+                                    if (exIdx <= j)
+                                        _evtCalling[m.eventID] = --exIdx;
+                                }
                             }
                         }
+                        else
+                            lst.RemoveAll(t => t.target == target);
                     }
                 }
             }
@@ -456,23 +479,26 @@ namespace Main
 
                 if (_msgCalling.ContainsKey(opCode))
                 {
-                    Loger.Error("消息执行队列循环");
+                    Loger.Error("消息执行队列循环 msg=" + message);
                     return true;
                 }
                 int idx = _msgCalling[opCode] = 0;
                 for (; idx < evts.Count; idx = ++_msgCalling[opCode])
                 {
                     MsgData e = evts[idx];
-                    if (e.isCanceled) continue;
+#if !UNITY_EDITOR
                     try
                     {
-                        if (e.isP0) e.action0();
-                        else e.action1(message);
+#endif
+                    if (e.isP0) e.action0();
+                    else e.action1(message);
+#if !UNITY_EDITOR
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("消息执行出错 error:" + ex.ToString());
                     }
+#endif
                 }
                 _msgCalling.Remove(opCode);
             }
@@ -502,23 +528,26 @@ namespace Main
             {
                 if (_evtCalling.ContainsKey(eventID))
                 {
-                    Loger.Error("事件执行队列循环");
+                    Loger.Error("事件执行队列循环 id=" + eventID);
                     return;
                 }
                 int idx = _evtCalling[eventID] = 0;
                 for (; idx < evts.Count; idx = ++_evtCalling[eventID])
                 {
                     EvtData e = evts[idx];
-                    if (e.isCanceled) continue;
+#if !UNITY_EDITOR
                     try
                     {
-                        if (e.isP0) e.action0();
-                        else e.action1(new EventerContent(e.target, value, data));
+#endif
+                    if (e.isP0) e.action0();
+                    else e.action1(new EventerContent(e.target, value, data));
+#if !UNITY_EDITOR
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
+#endif
                 }
                 _evtCalling.Remove(eventID);
             }

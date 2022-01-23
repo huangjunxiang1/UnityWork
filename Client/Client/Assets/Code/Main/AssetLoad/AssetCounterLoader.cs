@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine;
 
 namespace Main
 {
@@ -21,8 +22,8 @@ namespace Main
             public bool isLoading;
             public AsyncOperationHandle<T> wait;
         }
-        Dictionary<string, Temp> counter = new Dictionary<string, Temp>(997);
-        Dictionary<T, string> pathMap = new Dictionary<T, string>(997);
+        Dictionary<string, Temp> counter = new Dictionary<string, Temp>(50);
+        Dictionary<T, string> pathMap = new Dictionary<T, string>(50);
 
         public override T Load(string path)
         {
@@ -74,7 +75,7 @@ namespace Main
             }
             else
             {
-                if (!path.Equals(task.Token))
+                if (!path.Equals(task.Tag))
                 {
                     task.TryCancel();
                     task = LoadAsync(path);

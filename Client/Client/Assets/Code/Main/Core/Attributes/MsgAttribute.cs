@@ -10,7 +10,11 @@ public class MsgAttribute : Attribute
 	public ushort OpCode { get; }//消息ID
 	public int SortOrder { get; }//消息调用顺序权值
 
-	public MsgAttribute(ushort opCode, int sortOrder = 0)
+	public MsgAttribute(ushort opCode)
+	{
+		this.OpCode = opCode;
+	}
+	public MsgAttribute(ushort opCode, int sortOrder)
 	{
 		this.OpCode = opCode;
 		this.SortOrder = sortOrder;

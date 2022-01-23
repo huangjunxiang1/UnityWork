@@ -37,19 +37,16 @@ namespace Main
             if (hasRsp)
             {
                 message = (IMessage)ProtoBuf.Serializer.Deserialize(type, memoryStream);
-#if DebugEnable
+
                 if (opcode != OuterOpcode.G2C_Ping)
                     PrintField.Print($"收到消息 opCode:" + opcode + "  content:{0}", message);
-#endif
             }
-            else
-                Loger.Log($"收到消息 opCode:{opcode}");
 
             //自动注册的事件一般是底层事件 所以先执行底层监听
             bool has = SysEvent.ExcuteMessage(opcode, message);
 #if DebugEnable
             if (!has && (hasRsp && !_requestTask.ContainsKey(type)))
-                Loger.Error("没有注册的消息返回 msgID:" + opcode + "  msg:" + type);
+                Loger.Error("没有注册的消息返回 opCode:" + opcode + "  msg:" + type);
 #endif
 
             if (hasRsp)
@@ -114,6 +111,7 @@ namespace Main
         }
         public static void Send(long actorId, IRequest message)
         {
+            if (_ChannelID == 0) return;
             var ms = new MemoryStream(Packet.OpcodeLength);
             ms.Seek(Packet.OpcodeLength, SeekOrigin.Begin);
             ms.SetLength(Packet.OpcodeLength);
@@ -123,10 +121,8 @@ namespace Main
             ms.Seek(0, SeekOrigin.Begin);
             _Service.SendStream(_ChannelID, actorId, ms);
 
-#if DebugEnable
             if (opCode != OuterOpcode.C2G_Ping)
                 PrintField.Print($"发送消息 opCode:" + opCode + "  content:{0}", message);
-#endif
         }
 
         /// <summary>
@@ -171,8 +167,7 @@ namespace Main
         public static void DisConnect()
         {
             if (_ChannelID == 0) return;
-            _Service.Dispose();
-            _Service = null;
+            _Service.Remove(_ChannelID);
             _ChannelID = 0;
         }
 

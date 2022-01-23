@@ -61,14 +61,14 @@ namespace Game
         {
             if (_taskLst == null) _taskLst = new List<TaskAwaiter>();
             _taskLst.Add(task);
-            waitRemove(task);
+            task.AddWaitCall(() => RemoveTask(task));
             return task;
         }
         public TaskAwaiter AddTask(TaskAwaiter task)
         {
             if (_taskLst == null) _taskLst = new List<TaskAwaiter>();
             _taskLst.Add(task);
-            waitRemove(task);
+            task.AddWaitCall(() => RemoveTask(task));
             return task;
         }
         public void RemoveTask(TaskAwaiter task)
@@ -102,50 +102,63 @@ namespace Game
        /// <returns></returns>
         protected TaskAwaiter<GameObject> LoadPrefabAsyncRef(string path, ref TaskAwaiter<GameObject> task)
         {
-            if (task != null)
-                this.RemoveTask(task);
+            var taskRef = task;
             AssetLoad.PrefabLoader.LoadAsyncRef(path, ref task);
-            this.AddTask(task);
+            if (taskRef != task)
+            {
+                if (taskRef != null)
+                    this.RemoveTask(taskRef);
+                this.AddTask(task);
+            }
             return task;
         }
         protected TaskAwaiter<Texture> LoadTexAsyncRef(string path, ref TaskAwaiter<Texture> task)
         {
-            if (task != null)
-                this.RemoveTask(task);
+            var taskRef = task;
             AssetLoad.TextureLoader.LoadAsyncRef(path, ref task);
-            this.AddTask(task);
+            if (taskRef != task)
+            {
+                if (taskRef != null)
+                    this.RemoveTask(taskRef);
+                this.AddTask(task);
+            }
             return task;
         }
         protected TaskAwaiter<TextAsset> LoadTextAssetAsyncRef(string path, ref TaskAwaiter<TextAsset> task)
         {
-            if (task != null)
-                this.RemoveTask(task);
+            var taskRef = task;
             AssetLoad.TextAssetLoader.LoadAsyncRef(path, ref task);
-            this.AddTask(task);
+            if (taskRef != task)
+            {
+                if (taskRef != null)
+                    this.RemoveTask(taskRef);
+                this.AddTask(task);
+            }
             return task;
         }
         protected TaskAwaiter<AudioClip> LoadAudioAsyncRef(string path, ref TaskAwaiter<AudioClip> task)
         {
-            if (task != null)
-                this.RemoveTask(task);
+            var taskRef = task;
             AssetLoad.AudioLoader.LoadAsyncRef(path, ref task);
-            this.AddTask(task);
+            if (taskRef != task)
+            {
+                if (taskRef != null)
+                    this.RemoveTask(taskRef);
+                this.AddTask(task);
+            }
             return task;
         }
         protected TaskAwaiter<ScriptableObject> LoadScriptableObjectAsyncRef(string path, ref TaskAwaiter<ScriptableObject> task)
         {
-            if (task != null)
-                this.RemoveTask(task);
+            var taskRef = task;
             AssetLoad.ScriptObjectLoader.LoadAsyncRef(path, ref task);
-            this.AddTask(task);
+            if (taskRef != task)
+            {
+                if (taskRef != null)
+                    this.RemoveTask(taskRef);
+                this.AddTask(task);
+            }
             return task;
-        }
-
-        //完成之后从管理列表移除
-        async void waitRemove(TaskAwaiter task)
-        {
-            await task;
-            _taskLst.Remove(task);
         }
     }
 }

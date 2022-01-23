@@ -16,14 +16,14 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     {
 
     }
-    public TaskAwaiter(object token)
+    public TaskAwaiter(object tag)
     {
-        this.Token = token;
+        this.Tag = tag;
     }
 
     Action _call;
 
-    public object Token { get; }
+    public object Tag { get; }
 
     public bool IsDisposed { get; private set; }
     /// <summary>
@@ -90,12 +90,46 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         this._call = null;
     }
 
-    void INotifyCompletion.OnCompleted(Action continuation)
+    public void AddWaitCall(Action callBack)
     {
-        this._call += continuation;
+        if (this.IsDisposed) return;
+
+        if (!this.IsCompleted)
+            this._call += callBack;
+        else
+        {
+            try { callBack?.Invoke(); }
+            catch (Exception ex) { Loger.Error("AddCall Error:" + ex); }
+        }
     }
-    void ICriticalNotifyCompletion.UnsafeOnCompleted(Action continuation)
+
+    void INotifyCompletion.OnCompleted(Action callBack)
     {
-        this._call += continuation;
+        this._call += callBack;
+    }
+    void ICriticalNotifyCompletion.UnsafeOnCompleted(Action callBack)
+    {
+        this._call += callBack;
+    }
+
+
+    public static async TaskAwaiter WaitAll(IEnumerable<TaskAwaiter> itor)
+    {
+        if (itor == null) return;
+
+        TaskAwaiter[] tasks = itor.ToArray();
+        for (int i = 0; i < tasks.Length; i++)
+            await tasks[i];
+    }
+
+    public static async TaskAwaiter<K[]> WaitAll<K>(IEnumerable<TaskAwaiter<K>> itor)
+    {
+        if (itor == null) return new K[0];
+
+        TaskAwaiter<K>[] tasks = itor.ToArray();
+        K[] ret = new K[tasks.Length];
+        for (int i = 0; i < tasks.Length; i++)
+            ret[i] = await tasks[i];
+        return ret;
     }
 }

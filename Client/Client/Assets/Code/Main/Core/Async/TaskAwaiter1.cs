@@ -15,7 +15,7 @@ public sealed class TaskAwaiter<T> : TaskAwaiter
     {
 
     }
-    public TaskAwaiter(object token) : base(token)
+    public TaskAwaiter(object tag) : base(tag)
     {
 
     }

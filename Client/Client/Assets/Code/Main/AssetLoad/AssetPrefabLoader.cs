@@ -19,6 +19,12 @@ namespace Main
             [NonSerialized]
             public string path;
         }
+        class TextureRef : MonoBehaviour
+        {
+            [NonSerialized]
+            public Texture texture;
+        }
+
         public AssetPrefabLoader()
         {
             _poolRoot = new GameObject("PoolRoot");
@@ -27,7 +33,7 @@ namespace Main
         }
 
         GameObject _poolRoot;
-        Dictionary<string, List<GameObject>> _pool = new Dictionary<string, List<GameObject>>(997);
+        Dictionary<string, List<GameObject>> _pool = new Dictionary<string, List<GameObject>>(50);
 
         public override GameObject Load(string path)
         {
@@ -46,7 +52,7 @@ namespace Main
             }
             var wait = Addressables.InstantiateAsync(AssetLoad.Directory + path);
             wait.WaitForCompletion();
-            var aref = wait.Result.AddComponent<AssetRef>();
+            AssetRef aref = wait.Result.AddComponent<AssetRef>();
             aref.path = path;
             return aref.gameObject;
         }
@@ -80,7 +86,7 @@ namespace Main
             }
             else
             {
-                if (!path.Equals(task.Token))
+                if (!path.Equals(task.Tag))
                 {
                     task.TryCancel();
                     task = LoadAsync(path);
@@ -93,24 +99,65 @@ namespace Main
 
         public override void Release(GameObject target)
         {
-            var aref = target.GetComponent<AssetRef>();
-            if (aref == null)
+            AssetRef ar = target.GetComponent<AssetRef>();
+            if (ar == null)
             {
                 Loger.Error("没有AssetRef组件 " + target);
                 GameObject.Destroy(target);
                 return;
             }
-            if (!_pool.TryGetValue(aref.path, out var lst))
-            {
-                lst = new List<GameObject>();
-                _pool[aref.path] = lst;
-            }
-            lst.Add(target);
-            target.transform.SetParent(_poolRoot.transform);
+            releaseAssetRef(ar);
+        }
+        public void ReleaseAllAssetRef(GameObject target)
+        {
+            AssetRef[] ars = target.GetComponentsInChildren<AssetRef>();
+            int len = ars.Length;
+            for (int i = 0; i < len; i++)
+                releaseAssetRef(ars[i]);
         }
         public void ReleaseDontReturnPool(GameObject target)
         {
             Addressables.ReleaseInstance(target);
+        }
+
+        public void AddTextureRef(GameObject target, Texture texture)
+        {
+            TextureRef tr = target.GetComponent<TextureRef>() ?? target.AddComponent<TextureRef>();
+            if (tr.texture)
+                AssetLoad.TextureLoader.Release(tr.texture);
+            tr.texture = texture;
+        }
+        public void ReleaseTexture(GameObject target)
+        {
+            TextureRef tr = target.GetComponent<TextureRef>();
+            if (tr == null) return;
+            if (tr.texture)
+            {
+                AssetLoad.TextureLoader.Release(tr.texture);
+                tr.texture = null;
+            }
+        }
+        public void ReleaseAllTexture(GameObject target)
+        {
+            TextureRef[] trs = target.GetComponentsInChildren<TextureRef>();
+            int len = trs.Length;
+            for (int i = 0; i < len; i++)
+            {
+                if (trs[i].texture)
+                    AssetLoad.TextureLoader.Release(trs[i].texture);
+            }
+        }
+
+
+        void releaseAssetRef(AssetRef ar)
+        {
+            if (!_pool.TryGetValue(ar.path, out var lst))
+            {
+                lst = new List<GameObject>();
+                _pool[ar.path] = lst;
+            }
+            lst.Add(ar.gameObject);
+            ar.gameObject.transform.SetParent(_poolRoot.transform);
         }
 
         async void getTaskAndWait(string path, TaskAwaiter<GameObject> task)

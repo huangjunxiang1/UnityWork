@@ -15,7 +15,7 @@ partial class FUILogin
             "Inner",
             "Outer",
         };
-        _gameTypeCB.selectedIndex = 0;
+        _gameTypeCB.selectedIndex = 1;
         _uiType.onChanged.Add(onUIModel);
         _uiType.selectedIndex = 0;
         _acc.text = "t1";
@@ -34,7 +34,7 @@ partial class FUILogin
         if (rep.Error == 0)
         {
             this.Dispose();
-            UIS.Open<UUILoading>(1);
+            UIS.Open<FUILoading>(1);
         }
     }
     [Event((int)EIDM.NetError)]

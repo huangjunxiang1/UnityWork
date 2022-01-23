@@ -10,7 +10,11 @@ public class EventAttribute : Attribute
 	public int EventID { get; }//事件ID
 	public int SortOrder { get; }//消息调用顺序权值
 
-	public EventAttribute(int eventID, int sortOrder = 0)
+	public EventAttribute(int eventID)
+	{
+		this.EventID = eventID;
+	}
+	public EventAttribute(int eventID, int sortOrder)
 	{
 		this.EventID = eventID;
 		this.SortOrder = sortOrder;
