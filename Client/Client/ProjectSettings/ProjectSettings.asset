@@ -615,9 +615,9 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    1: UNITY_POST_PROCESSING_STACK_V2;ENABLE_RAYTRACING;DebugEnable
-    4: DebugEnable
-    7: UNITY_POST_PROCESSING_STACK_V2;DebugEnable
+    1: UNITY_POST_PROCESSING_STACK_V2;ENABLE_RAYTRACING;ILRuntime;DebugEnable
+    4: ILRuntime;DebugEnable
+    7: UNITY_POST_PROCESSING_STACK_V2;ILRuntime;DebugEnable
     13: UNITY_POST_PROCESSING_STACK_V2
     14: UNITY_POST_PROCESSING_STACK_V2
     19: UNITY_POST_PROCESSING_STACK_V2

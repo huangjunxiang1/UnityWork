@@ -158,32 +158,19 @@ public class Eventer
             Temp t = _evtLst[i];
             if (t.isDisposed) continue;
 
-            if (t.isP0)
+#if !UNITY_EDITOR
+            try
             {
-#if !UNITY_EDITOR
-                try
-                {
 #endif
-                t.action0();
+                if (t.isP0)
+                    t.action0();
+                else
+                    t.action1(new EventerContent(this.Creater, value, data));
 #if !UNITY_EDITOR
-                }
-                catch (Exception ex)
-                { Loger.Error("Eventer Error:" + ex); }
-#endif
             }
-            else
-            {
-#if !UNITY_EDITOR
-                try
-                {
+            catch (Exception ex)
+            { Loger.Error("Eventer Error:" + ex); }
 #endif
-                t.action1(new EventerContent(this.Creater, value, data));
-#if !UNITY_EDITOR
-                }
-                catch (Exception ex)
-                { Loger.Error("Eventer Error:" + ex); }
-#endif
-            }
         }
 
         _isExcuting = false;

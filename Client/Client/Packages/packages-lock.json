@@ -14,11 +14,11 @@
       "dependencies": {}
     },
     "com.unity.addressables": {
-      "version": "1.18.19",
+      "version": "1.19.18",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.scriptablebuildpipeline": "1.19.2",
+        "com.unity.scriptablebuildpipeline": "1.19.6",
         "com.unity.modules.assetbundle": "1.0.0",
         "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0",
@@ -64,12 +64,12 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.collections": {
-      "version": "1.0.0-pre.5",
-      "depth": 1,
+      "version": "1.1.0",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.burst": "1.5.4",
-        "com.unity.test-framework": "1.1.22"
+        "com.unity.test-framework": "1.1.29"
       },
       "url": "https://packages.unity.cn"
     },
@@ -106,7 +106,7 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.ide.vscode": {
-      "version": "1.2.4",
+      "version": "1.2.5",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -137,7 +137,7 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.memoryprofiler": {
-      "version": "0.4.3-preview.1",
+      "version": "0.5.0-preview.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -146,8 +146,8 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.0",
-      "depth": 1,
+      "version": "2.0.2",
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.cn"
@@ -210,8 +210,8 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.19.2",
-      "depth": 1,
+      "version": "1.19.6",
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.cn"
@@ -257,7 +257,7 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.test-framework": {
-      "version": "1.1.29",
+      "version": "1.1.30",
       "depth": 0,
       "source": "registry",
       "dependencies": {

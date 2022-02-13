@@ -154,9 +154,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Runtime: 0
   Debug: 1
-  len: 1000000
-  useJob: 0
-  useBurst: 0
 --- !u!4 &120181349
 Transform:
   m_ObjectHideFlags: 0
@@ -699,7 +696,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.9737226, y: 1}
+    m_SensorSize: {x: 2.184168, y: 1}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 16
@@ -1040,7 +1037,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2133317451}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 9.868613, y: -5, z: 0}
+  m_LocalPosition: {x: 10.92084, y: -5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 245903276}

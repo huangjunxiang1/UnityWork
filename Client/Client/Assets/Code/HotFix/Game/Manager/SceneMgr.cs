@@ -28,7 +28,7 @@ class SceneMgr : ManagerL<SceneMgr>
     [Event((int)EIDM.QuitGame)]
     static void QuitGame()
     {
-        SysEvent.ExcuteEvent((int)EIDL.OutScene);
+        SysEvent.ExecuteEvent((int)EIDL.OutScene);
         SysNet.DisConnect();
     }
 
@@ -41,7 +41,7 @@ class SceneMgr : ManagerL<SceneMgr>
 
         CM.Exit();
 
-        SysEvent.ExcuteEvent((int)EIDL.OutScene, CurScene);
+        SysEvent.ExecuteEvent((int)EIDL.OutScene, CurScene);
         CurScene = 1;
 
         await SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
@@ -49,7 +49,7 @@ class SceneMgr : ManagerL<SceneMgr>
         ui.max = 1;
         UIS.Open<FUILogin>();
 
-        SysEvent.ExcuteEvent((int)EIDL.InScene, CurScene);
+        SysEvent.ExecuteEvent((int)EIDL.InScene, CurScene);
     }
     public async TaskAwaiter InScene(int SceneID)
     {
@@ -58,7 +58,7 @@ class SceneMgr : ManagerL<SceneMgr>
         UIS.CloseAll();
         var ui = UIS.Open<FUILoading>();
 
-        SysEvent.ExcuteEvent((int)EIDL.OutScene, CurScene);
+        SysEvent.ExecuteEvent((int)EIDL.OutScene, CurScene);
         CurScene = SceneID;
         
         await SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
@@ -66,6 +66,6 @@ class SceneMgr : ManagerL<SceneMgr>
         ui.max = 1;
         UIS.Open<FUIFighting>();
 
-        SysEvent.ExcuteEvent((int)EIDL.InScene, CurScene);
+        SysEvent.ExecuteEvent((int)EIDL.InScene, CurScene);
     }
 }

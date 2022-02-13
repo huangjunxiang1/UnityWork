@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public unsafe class WBuffer
+public unsafe class DBuffer
 {
-    public WBuffer(byte[] data)
+    public DBuffer(byte[] data)
     {
         this.bytes = data;
     }
-    public WBuffer(int capacity = 20)
+    public DBuffer(int capacity = 20)
     {
         capacity = Math.Max(capacity, 1);
         this.bytes = new byte[capacity];

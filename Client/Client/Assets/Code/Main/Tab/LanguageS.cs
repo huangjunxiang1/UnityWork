@@ -22,7 +22,7 @@ public static class LanguageS
 
     public static void Init(byte[] bytes)
     {
-        WBuffer buff = new WBuffer(bytes);
+        DBuffer buff = new DBuffer(bytes);
         int len = buff.ReadInt();
         for (int i = 0; i < len; i++)
         {

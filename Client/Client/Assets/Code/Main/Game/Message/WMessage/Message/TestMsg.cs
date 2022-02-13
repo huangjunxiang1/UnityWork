@@ -14,7 +14,7 @@ namespace Game
     }
     public partial class TestReq : Request
     {
-        public override void Read(WBuffer buffer)
+        public override void Read(DBuffer buffer)
         {
             int key;
             while ((key = buffer.ReadInt()) != 0)
@@ -35,7 +35,7 @@ namespace Game
             }
         }
 
-        public override void Write(WBuffer buffer)
+        public override void Write(DBuffer buffer)
         {
             if (RpcId != default)
             {
@@ -61,7 +61,7 @@ namespace Game
     }
     public partial class TestRep : Response
     {
-        public override void Read(WBuffer buffer)
+        public override void Read(DBuffer buffer)
         {
             int key;
             while ((key = buffer.ReadInt()) != 0)
@@ -75,7 +75,7 @@ namespace Game
             }
         }
 
-        public override void Write(WBuffer buffer)
+        public override void Write(DBuffer buffer)
         {
             if (this.Error != default)
             {
@@ -101,7 +101,7 @@ namespace Game
     {
         [Key(1)]
         public int test;
-        public void Read(WBuffer buffer)
+        public void Read(DBuffer buffer)
         {
             int key;
             while ((key = buffer.ReadInt()) != 0)
@@ -111,7 +111,7 @@ namespace Game
             }
         }
 
-        public void Write(WBuffer buffer)
+        public void Write(DBuffer buffer)
         {
             if (this.test != default)
             {

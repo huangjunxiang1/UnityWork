@@ -8,6 +8,7 @@ namespace Game
 {
     public enum EIDM
     {
+        Min = 0,
         NetError,//网络链接出错
         QuitGame,//退出游戏
         Max = 10000,//最大值

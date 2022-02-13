@@ -7,8 +7,8 @@ namespace Game
 {
     public interface IWMessage
     {
-        void Read(WBuffer buffer);
-        void Write(WBuffer buffer);
+        void Read(DBuffer buffer);
+        void Write(DBuffer buffer);
     }
     public interface IWRequest : IWMessage
     {
@@ -26,12 +26,12 @@ namespace Game
         [Key(1)]
         public int RpcId { get; set; }
 
-        public virtual void Read(WBuffer buffer)
+        public virtual void Read(DBuffer buffer)
         {
 
         }
 
-        public virtual void Write(WBuffer buffer)
+        public virtual void Write(DBuffer buffer)
         {
            
         }
@@ -45,12 +45,12 @@ namespace Game
         [Key(3)]
         public int RpcId { get; set; }
 
-        public virtual void Read(WBuffer buffer)
+        public virtual void Read(DBuffer buffer)
         {
             
         }
 
-        public virtual void Write(WBuffer buffer)
+        public virtual void Write(DBuffer buffer)
         {
            
         }

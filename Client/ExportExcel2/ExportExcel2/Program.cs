@@ -21,7 +21,7 @@ namespace ExportExcel
                 StringBuilder TabM_Cs5 = new StringBuilder(10000);
 
                 temp2 mainCS = new temp2();
-                WBuffer buffer = new WBuffer();
+                DBuffer buffer = new DBuffer();
 
                 {
                     TabM_Cs.AppendLine("using System.Collections.Generic;");
@@ -32,7 +32,7 @@ namespace ExportExcel
 
                     TabM_Cs4.AppendLine("    public static void Init(byte[] bytes)");
                     TabM_Cs4.AppendLine("    {");
-                    TabM_Cs4.AppendLine("        WBuffer buffer = new WBuffer(bytes);");
+                    TabM_Cs4.AppendLine("        DBuffer buffer = new DBuffer(bytes);");
                     TabM_Cs4.AppendLine("");
                 }
 
@@ -81,7 +81,7 @@ namespace ExportExcel
                         csContent.AppendLine("    public " + sType + " " + sName + " { get; }");
                     }
                     csContent.AppendLine();
-                    csContent.AppendLine("    public " + csName + "(WBuffer buffer)");
+                    csContent.AppendLine("    public " + csName + "(DBuffer buffer)");
                     csContent.AppendLine("    {");
                     for (int j = 0; j < mainIdx.Count; j++)
                     {
@@ -199,7 +199,7 @@ namespace ExportExcel
                 StringBuilder TabM_Cs5 = new StringBuilder(10000);
 
                 temp2 mainCS = new temp2();
-                WBuffer buffer = new WBuffer();
+                DBuffer buffer = new DBuffer();
 
                 {
                     TabM_Cs.AppendLine("using System.Collections.Generic;");
@@ -210,7 +210,7 @@ namespace ExportExcel
 
                     TabM_Cs4.AppendLine("    public static void Init(byte[] bytes)");
                     TabM_Cs4.AppendLine("    {");
-                    TabM_Cs4.AppendLine("        WBuffer buffer = new WBuffer(bytes);");
+                    TabM_Cs4.AppendLine("        DBuffer buffer = new DBuffer(bytes);");
                     TabM_Cs4.AppendLine("");
                 }
 
@@ -259,7 +259,7 @@ namespace ExportExcel
                         csContent.AppendLine("    public " + sType + " " + sName + " { get; }");
                     }
                     csContent.AppendLine();
-                    csContent.AppendLine("    public " + csName + "(WBuffer buffer)");
+                    csContent.AppendLine("    public " + csName + "(DBuffer buffer)");
                     csContent.AppendLine("    {");
                     for (int j = 0; j < mainIdx.Count; j++)
                     {
@@ -403,7 +403,7 @@ namespace ExportExcel
                     csContent.AppendLine("    public " + sType + " " + sName + " { get; }");
                 }
                 csContent.AppendLine();
-                csContent.AppendLine("    public " + csName + "(WBuffer buffer)");
+                csContent.AppendLine("    public " + csName + "(DBuffer buffer)");
                 csContent.AppendLine("    {");
                 for (int j = 0; j < mainIdx.Count; j++)
                 {
@@ -467,7 +467,7 @@ namespace ExportExcel
 
                 csContent.AppendLine("}");
 
-                WBuffer buffer = new WBuffer();
+                DBuffer buffer = new DBuffer();
                 int dataCnt = 0;
                 int dIdx = 4;
                 while (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[dIdx++, 1].Text))
@@ -496,7 +496,7 @@ namespace ExportExcel
             Console.ReadLine();
         }
 
-        static void WriteValue(WBuffer buffer, string sType, string text,FileInfo fi,int lineIdx,int idx)
+        static void WriteValue(DBuffer buffer, string sType, string text,FileInfo fi,int lineIdx,int idx)
         {
             if (sType == "int")
             {

@@ -11,7 +11,7 @@ public static class TabL
 
     public static void Init(byte[] bytes)
     {
-        WBuffer buffer = new WBuffer(bytes);
+        DBuffer buffer = new DBuffer(bytes);
 
         int len0 = buffer.ReadInt();
         SceneArray = new Scene[len0];
@@ -59,7 +59,7 @@ public class Scene
     /// </summary>
     public string name { get; }
 
-    public Scene(WBuffer buffer)
+    public Scene(DBuffer buffer)
     {
         this.id = buffer.ReadInt();
         this.name = buffer.ReadString();
@@ -109,7 +109,7 @@ public class _test1
     /// </summary>
     public bool[] b2 { get; }
 
-    public _test1(WBuffer buffer)
+    public _test1(DBuffer buffer)
     {
         this.id = buffer.ReadInt();
         int len1 = buffer.ReadInt();

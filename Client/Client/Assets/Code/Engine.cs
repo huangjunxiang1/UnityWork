@@ -119,6 +119,6 @@ public class Engine : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        SysEvent.ExcuteEvent((int)EIDM.QuitGame);
+        SysEvent.ExecuteEvent((int)EIDM.QuitGame);
     }
 }

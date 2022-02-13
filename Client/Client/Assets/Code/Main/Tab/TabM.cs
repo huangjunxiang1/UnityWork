@@ -9,7 +9,7 @@ public static class TabM
 
     public static void Init(byte[] bytes)
     {
-        WBuffer buffer = new WBuffer(bytes);
+        DBuffer buffer = new DBuffer(bytes);
 
         int len0 = buffer.ReadInt();
         _test2Array = new _test2[len0];
@@ -74,7 +74,7 @@ public class _test2
     /// </summary>
     public bool[] b2 { get; }
 
-    public _test2(WBuffer buffer)
+    public _test2(DBuffer buffer)
     {
         this.id = buffer.ReadInt();
         int len1 = buffer.ReadInt();

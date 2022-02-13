@@ -139,9 +139,16 @@ public static class Timer
                             _isRemovedTimer = true;
                         }
                     }
-                    try { t.action(); }
+#if !UNITY_EDITOR
+                    try
+                    {
+#endif
+                    t.action();
+#if !UNITY_EDITOR
+                    }
                     catch (Exception e)
                     { Loger.Error("timer error:" + e); }
+#endif
                 }
             }
         }
@@ -155,9 +162,16 @@ public static class Timer
                 if (t.isDisposed) continue;
 
                 _isRemovedUTCTimer = false;
-                try { t.action(); }
+#if !UNITY_EDITOR
+                try
+                {
+#endif
+                t.action();
+#if !UNITY_EDITOR
+                }
                 catch (Exception e)
                 { Loger.Error("utcTimer error:" + e); }
+#endif
             }
         }
       

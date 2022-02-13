@@ -15,7 +15,7 @@ public class Language
     /// </summary>
     public string en { get; }
 
-    public Language(WBuffer buffer)
+    public Language(DBuffer buffer)
     {
         this.id = buffer.ReadInt();
         this.cn = buffer.ReadString();

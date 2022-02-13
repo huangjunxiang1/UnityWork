@@ -37,11 +37,11 @@ namespace Main
             public int eventID;//事件ID
         }
 
-        readonly static Dictionary<int, List<MsgData>> _msgMap = new Dictionary<int, List<MsgData>>(997);
-        readonly static Dictionary<int, List<EvtData>> _evtMap = new Dictionary<int, List<EvtData>>(997);
-        readonly static Dictionary<int, int> _msgCalling = new Dictionary<int, int>(17);
-        readonly static Dictionary<int, int> _evtCalling = new Dictionary<int, int>(17);
-        readonly static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>(997);
+        readonly static Dictionary<int, List<MsgData>> _msgMap = new Dictionary<int, List<MsgData>>(97);
+        readonly static Dictionary<int, List<EvtData>> _evtMap = new Dictionary<int, List<EvtData>>(97);
+        readonly static Dictionary<int, int> _msgCalling = new Dictionary<int, int>(5);
+        readonly static Dictionary<int, int> _evtCalling = new Dictionary<int, int>(5);
+        readonly static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>(97);
         static bool _rigistedStaticMethodEvt = false;
         readonly static object[] _ilRuntimePs = new object[1];
 
@@ -54,12 +54,6 @@ namespace Main
                 for (int i = 0; i < methods.Length; i++)
                 {
                     var method = methods[i];
-
-#if ILRuntime
-                    //ILRuntime里面BindingFlags是无效的 所以这里加一层判断
-                    if (method.IsStatic) continue;
-#endif
-
                     var ps = method.GetParameters();
                     var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
                     for (int k = 0; k < mas.Length; k++)
@@ -162,12 +156,6 @@ namespace Main
                 for (int j = 0; j < len; j++)
                 {
                     var method = methods[j];
-
-#if ILRuntime
-                    //ILRuntime里面BindingFlags是无效的 所以这里加一层判断
-                    if (!method.IsStatic) continue;
-#endif
-
                     var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
                     for (int k = 0; k < mas.Length; k++)
                     {
@@ -316,27 +304,10 @@ namespace Main
                     e.isP0 = m.pCnt == 0;
                     e.target = target;
 
-#if ILRuntime
-                    if (m.info is ILRuntime.Reflection.ILRuntimeMethodInfo)
-                    {
-                        if (m.pCnt == 0)
-                            e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(target, default, default, default, default);
-                        else if (m.pCnt == 1)
-                            e.action1 = p =>
-                            {
-                                _ilRuntimePs[0] = p;
-                                ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(null, default, default, _ilRuntimePs, default);
-                                _ilRuntimePs[0] = null;
-                            };
-                    }
-                    else
-#endif
-                    {
-                        if (m.pCnt == 0)
-                            e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
-                        else if (m.pCnt == 1)
-                            e.action1 = (Action<IMessage>)m.info.CreateDelegate(typeof(Action<IMessage>), target);
-                    }
+                    if (m.pCnt == 0)
+                        e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
+                    else if (m.pCnt == 1)
+                        e.action1 = (Action<IMessage>)m.info.CreateDelegate(typeof(Action<IMessage>), target);
 
                     if (!_msgCalling.TryGetValue(m.opCode, out var idx))
                         evts.Add(e);
@@ -365,27 +336,10 @@ namespace Main
                     e.isP0 = m.pCnt == 0;
                     e.target = target;
 
-#if ILRuntime
-                    if (m.info is ILRuntime.Reflection.ILRuntimeMethodInfo)
-                    {
-                        if (m.pCnt == 0)
-                            e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(target, default, default, default, default);
-                        else if (m.pCnt == 1)
-                            e.action1 = p =>
-                            {
-                                _ilRuntimePs[0] = p;
-                                ((ILRuntime.Reflection.ILRuntimeMethodInfo)m.info).Invoke(null, default, default, _ilRuntimePs, default);
-                                _ilRuntimePs[0] = null;
-                            };
-                    }
-                    else
-#endif
-                    {
-                        if (m.pCnt == 0)
-                            e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
-                        else if (m.pCnt == 1)
-                            e.action1 = (Action<EventerContent>)m.info.CreateDelegate(typeof(Action<EventerContent>), target);
-                    }
+                    if (m.pCnt == 0)
+                        e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
+                    else if (m.pCnt == 1)
+                        e.action1 = (Action<EventerContent>)m.info.CreateDelegate(typeof(Action<EventerContent>), target);
 
                     if (!_evtCalling.TryGetValue(m.eventID, out var idx))
                         evts.Add(e);
@@ -470,7 +424,7 @@ namespace Main
         /// </summary>
         /// <param name="opCode"></param>
         /// <param name="message"></param>
-        public static bool ExcuteMessage(int opCode, IMessage message = null)
+        public static bool ExecuteMessage(int opCode, IMessage message = null)
         {
             bool hasEvt = false;
             if (_msgMap.TryGetValue(opCode, out var evts))
@@ -510,19 +464,19 @@ namespace Main
         /// </summary>
         /// <param name="eventID"></param>
         /// <param name="data"></param>
-        public static void ExcuteEvent(int eventID)
+        public static void ExecuteEvent(int eventID)
         {
-            ExcuteEvent(eventID, 0, null);
+            ExecuteEvent(eventID, 0, null);
         }
-        public static void ExcuteEvent(int eventID, object data)
+        public static void ExecuteEvent(int eventID, object data)
         {
-            ExcuteEvent(eventID, 0, data);
+            ExecuteEvent(eventID, 0, data);
         }
-        public static void ExcuteEvent(int eventID, int value)
+        public static void ExecuteEvent(int eventID, int value)
         {
-            ExcuteEvent(eventID, value, null);
+            ExecuteEvent(eventID, value, null);
         }
-        public static void ExcuteEvent(int eventID, int value, object data)
+        public static void ExecuteEvent(int eventID, int value, object data)
         {
             if (_evtMap.TryGetValue(eventID, out var evts))
             {

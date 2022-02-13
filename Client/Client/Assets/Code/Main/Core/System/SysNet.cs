@@ -26,7 +26,7 @@ namespace Main
         {
             Loger.Error("Net Error Code:" + error);
             _ChannelID = 0;
-            SysEvent.ExcuteEvent((int)EIDM.NetError, error);
+            SysEvent.ExecuteEvent((int)EIDM.NetError, error);
         }
         static void _onResponse(long channelId, MemoryStream memoryStream)
         {
@@ -43,7 +43,7 @@ namespace Main
             }
 
             //自动注册的事件一般是底层事件 所以先执行底层监听
-            bool has = SysEvent.ExcuteMessage(opcode, message);
+            bool has = SysEvent.ExecuteMessage(opcode, message);
 #if DebugEnable
             if (!has && (hasRsp && !_requestTask.ContainsKey(type)))
                 Loger.Error("没有注册的消息返回 opCode:" + opcode + "  msg:" + type);

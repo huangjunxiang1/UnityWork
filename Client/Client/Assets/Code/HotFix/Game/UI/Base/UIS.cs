@@ -51,6 +51,7 @@ static class UIS
             UIPackage.AddPackage((await AssetLoad.TextAssetLoader.LoadAsync("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
             UIPackage.AddPackage((await AssetLoad.TextAssetLoader.LoadAsync("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
             NTexture.CustomDestroyMethod += textureUnLoad;
+            NAudioClip.CustomDestroyMethod += audioUnLoad;
         }
     }
     async static void fguiLoader(string name, string extension, System.Type type, PackageItem item)
@@ -80,18 +81,19 @@ static class UIS
     {
         AssetLoad.TextureLoader.Release(texture);
     }
+    static void audioUnLoad(AudioClip audio)
+    {
+        AssetLoad.AudioLoader.Release(audio);
+    }
 
     public static T Open<T>(params object[] data) where T : UIBase, new()
     {
-        if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig config))
-        {
-            Loger.Error("没有UI配置 class：" + typeof(T));
-            return default;
-        }
+        if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
+            cfg = UIConfig.Default;
 
         T ui = new T();
         _uiLst.Add(ui);
-        ui.InitConfig(config, data);
+        ui.InitConfig(cfg, data);
         return ui;
     }
     public static T Get<T>() where T : UIBase
