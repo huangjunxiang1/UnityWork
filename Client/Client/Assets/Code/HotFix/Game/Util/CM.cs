@@ -56,7 +56,7 @@ static class CM
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit, 1000, -1))
             {
-                C2M_PathfindingResult msg = new C2M_PathfindingResult();
+                C2M_PathfindingResult msg = new();
                 msg.X = hit.point.x;
                 msg.Y = hit.point.y;
                 msg.Z = hit.point.z;

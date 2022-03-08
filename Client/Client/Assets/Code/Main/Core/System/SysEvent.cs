@@ -37,11 +37,11 @@ namespace Main
             public int eventID;//事件ID
         }
 
-        readonly static Dictionary<int, List<MsgData>> _msgMap = new Dictionary<int, List<MsgData>>(97);
-        readonly static Dictionary<int, List<EvtData>> _evtMap = new Dictionary<int, List<EvtData>>(97);
-        readonly static Dictionary<int, int> _msgCalling = new Dictionary<int, int>(5);
-        readonly static Dictionary<int, int> _evtCalling = new Dictionary<int, int>(5);
-        readonly static Dictionary<Type, MethodData[]> _methodCache = new Dictionary<Type, MethodData[]>(97);
+        readonly static Dictionary<int, List<MsgData>> _msgMap = new(97);
+        readonly static Dictionary<int, List<EvtData>> _evtMap = new(97);
+        readonly static Dictionary<int, int> _msgCalling = new(5);
+        readonly static Dictionary<int, int> _evtCalling = new(5);
+        readonly static Dictionary<Type, MethodData[]> _methodCache = new(97);
         static bool _rigistedStaticMethodEvt = false;
         readonly static object[] _ilRuntimePs = new object[1];
 
@@ -50,7 +50,7 @@ namespace Main
             if (!_methodCache.TryGetValue(t, out MethodData[] result))
             {
                 var methods = t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                List<MethodData> evts = new List<MethodData>();
+                List<MethodData> evts = new();
                 for (int i = 0; i < methods.Length; i++)
                 {
                     var method = methods[i];
@@ -59,7 +59,7 @@ namespace Main
                     for (int k = 0; k < mas.Length; k++)
                     {
                         MsgAttribute a = (MsgAttribute)mas[k];
-                        MethodData e = new MethodData();
+                        MethodData e = new();
                         e.info = method;
                         e.type = 0;
                         e.opCode = a.OpCode;
@@ -99,7 +99,7 @@ namespace Main
                     for (int k = 0; k < eas.Length; k++)
                     {
                         EventAttribute a = (EventAttribute)eas[k];
-                        MethodData e = new MethodData();
+                        MethodData e = new();
                         e.info = method;
                         e.type = 1;
                         e.eventID = a.EventID;
@@ -167,7 +167,7 @@ namespace Main
                         }
 
                         var ps = method.GetParameters();
-                        MsgData e = new MsgData();
+                        MsgData e = new();
                         e.sortOrder = a.SortOrder;
                         e.isP0 = ps.Length == 0;
 
@@ -223,7 +223,7 @@ namespace Main
                         }
 
                         var ps = method.GetParameters();
-                        EvtData e = new EvtData();
+                        EvtData e = new();
                         e.sortOrder = a.SortOrder;
                         e.isP0 = ps.Length == 0;
 
@@ -299,7 +299,7 @@ namespace Main
                         _msgMap[m.opCode] = evts;
                     }
 
-                    MsgData e = new MsgData();
+                    MsgData e = new();
                     e.sortOrder = m.sortOrder;
                     e.isP0 = m.pCnt == 0;
                     e.target = target;
@@ -331,7 +331,7 @@ namespace Main
                         _evtMap[m.eventID] = evts;
                     }
 
-                    EvtData e = new EvtData();
+                    EvtData e = new();
                     e.sortOrder = m.sortOrder;
                     e.isP0 = m.pCnt == 0;
                     e.target = target;

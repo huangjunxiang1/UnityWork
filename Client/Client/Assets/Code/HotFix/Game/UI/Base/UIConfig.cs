@@ -7,23 +7,21 @@ using Game;
 
 class UIConfig
 {
-    public UIConfig(string resPath, int sortOrder)
+    private UIConfig(int sortOrder)
     {
-        this.ResPath = resPath;
         this.SortOrder = sortOrder;
     }
 
-    public string ResPath { get; }
     public int SortOrder { get; }
 
-    public static UIConfig Default { get; } = new UIConfig(null, 0);
+    public static UIConfig Default { get; } = new(0);
 
 
-    public static Dictionary<Type, UIConfig> UIConfigMap = new Dictionary<Type, UIConfig>()
+    public static Dictionary<Type, UIConfig> UIConfigMap = new()
     {
-        { typeof(UUILoading),         new UIConfig(null, 50)},
+        { typeof(UUILoading), new(50) },
 
-        { typeof(FUIFighting),         new UIConfig(null, 20)},
-        { typeof(FUILoading),         new UIConfig(null, 50)},
+        { typeof(FUIFighting), new(20) },
+        { typeof(FUILoading), new(50) },
     };
 }

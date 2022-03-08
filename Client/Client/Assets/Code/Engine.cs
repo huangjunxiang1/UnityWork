@@ -92,16 +92,16 @@ public class Engine : MonoBehaviour
 #if !ILRuntime
             Loger.Error("当前Runtime宏定义不正确");
 #endif
-            ILRuntime.Runtime.Enviorment.AppDomain app = new ILRuntime.Runtime.Enviorment.AppDomain();
+            ILRuntime.Runtime.Enviorment.AppDomain app = new();
             if (AppSetting.Debug)
             {
-                System.IO.MemoryStream dll = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
-                System.IO.MemoryStream pdb = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb"));
+                System.IO.MemoryStream dll = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
+                System.IO.MemoryStream pdb = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb"));
                 app.LoadAssembly(dll, pdb, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
             }
             else
             {
-                System.IO.MemoryStream dll = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
+                System.IO.MemoryStream dll = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
                 app.LoadAssembly(dll);
             }
             ILRuntimeInit.Init(app);

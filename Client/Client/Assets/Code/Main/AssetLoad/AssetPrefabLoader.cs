@@ -29,11 +29,11 @@ namespace Main
         {
             _poolRoot = new GameObject("PoolRoot");
             GameObject.DontDestroyOnLoad(_poolRoot);
-            _poolRoot.gameObject.SetActive(false);
+            _poolRoot.SetActive(false);
         }
 
-        GameObject _poolRoot;
-        Dictionary<string, List<GameObject>> _pool = new Dictionary<string, List<GameObject>>(50);
+        readonly GameObject _poolRoot;
+        readonly Dictionary<string, List<GameObject>> _pool = new(50);
 
         public override GameObject Load(string path)
         {
@@ -59,7 +59,7 @@ namespace Main
 
         public override TaskAwaiter<GameObject> LoadAsync(string path)
         {
-            TaskAwaiter<GameObject> task = new TaskAwaiter<GameObject>();
+            TaskAwaiter<GameObject> task = new();
             if (_pool.TryGetValue(path, out var pool))
             {
                 int cnt = pool.Count;
@@ -77,24 +77,24 @@ namespace Main
             getTaskAndWait(path, task);
             return task;
         }
-
-        public override TaskAwaiter<GameObject> LoadAsyncRef(string path, ref TaskAwaiter<GameObject> task)
+        public override TaskAwaiter<GameObject> LoadAsync(string path, TaskAwaiter<GameObject> customTask)
         {
-            if (task == null || task.IsCompleted || task.IsDisposed)
+            if (_pool.TryGetValue(path, out var pool))
             {
-                task = LoadAsync(path);
-            }
-            else
-            {
-                if (!path.Equals(task.Tag))
+                int cnt = pool.Count;
+                if (cnt > 0)
                 {
-                    task.TryCancel();
-                    task = LoadAsync(path);
+                    var go = pool[cnt - 1];
+                    if (cnt == 1)
+                        _pool.Remove(path);
+                    else
+                        pool.RemoveAt(cnt - 1);
+                    customTask.TrySetResult(go);
+                    return customTask;
                 }
-                else
-                    task.Reset();
             }
-            return task;
+            getTaskAndWait(path, customTask);
+            return customTask;
         }
 
         public override void Release(GameObject target)
@@ -166,23 +166,15 @@ namespace Main
 
             await wait.Task;
 
-            var aref = wait.Result.AddComponent<AssetRef>();
-            aref.path = path;
             //如果状态是没完成 但是被释放了 说明异步被中途取消
             if (!task.IsCompleted && !task.IsDisposed)
             {
+                var aref = wait.Result.AddComponent<AssetRef>();
+                aref.path = path;
                 task.TrySetResult(aref.gameObject);
             }
             else
-            {
-                if (!_pool.TryGetValue(aref.path, out var lst))
-                {
-                    lst = new List<GameObject>();
-                    _pool[aref.path] = lst;
-                }
-                lst.Add(aref.gameObject);
-                aref.transform.SetParent(_poolRoot.transform);
-            }
+                ReleaseDontReturnPool(wait.Result);
         }
     }
 }

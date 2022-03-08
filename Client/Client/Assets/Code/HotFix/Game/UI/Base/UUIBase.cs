@@ -25,12 +25,11 @@ abstract class UUIBase : UIBase
         set { this.UI.gameObject.SetActive(value); }
     }
 
-
-    public override async void InitConfig(UIConfig config, params object[] data)
+    public override void LoadConfig(UIConfig config, params object[] data)
     {
-        base.InitConfig(config);
+        base.LoadConfig(config, data);
 
-        this.UI = (RectTransform)(await AssetLoad.PrefabLoader.LoadAsync("UI/UUI/UIPrefab/" + this.GetType().Name + ".prefab")).transform;
+        this.UI = (RectTransform)AssetLoad.PrefabLoader.Load("UI/UUI/UIPrefab/" + this.GetType().Name + ".prefab").transform;
         this.UI.SetParent(UIS.UGUIRoot);
         this.UI.localScale = Vector3.one;
         this.UI.rotation = default;
@@ -43,6 +42,31 @@ abstract class UUIBase : UIBase
 
         this.Binding();
         this.OnEnter(data);
+    }
+    public override async void LoadConfigAsync(UIConfig config, params object[] data)
+    {
+        base.LoadConfigAsync(config, data);
+
+        GameObject ui = await AssetLoad.PrefabLoader.LoadAsync("UI/UUI/UIPrefab/" + this.GetType().Name + ".prefab", TaskCreater.Create<GameObject>());
+        if (this.Disposed)
+        {
+            AssetLoad.PrefabLoader.ReleaseDontReturnPool(ui);
+            return;
+        }
+        this.UI = (RectTransform)ui.transform;
+        this.UI.SetParent(UIS.UGUIRoot);
+        this.UI.localScale = Vector3.one;
+        this.UI.rotation = default;
+        this.UI.sizeDelta = UIS.UGUIRoot.sizeDelta;
+        this.UI.anchorMin = default;
+        this.UI.anchorMax = Vector2.one;
+        this.UI.anchoredPosition = default;
+        this._uiCanvas = this.UI.GetComponent<Canvas>();
+        this._uiCanvas.sortingOrder = config.SortOrder;
+
+        this.Binding();
+        this.OnEnter(data);
+        this.LoadWaiter.TrySetResult();
     }
 
     public override void Dispose()

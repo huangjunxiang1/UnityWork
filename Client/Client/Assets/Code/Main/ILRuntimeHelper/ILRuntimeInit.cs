@@ -38,6 +38,7 @@ public unsafe static class ILRuntimeInit
         appdomain.RegisterCrossBindingAdaptor(new IMessageAdapter());
         appdomain.RegisterCrossBindingAdaptor(new IRequestAdapter());
         appdomain.RegisterCrossBindingAdaptor(new IResponseAdapter());
+        appdomain.RegisterCrossBindingAdaptor(new ScriptableObjectAdapter());
 
         appdomain.RegisterValueTypeBinder(typeof(Quaternion),new QuaternionBinder());
         appdomain.RegisterValueTypeBinder(typeof(Vector2), new Vector2Binder());

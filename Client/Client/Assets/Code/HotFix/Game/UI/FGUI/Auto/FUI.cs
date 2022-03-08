@@ -6,10 +6,12 @@ using FairyGUI.Utils;
 partial class FUIFighting : FUIBase
 {
     public GButton _btnBack;
+    public GSlider _slider;
 
     protected override void Binding()
     {
         _btnBack = (GButton)this.UI.GetChild("_btnBack");
+        _slider = (GSlider)this.UI.GetChild("_slider");
     }
 }
 

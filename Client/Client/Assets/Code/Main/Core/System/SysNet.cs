@@ -20,7 +20,7 @@ namespace Main
     {
         static AService _Service;
         static long _ChannelID;
-        static readonly Dictionary<Type, Queue<TaskAwaiter<IMessage>>> _requestTask = new Dictionary<Type, Queue<TaskAwaiter<IMessage>>>();
+        static readonly Dictionary<Type, Queue<TaskAwaiter<IMessage>>> _requestTask = new();
 
         static void _onError(long channelId, int error)
         {
@@ -76,7 +76,7 @@ namespace Main
                         _Service.ReadCallback += _onResponse;
 
                         byte[] byte8 = new byte[8];
-                        System.Random random = new System.Random(Guid.NewGuid().GetHashCode());
+                        System.Random random = new(Guid.NewGuid().GetHashCode());
                         random.NextBytes(byte8);
                         _ChannelID = BitConverter.ToInt64(byte8, 0);
                         _Service.GetOrCreate(_ChannelID, ipEndPoint);
@@ -90,7 +90,7 @@ namespace Main
                         _Service.ReadCallback += _onResponse;
 
                         byte[] byte8 = new byte[8];
-                        System.Random random = new System.Random(Guid.NewGuid().GetHashCode());
+                        System.Random random = new(Guid.NewGuid().GetHashCode());
                         random.NextBytes(byte8);
                         _ChannelID = BitConverter.ToInt64(byte8, 0);
                         _Service.GetOrCreate(_ChannelID, ipEndPoint);
@@ -155,7 +155,38 @@ namespace Main
                 queue = new Queue<TaskAwaiter<IMessage>>();
                 _requestTask[rsp] = queue;
             }
-            TaskAwaiter<IMessage> task = new TaskAwaiter<IMessage>();
+            TaskAwaiter<IMessage> task = new();
+            queue.Enqueue(task);
+            Send(actorId, request);
+            return task;
+        }
+
+        public static TaskAwaiter<IMessage> SendAsync(IRequest request, TaskAwaiterCreater taskCreater)
+        {
+            return SendAsync(0, request, taskCreater);
+        }
+        public static TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request, TaskAwaiterCreater taskCreater)
+        {
+            Type t;
+#if ILRuntime
+            if (request is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilRequest)
+                t = ilRequest.ILInstance.Type.ReflectionType;
+            else
+#endif
+            t = request.GetType();
+
+            var rsp = TypesCache.GetResponseType(t);
+            if (rsp == null)
+            {
+                Loger.Error("没有responseType类型 req=" + t);
+                return null;
+            }
+            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<IMessage>> queue))
+            {
+                queue = new Queue<TaskAwaiter<IMessage>>();
+                _requestTask[rsp] = queue;
+            }
+            TaskAwaiter<IMessage> task = taskCreater.Create<IMessage>();
             queue.Enqueue(task);
             Send(actorId, request);
             return task;

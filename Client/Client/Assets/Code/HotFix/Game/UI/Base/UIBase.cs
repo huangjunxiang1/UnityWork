@@ -25,6 +25,11 @@ abstract class UIBase : EntityL
     }
 
     /// <summary>
+    /// 如果是异步加载 则await这个
+    /// </summary>
+    public TaskAwaiter LoadWaiter { get; private set; }
+
+    /// <summary>
     /// UI层级
     /// </summary>
     public virtual int SortOrder
@@ -46,8 +51,14 @@ abstract class UIBase : EntityL
     protected abstract void OnExit();
     protected abstract void Binding();
 
-    public virtual void InitConfig(UIConfig config, params object[] data)
+    public virtual void LoadConfig(UIConfig config, params object[] data)
     {
+        this.LoadWaiter = TaskAwaiter.Completed;
+        this.uiConfig = config;
+    }
+    public virtual void LoadConfigAsync(UIConfig config, params object[] data)
+    {
+        this.LoadWaiter = TaskCreater.Create();
         this.uiConfig = config;
     }
 

@@ -31,23 +31,10 @@ namespace Main
             return task;
         }
 
-        public override TaskAwaiter<T> LoadAsyncRef(string path, ref TaskAwaiter<T> task)
+        public override TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> csutomTask)
         {
-            if (task == null || task.IsCompleted || task.IsDisposed)
-            {
-                task = LoadAsync(path);
-            }
-            else
-            {
-                if (!path.Equals(task.Tag))
-                {
-                    task.TryCancel();
-                    task = LoadAsync(path);
-                }
-                else
-                    task.Reset();
-            }
-            return task;
+            getTaskAndWait(path, csutomTask);
+            return csutomTask;
         }
 
         public override void Release(T target)

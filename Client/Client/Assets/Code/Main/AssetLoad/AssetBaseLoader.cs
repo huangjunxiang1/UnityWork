@@ -13,7 +13,7 @@ namespace Main
     {
         public abstract T Load(string path);
         public abstract TaskAwaiter<T> LoadAsync(string path);
-        public abstract TaskAwaiter<T> LoadAsyncRef(string path, ref TaskAwaiter<T> task);
+        public abstract TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> customTask);
         public abstract void Release(T target);
     }
 }

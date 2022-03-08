@@ -31,7 +31,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     /// </summary>
     public bool IsCompleted { get; private set; }
 
-    public static TaskAwaiter Completed = new TaskAwaiter() { IsCompleted = true };
+    public static TaskAwaiter Completed { get; } = new TaskAwaiter() { IsCompleted = true };
 
     public TaskAwaiter GetAwaiter()
     {
@@ -47,7 +47,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     /// </summary>
     public void TryCancel()
     {
-        if (this.IsDisposed) return;
+        if (this.IsDisposed || this.IsCompleted) return;
 
         this.IsDisposed = true;
         this._call = null;
@@ -58,7 +58,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     /// </summary>
     public void TrySetResult()
     {
-        if (this.IsDisposed) return;
+        if (this.IsDisposed || this.IsCompleted) return;
 
         this.IsDisposed = true;
         this.IsCompleted = true;
@@ -75,7 +75,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     /// <param name="e"></param>
     public void SetException(Exception e)
     {
-        if (this.IsDisposed) return;
+        if (this.IsDisposed || this.IsCompleted) return;
 
         this.IsDisposed = true;
 
@@ -87,22 +87,14 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         this._call = null;
     }
 
-    public void Reset()
+    /// <summary>
+    /// 重置回调
+    /// </summary>
+    public void ResetWaiting()
     {
+        if (this.IsDisposed || this.IsCompleted) return;
+
         this._call = null;
-    }
-
-    public void AddWaitCall(Action callBack)
-    {
-        if (this.IsDisposed) return;
-
-        if (!this.IsCompleted)
-            this._call += callBack;
-        else
-        {
-            try { callBack?.Invoke(); }
-            catch (Exception ex) { Loger.Error("AddCall Error:" + ex); }
-        }
     }
 
     void INotifyCompletion.OnCompleted(Action callBack)
@@ -119,7 +111,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     {
         if (itor == null) return TaskAwaiter.Completed;
 
-        TaskAwaiter waiter = new TaskAwaiter();
+        TaskAwaiter waiter = new();
 
         async void wait()
         {
@@ -135,7 +127,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
 
     public static TaskAwaiter<K[]> WaitAll<K>(IEnumerable<TaskAwaiter<K>> itor)
     {
-        TaskAwaiter<K[]> waiter = new TaskAwaiter<K[]>();
+        TaskAwaiter<K[]> waiter = new();
         if (itor == null) waiter.TrySetResult(new K[0]);
         else
         {
@@ -156,41 +148,46 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     {
         if (itor == null) return TaskAwaiter.Completed;
 
-        TaskAwaiter waiter = new TaskAwaiter();
+        TaskAwaiter waiter = new();
         TaskAwaiter[] tasks = itor.ToArray();
-        for (int i = 0; i < tasks.Length; i++)
-            tasks[i].AddWaitCall(() =>
+
+        async void wait(TaskAwaiter task)
+        {
+            await task;
+            waiter.TrySetResult();
+            if (canelOthersAfterCompleted)
             {
-                waiter.TrySetResult();
-                if (canelOthersAfterCompleted)
-                {
-                    for (int j = 0; j < tasks.Length; j++)
-                        tasks[j].TryCancel();
-                }
-            });
+                for (int j = 0; j < tasks.Length; j++)
+                    tasks[j].TryCancel();
+            }
+        }
+
+        for (int i = 0; i < tasks.Length; i++)
+            wait(tasks[i]);
         return waiter;
     }
 
     public static TaskAwaiter<K> WaitAny<K>(IEnumerable<TaskAwaiter<K>> itor, bool canelOthersAfterCompleted = true)
     {
-        TaskAwaiter<K> waiter = new TaskAwaiter<K>();
+        TaskAwaiter<K> waiter = new();
         if (itor == null) waiter.TrySetResult(default);
         else
         {
             TaskAwaiter<K>[] tasks = itor.ToArray();
-            for (int i = 0; i < tasks.Length; i++)
+
+            async void wait(TaskAwaiter<K> task)
             {
-                TaskAwaiter<K> task = tasks[i];
-                task.AddWaitCall(() =>
+                await task;
+                waiter.TrySetResult(task.GetResult());
+                if (canelOthersAfterCompleted)
                 {
-                    waiter.TrySetResult(task.GetResult());
-                    if (canelOthersAfterCompleted)
-                    {
-                        for (int j = 0; j < tasks.Length; j++)
-                            tasks[j].TryCancel();
-                    }
-                });
+                    for (int j = 0; j < tasks.Length; j++)
+                        tasks[j].TryCancel();
+                }
             }
+
+            for (int i = 0; i < tasks.Length; i++)
+                wait(tasks[i]);
         }
         return waiter;
     }

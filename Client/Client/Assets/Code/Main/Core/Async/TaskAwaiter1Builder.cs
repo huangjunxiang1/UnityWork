@@ -12,7 +12,7 @@ public sealed class TaskAwaiterBuilder<T>
     TaskAwaiter<T> _awaiter;
     public static TaskAwaiterBuilder<T> Create()
     {
-        TaskAwaiterBuilder<T> builder = new TaskAwaiterBuilder<T>() { _awaiter = new TaskAwaiter<T>() };
+        TaskAwaiterBuilder<T> builder = new() { _awaiter = new TaskAwaiter<T>() };
         return builder;
     }
     public TaskAwaiter<T> Task => _awaiter;

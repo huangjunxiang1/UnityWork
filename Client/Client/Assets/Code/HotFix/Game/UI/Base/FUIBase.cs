@@ -25,10 +25,9 @@ abstract class FUIBase : UIBase
         set { this.UI.visible = value; }
     }
 
-
-    public override void InitConfig(UIConfig config, params object[] data)
+    public override void LoadConfig(UIConfig config,params object[] data)
     {
-        base.InitConfig(config);
+        base.LoadConfig(config, data);
 
         this.UI = UIPackage.CreateObject("ComPkg", this.GetType().Name).asCom;
         GRoot.inst.AddChild(this.UI);
@@ -40,6 +39,30 @@ abstract class FUIBase : UIBase
 
         this.Binding();
         this.OnEnter(data);
+    }
+    public override void LoadConfigAsync(UIConfig config, params object[] data)
+    {
+        base.LoadConfigAsync(config, data);
+
+        UIPackage.CreateObjectAsync("ComPkg", this.GetType().Name, obj =>
+         {
+             if (this.Disposed)
+             {
+                 obj.Dispose();
+                 return;
+             }
+             this.UI = obj.asCom;
+             GRoot.inst.AddChild(this.UI);
+             this.UI.MakeFullScreen();
+             this.UI.AddRelation(GRoot.inst, RelationType.Size);
+             this.UI.AddRelation(GRoot.inst, RelationType.Center_Center);
+             this.UI.fairyBatching = true;
+             this.UI.sortingOrder = config.SortOrder;
+
+             this.Binding();
+             this.OnEnter(data);
+             this.LoadWaiter.TrySetResult();
+         });
     }
 
     public override void Dispose()

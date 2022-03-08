@@ -53,7 +53,7 @@ class SceneMgr : ManagerL<SceneMgr>
     }
     public async TaskAwaiter InScene(int SceneID)
     {
-        if (SceneID <= 1) return;
+        if (SceneID <= 1 || CurScene == SceneID) return;
 
         UIS.CloseAll();
         var ui = UIS.Open<FUILoading>();

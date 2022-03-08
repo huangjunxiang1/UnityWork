@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="50,10" extention="Slider">
+  <displayList>
+    <graph id="n0_bz4b" name="n0" xy="0,0" size="50,10" type="rect" lineColor="#ffa0a0a0" fillColor="#fff0f0f0">
+      <relation target="" sidePair="width-width,height-height"/>
+    </graph>
+    <graph id="n1_bz4b" name="bar" xy="5,3" size="40,4" type="rect" lineSize="0" fillColor="#ff3399ff">
+      <relation target="" sidePair="height-height"/>
+    </graph>
+    <component id="n2_bz4b" name="grip" src="bz4ba" fileName="UI/Slider1_grip.xml" xy="40,-5">
+      <relation target="n1_bz4b" sidePair="right-right"/>
+      <relation target="" sidePair="height-height,middle-middle"/>
+    </component>
+    <text id="n3_bz4b" name="title" xy="0,-4" size="50,19" fontSize="12" align="center" vAlign="middle" autoSize="none" text="">
+      <relation target="" sidePair="width-width,height-height"/>
+    </text>
+  </displayList>
+  <Slider titleType="valueAndmax" wholeNumbers="true"/>
+</component>

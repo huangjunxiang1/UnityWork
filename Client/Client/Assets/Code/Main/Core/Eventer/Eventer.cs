@@ -15,7 +15,7 @@ public class Eventer
         this.Creater = creater;
     }
 
-    readonly List<Temp> _evtLst = new List<Temp>();
+    readonly List<Temp> _evtLst = new();
     bool _isExcuting = false;
 
     /// <summary>
@@ -34,14 +34,14 @@ public class Eventer
     /// <param name="call"></param>
     public void Add(Action call)
     {
-        Temp t = new Temp();
+        Temp t = new();
         t.isP0 = true;
         t.action0 = call;
         _evtLst.Add(t);
     }
     public void Add(Action<EventerContent> call)
     {
-        Temp t = new Temp();
+        Temp t = new();
         t.isP0 = false;
         t.action1 = call;
         _evtLst.Add(t);

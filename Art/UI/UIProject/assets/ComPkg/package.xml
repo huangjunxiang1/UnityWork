@@ -10,6 +10,8 @@
     <component id="qgu27" name="btn.xml" path="/Common/btn/"/>
     <component id="n68q8" name="FUIFighting.xml" path="/UI/" exported="true"/>
     <component id="n68q9" name="btnBack.xml" path="/Common/btn/"/>
+    <component id="bz4ba" name="Slider1_grip.xml" path="/UI/"/>
+    <component id="bz4bb" name="Slider1.xml" path="/UI/"/>
   </resources>
   <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2" genCode="true"/>
 </packageDescription>

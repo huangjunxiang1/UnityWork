@@ -20,7 +20,7 @@ namespace Main
         public static AssetBaseLoader<Texture> TextureLoader { get; } = new AssetCounterLoader<Texture>();
         public static AssetBaseLoader<TextAsset> TextAssetLoader { get; } = new AssetPrimitiveLoader<TextAsset>();
         public static AssetBaseLoader<AudioClip> AudioLoader { get; } = new AssetPrimitiveLoader<AudioClip>();
-        public static AssetBaseLoader<ScriptableObject> ScriptObjectLoader { get; } = new AssetPrimitiveLoader<ScriptableObject>();
+        public static AssetBaseLoader<ScriptableObject> ScriptObjectLoader { get; } = new AssetScriptableObjectLoader();
 
         //默认保存一个通用加载器  
         public static AssetBaseLoader<UnityEngine.Object> DefaultLoader { get; } = new AssetPrimitiveLoader<UnityEngine.Object>();

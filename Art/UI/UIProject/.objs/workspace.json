@@ -5,6 +5,8 @@
     "ui://zvziziwiodqh0",
     "ui://zvziziwiqgu22",
     "ui://zvziziwin68q8",
+    "ui://zvziziwibz4ba",
+    "ui://zvziziwibz4bb",
     "ui://zvziziwin68q9",
     "ui://zvziziwiqgu27",
     "ui://zvziziwiqgu25",
@@ -12,10 +14,10 @@
     "ui://zvziziwiqgu24",
     "ui://zvziziwiqgu21"
   ],
-  "test.device": "Galaxy S10",
+  "test.device": "Huawei Mate20 Pro",
   "canvasColor": 10066329,
   "auxline2": true,
-  "doc.activeDoc": "ui://zvziziwiqgu22",
+  "doc.activeDoc": "ui://zvziziwin68q8",
   "libview.twoColumn": false,
   "libview.expandedNodes": [
     "zvziziwi",

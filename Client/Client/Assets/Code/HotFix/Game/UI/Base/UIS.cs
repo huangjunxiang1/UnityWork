@@ -18,7 +18,7 @@ static class UIS
 {
     static UIS()
     {
-        GameObject root = new GameObject("UIRoot", typeof(RectTransform));
+        GameObject root = new("UIRoot", typeof(RectTransform));
         root.layer = LayerMask.NameToLayer("UI");
         GameObject.DontDestroyOnLoad(root);
         UGUIRoot = root.transform as RectTransform;
@@ -28,7 +28,7 @@ static class UIS
         UGUICamera = GameObject.Find("UGUICamera").GetComponent<Camera>();
     }
 
-    static List<UIBase> _uiLst = new List<UIBase>();
+    static readonly List<UIBase> _uiLst = new();
 
     /// <summary>
     /// UGUI模式有效
@@ -91,9 +91,21 @@ static class UIS
         if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
             cfg = UIConfig.Default;
 
-        T ui = new T();
+        T ui = new();
         _uiLst.Add(ui);
-        ui.InitConfig(cfg, data);
+
+        ui.LoadConfig(cfg, data);
+        return ui;
+    }
+    public static T OpenAsync<T>(params object[] data) where T : UIBase, new()
+    {
+        if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
+            cfg = UIConfig.Default;
+
+        T ui = new();
+        _uiLst.Add(ui);
+
+        ui.LoadConfigAsync(cfg, data);
         return ui;
     }
     public static T Get<T>() where T : UIBase

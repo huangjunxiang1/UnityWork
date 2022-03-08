@@ -23,28 +23,15 @@ namespace Main
 
         public override TaskAwaiter<T> LoadAsync(string path)
         {
-            TaskAwaiter<T> task = new TaskAwaiter<T>(path);
+            TaskAwaiter<T> task = new(path);
             getTaskAndWait(path, task);
             return task;
         }
 
-        public override TaskAwaiter<T> LoadAsyncRef(string path, ref TaskAwaiter<T> task)
+        public override TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> customTask)
         {
-            if (task == null || task.IsCompleted || task.IsDisposed)
-            {
-                task = LoadAsync(path);
-            }
-            else
-            {
-                if (!path.Equals(task.Tag))
-                {
-                    task.TryCancel();
-                    task = LoadAsync(path);
-                }
-                else
-                    task.Reset();
-            }
-            return task;
+            getTaskAndWait(path, customTask);
+            return customTask;
         }
 
         public override void Release(T target)

@@ -4,5 +4,9 @@
     <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
       <relation target="" sidePair="right-right,top-top"/>
     </component>
+    <component id="n3_bz4b" name="_slider" src="bz4bb" fileName="UI/Slider1.xml" xy="643,693" size="671,31">
+      <relation target="" sidePair="right-right,bottom-bottom"/>
+      <Slider max="10000"/>
+    </component>
   </displayList>
 </component>
