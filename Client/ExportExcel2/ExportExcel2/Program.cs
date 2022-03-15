@@ -500,6 +500,11 @@ namespace ExportExcel
         {
             if (sType == "int")
             {
+                if (string.IsNullOrEmpty(text))
+                {
+                    buffer.Write(0);
+                    return;
+                }
                 if (!int.TryParse(text, out var v))
                 {
                     Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
@@ -546,6 +551,12 @@ namespace ExportExcel
             }
             else if (sType == "v2i")
             {
+                if (string.IsNullOrEmpty(text))
+                {
+                    buffer.Write(0);
+                    buffer.Write(0);
+                    return;
+                }
                 string[] s = text.Split(new char[] { '(', ')', ',' });
                 if (s.Length != 4 || !int.TryParse(s[1], out var v1) || !int.TryParse(s[2], out var v2))
                 {
@@ -588,6 +599,11 @@ namespace ExportExcel
             }
             else if (sType == "float")
             {
+                if (string.IsNullOrEmpty(text))
+                {
+                    buffer.Write(0f);
+                    return;
+                }
                 if (!float.TryParse(text, out var v))
                 {
                     Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
@@ -617,6 +633,11 @@ namespace ExportExcel
             }
             else if (sType == "bool")
             {
+                if (string.IsNullOrEmpty(text))
+                {
+                    buffer.Write(false);
+                    return;
+                }
                 if (!int.TryParse(text, out var v) || (v != 0 && v != 1))
                 {
                     Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);

@@ -27,6 +27,12 @@
       },
       "url": "https://packages.unity.cn"
     },
+    "com.unity.animancer": {
+      "version": "file:Animancer",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.animation.rigging": {
       "version": "1.1.1",
       "depth": 0,
@@ -410,6 +416,12 @@
         "com.unity.shadergraph": "12.1.4",
         "com.unity.render-pipelines.core": "12.1.4"
       }
+    },
+    "com.unity.workpackage": {
+      "version": "file:WorkPackage",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.xr.legacyinputhelpers": {
       "version": "2.1.8",

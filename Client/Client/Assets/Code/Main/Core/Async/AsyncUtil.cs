@@ -31,7 +31,7 @@ public static class AsyncUtil
                 task.TrySetResult();
             }
         }
-        Timer.Add(-1, 0, update);
+        Timer.Add(0, -1, update);
 
         return task;
     }
