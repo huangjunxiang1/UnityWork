@@ -86,6 +86,7 @@
   <string name="2pshu6oioj7qiu9e-n38_qilr-tips" mz="btnRelationDisabled">Enable/Disable Relation System (Design Mode Only)</string>
   <string name="2pshu6oioj7qiu9e-n39_qilr-tips" mz="btnShowAllInvisibles">Enable/Disable Display Controller (Design Mode Only)</string>
   <string name="2pshu6oioj7qiu9e-n41_dp9p-tips" mz="rename">Rename(F2)</string>
+  <string name="2pshu6oioj7qiu9e-n43_uaaf-prompt" mz="findInput">Find...</string>
   <!-- Builder/InlineSearchBar.xml -->
   <string name="2pshu6oidp9p7iufj-n94_qilr" mz="title">a</string>
   <!-- Builder/LibraryView.xml -->
@@ -170,7 +171,7 @@ Restore: Ctrl+1</string>
   <string name="2pshu6oicgoaixicvq-n132_s3qd-tips" mz="tbStopTest">Stop Test(ESC)</string>
   <string name="2pshu6oicgoaixicvq-n133_s3qd-tips" mz="tbReload">Reload(F5)</string>
   <string name="2pshu6oicgoaixicvq-n134_nhhk-tips" mz="tbBranch">Branch</string>
-  <string name="2pshu6oicgoaixicvq-n135_nhhk-tips" mz="tbLang">Languange</string>
+  <string name="2pshu6oicgoaixicvq-n135_nhhk-tips" mz="tbLang">Language</string>
   <!-- Builder/TransitionListView.xml -->
   <string name="2pshu6oiqilr7iuf7-n38_qilr-tips" mz="delete">Delete</string>
   <string name="2pshu6oiqilr7iuf7-n41_qilr-tips" mz="duplicate">Duplicate</string>
@@ -266,6 +267,8 @@ Property name is alias or controller name.</string>
   <string name="2pshu6oiau3n3s-n62_dp9p-tips" mz="buttonTemplate">Add Button's</string>
   <string name="2pshu6oiau3n3s-n72_dp9p" mz="n72">Pages</string>
   <string name="2pshu6oiau3n3s-n52_ncy4" mz="n52">Action</string>
+  <string name="2pshu6oiau3n3s-n121_snnf" mz="pasteController">Paste</string>
+  <string name="2pshu6oiau3n3s-n122_snnf" mz="copyController">Copy</string>
   <!-- Builder/dialogs/ControllerEdit_ActionItem.xml -->
   <string name="2pshu6oi5yy4iuax-n58_5yy4" mz="n58">From</string>
   <string name="2pshu6oi5yy4iuax-n60_5yy4" mz="n60">To</string>
@@ -603,6 +606,11 @@ Use value here</string>
   <!-- Builder/dialogs/InputDialog.xml -->
   <string name="2pshu6oiau3n44-n3" mz="ok">OK</string>
   <string name="2pshu6oiau3n44-n4" mz="cancel">Cancel</string>
+  <!-- Builder/dialogs/Lang_item.xml -->
+  <string name="2pshu6ointzra7iuiw-n17_uaaf" mz="n17">Name</string>
+  <string name="2pshu6ointzra7iuiw-n18_uaaf" mz="n18">File</string>
+  <string name="2pshu6ointzra7iuiw-n20_uaaf" mz="n20">Font Name</string>
+  <string name="2pshu6ointzra7iuiw-n24_uaaf-tips" mz="n24">(optional) specify a font and set it as the default font when switching to this language.</string>
   <!-- Builder/dialogs/ListItemsEditDialog.xml -->
   <string name="2pshu6oiau3n55-n0" mz="frame">Edit List Items</string>
   <string name="2pshu6oiau3n55-n72_mwte" mz="n72">Title</string>
@@ -752,10 +760,12 @@ Use value here</string>
   <string name="2pshu6oii06g1nry31p-n124_mwte" mz="n124">Key</string>
   <string name="2pshu6oii06g1nry31p-n125_mwte" mz="n125">Value</string>
   <!-- Builder/dialogs/ProjectSettings_i18n.xml -->
+  <string name="2pshu6oii06g1nry31o-n114_ntzr-tips" mz="addLang">Add a language file</string>
+  <string name="2pshu6oii06g1nry31o-n115_ntzr-tips" mz="removeLang">Remove selected language</string>
   <string name="2pshu6oii06g1nry31o-n120_ntzr-tips" mz="newLangFile">Create new language file</string>
   <string name="2pshu6oii06g1nry31o-n121_ntzr-tips" mz="syncLangFiles">Update all language files</string>
-  <string name="2pshu6oii06g1nry31o-n129_mwte" mz="n129">Name</string>
-  <string name="2pshu6oii06g1nry31o-n131_vbd2" mz="n131">File</string>
+  <string name="2pshu6oii06g1nry31o-n132_uaaf-tips" mz="moveUp">Move Up</string>
+  <string name="2pshu6oii06g1nry31o-n133_uaaf-tips" mz="moveDown">Move Down</string>
   <!-- Builder/dialogs/ProjectSettings_quick.xml -->
   <string name="2pshu6oiwqe77iufo-n32" mz="n32">Color Scheme (Each line:Name Color)</string>
   <string name="2pshu6oiwqe77iufo-n33" mz="n33">Font Size Scheme (Each line: Name Size)</string>
@@ -884,7 +894,7 @@ FairyGUI provides special mixed shader.</string>
   <string name="2pshu6oiau3n5c-n0" mz="frame">Replacing Element</string>
   <string name="2pshu6oiau3n5c-n1" mz="ok">OK</string>
   <string name="2pshu6oiau3n5c-n6" mz="cancel">Cancel</string>
-  <string name="2pshu6oiau3n5c-n15_li0v" mz="n15">Standard: </string>
+  <string name="2pshu6oiau3n5c-n15_li0v" mz="n15">Builtin: </string>
   <string name="2pshu6oiau3n5c-n16_li0v" mz="n16">History: </string>
   <!-- Builder/dialogs/SaveConfirmDialog.xml -->
   <string name="2pshu6oiau3n3k-n6" mz="n6">Do you want to save changes to the following items?</string>
@@ -1091,6 +1101,8 @@ The name of the selected element is changed to a0, a1, a2..</string>
   <string name="2pshu6oiaall7iuf0-n53_aall-0" mz="cond">Or</string>
   <!-- Builder/inspectors/GearPropsPanel.xml -->
   <string name="2pshu6oiau3n2r-n52_93ak" mz="add">Add</string>
+  <string name="2pshu6oiau3n2r-n53_snnf" mz="copy">Copy</string>
+  <string name="2pshu6oiau3n2r-n54_snnf" mz="paste">Paste</string>
   <!-- Builder/inspectors/GraphPropsPanel.xml -->
   <string name="2pshu6oiau3n2t-n17" mz="n17">Graph</string>
   <string name="2pshu6oiau3n2t-n33" mz="n33">Line Size</string>
@@ -1194,6 +1206,10 @@ The name of the selected element is changed to a0, a1, a2..</string>
   <string name="2pshu6oiqacnu81-n9" mz="n9">Y</string>
   <string name="2pshu6oiqacnu81-n11" mz="n11">Width</string>
   <string name="2pshu6oiqacnu81-n12" mz="n12">Height</string>
+  <!-- Builder/inspectors/NotesPropsPanel.xml -->
+  <string name="2pshu6oiuaaf1nry32j-n1_uaaf" mz="edit">编辑备注...</string>
+  <string name="2pshu6oiuaaf1nry32j-n1_uaaf-texts_0" mz="edit">编辑备注...</string>
+  <string name="2pshu6oiuaaf1nry32j-n1_uaaf-texts_1" mz="edit">增加备注...</string>
   <!-- Builder/inspectors/RelationLabel.xml -->
   <string name="2pshu6oigj1q7iueq-n12_gj1q" mz="title">Bottom</string>
   <!-- Builder/inspectors/RelationPropsItem.xml -->
@@ -1202,6 +1218,8 @@ The name of the selected element is changed to a0, a1, a2..</string>
   <string name="2pshu6oiau3n4i-n20_zsu0-tips" mz="centerRelation">Set center relation</string>
   <!-- Builder/inspectors/RelationPropsPanel.xml -->
   <string name="2pshu6oiau3n4a-n52_gj1q" mz="add">Add</string>
+  <string name="2pshu6oiau3n4a-n53_snnf" mz="copy">Copy</string>
+  <string name="2pshu6oiau3n4a-n54_snnf" mz="paste">Paste</string>
   <!-- Builder/inspectors/RelationTypePopup.xml -->
   <string name="2pshu6oisl3v5j-n7" mz="finish">Finish</string>
   <string name="2pshu6oisl3v5j-n14_gj1q" mz="11">Width -&gt; Width</string>

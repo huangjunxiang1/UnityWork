@@ -18,7 +18,7 @@ namespace Game
         List<Vector3> _totalPos;
         List<long> _totalTimes;
         long _startUtc;
-        TaskAwaiter<GameObject> _pathLineTask;
+        TaskAwaiter<UnityEngine.Object> _pathLineTask;
         GameObject _pathLine;
 
 
@@ -53,7 +53,7 @@ namespace Game
 
             string path = "3D/Util/pathLine.prefab";
             if (!_pathLine)
-                _pathLine = await AssetLoad.PrefabLoader.LoadAsync(path, TaskCreater.GetOrCreate(ref _pathLineTask, path));
+                _pathLine = await AssetLoad.LoadAsync<GameObject>(path, TaskCreater.GetOrCreate(ref _pathLineTask, path));
             _pathLine.transform.SetParent(WRoot.Inst.GameObject.transform);
             _pathLine.transform.rotation = Quaternion.Euler(90, 0, 0);
             LineRenderer line = _pathLine.GetComponent<LineRenderer>();
@@ -66,7 +66,7 @@ namespace Game
             Timer.Remove(_moveUpdate);
             if (_pathLine)
             {
-                AssetLoad.PrefabLoader.Release(_pathLine);
+                AssetLoad.Release(_pathLine);
                 _pathLine = null;
             }
         }
@@ -75,7 +75,7 @@ namespace Game
             base.Dispose();
             if (_pathLine)
             {
-                AssetLoad.PrefabLoader.Release(_pathLine);
+                AssetLoad.Release(_pathLine);
                 _pathLine = null;
             }
         }
@@ -103,7 +103,7 @@ namespace Game
                 Timer.Remove(_moveUpdate);
                 if (_pathLine)
                 {
-                    AssetLoad.PrefabLoader.Release(_pathLine);
+                    AssetLoad.Release(_pathLine);
                     _pathLine = null;
                 }
             }

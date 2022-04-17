@@ -13,25 +13,25 @@ namespace Main
     /// 计数加载器
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class AssetCounterLoader<T> : AssetBaseLoader<T> where T : UnityEngine.Object
+    public class AssetCounterLoader : AssetBaseLoader
     {
         class Temp
         {
-            public T target;
+            public UnityEngine.Object target;
             public int count;
             public bool isLoading;
-            public AsyncOperationHandle<T> wait;
+            public AsyncOperationHandle<UnityEngine.Object> wait;
         }
-        Dictionary<string, Temp> counter = new Dictionary<string, Temp>(50);
-        Dictionary<T, string> pathMap = new Dictionary<T, string>(50);
+        Dictionary<string, Temp> counter = new(50);
+        Dictionary<UnityEngine.Object, string> pathMap = new(50);
 
-        public override T Load(string path)
+        public override UnityEngine.Object Load(string path)
         {
             if (!counter.TryGetValue(path, out Temp value))
             {
                 value = new Temp();
                 counter[path] = value;
-                value.wait = Addressables.LoadAssetAsync<T>(AssetLoad.Directory + path);
+                value.wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
                 value.wait.WaitForCompletion();
                 value.target = value.wait.Result;
                 value.wait = default;
@@ -54,9 +54,9 @@ namespace Main
             return value.target;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path)
+        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
         {
-            TaskAwaiter<T> task = new TaskAwaiter<T>(path);
+            TaskAwaiter<UnityEngine.Object> task = new(path);
             if (counter.TryGetValue(path, out Temp value))
             {
                 value.count++;
@@ -67,7 +67,7 @@ namespace Main
             return task;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> customTask)
+        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> customTask)
         {
             if (counter.TryGetValue(path, out Temp value))
             {
@@ -79,7 +79,7 @@ namespace Main
             return customTask;
         }
 
-        public override void Release(T target)
+        public override void Release(UnityEngine.Object target)
         {
             if (!pathMap.TryGetValue(target, out string path))
             {
@@ -97,13 +97,13 @@ namespace Main
             }
         }
 
-        async void getTaskAndWait(string path, TaskAwaiter<T> task)
+        async void getTaskAndWait(string path, TaskAwaiter<UnityEngine.Object> task)
         {
             if (!counter.TryGetValue(path, out Temp value))
             {
                 value = new Temp();
                 counter[path] = value;
-                value.wait = Addressables.LoadAssetAsync<T>(AssetLoad.Directory + path);
+                value.wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
             }
             value.isLoading = true;
 

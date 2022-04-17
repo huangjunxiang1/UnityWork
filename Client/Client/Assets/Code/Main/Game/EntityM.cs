@@ -17,12 +17,14 @@ namespace Game
         public EntityM(long id)
         {
             this.ID = id;
-            SysEvent.RigisterListener(this);
+            if (this.AutoRigisterEvent)
+                this.ListenerEnable = true;
         }
 
         static long idValue;
 
         TaskAwaiterCreater taskCreater;
+        bool listenerEnable = false;
 
         /// <summary>
         /// ID  可自定义赋值
@@ -35,11 +37,43 @@ namespace Game
         public bool Disposed { get; private set; }
 
         /// <summary>
+        /// 自动注册事件监听
+        /// </summary>
+        public virtual bool AutoRigisterEvent { get; } = true;
+
+        /// <summary>
+        /// 事件监听
+        /// </summary>
+        public bool ListenerEnable
+        {
+            get => listenerEnable;
+            set
+            {
+                if (value)
+                {
+                    if (!listenerEnable)
+                    {
+                        SysEvent.RigisterListener(this);
+                        listenerEnable = true;
+                    }
+                }
+                else
+                {
+                    if (listenerEnable)
+                    {
+                        SysEvent.RemoveListener(this);
+                        listenerEnable = false;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 异步拯救者 - =|
         /// </summary>
         public TaskAwaiterCreater TaskCreater
         {
-            get { return taskCreater ??= new TaskAwaiterCreater(); }
+            get { return taskCreater ??= new(); }
         }
 
         /// <summary>
@@ -54,7 +88,8 @@ namespace Game
             }
 
             this.Disposed = true;
-            SysEvent.RemoveListener(this);
+            if (listenerEnable)
+                SysEvent.RemoveListener(this);
             taskCreater?.Dispose();
         }
     }

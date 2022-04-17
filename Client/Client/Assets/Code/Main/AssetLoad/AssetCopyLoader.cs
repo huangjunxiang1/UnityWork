@@ -13,45 +13,45 @@ namespace Main
     /// 拷贝资源加载器
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class AssetCopyLoader<T> : AssetBaseLoader<T> where T : UnityEngine.Object
+    public class AssetCopyLoader : AssetBaseLoader
     {
-        public override T Load(string path)
+        public override UnityEngine.Object Load(string path)
         {
-            var wait = Addressables.LoadAssetAsync<T>(AssetLoad.Directory + path);
+            var wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
             wait.WaitForCompletion();
-            T ret = UnityEngine.Object.Instantiate(wait.Result);
+            UnityEngine.Object ret = UnityEngine.Object.Instantiate(wait.Result);
             Addressables.Release(wait.Result);
             return ret;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path)
+        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
         {
-            TaskAwaiter<T> task = new TaskAwaiter<T>(path);
+            TaskAwaiter<UnityEngine.Object> task = new TaskAwaiter<UnityEngine.Object>(path);
             getTaskAndWait(path, task);
             return task;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> csutomTask)
+        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> csutomTask)
         {
             getTaskAndWait(path, csutomTask);
             return csutomTask;
         }
 
-        public override void Release(T target)
+        public override void Release(UnityEngine.Object target)
         {
             UnityEngine.Object.Destroy(target);
         }
 
-        async void getTaskAndWait(string path, TaskAwaiter<T> task)
+        async void getTaskAndWait(string path, TaskAwaiter<UnityEngine.Object> task)
         {
-            var wait = Addressables.LoadAssetAsync<T>(AssetLoad.Directory + path);
+            var wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
 
             await wait.Task;
 
             //如果状态是没完成 但是被释放了 说明异步被中途取消
             if (!task.IsCompleted && !task.IsDisposed)
             {
-                T ret = UnityEngine.Object.Instantiate(wait.Result);
+                UnityEngine.Object ret = UnityEngine.Object.Instantiate(wait.Result);
                 Addressables.Release(wait.Result);
                 task.TrySetResult(ret);
             }

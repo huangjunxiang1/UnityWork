@@ -7,61 +7,84 @@ using UnityEngine;
 using Cinemachine;
 using Game;
 using Main;
+using UnityEngine.InputSystem;
+using FairyGUI;
 
 static class CM
 {
     static CM()
     {
         cm_cb = GameObject.FindObjectOfType<CinemachineBrain>();
-        cm_vc = GameObject.FindObjectOfType<CinemachineVirtualCamera>();
-        cm_ct = cm_vc.GetCinemachineComponent<CinemachineTransposer>();
 
-        offset = cm_ct.m_FollowOffset.normalized;
-        distance = cm_ct.m_FollowOffset.magnitude;
-        vc_settings = AssetLoad.ScriptObjectLoader.Load("Config/SO/CMSetting.asset") as CMSetting;
+        input = new CMInput();
+        input.Asset.Enable();
+
+        input.CMMouseClick.started += clickDown;
+        input.CMMouseClick.canceled += clickUp;
+        input.CMMouseMove.performed += move;
+        input.CMMouseWheel.performed += wheel;
     }
     static CinemachineBrain cm_cb;
     static CinemachineVirtualCamera cm_vc;
     static CinemachineTransposer cm_ct;
 
-    static CMSetting vc_settings;
-    static Vector3 offset;
-    static float distance;
+    static WObject cm;
+    static CMInput input;
+    static bool onDown = false;
+
+    static void clickDown(InputAction.CallbackContext e)
+    {
+        if (cm == null) return;
+        var ui = GRoot.inst.touchTarget;
+        while (ui != null)
+        {
+            if (ui == GRoot.inst) return;
+            ui = ui.parent;
+        }
+        onDown = e.ReadValueAsButton();
+    }
+    static void clickUp(InputAction.CallbackContext e)
+    {
+        onDown = false;
+    }
+    static void move(InputAction.CallbackContext e)
+    {
+        if (!onDown) return;
+        var v2 = -e.ReadValue<Vector2>();
+        cm.Position += new Vector3(v2.x, 0, v2.y) * Setting.CMSetting.moveSpeed;
+    }
+    static void wheel(InputAction.CallbackContext e)
+    {
+        var m = Camera.main;
+        if (!m) return;
+        float _wheel = e.ReadValue<Vector2>().y;
+        if (_wheel > 0)
+        {
+            if (cm.Position.y > Setting.CMSetting.yMin)
+                cm.Position += m.transform.forward * Setting.CMSetting.wheelSpeed * _wheel;
+        }
+        else if (_wheel < 0)
+        {
+            if (cm.Position.y < Setting.CMSetting.yMax)
+                cm.Position += m.transform.forward * Setting.CMSetting.wheelSpeed * _wheel;
+        }
+    }
 
     public static void Init(WObject self)
     {
-        cm_cb.ActiveVirtualCamera.Follow = self.GameObject.transform;
-        cm_cb.ActiveVirtualCamera.LookAt = self.GameObject.transform;
+        cm = self;
+        cm_cb.ActiveVirtualCamera.Follow = cm.GameObject.transform;
+        //cm_cb.ActiveVirtualCamera.LookAt = cm.GameObject.transform;
 
-        Timer.Add(0, -1, wheels);
+        cm_vc = (CinemachineVirtualCamera)cm_cb.ActiveVirtualCamera;
+        cm_ct = cm_vc.GetCinemachineComponent<CinemachineTransposer>();
     }
     public static void Exit()
     {
-        cm_cb.ActiveVirtualCamera.Follow = null;
-        cm_cb.ActiveVirtualCamera.LookAt = null;
-        Timer.Remove(wheels);
-    }
-    static void wheels()
-    {
-        float _wheel = Input.GetAxis("Mouse ScrollWheel");
-        if (_wheel != 0)
+        if (cm_cb.ActiveVirtualCamera != null)
         {
-            distance -= _wheel * vc_settings.wheelSpeed;
-            distance = Mathf.Clamp(distance, vc_settings.near, vc_settings.far);
-            cm_ct.m_FollowOffset = offset * distance;
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, 1000, -1))
-            {
-                C2M_PathfindingResult msg = new();
-                msg.X = hit.point.x;
-                msg.Y = hit.point.y;
-                msg.Z = hit.point.z;
-                SysNet.Send(msg);
-            }
+            cm_cb.ActiveVirtualCamera.Follow = null;
+            cm_cb.ActiveVirtualCamera.LookAt = null;
         }
     }
 }

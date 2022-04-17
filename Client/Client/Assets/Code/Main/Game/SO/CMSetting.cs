@@ -8,7 +8,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "WSO/" + nameof(CMSetting), fileName = nameof(CMSetting), order = 1)]
 public class CMSetting : ScriptableObject
 {
-    public float near;
-    public float far;
+    public float yMin;
+    public float yMax;
     public float wheelSpeed;
+    public float moveSpeed;
 }

@@ -440,19 +440,16 @@ namespace Main
                 for (; idx < evts.Count; idx = ++_msgCalling[opCode])
                 {
                     MsgData e = evts[idx];
-#if !UNITY_EDITOR
+
                     try
                     {
-#endif
-                    if (e.isP0) e.action0();
-                    else e.action1(message);
-#if !UNITY_EDITOR
+                        if (e.isP0) e.action0();
+                        else e.action1(message);
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("消息执行出错 error:" + ex.ToString());
                     }
-#endif
                 }
                 _msgCalling.Remove(opCode);
             }
@@ -489,19 +486,16 @@ namespace Main
                 for (; idx < evts.Count; idx = ++_evtCalling[eventID])
                 {
                     EvtData e = evts[idx];
-#if !UNITY_EDITOR
+
                     try
                     {
-#endif
-                    if (e.isP0) e.action0();
-                    else e.action1(new EventerContent(e.target, value, data));
-#if !UNITY_EDITOR
+                        if (e.isP0) e.action0();
+                        else e.action1(new EventerContent(e.target, value, data));
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
-#endif
                 }
                 _evtCalling.Remove(eventID);
             }

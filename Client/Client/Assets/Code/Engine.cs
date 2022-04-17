@@ -17,7 +17,6 @@ public class Engine : MonoBehaviour
     public bool Debug;
     /* public ServiceType ServiceType;*/
 
-
     // Start is called before the first frame update
     void Start()
     {
@@ -104,7 +103,7 @@ public class Engine : MonoBehaviour
                 System.IO.MemoryStream dll = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
                 app.LoadAssembly(dll);
             }
-            ILRuntimeInit.Init(app);
+            ILRuntimeBinding.Binding(app);
 
             Type[] a2 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
 

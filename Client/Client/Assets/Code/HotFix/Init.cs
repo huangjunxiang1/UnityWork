@@ -16,10 +16,10 @@ public class Init
 
         GameSetting.Languege = SystemLanguage.Chinese;
         GameSetting.UIModel = UIModel.FGUI;
-        
-        TabM.Init((await AssetLoad.TextAssetLoader.LoadAsync("Config/TabM.bytes")).bytes);
-        TabL.Init((await AssetLoad.TextAssetLoader.LoadAsync("Config/TabL.bytes")).bytes);
-        LanguageS.Init((await AssetLoad.TextAssetLoader.LoadAsync("Config/Language.bytes")).bytes);
+
+        TabM.Init(new DBuffer((await AssetLoad.LoadAsync<TextAsset>("Config/TabM.bytes")).bytes));
+        TabL.Init(new DBuffer((await AssetLoad.LoadAsync<TextAsset>("Config/TabL.bytes")).bytes));
+        LanguageS.Init(new DBuffer((await AssetLoad.LoadAsync<TextAsset>("Config/Language.bytes")).bytes));
 
         WRoot.Inst.Init();
         SceneMgr.Inst.Init();

@@ -7,9 +7,8 @@ public static class TabM
 
     static Dictionary<int, _test2> _map_test2;
 
-    public static void Init(byte[] bytes)
+    public static void Init(DBuffer buffer)
     {
-        DBuffer buffer = new DBuffer(bytes);
 
         int len0 = buffer.ReadInt();
         _test2Array = new _test2[len0];

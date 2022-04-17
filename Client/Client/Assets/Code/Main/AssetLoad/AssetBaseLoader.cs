@@ -9,11 +9,15 @@ using UnityEngine;
 
 namespace Main
 {
-    public abstract class AssetBaseLoader<T> where T : UnityEngine.Object
+    public abstract class AssetBaseLoader
     {
-        public abstract T Load(string path);
-        public abstract TaskAwaiter<T> LoadAsync(string path);
-        public abstract TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> customTask);
-        public abstract void Release(T target);
+        public abstract UnityEngine.Object Load(string path);
+        public abstract TaskAwaiter<UnityEngine.Object> LoadAsync(string path);
+        public abstract TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> customTask); 
+        public TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiterCreater creater)
+        {
+            return LoadAsync(path, creater.Create<UnityEngine.Object>());
+        }
+        public abstract void Release(UnityEngine.Object target);
     }
 }

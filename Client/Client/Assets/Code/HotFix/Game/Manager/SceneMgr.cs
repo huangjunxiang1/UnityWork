@@ -45,6 +45,7 @@ class SceneMgr : ManagerL<SceneMgr>
         CurScene = 1;
 
         await SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
+        await Task.Delay(100);//场景重复加载时 会有一帧延迟才能find场景的GameObject
 
         ui.max = 1;
         UIS.Open<FUILogin>();
@@ -62,10 +63,15 @@ class SceneMgr : ManagerL<SceneMgr>
         CurScene = SceneID;
         
         await SceneManager.LoadSceneAsync(TabL.GetScene(CurScene).name);
+        await Task.Delay(100);//场景重复加载时 会有一帧延迟才能find场景的GameObject
 
         ui.max = 1;
         UIS.Open<FUIFighting>();
 
         SysEvent.ExecuteEvent((int)EIDL.InScene, CurScene);
+        WObject cm = new WObject(2, new GameObject("CMTarget"));
+        WRoot.Inst.AddChild(cm);
+        cm.Position = default;
+        CM.Init(cm);
     }
 }

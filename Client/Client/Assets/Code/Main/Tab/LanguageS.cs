@@ -5,7 +5,7 @@ public static class LanguageS
 {
     public static SystemLanguage LanguageType { get; set; } = SystemLanguage.Chinese;
 
-    static Dictionary<int, Language> map = new Dictionary<int, Language>();
+    static Dictionary<int, Language> map;
     public static string ToLan(this int key)
     {
         if (!map.TryGetValue(key, out var ret))
@@ -20,10 +20,10 @@ public static class LanguageS
         return ret.en;
     }
 
-    public static void Init(byte[] bytes)
+    public static void Init(DBuffer buff)
     {
-        DBuffer buff = new DBuffer(bytes);
         int len = buff.ReadInt();
+        map = new Dictionary<int, Language>(len);
         for (int i = 0; i < len; i++)
         {
             Language t = new Language(buff);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -111,9 +112,16 @@ public unsafe class DBuffer
     }
     public float ReadFloat()
     {
-        int idx = Position;
-        Position += sizeof(float);
-        return BitConverter.ToSingle(bytes, idx);
+        fixed (byte* ptr = &bytes[Position])
+        {
+            FloatInt fi = default;
+            fi.valueUint =(uint)(ptr[0]
+                               | ptr[1] << 8
+                               | ptr[2] << 16
+                               | ptr[3] << 24);
+            Position += sizeof(float);
+            return fi.valueFloat;
+        }
     }
     public string ReadString()
     {
@@ -238,13 +246,14 @@ public unsafe class DBuffer
     public void Write(float v)
     {
         if (Position + sizeof(float) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(float)));
-        byte[] bs = BitConverter.GetBytes(v);
-        fixed (byte* ptr = &bytes[Position], ptr2 = bs)
+        FloatInt fi = default;
+        fi.valueFloat = v;
+        fixed (byte* ptr = &bytes[Position])
         {
-            ptr[0] = ptr2[0];
-            ptr[1] = ptr2[1];
-            ptr[2] = ptr2[2];
-            ptr[3] = ptr2[3];
+            ptr[0] = (byte)fi.valueUint;
+            ptr[1] = (byte)(fi.valueUint >> 8);
+            ptr[2] = (byte)(fi.valueUint >> 16);
+            ptr[3] = (byte)(fi.valueUint >> 24);
         }
         Position += sizeof(float);
     }
@@ -316,5 +325,14 @@ public unsafe class DBuffer
                 ptr2[i] = ptr[i];
         }
         bytes = b;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    struct FloatInt
+    {
+        [FieldOffset(0)]
+        public float valueFloat;
+        [FieldOffset(0)]
+        public uint valueUint;
     }
 }

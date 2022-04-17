@@ -156,8 +156,9 @@ Note: this operation can not be recovered.</string>
   <string name="text67">Check for Updates</string>
   <string name="text339">Import Standard Package</string>
   <string name="text372">Open big text edit form</string>
-  <string name="text373">Online Help</string>
-  <string name="text374">Support</string>
+  <string name="text373">Documentation</string>
+  <string name="text374">Report Issue</string>
+  <string name="text479">Release Notes</string>
   <string name="text375">Upgrade to Pro Version</string>
   <string name="text83">Quit FairyGUI</string>
   <string name="text84">FairyGUI Editor</string>
@@ -168,6 +169,7 @@ Note: this operation can not be recovered.</string>
   <string name="text471">Toggle show grid</string>
   <string name="text472">Toggle snap to grid</string>
   <string name="text475">Revert File</string>
+  <string name="text478">Quick Find</string>
 
   <!-- Preview View -->
   <string name="text57">Resource Size</string>
@@ -400,7 +402,9 @@ Note: this operation can not be recovered.</string>
   <string name="text258">BExt</string>
   <string name="text259">Center-Center</string>
   <string name="text260">Middle-Middle</string>
-    
+  <string name="text476">Paste(Override)</string>
+  <string name="text477">Paste(Append)</string>
+
   <!-- image fill method -->
   <string name="text268">Horizontal</string>
   <string name="text269">Vertical</string>
@@ -481,7 +485,7 @@ The following is a warning message, but it can be ignored.</string>
   <string name="text455">License key is expired!</string>
     
   <!-- ToggleColorSpaceDialog -->
-  <string name="text467">Toggle color space</string>
+  <string name="text467">Toggle Color Space</string>
   <string name="text468">The color space has been switched. Do you want to restart now?</string>
 
   <!-- Pivot menu -->
@@ -586,9 +590,9 @@ After the upgrade, the new location will be opened, and the original project wil
   <string name="text459">The project is already open in another window</string>
   <string name="text460">Are you sure you want to revoke the authorization?</string>
   <string name="text462">Png compression tool is not set, please configure external tools in the preferences dialog first. You can download it from: {0}</string>
-  <string name="text463">Find unused resource</string>
+  <string name="text463">Find Unused Resources</string>
   <string name="text464">{0} packages selected</string>
-  <string name="text465">Find duplicate resource </string>
+  <string name="text465">Find Duplicate Resources</string>
   <string name="text466">Please choose more than one resources to merge</string>
   <string name="text473">Reload all plugins</string>
 </resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="300,100" pivot="0.5,0.5">
+  <displayList>
+    <text id="n0_g3jf" name="title" xy="139,29" size="21,42" fontSize="30" color="#ffffff" align="center" vAlign="middle" text="0">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </text>
+  </displayList>
+  <transition name="my">
+    <item time="0" type="Alpha" target="n0_g3jf" value="1"/>
+    <item time="0" type="XY" target="n0_g3jf" tween="true" startValue="-,29" endValue="-,-92" duration="24"/>
+    <item time="18" type="Alpha" target="n0_g3jf" tween="true" startValue="1" endValue="0" duration="6"/>
+  </transition>
+</component>

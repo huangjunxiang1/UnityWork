@@ -9,9 +9,8 @@ public static class TabL
     static Dictionary<int, Scene> _mapScene;
     static Dictionary<int, _test1> _map_test1;
 
-    public static void Init(byte[] bytes)
+    public static void Init(DBuffer buffer)
     {
-        DBuffer buffer = new DBuffer(bytes);
 
         int len0 = buffer.ReadInt();
         SceneArray = new Scene[len0];

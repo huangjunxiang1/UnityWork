@@ -29,6 +29,7 @@ static class UIS
     }
 
     static readonly List<UIBase> _uiLst = new();
+    static readonly List<UIBase> _3duiLst = new();
 
     /// <summary>
     /// UGUI模式有效
@@ -48,8 +49,8 @@ static class UIS
         {
             GRoot.inst.visible = GameSetting.UIModel == UIModel.FGUI;
             StageCamera.main.gameObject.SetActive(GameSetting.UIModel == UIModel.FGUI);
-            UIPackage.AddPackage((await AssetLoad.TextAssetLoader.LoadAsync("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
-            UIPackage.AddPackage((await AssetLoad.TextAssetLoader.LoadAsync("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
+            UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
+            UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
             NTexture.CustomDestroyMethod += textureUnLoad;
             NAudioClip.CustomDestroyMethod += audioUnLoad;
         }
@@ -60,14 +61,14 @@ static class UIS
         {
             case PackageItemType.Sound:
                 {
-                    var task = AssetLoad.AudioLoader.LoadAsync($"UI/FUI/{item.owner.name}/{name}{extension}");
+                    var task = AssetLoad.LoadAsync<AudioClip>($"UI/FUI/{item.owner.name}/{name}{extension}");
                     await task;
                     item.owner.SetItemAsset(item, task.GetResult(), DestroyMethod.Custom);
                 }
                 break;
             case PackageItemType.Atlas:
                 {
-                    var task = AssetLoad.TextureLoader.LoadAsync($"UI/FUI/{item.owner.name}/{name}{extension}");
+                    var task = AssetLoad.LoadAsync<Texture>($"UI/FUI/{item.owner.name}/{name}{extension}");
                     await task;
                     item.owner.SetItemAsset(item, task.GetResult(), DestroyMethod.Custom);
                 }
@@ -79,11 +80,11 @@ static class UIS
     }
     static void textureUnLoad(Texture texture)
     {
-        AssetLoad.TextureLoader.Release(texture);
+        AssetLoad.Release(texture);
     }
     static void audioUnLoad(AudioClip audio)
     {
-        AssetLoad.AudioLoader.Release(audio);
+        AssetLoad.Release(audio);
     }
 
     public static T Open<T>(params object[] data) where T : UIBase, new()
@@ -97,17 +98,57 @@ static class UIS
         ui.LoadConfig(cfg, data);
         return ui;
     }
-    public static T OpenAsync<T>(params object[] data) where T : UIBase, new()
+    public static TaskAwaiter<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
+    {
+        if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
+            cfg = UIConfig.Default;
+
+        TaskAwaiter<T> task = new();
+
+        async void run()
+        {
+            T ui = new();
+            _uiLst.Add(ui);
+            ui.LoadConfigAsync(cfg, data);
+            await ui.LoadWaiter;
+            task.TrySetResult(ui);
+        }
+        run();
+
+        return task;
+    }
+
+    public static T Open3D<T>(params object[] data) where T : UIBase, new()
     {
         if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
             cfg = UIConfig.Default;
 
         T ui = new();
-        _uiLst.Add(ui);
+        _3duiLst.Add(ui);
 
-        ui.LoadConfigAsync(cfg, data);
+        ui.LoadConfig(cfg, data);
         return ui;
     }
+    public static TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
+    {
+        if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
+            cfg = UIConfig.Default;
+
+        TaskAwaiter<T> task = new();
+
+        async void run()
+        {
+            T ui = new();
+            _3duiLst.Add(ui);
+            ui.LoadConfigAsync(cfg, data);
+            await ui.LoadWaiter;
+            task.TrySetResult(ui);
+        }
+        run();
+
+        return task;
+    }
+
     public static T Get<T>() where T : UIBase
     {
         return _uiLst.Find(t => t is T) as T;
@@ -129,8 +170,25 @@ static class UIS
     /// </summary>
     public static void CloseAll()
     {
-        while (_uiLst.Count > 0)
-            _uiLst[0].Dispose();
+        int len = _uiLst.Count;
+        for (; len > 0; len--)
+            _uiLst[len - 1].Dispose();
+        len = _3duiLst.Count;
+        for (; len > 0; len--)
+            _3duiLst[len - 1].Dispose();
+    }
+
+    public static void CloseAllUI()
+    {
+        int len = _uiLst.Count;
+        for (; len > 0; len--)
+            _uiLst[len - 1].Dispose();
+    }
+    public static void CloseAllUI3D()
+    {
+        int len = _3duiLst.Count;
+        for (; len > 0; len--)
+            _3duiLst[len - 1].Dispose();
     }
 
     /// <summary>
@@ -139,6 +197,9 @@ static class UIS
     /// <param name="ui"></param>
     public static void Remove(UIBase ui)
     {
-        _uiLst.Remove(ui);
+        if (ui is FUI3D || ui is UUI3D)
+            _3duiLst.Remove(ui);
+        else
+            _uiLst.Remove(ui);
     }
 }

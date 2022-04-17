@@ -30,8 +30,21 @@ local function genCode(handler)
         local members = classInfo.members
 
         writer:writeln()
-        writer:writeln('partial class %s : FUIBase', classInfo.className)
+       
+        local b=false
+         if((string.len(classInfo.className)>=6 and string.sub(classInfo.className,1,5)=='FUI3D')) then
+           writer:writeln('partial class %s : FUI3D', classInfo.className)
+           b=true
+         end
+         if(b==false) then
+              writer:writeln('partial class %s : FUI', classInfo.className)
+         end
+
         writer:startBlock()
+
+        if(b==false) then
+              writer:writeln('public override string url => "'..classInfo.className..'";')
+        end
 
         local memberCnt = members.Count
         for j=0,memberCnt-1 do

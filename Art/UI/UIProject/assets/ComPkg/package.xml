@@ -12,6 +12,8 @@
     <component id="n68q9" name="btnBack.xml" path="/Common/btn/"/>
     <component id="bz4ba" name="Slider1_grip.xml" path="/UI/"/>
     <component id="bz4bb" name="Slider1.xml" path="/UI/"/>
+    <component id="qnthc" name="FUI3DHeader.xml" path="/UI/3DUI/" exported="true"/>
+    <component id="qnthd" name="Tips.xml" path="/UI/Box/" exported="true"/>
   </resources>
   <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2" genCode="true"/>
 </packageDescription>

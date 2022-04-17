@@ -156,8 +156,9 @@
   <string name="text67">检查更新</string>	
   <string name="text339">导入内置资源包</string>
   <string name="text372">打开大文本编辑窗口</string>
-  <string name="text373">在线教程</string>
+  <string name="text373">教程</string>
   <string name="text374">技术支持</string>
+  <string name="text479">发行说明</string>
   <string name="text375">升级为专业版</string>
   <string name="text83">退出 FairyGUI 编辑器</string>
   <string name="text84">FairyGUI 编辑器</string>
@@ -168,6 +169,7 @@
   <string name="text471">切换显示网格</string>
   <string name="text472">切换贴近到网格</string>
   <string name="text475">还原文件</string>
+  <string name="text478">快速查找</string>
 
   <!-- Preview View -->
   <string name="text57">资源大小</string>
@@ -400,6 +402,8 @@
   <string name="text258">底延展</string>
   <string name="text259">左右居中</string>
   <string name="text260">上下居中</string>
+  <string name="text476">粘贴（覆盖）</string>
+  <string name="text477">粘贴（追加）</string>
     
   <!-- image fill method -->
   <string name="text268">水平</string>
@@ -592,5 +596,5 @@
   <string name="text466">请选定多于一个需要合并的资源</string>
   <string name="text473">重新载入所有插件</string>
 
-  <string name="text476"></string>
+  <string name="text480"></string>
 </resources>

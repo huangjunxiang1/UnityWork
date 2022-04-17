@@ -12,35 +12,35 @@ namespace Main
     /// <summary>
     /// 原始资源加载器
     /// </summary>
-    public class AssetPrimitiveLoader<T> : AssetBaseLoader<T> where T : UnityEngine.Object
+    public class AssetPrimitiveLoader : AssetBaseLoader
     {
-        public override T Load(string path)
+        public override UnityEngine.Object Load(string path)
         {
-            var wait = Addressables.LoadAssetAsync<T>(AssetLoad.Directory + path);
+            var wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
             wait.WaitForCompletion();
             return wait.Result;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path)
+        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
         {
-            TaskAwaiter<T> task = new(path);
+            TaskAwaiter<UnityEngine.Object> task = new(path);
             getTaskAndWait(path, task);
             return task;
         }
 
-        public override TaskAwaiter<T> LoadAsync(string path, TaskAwaiter<T> customTask)
+        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> customTask)
         {
             getTaskAndWait(path, customTask);
             return customTask;
         }
 
-        public override void Release(T target)
+        public override void Release(UnityEngine.Object target)
         {
             Addressables.Release(target);
         }
-        async void getTaskAndWait(string path, TaskAwaiter<T> task)
+        async void getTaskAndWait(string path, TaskAwaiter<UnityEngine.Object> task)
         {
-            var wait = Addressables.LoadAssetAsync<T>(AssetLoad.Directory + path);
+            var wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
 
             await wait.Task;
 

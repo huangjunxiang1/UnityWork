@@ -8,8 +8,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using Game;
 
-partial class UUILoading : UUIBase
+partial class UUILoading : UUI
 {
+    public override string url => "UI/UUI/UIPrefab/UUILoading.prefab";
     public UnityEngine.UI.Image _fillImage;
     public UnityEngine.UI.Text _txtText;
 
@@ -20,8 +21,9 @@ partial class UUILoading : UUIBase
 
     }
 }
-partial class UUILogin : UUIBase
+partial class UUILogin : UUI
 {
+    public override string url => "UI/UUI/UIPrefab/UUILogin.prefab";
     public UnityEngine.UI.InputField _acInputField;
     public UnityEngine.UI.InputField _pwInputField;
     public UnityEngine.UI.Button _loginButton;

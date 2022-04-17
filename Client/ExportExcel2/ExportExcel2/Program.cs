@@ -30,9 +30,8 @@ namespace ExportExcel
                     TabM_Cs.AppendLine("public static class TabM");
                     TabM_Cs.AppendLine("{");
 
-                    TabM_Cs4.AppendLine("    public static void Init(byte[] bytes)");
+                    TabM_Cs4.AppendLine("    public static void Init(DBuffer buffer)");
                     TabM_Cs4.AppendLine("    {");
-                    TabM_Cs4.AppendLine("        DBuffer buffer = new DBuffer(bytes);");
                     TabM_Cs4.AppendLine("");
                 }
 
@@ -208,9 +207,8 @@ namespace ExportExcel
                     TabM_Cs.AppendLine("public static class TabL");
                     TabM_Cs.AppendLine("{");
 
-                    TabM_Cs4.AppendLine("    public static void Init(byte[] bytes)");
+                    TabM_Cs4.AppendLine("    public static void Init(DBuffer buffer)");
                     TabM_Cs4.AppendLine("    {");
-                    TabM_Cs4.AppendLine("        DBuffer buffer = new DBuffer(bytes);");
                     TabM_Cs4.AppendLine("");
                 }
 
@@ -515,10 +513,10 @@ namespace ExportExcel
             }
             else if (sType == "int[]")
             {
-                string[] arr = text.Split(new char[] { '[', ']', ',' });
+                string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                 List<int> vs = new List<int>();
-                for (int k = 1; k < arr.Length - 1; k++)
+                for (int k = 0; k < arr.Length; k++)
                 {
                     if (!int.TryParse(arr[k], out var v))
                     {
@@ -538,10 +536,10 @@ namespace ExportExcel
             }
             else if (sType == "string[]")
             {
-                string[] arr = text.Split(new char[] { '[', ']', ',' });
+                string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                 List<string> vs = new List<string>();
-                for (int k = 1; k < arr.Length - 1; k++)
+                for (int k = 0; k < arr.Length; k++)
                 {
                     vs.Add(arr[k]);
                 }
@@ -614,10 +612,10 @@ namespace ExportExcel
             }
             else if (sType == "float[]")
             {
-                string[] arr = text.Split(new char[] { '[', ']', ',' });
+                string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                 List<float> vs = new List<float>();
-                for (int k = 1; k < arr.Length - 1; k++)
+                for (int k = 0; k < arr.Length; k++)
                 {
                     if (!float.TryParse(arr[k], out var v))
                     {
@@ -648,10 +646,10 @@ namespace ExportExcel
             }
             else if (sType == "bool[]")
             {
-                string[] arr = text.Split(new char[] { '[', ']', ',' });
+                string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                 List<int> vs = new List<int>();
-                for (int k = 1; k < arr.Length - 1; k++)
+                for (int k = 0; k < arr.Length; k++)
                 {
                     if (!int.TryParse(arr[k], out var v) || (v != 0 && v != 1))
                     {
@@ -684,10 +682,17 @@ namespace ExportExcel
         //解析头 获得类型和字段名
         static void GetHead(List<int> coIdx, string path,out temp1 t)
         {
-            ExcelPackage pkg = new ExcelPackage(new FileInfo(path));
+            FileInfo fi = new FileInfo(path);
+            ExcelPackage pkg = new ExcelPackage(fi);
             t = new temp1();
             t.keyType = pkg.Workbook.Worksheets[1].Cells[2, 1].Text;
             t.keyName = pkg.Workbook.Worksheets[1].Cells[3, 1].Text;
+            if (string.IsNullOrEmpty(t.keyType) || string.IsNullOrEmpty(t.keyName))
+            {
+                Console.WriteLine(fi.Name + "表没有key索引");
+                Console.ReadLine();
+                return;
+            }
             for (int i = 1; i < 1000; i++)
             {
                 if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[2, i].Text))

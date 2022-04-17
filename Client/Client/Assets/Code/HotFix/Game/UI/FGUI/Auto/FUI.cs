@@ -3,8 +3,9 @@
 using FairyGUI;
 using FairyGUI.Utils;
 
-partial class FUIFighting : FUIBase
+partial class FUIFighting : FUI
 {
+    public override string url => "FUIFighting";
     public GButton _btnBack;
     public GSlider _slider;
 
@@ -15,8 +16,9 @@ partial class FUIFighting : FUIBase
     }
 }
 
-partial class FUILoading : FUIBase
+partial class FUILoading : FUI
 {
+    public override string url => "FUILoading";
     public GProgressBar _loadingBar;
 
     protected override void Binding()
@@ -25,8 +27,9 @@ partial class FUILoading : FUIBase
     }
 }
 
-partial class FUILogin : FUIBase
+partial class FUILogin : FUI
 {
+    public override string url => "FUILogin";
     public GComboBox _uiType;
     public GComboBox _gameTypeCB;
     public GButton _btnLogin;
@@ -40,5 +43,15 @@ partial class FUILogin : FUIBase
         _btnLogin = (GButton)this.UI.GetChild("_btnLogin");
         _acc = (GTextInput)this.UI.GetChild("_acc");
         _pw = (GTextInput)this.UI.GetChild("_pw");
+    }
+}
+
+partial class FUI3DHeader : FUI3D
+{
+    public GTextField _title;
+
+    protected override void Binding()
+    {
+        _title = (GTextField)this.UI.GetChild("_title");
     }
 }

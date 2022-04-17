@@ -72,7 +72,7 @@ public class TaskAwaiterCreater
             }
             else
             {
-                task.ResetWaiting();
+                task.Clear();
                 waitRemove(task);//重新添加一个等待移除
             }
         }
@@ -96,7 +96,7 @@ public class TaskAwaiterCreater
             }
             else
             {
-                task.ResetWaiting();
+                task.Clear();
                 waitRemove(task);//重新添加一个等待移除
             }
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using UnityEditor.Compilation;
 
 [CustomEditor(typeof(Engine))]
 public class AppSettingEditor : Editor
@@ -30,23 +31,44 @@ public class AppSettingEditor : Editor
 
     void refAsmdefAndDefine()
     {
-        string all = File.ReadAllText(Application.dataPath + "/Code/HotFix/HotFix.asmdef");
-
-        int idx1 = all.IndexOf("includePlatforms");
-        int idx11 = all.IndexOf("[", idx1 + 1);
-        int idx22 = all.IndexOf("]", idx1);
-        StringBuilder str = new StringBuilder();
-        if (setting.Runtime == CodeRuntime.Assembly
-            || setting.Runtime == CodeRuntime.ILRuntime)
         {
-            str.Append(all.Substring(0, idx11 + 1));
-            str.Append("\"Editor\"");
-            str.Append(all.Substring(idx22, all.Length - idx22));
-        }
-        else
-            str.Append(all.Remove(idx11 + 1, idx22 - (idx11 + 1)));
+            string all = File.ReadAllText(Application.dataPath + "/Code/HotFix/HotFix.asmdef");
 
-        File.WriteAllText(Application.dataPath + "/Code/HotFix/HotFix.asmdef", str.ToString());
+            int idx1 = all.IndexOf("includePlatforms");
+            int idx11 = all.IndexOf("[", idx1 + 1);
+            int idx22 = all.IndexOf("]", idx1);
+            StringBuilder str = new StringBuilder();
+            if (setting.Runtime == CodeRuntime.Assembly
+                || setting.Runtime == CodeRuntime.ILRuntime)
+            {
+                str.Append(all.Substring(0, idx11 + 1));
+                str.Append("\"Editor\"");
+                str.Append(all.Substring(idx22, all.Length - idx22));
+            }
+            else
+                str.Append(all.Remove(idx11 + 1, idx22 - (idx11 + 1)));
+            File.WriteAllText(Application.dataPath + "/Code/HotFix/HotFix.asmdef", str.ToString());
+        }
+
+        {
+            string all = File.ReadAllText(Application.dataPath + "/../Packages/ILRuntimeBinding/ILRuntimeBinding.asmdef");
+
+            int idx1 = all.IndexOf("includePlatforms");
+            int idx11 = all.IndexOf("[", idx1 + 1);
+            int idx22 = all.IndexOf("]", idx1);
+            StringBuilder str = new StringBuilder();
+            if (setting.Runtime == CodeRuntime.Assembly
+                || setting.Runtime == CodeRuntime.ILRuntime)
+            {
+                str.Append(all.Substring(0, idx11 + 1));
+                str.Append("\"Editor\"");
+                str.Append(all.Substring(idx22, all.Length - idx22));
+            }
+            else
+                str.Append(all.Remove(idx11 + 1, idx22 - (idx11 + 1)));
+            File.WriteAllText(Application.dataPath + "/../Packages/ILRuntimeBinding/ILRuntimeBinding.asmdef", str.ToString());
+        }
+
 
         BuildTargetGroup[] groups = new BuildTargetGroup[]
         {

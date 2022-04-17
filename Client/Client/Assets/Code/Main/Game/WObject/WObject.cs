@@ -69,7 +69,7 @@ namespace Game
             if (this.Parent != null)
                 this.Parent.Remove(this.ID);
             if (this.GameObject)
-                AssetLoad.PrefabLoader.Release(this.GameObject);
+                AssetLoad.Release(this.GameObject);
             if (_onDispose != null) _onDispose.Call();
         }
 

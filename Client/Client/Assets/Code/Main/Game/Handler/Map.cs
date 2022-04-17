@@ -59,7 +59,7 @@ namespace Game
             WRole role = WRoot.Inst.GetChild(Unit.UnitId) as WRole;
             if (role == null)
             {
-                role = new WRole(Unit.UnitId, AssetLoad.PrefabLoader.Load("3D/Model/Unit/Cube.prefab"));
+                role = new WRole(Unit.UnitId, AssetLoad.Load<GameObject>("3D/Model/Unit/Cube.prefab"));
                 WRoot.Inst.AddChild(role);
             }
             role.UpdateUnitInfo(Unit);

@@ -149,6 +149,11 @@ public class Eventer
     {
         if (!Enable) return;
 
+        if (_isExcuting)
+        {
+            Loger.Error("事件循环 target=" + this.Creater);
+            return;
+        }
         _isExcuting = true;
 
         //缓存长度  只执行当前个数  在执行过程中如果有添加新事件则不执行
@@ -158,19 +163,15 @@ public class Eventer
             Temp t = _evtLst[i];
             if (t.isDisposed) continue;
 
-#if !UNITY_EDITOR
             try
             {
-#endif
                 if (t.isP0)
                     t.action0();
                 else
                     t.action1(new EventerContent(this.Creater, value, data));
-#if !UNITY_EDITOR
             }
             catch (Exception ex)
             { Loger.Error("Eventer Error:" + ex); }
-#endif
         }
 
         _isExcuting = false;

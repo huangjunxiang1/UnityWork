@@ -21,7 +21,9 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         this.Tag = tag;
     }
 
-    Action _call;
+    Eventer _onCall;
+    Eventer _onBeforeCall;
+    Eventer _onAfterCall;
 
     public object Tag { get; }
 
@@ -30,6 +32,19 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     /// 是否已完成
     /// </summary>
     public bool IsCompleted { get; private set; }
+
+    public Eventer OnBeforeCall
+    {
+        get { return _onBeforeCall ??= new Eventer(this); }
+    }
+    public Eventer OnCall
+    {
+        get { return _onCall ??= new Eventer(this); }
+    }
+    public Eventer OnAfterCall
+    {
+        get { return _onAfterCall ??= new Eventer(this); }
+    }
 
     public static TaskAwaiter Completed { get; } = new TaskAwaiter() { IsCompleted = true };
 
@@ -50,7 +65,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         if (this.IsDisposed || this.IsCompleted) return;
 
         this.IsDisposed = true;
-        this._call = null;
+        this.OnCall.Clear();
     }
 
     /// <summary>
@@ -63,10 +78,9 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         this.IsDisposed = true;
         this.IsCompleted = true;
 
-        //如果异步使用弃元 则不会有下一步的回调
-        try { this._call?.Invoke(); }
-        catch (Exception ex) { Loger.Error("TrySetResult Error:" + ex); }
-        this._call = null;
+        this.OnBeforeCall.Call();
+        this.OnCall.Call();
+        this.OnAfterCall.Call();
     }
 
     /// <summary>
@@ -81,29 +95,28 @@ public class TaskAwaiter : ICriticalNotifyCompletion
 
         Loger.Error("TaskAwaiter Error " + e);
 
-        //如果异步使用弃元 则不会有下一步的回调
-        try { this._call?.Invoke(); }
-        catch (Exception ex) { Loger.Error("SetException Error:" + ex); }
-        this._call = null;
+        this.OnBeforeCall.Call();
+        this.OnCall.Call();
+        this.OnAfterCall.Call();
     }
 
     /// <summary>
     /// 重置回调
     /// </summary>
-    public void ResetWaiting()
+    public void Clear()
     {
         if (this.IsDisposed || this.IsCompleted) return;
 
-        this._call = null;
+        this.OnCall.Clear();
     }
 
     void INotifyCompletion.OnCompleted(Action callBack)
     {
-        this._call += callBack;
+        this.OnCall.Add(callBack);
     }
     void ICriticalNotifyCompletion.UnsafeOnCompleted(Action callBack)
     {
-        this._call += callBack;
+        this.OnCall.Add(callBack);
     }
 
 

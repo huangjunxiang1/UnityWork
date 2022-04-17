@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64dd51ff1a4807e4eaa39140165fb25a, type: 3}
   m_Name: CMSetting
   m_EditorClassIdentifier: 
-  near: 10
-  far: 200
-  wheelSpeed: 20
+  yMin: -10
+  yMax: 50
+  wheelSpeed: 0.01
+  moveSpeed: 0.05
