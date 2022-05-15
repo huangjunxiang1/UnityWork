@@ -89,33 +89,32 @@ static class UIS
 
     public static T Open<T>(params object[] data) where T : UIBase, new()
     {
+        T ui = Get<T>();
+        if (ui != null)
+            return ui;
         if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
             cfg = UIConfig.Default;
 
-        T ui = new();
+        ui = new();
         _uiLst.Add(ui);
-
         ui.LoadConfig(cfg, data);
+
         return ui;
     }
-    public static TaskAwaiter<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
+    public static async TaskAwaiter<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
     {
+        T ui = Get<T>();
+        if (ui != null)
+            return ui;
         if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
             cfg = UIConfig.Default;
 
-        TaskAwaiter<T> task = new();
+        ui = new();
+        _uiLst.Add(ui);
+        ui.LoadConfigAsync(cfg, data);
+        await ui.LoadWaiter;
 
-        async void run()
-        {
-            T ui = new();
-            _uiLst.Add(ui);
-            ui.LoadConfigAsync(cfg, data);
-            await ui.LoadWaiter;
-            task.TrySetResult(ui);
-        }
-        run();
-
-        return task;
+        return ui;
     }
 
     public static T Open3D<T>(params object[] data) where T : UIBase, new()
@@ -125,28 +124,21 @@ static class UIS
 
         T ui = new();
         _3duiLst.Add(ui);
-
         ui.LoadConfig(cfg, data);
+
         return ui;
     }
-    public static TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
+    public static async TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
     {
         if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
             cfg = UIConfig.Default;
 
-        TaskAwaiter<T> task = new();
+        T ui = new();
+        _3duiLst.Add(ui);
+        ui.LoadConfigAsync(cfg, data);
+        await ui.LoadWaiter;
 
-        async void run()
-        {
-            T ui = new();
-            _3duiLst.Add(ui);
-            ui.LoadConfigAsync(cfg, data);
-            await ui.LoadWaiter;
-            task.TrySetResult(ui);
-        }
-        run();
-
-        return task;
+        return ui;
     }
 
     public static T Get<T>() where T : UIBase
@@ -172,7 +164,12 @@ static class UIS
     {
         int len = _uiLst.Count;
         for (; len > 0; len--)
-            _uiLst[len - 1].Dispose();
+        {
+            var ui = _uiLst[len - 1];
+            if (!ui.uiConfig.CloseOnChangeScene)
+                continue;
+            ui.Dispose();
+        }
         len = _3duiLst.Count;
         for (; len > 0; len--)
             _3duiLst[len - 1].Dispose();
@@ -182,7 +179,12 @@ static class UIS
     {
         int len = _uiLst.Count;
         for (; len > 0; len--)
-            _uiLst[len - 1].Dispose();
+        {
+            var ui = _uiLst[len - 1];
+            if (!ui.uiConfig.CloseOnChangeScene)
+                continue;
+            ui.Dispose();
+        }
     }
     public static void CloseAllUI3D()
     {

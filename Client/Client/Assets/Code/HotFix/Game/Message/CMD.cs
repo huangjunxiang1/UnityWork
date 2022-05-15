@@ -15,6 +15,4 @@ static class CMDL
 enum EIDL
 {
 	Min = 10000,
-	InScene,//进入场景
-	OutScene,//退出场景
 }

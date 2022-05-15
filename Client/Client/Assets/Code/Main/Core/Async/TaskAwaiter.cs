@@ -20,12 +20,18 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     {
         this.Tag = tag;
     }
+    public TaskAwaiter(Task warpTask)
+    {
+        this.WarpTask = warpTask;
+        waitTask(this, warpTask);
+    }
 
     Eventer _onCall;
     Eventer _onBeforeCall;
     Eventer _onAfterCall;
 
     public object Tag { get; }
+    public Task WarpTask { get; }
 
     public bool IsDisposed { get; private set; }
     /// <summary>
@@ -120,46 +126,39 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     }
 
 
-    public static TaskAwaiter WaitAll(IEnumerable<TaskAwaiter> itor)
+    static async void waitTask(TaskAwaiter taskAwaiter,Task task)
     {
-        if (itor == null) return TaskAwaiter.Completed;
+        await task;
+        taskAwaiter.TrySetResult();
+    }
+    public static async TaskAwaiter WaitAll(IEnumerable<TaskAwaiter> itor)
+    {
+        if (itor == null)
+            await TaskAwaiter.Completed;
 
-        TaskAwaiter waiter = new();
-
-        async void wait()
-        {
-            TaskAwaiter[] tasks = itor.ToArray();
-            for (int i = 0; i < tasks.Length; i++)
-                await tasks[i];
-            waiter.TrySetResult();
-        }
-        wait();
-
-        return waiter;
+        TaskAwaiter[] tasks = itor.ToArray();
+        for (int i = 0; i < tasks.Length; i++)
+            await tasks[i];
     }
 
-    public static TaskAwaiter<K[]> WaitAll<K>(IEnumerable<TaskAwaiter<K>> itor)
+    public static async TaskAwaiter<K[]> WaitAll<K>(IEnumerable<TaskAwaiter<K>> itor)
     {
-        TaskAwaiter<K[]> waiter = new();
-        if (itor == null) waiter.TrySetResult(new K[0]);
+        if (itor == null)
+            return new K[0];
         else
         {
-            async void wait()
-            {
-                TaskAwaiter<K>[] tasks = itor.ToArray();
-                K[] rs = new K[tasks.Length];
-                for (int i = 0; i < tasks.Length; i++)
-                    rs[i] = await tasks[i];
-                waiter.TrySetResult(rs);
-            }
-            wait();
+            TaskAwaiter<K>[] tasks = itor.ToArray();
+            K[] rs = new K[tasks.Length];
+            for (int i = 0; i < tasks.Length; i++)
+                rs[i] = await tasks[i];
+            return rs;
         }
-        return waiter;
     }
 
     public static TaskAwaiter WaitAny(IEnumerable<TaskAwaiter> itor, bool canelOthersAfterCompleted = true)
     {
-        if (itor == null) return TaskAwaiter.Completed;
+        if (itor == null)
+            return TaskAwaiter.Completed;
 
         TaskAwaiter waiter = new();
         TaskAwaiter[] tasks = itor.ToArray();

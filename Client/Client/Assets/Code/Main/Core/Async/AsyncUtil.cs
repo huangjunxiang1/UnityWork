@@ -9,6 +9,7 @@ using UnityEngine;
 using DG.Tweening;
 using FairyGUI;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 [DebuggerNonUserCode]
 public static class AsyncUtil
@@ -16,9 +17,7 @@ public static class AsyncUtil
     public static TaskAwaiter GetAwaiter(this AsyncOperation op)
     {
         TaskAwaiter task = new();
-
         op.completed += e => task.TrySetResult();
-
         return task;
     }
 
@@ -51,16 +50,16 @@ public static class AsyncUtil
         return task;
     }
 
-    public static TaskAwaiter GetAwaiter(this GObject obj)
+    public static TaskAwaiter GetAwaiter(this EventListener eventListener)
     {
         TaskAwaiter task = new();
-        obj.onClick.Add(task.TrySetResult);
+        eventListener.Add(task.TrySetResult);
         return task;
     }
-    public static TaskAwaiter GetAwaiter(this Button obj)
+    public static TaskAwaiter GetAwaiter(this UnityEvent unityEvent)
     {
         TaskAwaiter task = new();
-        obj.onClick.AddListener(task.TrySetResult);
+        unityEvent.AddListener(task.TrySetResult);
         return task;
     }
 }

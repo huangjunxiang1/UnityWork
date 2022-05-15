@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-public unsafe class DBuffer
+public unsafe class DBuffer : IDisposable
 {
     public DBuffer(byte[] data)
     {
@@ -115,7 +115,7 @@ public unsafe class DBuffer
         fixed (byte* ptr = &bytes[Position])
         {
             FloatInt fi = default;
-            fi.valueUint =(uint)(ptr[0]
+            fi.valueUint = (uint)(ptr[0]
                                | ptr[1] << 8
                                | ptr[2] << 16
                                | ptr[3] << 24);
@@ -131,6 +131,7 @@ public unsafe class DBuffer
         Position += len;
         return s;
     }
+
     public byte[] ReadBytes()
     {
         int len = ReadInt();
@@ -298,12 +299,15 @@ public unsafe class DBuffer
     }
     public byte[] ToBytes()
     {
-        byte[] b = new byte[Position];
+        return ToBytes(0, Position);
+    }
+    public byte[] ToBytes(int position, int length)
+    {
+        byte[] b = new byte[length];
         fixed (byte* ptr = bytes, ptr2 = b)
         {
-            int len = Position;
-            for (int i = 0; i < len; i++)
-                ptr2[i] = ptr[i];
+            for (int i = 0; i < length; i++)
+                ptr2[i] = ptr[position + i];
         }
         return b;
     }
@@ -325,6 +329,16 @@ public unsafe class DBuffer
                 ptr2[i] = ptr[i];
         }
         bytes = b;
+    }
+
+    public void Seek(int index)
+    {
+        Position = index;
+    }
+
+    public void Dispose()
+    {
+        
     }
 
     [StructLayout(LayoutKind.Explicit)]

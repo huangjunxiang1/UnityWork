@@ -55,3 +55,14 @@ partial class FUI3DHeader : FUI3D
         _title = (GTextField)this.UI.GetChild("_title");
     }
 }
+
+partial class FUIGlobal : FUI
+{
+    public override string url => "FUIGlobal";
+    public GButton _log;
+
+    protected override void Binding()
+    {
+        _log = (GButton)this.UI.GetChild("_log");
+    }
+}

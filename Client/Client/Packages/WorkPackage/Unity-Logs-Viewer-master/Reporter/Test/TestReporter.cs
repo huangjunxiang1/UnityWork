@@ -126,7 +126,7 @@ public class TestReporter : MonoBehaviour
 
 	void OnGUI()
 	{
-		if (reporter && !reporter.show) {
+		if (reporter) {
 			GUI.Label(rect1, "Draw circle on screen to show logs", style);
 			GUI.Label(rect2, "To use Reporter just create reporter from reporter menu at first scene your game start", style);
 			if (GUI.Button(rect3, "Load ReporterScene")) {

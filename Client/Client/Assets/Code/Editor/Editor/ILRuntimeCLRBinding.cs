@@ -12,7 +12,34 @@ using System.Linq;
 [System.Reflection.Obfuscation(Exclude = true)]
 public class ILRuntimeCLRBinding
 {
-    [MenuItem("ILRuntime/通过自动分析热更DLL生成CLR绑定")]
+    [MenuItem("ILRuntime/拷贝HotFix.asmdef引用到ILRuntimeBinding.asmdef")]
+    public static void CopyReferences()
+    {
+        string path1 = Application.dataPath + "/Code/HotFix/HotFix.asmdef";
+        AssmblyOpter ao1 = AssmblyOpter.Load(path1);
+        string path2 = Application.dataPath + "/../Packages/ILRuntimeBinding/ILRuntimeBinding.asmdef";
+        AssmblyOpter ao2 = AssmblyOpter.Load(path2);
+        ao2.references = new List<string>();
+        ao2.references.AddRange(ao1.references);
+        ao2.references.Add("GUID:7a1fa966b0ea23f40a6a4dc4dab1e297");//这个是ILRuntime的引用
+        ao2.Save(path2);
+        AssetDatabase.Refresh();
+    }
+
+    [MenuItem("ILRuntime/删除CLRBindingCS")]
+    public static void DeleteCLRBinding()
+    {
+        var fs = Directory.GetFiles(Application.dataPath + "/../Packages/ILRuntimeBinding/MethodBinding");
+        if (fs == null)
+            return;
+        foreach (var f in fs)
+        {
+            File.Delete(f);
+        }
+        AssetDatabase.Refresh();
+    }
+
+    [MenuItem("ILRuntime/通过自动分析热更DLL生成CLR绑定", false, 10)]
     static void GenerateCLRBindingByAnalysis()
     {
         //用新的分析热更dll调用引用来生成绑定代码
@@ -24,6 +51,9 @@ public class ILRuntimeCLRBinding
             ILRuntimeBinding.Binding(domain);
             ILRuntime.Runtime.CLRBinding.BindingCodeGenerator.GenerateBindingCode(domain, Application.dataPath + "/../Packages/ILRuntimeBinding/MethodBinding");
         }
+
+        CopyReferences();
+
         AssetDatabase.Refresh();
     }
 

@@ -32,7 +32,7 @@ unsafe static class DelegateBinding
 
         foreach (var type in typeof(DelegateBinding).Assembly.GetTypes())
         {
-            foreach (var method in type.GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static))
+            foreach (var method in type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
             {
                 if (method.GetCustomAttributes(typeof(ILRuntimeDelegateBindingAttribute), false).Length > 0)
                     method.Invoke(null, new object[] { appdomain });

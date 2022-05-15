@@ -131,7 +131,7 @@ unsafe static class EditorAction
                         sb.AppendLine($"unsafe static class GenerateDelegateBinding_{SystemInfo.deviceUniqueIdentifier}");
                         sb.AppendLine("{");
                         sb.AppendLine("    [ILRuntimeDelegateBinding]");
-                        sb.AppendLine("    static void Binding(ILRuntime.Runtime.Enviorment.AppDomain appdomain)");
+                        sb.AppendLine("    public static void Binding(ILRuntime.Runtime.Enviorment.AppDomain appdomain)");
                         sb.AppendLine("    {");
                         sb.AppendLine("        //xx1Start");
                         sb.AppendLine("        //xx1End");

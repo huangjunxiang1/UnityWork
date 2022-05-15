@@ -216,7 +216,7 @@ namespace Unity.Entities
         private void CreateJobReflectionData()
         {
             // Until we have reliable IL postprocessing or code generation we will have to resort to making these initialization calls manually.
-            IJobBurstSchedulableExtensions.JobStruct<EntityComponentStore.GetOrCreateDestroyedEntitiesJob>.Initialize();
+            /*IJobBurstSchedulableExtensions.JobStruct<EntityComponentStore.GetOrCreateDestroyedEntitiesJob>.Initialize();
             IJobBurstSchedulableExtensions.JobStruct<EntityDataAccess.DestroyChunks>.Initialize();
             IJobBurstSchedulableExtensions.JobStruct<ChunkPatchEntities>.Initialize();
             IJobBurstSchedulableExtensions.JobStruct<MoveChunksJob>.Initialize();
@@ -227,7 +227,7 @@ namespace Unity.Entities
             IJobBurstSchedulableExtensions.JobStruct<GatherChunksAndOffsetsJob>.Initialize();
             IJobBurstSchedulableExtensions.JobStruct<GatherChunksAndOffsetsWithFilteringJob>.Initialize();
             IJobBurstSchedulableExtensions.JobStruct<PrefilterForJobEntityBatchWithIndex>.Initialize();
-            IJobBurstSchedulableExtensions.JobStruct<PrefilterForJobEntityBatchWithIndex_EntityArray>.Initialize();
+            IJobBurstSchedulableExtensions.JobStruct<PrefilterForJobEntityBatchWithIndex_EntityArray>.Initialize();*/
 
             IJobParallelForExtensionsBurstSchedulable.ParallelForJobStructBurstSchedulable<RemapChunksFilteredJob>.Initialize();
             IJobParallelForExtensionsBurstSchedulable.ParallelForJobStructBurstSchedulable<RemapAllChunksJob>.Initialize();

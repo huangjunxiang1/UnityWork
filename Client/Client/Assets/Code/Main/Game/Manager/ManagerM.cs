@@ -9,11 +9,30 @@ namespace Game
 {
     public class ManagerM<T> : EntityM where T : ManagerM<T>, new()
     {
-        public static T Inst { get; } = new T();
+        static T _inst;
+        public static T Inst
+        {
+            get { return _inst ??= new(); }
+        }
 
-        public void Init()
+        public virtual bool DisposeOnChangeScene => true;
+
+        public virtual void Init()
         {
 
+        }
+        public override void Dispose()
+        {
+            base.Dispose();
+            _inst = null;
+        }
+
+        [Event((int)EIDM.OutScene)]
+        void exitScene()
+        {
+            if (!DisposeOnChangeScene)
+                return;
+            this.Dispose();
         }
     }
 }

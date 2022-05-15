@@ -11,8 +11,15 @@ namespace ExportExcel
     {
         static void Main(string[] args)
         {
+            string parentPath = Environment.CurrentDirectory + "/";
+            //debug 
+            //parentPath = Environment.CurrentDirectory + "/../../../../../Excel/";
+            foreach (var item in Directory.GetFiles(parentPath + "/../Client/Client/Assets/Res/Config/Tabs/"))
             {
-                string main = Environment.CurrentDirectory + "/../../../../../Excel/main";
+                File.Delete(item);
+            }
+            {
+                string main = parentPath + "main";
                 List<string> mains = getFiles(main);
                 StringBuilder TabM_Cs = new StringBuilder(10000);
                 StringBuilder TabM_Cs2 = new StringBuilder(10000);
@@ -96,6 +103,15 @@ namespace ExportExcel
                             csContent.AppendLine($"        this.{sName} = new int[len{j}];");
                             csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
                             csContent.AppendLine($"            this.{sName}[i] = buffer.ReadInt();");
+                        }
+                        else if (sType == "long")
+                            csContent.AppendLine($"        this.{sName} = buffer.ReadLong();");
+                        else if (sType == "long[]")
+                        {
+                            csContent.AppendLine($"        int len{j} = buffer.ReadInt();");
+                            csContent.AppendLine($"        this.{sName} = new long[len{j}];");
+                            csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
+                            csContent.AppendLine($"            this.{sName}[i] = buffer.ReadLong();");
                         }
                         else if (sType == "string")
                             csContent.AppendLine($"        this.{sName} = buffer.ReadString();");
@@ -181,15 +197,15 @@ namespace ExportExcel
 
                 mainCS.TabCS = TabM_Cs.ToString();
 
-                File.WriteAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/Main/Tab/TabM.cs", mainCS.TabCS.ToString());
+                File.WriteAllText(parentPath + "/../Client/Client/Assets/Code/Main/Tab/TabM.cs", mainCS.TabCS.ToString());
                 for (int i = 0; i < mainCS.className.Count; i++)
-                    File.AppendAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/Main/Tab/TabM.cs", mainCS.classContent[i]);
-                File.WriteAllBytes(Environment.CurrentDirectory + "/../../../../Client/Assets/Res/Config/TabM.bytes", mainCS.buff);
+                    File.AppendAllText(parentPath + "/../Client/Client/Assets/Code/Main/Tab/TabM.cs", mainCS.classContent[i]);
+                File.WriteAllBytes(parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabM.bytes", mainCS.buff);
 
             }
 
             {
-                string hot = Environment.CurrentDirectory + "/../../../../../Excel/hot";
+                string hot = parentPath + "/hot";
                 List<string> hots = getFiles(hot);
                 StringBuilder TabM_Cs = new StringBuilder(10000);
                 StringBuilder TabM_Cs2 = new StringBuilder(10000);
@@ -273,6 +289,15 @@ namespace ExportExcel
                             csContent.AppendLine($"        this.{sName} = new int[len{j}];");
                             csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
                             csContent.AppendLine($"            this.{sName}[i] = buffer.ReadInt();");
+                        }
+                        else if (sType == "long")
+                            csContent.AppendLine($"        this.{sName} = buffer.ReadLong();");
+                        else if (sType == "long[]")
+                        {
+                            csContent.AppendLine($"        int len{j} = buffer.ReadInt();");
+                            csContent.AppendLine($"        this.{sName} = new long[len{j}];");
+                            csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
+                            csContent.AppendLine($"            this.{sName}[i] = buffer.ReadLong();");
                         }
                         else if (sType == "string")
                             csContent.AppendLine($"        this.{sName} = buffer.ReadString();");
@@ -364,130 +389,76 @@ namespace ExportExcel
 
                 mainCS.TabCS = TabM_Cs.ToString();
 
-                File.WriteAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.TabCS.ToString()); 
+                File.WriteAllText(parentPath + "/../Client/Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.TabCS.ToString()); 
                 for (int i = 0; i < mainCS.className.Count; i++)
-                    File.AppendAllText(Environment.CurrentDirectory + "/../../../../Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.classContent[i]);
-                File.WriteAllBytes(Environment.CurrentDirectory + "/../../../../Client/Assets/Res/Config/TabL.bytes", mainCS.buff);
+                    File.AppendAllText(parentPath + "/../Client/Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.classContent[i]);
+                File.WriteAllBytes(parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabL.bytes", mainCS.buff);
 
             }
 
             //Language表 
             {
-                string main = Environment.CurrentDirectory + "/../../../../../Excel/Language";
+                string main = parentPath + "/Language";
                 List<string> mains = getFiles(main);
+
                 List<int> mainIdx = new List<int>();
                 GetHead(mainIdx, mains[0], out temp1 t);
-                FileInfo fi = new FileInfo(mains[0]);
-                Console.WriteLine("开始解析->" + fi.Name);
-                string csName = "Language";
-
-                StringBuilder csContent = new StringBuilder(10000);
-                csContent.AppendLine("using UnityEngine;");
-                csContent.AppendLine("");
-                csContent.AppendLine("public class " + csName);
-                csContent.AppendLine("{");
-                ExcelPackage pkg = new ExcelPackage(fi);
-                for (int j = 0; j < mainIdx.Count; j++)
+                Dictionary<int, Lan> lan = new Dictionary<int, Lan>();
+                for (int i = 1; i < mainIdx.Count; i++)
                 {
-                    int idx = mainIdx[j];
-                    string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
-                    if (sType == "v2i") sType = "Vector2Int";
-                    else if (sType == "v2i[]") sType = "Vector2Int[]";
-                    string sName = pkg.Workbook.Worksheets[1].Cells[3, idx].Text;
-
-                    csContent.AppendLine("    /// <summary>");
-                    csContent.AppendLine("    /// " + pkg.Workbook.Worksheets[1].Cells[1, idx].Text);
-                    csContent.AppendLine("    /// </summary>");
-                    csContent.AppendLine("    public " + sType + " " + sName + " { get; }");
+                    FileInfo fi = new FileInfo(mains[0]);
+                    ExcelPackage pkg = new ExcelPackage(fi);
+                    Lan tt = lan[mainIdx[i]] = new Lan();
+                    tt.buff = new DBuffer(100000);
+                    string name = pkg.Workbook.Worksheets[1].Cells[3, mainIdx[i]].Text;
+                    tt.name = name;
                 }
-                csContent.AppendLine();
-                csContent.AppendLine("    public " + csName + "(DBuffer buffer)");
-                csContent.AppendLine("    {");
-                for (int j = 0; j < mainIdx.Count; j++)
+                List<temp3> temp3Lst = new List<temp3>();
+                foreach (string path in mains)
                 {
-                    int idx = mainIdx[j];
-                    string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
-                    string sName = pkg.Workbook.Worksheets[1].Cells[3, idx].Text;
+                    FileInfo fi = new FileInfo(path);
+                    ExcelPackage pkg = new ExcelPackage(fi);
 
-                    if (sType == "int")
-                        csContent.AppendLine($"        this.{sName} = buffer.ReadInt();");
-                    else if (sType == "int[]")
+                    int dataCnt = 0;
+                    int dIdx = 4;
+                    while (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[dIdx++, 1].Text))
+                        dataCnt++;
+
+                    temp3 tt = new temp3();
+                    tt.fi = fi;
+                    tt.dataCnt = dataCnt;
+                    temp3Lst.Add(tt);
+                }
+                for (int i = 1; i < mainIdx.Count; i++)
+                {
+                    int totalCnt = 0;
+                    foreach (var item in temp3Lst)
+                        totalCnt += item.dataCnt;
+                    Lan tt = lan[mainIdx[i]];
+                    tt.buff.Write(totalCnt);
+                }
+                foreach (var item in temp3Lst)
+                {
+                    ExcelPackage pkg = new ExcelPackage(item.fi);
+                    Console.WriteLine("开始解析->" + item.fi.Name);
+                    for (int i = 1; i < mainIdx.Count; i++)
                     {
-                        csContent.AppendLine($"        int len{j} = buffer.ReadInt();");
-                        csContent.AppendLine($"        this.{sName} = new int[len{j}];");
-                        csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
-                        csContent.AppendLine($"            this.{sName}[i] = buffer.ReadInt();");
-                    }
-                    else if (sType == "string")
-                        csContent.AppendLine($"        this.{sName} = buffer.ReadString();");
-                    else if (sType == "string[]")
-                    {
-                        csContent.AppendLine($"        int len{j} = buffer.ReadInt();");
-                        csContent.AppendLine($"        this.{sName} = new string[len{j}];");
-                        csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
-                        csContent.AppendLine($"            this.{sName}[i] = buffer.ReadString();");
-                    }
-                    else if (sType == "v2i")
-                        csContent.AppendLine($"        this.{sName} = new Vector2Int(buffer.ReadInt(), buffer.ReadInt());");
-                    else if (sType == "v2i[]")
-                    {
-                        csContent.AppendLine($"        int len{j} = buffer.ReadInt();");
-                        csContent.AppendLine($"        this.{sName} = new Vector2Int[len{j}];");
-                        csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
-                        csContent.AppendLine($"            this.{sName}[i] = new Vector2Int(buffer.ReadInt(), buffer.ReadInt());");
-                    }
-                    else if (sType == "float")
-                        csContent.AppendLine($"        this.{sName} = buffer.ReadFloat();");
-                    else if (sType == "float[]")
-                    {
-                        csContent.AppendLine($"        int len{j} = buffer.ReadInt();");
-                        csContent.AppendLine($"        this.{sName} = new float[len{j}];");
-                        csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
-                        csContent.AppendLine($"            this.{sName}[i] = buffer.ReadFloat();");
-                    }
-                    else if (sType == "bool")
-                        csContent.AppendLine($"        this.{sName} = buffer.ReadBool();");
-                    else if (sType == "bool[]")
-                    {
-                        csContent.AppendLine($"        int len{j} = buffer.ReadInt();");
-                        csContent.AppendLine($"        this.{sName} = new bool[len{j}];");
-                        csContent.AppendLine($"        for (int i = 0; i < len{j}; i++)");
-                        csContent.AppendLine($"            this.{sName}[i] = buffer.ReadBool();");
-                    }
-                    else
-                    {
-                        Console.WriteLine("未识别类型 " + sType);
-                        Console.ReadLine();
-                        return;
+                        Lan tt = lan[mainIdx[i]];
+                        for (int j = 0; j < item.dataCnt; j++)
+                        {
+                            int key = int.Parse(pkg.Workbook.Worksheets[1].Cells[j + 4, 1].Text);
+
+                            int idx = mainIdx[i];
+                            string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
+                            string text = pkg.Workbook.Worksheets[1].Cells[j + 4, idx].Text;
+
+                            tt.buff.Write(key);
+                            WriteValue(tt.buff, sType, text, item.fi, j + 4, idx);
+                        }
                     }
                 }
-                csContent.AppendLine("    }");
-
-                csContent.AppendLine("}");
-
-                DBuffer buffer = new DBuffer();
-                int dataCnt = 0;
-                int dIdx = 4;
-                while (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[dIdx++, 1].Text))
-                    dataCnt++;
-
-                buffer.Write(dataCnt);
-                int lineIdx = 4;
-                for (int m = 0; m < dataCnt; m++)
-                {
-                    for (int j = 0; j < mainIdx.Count; j++)
-                    {
-                        int idx = mainIdx[j];
-                        string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
-                        string text = pkg.Workbook.Worksheets[1].Cells[lineIdx, idx].Text;
-
-                        WriteValue(buffer, sType, text, fi, lineIdx, idx);
-                    }
-                    lineIdx++;
-                }
-
-                File.WriteAllText(Environment.CurrentDirectory + $"/../../../../Client/Assets/Code/Main/Tab/Language.cs", csContent.ToString());
-                File.WriteAllBytes(Environment.CurrentDirectory + "/../../../../Client/Assets/Res/Config/Language.bytes", buffer.ToBytes());
+                foreach (var item in lan.Values)
+                    File.WriteAllBytes(parentPath + $"/../Client/Client/Assets/Res/Config/Tabs/Language_{item.name}.bytes", item.buff.ToBytes());
             }
 
             Console.WriteLine("生成成功");
@@ -519,6 +490,40 @@ namespace ExportExcel
                 for (int k = 0; k < arr.Length; k++)
                 {
                     if (!int.TryParse(arr[k], out var v))
+                    {
+                        Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
+                        Console.ReadLine();
+                        return;
+                    }
+                    vs.Add(v);
+                }
+                buffer.Write(vs.Count);
+                for (int k = 0; k < vs.Count; k++)
+                    buffer.Write(vs[k]);
+            }
+            else if (sType == "long")
+            {
+                if (string.IsNullOrEmpty(text))
+                {
+                    buffer.Write(0);
+                    return;
+                }
+                if (!long.TryParse(text, out var v))
+                {
+                    Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
+                    Console.ReadLine();
+                    return;
+                }
+                buffer.Write(v);
+            }
+            else if (sType == "long[]")
+            {
+                string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                List<long> vs = new List<long>();
+                for (int k = 0; k < arr.Length; k++)
+                {
+                    if (!long.TryParse(arr[k], out var v))
                     {
                         Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
                         Console.ReadLine();
@@ -714,6 +719,16 @@ namespace ExportExcel
             public List<string> className = new List<string>();
             public List<string> classContent = new List<string>();
             public byte[] buff;
+        }
+        class temp3
+        {
+            public FileInfo fi;
+            public int dataCnt;
+        }
+        class Lan
+        {
+            public DBuffer buff;
+            public string name;
         }
     }
 }

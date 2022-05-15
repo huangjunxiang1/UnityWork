@@ -13,7 +13,7 @@ public sealed class TaskAwaiterBuilder
     TaskAwaiter _awaiter;
     public static TaskAwaiterBuilder Create()
     {
-        TaskAwaiterBuilder builder = new TaskAwaiterBuilder() { _awaiter = new TaskAwaiter() };
+        TaskAwaiterBuilder builder = new() { _awaiter = new TaskAwaiter() };
         return builder;
     }
     public TaskAwaiter Task => _awaiter;

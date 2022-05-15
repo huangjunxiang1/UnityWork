@@ -144,9 +144,6 @@ public class Reporter : MonoBehaviour
 	//to save memory
 	Dictionary<string, string> cachedString = new Dictionary<string, string>();
 
-	[HideInInspector]
-	//show hide In Game Logs
-	public bool show = false;
 	//collapse logs
 	bool collapse;
 	//to decide if you want to clean logs for new loaded scene
@@ -413,7 +410,6 @@ public class Reporter : MonoBehaviour
 
 
 		currentView = (ReportView)PlayerPrefs.GetInt("Reporter_currentView", 1);
-		show = (PlayerPrefs.GetInt("Reporter_show") == 1) ? true : false;
 		collapse = (PlayerPrefs.GetInt("Reporter_collapse") == 1) ? true : false;
 		clearOnNewSceneLoaded = (PlayerPrefs.GetInt("Reporter_clearOnNewSceneLoaded") == 1) ? true : false;
 		showTime = (PlayerPrefs.GetInt("Reporter_showTime") == 1) ? true : false;
@@ -442,10 +438,6 @@ public class Reporter : MonoBehaviour
         initializeStyle();
 
 		Initialized = true;
-
-		if (show) {
-			doShow();
-		}
 
 		deviceModel = SystemInfo.deviceModel.ToString();
 		deviceType = SystemInfo.deviceType.ToString();
@@ -1183,18 +1175,9 @@ public class Reporter : MonoBehaviour
 		}
 		GUILayout.EndHorizontal();
 
-		if (GUILayout.Button(closeContent, barStyle, GUILayout.Width(size.x * 2), GUILayout.Height(size.y * 2))) {
-			show = false;
-			ReporterGUI gui = gameObject.GetComponent<ReporterGUI>();
-			DestroyImmediate(gui);
-
-			try {
-				gameObject.SendMessage("OnHideReporter");
-			}
-			catch (System.Exception e) {
-				Debug.LogException(e);
-			}
-		}
+		/*if (GUILayout.Button(closeContent, barStyle, GUILayout.Width(size.x * 2), GUILayout.Height(size.y * 2))) {
+			doShow(false);
+		}*/
 
 
 		GUILayout.EndHorizontal();
@@ -1836,23 +1819,43 @@ public class Reporter : MonoBehaviour
 	private float lastUpdate = 0f;
 	private const int requiredFrames = 10;
 	private const float updateInterval = 0.25f;
+	private bool show;
 
 #if UNITY_CHANGE1
 	float lastUpdate2 = 0;
 #endif
 
-	void doShow()
+	public void doShow(bool b)
 	{
-		show = true;
-		currentView = ReportView.Logs;
-		gameObject.AddComponent<ReporterGUI>();
+		show = b;
+		if (b)
+		{
+			currentView = ReportView.Logs;
+			gameObject.AddComponent<ReporterGUI>();
 
 
-		try {
-			gameObject.SendMessage("OnShowReporter");
+			/*try
+			{
+				gameObject.SendMessage("OnShowReporter");
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogException(e);
+			}*/
 		}
-		catch (System.Exception e) {
-			Debug.LogException(e);
+        else
+        {
+			ReporterGUI gui = gameObject.GetComponent<ReporterGUI>();
+			DestroyImmediate(gui);
+
+			/*try
+			{
+				gameObject.SendMessage("OnHideReporter");
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogException(e);
+			}*/
 		}
 	}
 
@@ -1873,9 +1876,6 @@ public class Reporter : MonoBehaviour
 #endif
 
 		calculateStartIndex();
-		if (!show && isGestureDone()) {
-			doShow();
-		}
 
 
 		if (threadedLogs.Count > 0) {
@@ -2052,10 +2052,10 @@ public class Reporter : MonoBehaviour
 
 #if UNITY_CHANGE3
 		currentScene = SceneManager.GetActiveScene().name ;
-		Debug.Log( "Scene " + SceneManager.GetActiveScene().name + " is loaded");
+		Loger.Log( "Scene " + SceneManager.GetActiveScene().name + " is loaded");
 #else
 		currentScene = Application.loadedLevelName;
-		Debug.Log("Scene " + Application.loadedLevelName + " is loaded");
+		Loger.Log("Scene " + Application.loadedLevelName + " is loaded");
 #endif
 	}
 
@@ -2063,7 +2063,6 @@ public class Reporter : MonoBehaviour
 	void OnApplicationQuit()
 	{
 		PlayerPrefs.SetInt("Reporter_currentView", (int)currentView);
-		PlayerPrefs.SetInt("Reporter_show", (show == true) ? 1 : 0);
 		PlayerPrefs.SetInt("Reporter_collapse", (collapse == true) ? 1 : 0);
 		PlayerPrefs.SetInt("Reporter_clearOnNewSceneLoaded", (clearOnNewSceneLoaded == true) ? 1 : 0);
 		PlayerPrefs.SetInt("Reporter_showTime", (showTime == true) ? 1 : 0);

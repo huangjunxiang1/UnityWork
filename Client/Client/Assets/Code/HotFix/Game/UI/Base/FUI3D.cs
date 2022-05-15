@@ -32,7 +32,7 @@ abstract class FUI3D : FUIBase
         base.LoadConfig(config, data);
 
         this.OnInit(data);
-        this.Root = AssetLoad.Load<GameObject>(url);
+        this.Root = AssetLoad.LoadGameObject(url);
         this.Root.transform.SetParent(WRoot.Inst.GameObject.transform);
         this.Panel = this.Root.GetComponentInChildren<UIPanel>();
         this.Panel.sortingOrder = config.SortOrder;
@@ -45,7 +45,7 @@ abstract class FUI3D : FUIBase
         base.LoadConfigAsync(config, data);
 
         this.OnInit(data);
-        this.Root = await AssetLoad.LoadAsync<GameObject>(url, TaskCreater);
+        this.Root = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
         this.Root.transform.SetParent(WRoot.Inst.GameObject.transform);
         this.Panel = this.Root.GetComponentInChildren<UIPanel>();
         this.Panel.sortingOrder = config.SortOrder;

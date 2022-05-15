@@ -102,10 +102,11 @@ public class TaskAwaiterCreater
         }
         return task;
     }
-    public void Add(TaskAwaiter task)
+    public TaskAwaiter Add(TaskAwaiter task)
     {
         tasks.Add(task);
         waitRemove(task);
+        return task;
     }
     public void Remove(TaskAwaiter task)
     {

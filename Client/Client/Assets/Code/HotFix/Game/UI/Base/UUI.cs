@@ -19,7 +19,7 @@ abstract class UUI : UUIBase
         base.LoadConfig(config, data);
 
         this.OnInit(data);
-        this.ui = (RectTransform)AssetLoad.Load<GameObject>(url).transform;
+        this.ui = (RectTransform)AssetLoad.LoadGameObject(url).transform;
         this.ui.SetParent(UIS.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
@@ -38,7 +38,7 @@ abstract class UUI : UUIBase
         base.LoadConfigAsync(config, data);
 
         this.OnInit(data);
-        GameObject ui = await AssetLoad.LoadAsync<GameObject>(url, TaskCreater);
+        GameObject ui = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
         this.ui = (RectTransform)ui.transform;
         this.ui.SetParent(UIS.UGUIRoot);
         this.ui.localScale = Vector3.one;

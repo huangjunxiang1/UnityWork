@@ -40,7 +40,7 @@ partial class FUILogin
     [Event((int)EIDM.NetError)]
     void connectRet(EventerContent e)
     {
-        int error = e.ValueInt;
+        int error = e.Value;
 
     }
 

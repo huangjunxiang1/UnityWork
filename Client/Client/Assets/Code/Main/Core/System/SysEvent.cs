@@ -42,20 +42,31 @@ namespace Main
         readonly static Dictionary<int, int> _msgCalling = new(5);
         readonly static Dictionary<int, int> _evtCalling = new(5);
         readonly static Dictionary<Type, MethodData[]> _methodCache = new(97);
-        static bool _rigistedStaticMethodEvt = false;
+        readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
         readonly static object[] _ilRuntimePs = new object[1];
+        static bool _rigistedStaticMethodEvt = false;
 
         static MethodData[] _getFilterMethods(Type t)
         {
             if (!_methodCache.TryGetValue(t, out MethodData[] result))
             {
-                var methods = t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                _methodInfos.Clear();
+                Type tt = t;
+                _methodInfos.AddRange(tt.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+                while ((tt = tt.BaseType) != null)
+                    _methodInfos.AddRange(tt.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance));
+
                 List<MethodData> evts = new();
-                for (int i = 0; i < methods.Length; i++)
+                for (int i = 0; i < _methodInfos.Count; i++)
                 {
-                    var method = methods[i];
+                    var method = _methodInfos[i];
                     var ps = method.GetParameters();
                     var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
+                    if (mas.Length > 0 && method.IsVirtual)
+                    {
+                        Loger.Error("监听消息不使用virtual来实现");
+                        continue;
+                    }
                     for (int k = 0; k < mas.Length; k++)
                     {
                         MsgAttribute a = (MsgAttribute)mas[k];
@@ -96,6 +107,11 @@ namespace Main
                     }
 
                     var eas = method.GetCustomAttributes(typeof(EventAttribute), false);
+                    if (eas.Length > 0 && method.IsVirtual)
+                    {
+                        Loger.Error("监听消息不使用virtual来实现");
+                        continue;
+                    }
                     for (int k = 0; k < eas.Length; k++)
                     {
                         EventAttribute a = (EventAttribute)eas[k];
@@ -156,6 +172,7 @@ namespace Main
                 for (int j = 0; j < len; j++)
                 {
                     var method = methods[j];
+                    var ps = method.GetParameters();
                     var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
                     for (int k = 0; k < mas.Length; k++)
                     {
@@ -166,7 +183,6 @@ namespace Main
                             _msgMap[a.OpCode] = evts;
                         }
 
-                        var ps = method.GetParameters();
                         MsgData e = new();
                         e.sortOrder = a.SortOrder;
                         e.isP0 = ps.Length == 0;
@@ -222,7 +238,6 @@ namespace Main
                             _evtMap[a.EventID] = evts;
                         }
 
-                        var ps = method.GetParameters();
                         EvtData e = new();
                         e.sortOrder = a.SortOrder;
                         e.isP0 = ps.Length == 0;
@@ -440,7 +455,6 @@ namespace Main
                 for (; idx < evts.Count; idx = ++_msgCalling[opCode])
                 {
                     MsgData e = evts[idx];
-
                     try
                     {
                         if (e.isP0) e.action0();
@@ -486,7 +500,6 @@ namespace Main
                 for (; idx < evts.Count; idx = ++_evtCalling[eventID])
                 {
                     EvtData e = evts[idx];
-
                     try
                     {
                         if (e.isP0) e.action0();

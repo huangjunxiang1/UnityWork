@@ -10,17 +10,20 @@ using System.Threading.Tasks;
 public class EventerContent
 {
     public EventerContent() { }
-    public EventerContent(object sender) { this.Sender = sender; }
+    public EventerContent(object sender) 
+    { 
+        this.Sender = sender;
+    }
     public EventerContent(object sender, int value, object data)
     {
         this.Sender = sender;
-        this.ValueInt = value;
+        this.Value = value;
         this.Data = data;
     }
     public EventerContent(object sender, int value)
     {
         this.Sender = sender;
-        this.ValueInt = value;
+        this.Value = value;
     }
     public EventerContent(object sender, object data)
     {
@@ -34,6 +37,6 @@ public class EventerContent
     public object Sender { get; }
 
     //事件数据
-    public int ValueInt { get; }
+    public int Value { get; }
     public object Data { get; }
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1334,750">
+  <displayList>
+    <graph id="n0_rjgb" name="n0" xy="267,175" size="800,400" group="n5_rjgb" type="rect" fillColor="#ff996699"/>
+    <component id="n1_rjgb" name="_yes" src="qgu27" fileName="Common/btn/btn.xml" xy="824,421" size="168,87" group="n5_rjgb">
+      <Button title="确定"/>
+    </component>
+    <component id="n2_rjgb" name="_no" src="qgu27" fileName="Common/btn/btn.xml" xy="348,421" size="168,87" group="n5_rjgb">
+      <Button title="取消"/>
+    </component>
+    <text id="n3_rjgb" name="title" xy="494,174" size="345,79" group="n5_rjgb" fontSize="30" color="#ffffff" align="center" vAlign="middle" autoSize="none" text="555"/>
+    <text id="n4_rjgb" name="text" xy="334,257" size="665,160" group="n5_rjgb" fontSize="30" color="#ffffff" align="center" autoSize="none" text="555"/>
+    <group id="n5_rjgb" name="n5" xy="267,174" size="800,401" advanced="true">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </group>
+  </displayList>
+</component>

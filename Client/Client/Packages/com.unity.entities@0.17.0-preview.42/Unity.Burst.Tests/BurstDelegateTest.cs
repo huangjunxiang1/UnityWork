@@ -99,7 +99,7 @@ public unsafe class BurstDelegateTest
         job.I++;
 	}
 
-    [Test, Ignore("DOTS-2992")]
+    /*[Test, Ignore("DOTS-2992")]
     public void CallJobFromFunctionPointer()
     {
         IJobBurstSchedulableExtensions.JobStruct<DivideByZeroJob>.Initialize();
@@ -107,6 +107,6 @@ public unsafe class BurstDelegateTest
         var job = new DivideByZeroJob { I = 0 };
         funcPtr.Invoke(ref job);
         Assert.AreEqual(job.I, 1);
-    }
+    }*/
 #endif
 }

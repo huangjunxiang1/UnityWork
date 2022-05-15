@@ -8,13 +8,13 @@ using Unity.Jobs;
 
 namespace Unity.Entities
 {
-    [JobProducerType(typeof(IJobBurstSchedulableExtensions.JobStruct<>))]
+    /*[JobProducerType(typeof(IJobBurstSchedulableExtensions.JobStruct<>))]
     internal interface IJobBurstSchedulable
     {
         void Execute();
-    }
+    }*/
 
-    internal static class IJobBurstSchedulableExtensions
+    /*internal static class IJobBurstSchedulableExtensions
     {
         internal struct JobStruct<T> where T : struct, IJobBurstSchedulable
         {
@@ -67,5 +67,5 @@ namespace Unity.Entities
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref jobData), reflectionData, new JobHandle(), ScheduleMode.Run);
             JobsUtility.Schedule(ref scheduleParams);
         }
-    }
+    }*/
 }

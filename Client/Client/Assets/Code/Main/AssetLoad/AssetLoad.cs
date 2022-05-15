@@ -21,59 +21,92 @@ namespace Main
         static readonly AssetBaseLoader primitiveLoader = new AssetPrimitiveLoader();
         static readonly AssetBaseLoader copyLoader = new AssetCopyLoader();
 
+        public static GameObject LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.Release)
+        {
+            GameObject g = (GameObject)prefabLoader.Load(url);
+            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
+            r.url = url;
+            r.mode = releaseMode;
+            return g;
+        }
+        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Release)
+        {
+            GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
+            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
+            r.url = url;
+            r.mode = releaseMode;
+            return g;
+        }
+        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiter<UnityEngine.Object> task, ReleaseMode releaseMode = ReleaseMode.Release)
+        {
+            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, task);
+            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
+            r.url = url;
+            r.mode = releaseMode;
+            return g;
+        }
+        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiterCreater creater, ReleaseMode releaseMode = ReleaseMode.Release)
+        {
+            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
+            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
+            r.url = url;
+            r.mode = releaseMode;
+            return g;
+        }
+
         public static T Load<T>(string url) where T : UnityEngine.Object
         {
             Type t = typeof(T);
+#if DebugEnable
             if (t == typeof(GameObject))
             {
-                GameObject g = (GameObject)prefabLoader.Load(url);
-                UrlRef aref = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-                aref.url = url;
-                return g as T;
+                Loger.Error("GameObject 不使用这个函数加载");
+                return default;
             }
-            else if (t == typeof(Texture))
+#endif
+            if (t == typeof(Texture))
                 return (T)counterLoader.Load(url);
             return (T)primitiveLoader.Load(url);
         }
         public static async TaskAwaiter<T> LoadAsync<T>(string url) where T : UnityEngine.Object
         {
             Type t = typeof(T);
+#if DebugEnable
             if (t == typeof(GameObject))
             {
-                GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
-                UrlRef aref = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-                aref.url = url;
-                return g as T;
+                Loger.Error("GameObject 不使用这个函数加载");
+                return default;
             }
-            else if (t == typeof(Texture))
+#endif
+            if (t == typeof(Texture))
                 return (T)await counterLoader.LoadAsync(url);
             return (T)await primitiveLoader.LoadAsync(url);
         }
         public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskAwaiter<UnityEngine.Object> task) where T : UnityEngine.Object
         {
             Type t = typeof(T);
+#if DebugEnable
             if (t == typeof(GameObject))
             {
-                GameObject g = (GameObject)await prefabLoader.LoadAsync(url, task);
-                UrlRef aref = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-                aref.url = url;
-                return g as T;
+                Loger.Error("GameObject 不使用这个函数加载");
+                return default;
             }
-            else if (t == typeof(Texture))
+#endif
+            if (t == typeof(Texture))
                 return (T)await counterLoader.LoadAsync(url, task);
             return (T)await primitiveLoader.LoadAsync(url, task);
         }
         public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskAwaiterCreater creater) where T : UnityEngine.Object
         {
             Type t = typeof(T);
+#if DebugEnable
             if (t == typeof(GameObject))
             {
-                GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
-                UrlRef aref = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-                aref.url = url;
-                return g as T;
+                Loger.Error("GameObject 不使用这个函数加载");
+                return default;
             }
-            else if (t == typeof(Texture))
+#endif
+            if (t == typeof(Texture))
                 return (T)await counterLoader.LoadAsync(url, creater);
             return (T)await primitiveLoader.LoadAsync(url, creater);
         }
@@ -85,28 +118,44 @@ namespace Main
                 Loger.Error("Asset is null");
                 return;
             }
-            if (target is GameObject)
-                prefabLoader.Release(target);
+            if (target is GameObject g)
+            {
+                UrlRef r = g.GetComponent<UrlRef>();
+                if (r == null)
+                {
+                    GameObject.DestroyImmediate(target);
+                    return;
+                }
+                //GetComponentsInChildren这里获取的  包含他自己  所以用if else
+                if (r.hasChange)
+                {
+                    UrlRef[] rs = r.transform.GetComponentsInChildren<UrlRef>();
+                    for (int i = rs.Length - 1; i >= 0; i--)
+                        ReleaseGameObject(rs[i]);
+                }
+                else
+                    ReleaseGameObject(r);
+            }
             else if (target is Texture)
                 counterLoader.Release(target);
             else
                 primitiveLoader.Release(target);
         }
-        public static void ReleaseToPool(GameObject target)
+        static void ReleaseGameObject(UrlRef r)
         {
-            if (!target)
+            switch (r.mode)
             {
-                Loger.Error("Asset is null");
-                return;
+                case ReleaseMode.None:
+                case ReleaseMode.Release:
+                    prefabLoader.Release(r.gameObject);
+                    break;
+                case ReleaseMode.ReleaseToPool:
+                    r.hasChange = false;
+                    prefabLoader.ReleaseToPool(r.gameObject, r.url);
+                    break;
+                default:
+                    break;
             }
-            UrlRef r = target.GetComponent<UrlRef>();
-            if (r == null)
-            {
-                Loger.Error("没有AssetRef组件 " + target);
-                GameObject.Destroy(target);
-                return;
-            }
-            prefabLoader.ReleaseToPool(target, r.url);
         }
         public static void AddTextureRef(GameObject target, Texture texture)
         {
@@ -137,25 +186,14 @@ namespace Main
         {
             [NonSerialized]
             public string url;
+            [NonSerialized]
+            public ReleaseMode mode;
 
-            List<UrlRef> childs = null;
-            UrlRef lastParent;
+            public bool hasChange;
 
-            private void OnTransformParentChanged()
+            void OnTransformChildrenChanged()
             {
-                UrlRef parent = this.transform.parent?.GetComponentInParent<UrlRef>();
-                if (lastParent == parent)
-                    return;
-                if (lastParent)
-                    lastParent.childs.Remove(this);
-
-                if (parent)
-                {
-                    if (parent.childs == null)
-                        parent.childs = new List<UrlRef>();
-                    parent.childs.Add(this);
-                    lastParent = parent;
-                }
+                hasChange = true;
             }
         }
         class TextureRef : MonoBehaviour

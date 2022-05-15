@@ -17,6 +17,11 @@ public unsafe static class ILRuntimeBinding
         EditorAction.Binding(appdomain);
         TypeBinding.Binding(appdomain);
         DelegateBinding.Binding(appdomain);
-        ILRuntime.Runtime.CLRBinding.CLRBindingUtils.Initialize(appdomain);
+        Type clr = Type.GetType("ILRuntime.Runtime.Generated.CLRBindings");
+        if (clr != null)
+        {
+            var m = clr.GetMethod("Initialize", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            m.Invoke(null, new object[] { appdomain });
+        }
     }
 }

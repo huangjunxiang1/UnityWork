@@ -32,41 +32,35 @@ public class AppSettingEditor : Editor
     void refAsmdefAndDefine()
     {
         {
-            string all = File.ReadAllText(Application.dataPath + "/Code/HotFix/HotFix.asmdef");
+            string path = Application.dataPath + "/Code/HotFix/HotFix.asmdef";
+            AssmblyOpter ao = AssmblyOpter.Load(path);
 
-            int idx1 = all.IndexOf("includePlatforms");
-            int idx11 = all.IndexOf("[", idx1 + 1);
-            int idx22 = all.IndexOf("]", idx1);
-            StringBuilder str = new StringBuilder();
             if (setting.Runtime == CodeRuntime.Assembly
                 || setting.Runtime == CodeRuntime.ILRuntime)
             {
-                str.Append(all.Substring(0, idx11 + 1));
-                str.Append("\"Editor\"");
-                str.Append(all.Substring(idx22, all.Length - idx22));
+                ao.includePlatforms = new List<string>();
+                ao.includePlatforms.Add("Editor");
             }
             else
-                str.Append(all.Remove(idx11 + 1, idx22 - (idx11 + 1)));
-            File.WriteAllText(Application.dataPath + "/Code/HotFix/HotFix.asmdef", str.ToString());
+                ao.includePlatforms = new List<string>();
+
+            ao.Save(path);
         }
 
         {
-            string all = File.ReadAllText(Application.dataPath + "/../Packages/ILRuntimeBinding/ILRuntimeBinding.asmdef");
+            string path = Application.dataPath + "/../Packages/ILRuntimeBinding/ILRuntimeBinding.asmdef";
+            AssmblyOpter ao = AssmblyOpter.Load(path);
 
-            int idx1 = all.IndexOf("includePlatforms");
-            int idx11 = all.IndexOf("[", idx1 + 1);
-            int idx22 = all.IndexOf("]", idx1);
-            StringBuilder str = new StringBuilder();
             if (setting.Runtime == CodeRuntime.Assembly
                 || setting.Runtime == CodeRuntime.ILRuntime)
             {
-                str.Append(all.Substring(0, idx11 + 1));
-                str.Append("\"Editor\"");
-                str.Append(all.Substring(idx22, all.Length - idx22));
+                ao.includePlatforms = new List<string>();
+                ao.includePlatforms.Add("Editor");
             }
             else
-                str.Append(all.Remove(idx11 + 1, idx22 - (idx11 + 1)));
-            File.WriteAllText(Application.dataPath + "/../Packages/ILRuntimeBinding/ILRuntimeBinding.asmdef", str.ToString());
+                ao.includePlatforms = new List<string>();
+
+            ao.Save(path);
         }
 
 

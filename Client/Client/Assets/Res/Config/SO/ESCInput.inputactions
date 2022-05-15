@@ -1,0 +1,34 @@
+{
+    "name": "ESCInput",
+    "maps": [
+        {
+            "name": "esc",
+            "id": "8ff01451-c5bb-4a85-99c4-af6e9466a41c",
+            "actions": [
+                {
+                    "name": "onEsc",
+                    "type": "Button",
+                    "id": "e64c28ad-9fe6-408b-bc8b-cc42af9a03a2",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d8765a76-46f7-4d73-b9ae-c97d89d399bd",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "onEsc",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
