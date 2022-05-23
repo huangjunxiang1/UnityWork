@@ -22,6 +22,7 @@ public class ILRuntimeCLRBinding
         ao2.references = new List<string>();
         ao2.references.AddRange(ao1.references);
         ao2.references.Add("GUID:7a1fa966b0ea23f40a6a4dc4dab1e297");//这个是ILRuntime的引用
+        ao2.precompiledReferences = ao1.precompiledReferences;
         ao2.Save(path2);
         AssetDatabase.Refresh();
     }

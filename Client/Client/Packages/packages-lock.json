@@ -43,6 +43,12 @@
       },
       "url": "https://packages.unity.cn"
     },
+    "com.unity.behaviordesigner": {
+      "version": "file:BehaviorDesigner",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.burst": {
       "version": "1.7.0",
       "depth": 0,
@@ -167,6 +173,12 @@
         "com.unity.nuget.mono-cecil": "1.10.1"
       },
       "url": "https://packages.unity.cn"
+    },
+    "com.unity.magicacloth": {
+      "version": "file:MagicaCloth",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.mathematics": {
       "version": "1.2.6",

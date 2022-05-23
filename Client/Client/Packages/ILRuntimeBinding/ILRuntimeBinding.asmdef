@@ -22,8 +22,11 @@
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": true,
-  "overrideReferences": false,
-  "precompiledReferences": [],
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "Loger.dll",
+    "DOTween.dll"
+  ],
   "autoReferenced": true,
   "defineConstraints": [],
   "versionDefines": [],
