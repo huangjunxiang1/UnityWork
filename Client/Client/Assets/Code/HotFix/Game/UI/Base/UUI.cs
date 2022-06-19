@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Game;
 
 abstract class UUI : UUIBase
 {
@@ -18,12 +19,12 @@ abstract class UUI : UUIBase
     {
         base.LoadConfig(config, data);
 
-        this.OnInit(data);
+        this.OnAwake(data);
         this.ui = (RectTransform)AssetLoad.LoadGameObject(url).transform;
-        this.ui.SetParent(UIS.UGUIRoot);
+        this.ui.SetParent(GameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
-        this.ui.sizeDelta = UIS.UGUIRoot.sizeDelta;
+        this.ui.sizeDelta = GameL.UI.UGUIRoot.sizeDelta;
         this.ui.anchorMin = default;
         this.ui.anchorMax = Vector2.one;
         this.ui.anchoredPosition = default;
@@ -32,18 +33,19 @@ abstract class UUI : UUIBase
 
         this.Binding();
         this.OnEnter(data);
+        this.EnterWaiter = this.OnEnterAsync(data);
     }
     public sealed override async void LoadConfigAsync(UIConfig config, params object[] data)
     {
         base.LoadConfigAsync(config, data);
 
-        this.OnInit(data);
+        this.OnAwake(data);
         GameObject ui = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
         this.ui = (RectTransform)ui.transform;
-        this.ui.SetParent(UIS.UGUIRoot);
+        this.ui.SetParent(GameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
-        this.ui.sizeDelta = UIS.UGUIRoot.sizeDelta;
+        this.ui.sizeDelta = GameL.UI.UGUIRoot.sizeDelta;
         this.ui.anchorMin = default;
         this.ui.anchorMax = Vector2.one;
         this.ui.anchoredPosition = default;
@@ -52,6 +54,7 @@ abstract class UUI : UUIBase
 
         this.Binding();
         this.OnEnter(data);
+        this.EnterWaiter = this.OnEnterAsync(data);
         this.LoadWaiter.TrySetResult();
     }
 }

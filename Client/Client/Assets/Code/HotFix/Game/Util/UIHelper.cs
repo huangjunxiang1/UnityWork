@@ -23,7 +23,7 @@ static class UIHelper
     public static bool IsOnTouchFUI(Vector2 position)
     {
         position.y = Screen.height - position.y;
-        DisplayObject o = FairyGUI.Stage.inst.HitTest(position, true);
+        DisplayObject o = Stage.inst.HitTest(position, true);
         GObject g = GRoot.inst.DisplayObjectToGObject(o);
         while (g != null)
         {
@@ -32,14 +32,33 @@ static class UIHelper
         }
         return false;
     }
-    public static async void SetTexture(this RawImage ri, string texPath)
+
+    public static Vector2 WorldToFUI(Vector3 world)
+    {
+        Vector3 sp = Camera.main.WorldToScreenPoint(world);
+        //原点位置转换
+        sp.y = Screen.height - sp.y;
+        return sp;
+    }
+    public static Vector2 WorldToGObject(Vector3 world, GObject g)
+    {
+        Vector2 p = WorldToFUI(world);
+        p.x -= g.width / 2;
+        p.y -= g.height / 2;
+        return p;
+    }
+
+    public static async void SetTexture(this RawImage ri, string url)
     {
         if (!ri) return;
-        Texture tex = await AssetLoad.LoadAsync<Texture>(texPath);
+        Texture tex = await AssetLoad.LoadAsync<Texture>(url);
         AssetLoad.AddTextureRef(ri.gameObject, tex);
     }
     public static string GetFGUIItemUrl(string name)
     {
-        return UIPackage.GetItemURL("ResPkg", name);
+        PackageItem pi = UIConfig.ResPkg.GetItem(name);
+        if (pi == null)
+            return null;
+        return $"{UIPackage.URL_PREFIX}{UIConfig.ResPkg.id}{pi.id}";
     }
 }

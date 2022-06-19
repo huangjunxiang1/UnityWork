@@ -138,7 +138,7 @@ namespace MagicaCloth
             [Unity.Collections.ReadOnly]
             public NativeArray<int> vertexToParticleList;
             [Unity.Collections.ReadOnly]
-            public NativeMultiHashMap<int, int> vertexToParticleMap;
+            public NativeParallelMultiHashMap<int, int> vertexToParticleMap;
 
             [Unity.Collections.ReadOnly]
             public NativeArray<float3> posList;
@@ -157,7 +157,7 @@ namespace MagicaCloth
             public NativeArray<quaternion> snapBaseRotList;
             //public NativeArray<quaternion> baseRotList;
 
-            private NativeMultiHashMapIterator<int> iterator;
+            private NativeParallelMultiHashMapIterator<int> iterator;
 
             // パーティクル連動頂点ごと
             public void Execute(int index)
@@ -242,7 +242,7 @@ namespace MagicaCloth
             [Unity.Collections.ReadOnly]
             public NativeArray<int> vertexToParticleList;
             [Unity.Collections.ReadOnly]
-            public NativeMultiHashMap<int, int> vertexToParticleMap;
+            public NativeParallelMultiHashMap<int, int> vertexToParticleMap;
 
             [Unity.Collections.WriteOnly]
             [NativeDisableParallelForRestriction]
@@ -270,7 +270,7 @@ namespace MagicaCloth
             [Unity.Collections.ReadOnly]
             public NativeArray<quaternion> particleRotList;
 
-            private NativeMultiHashMapIterator<int> iterator;
+            private NativeParallelMultiHashMapIterator<int> iterator;
 
             // パーティクル連動頂点ごと
             public void Execute(int index)

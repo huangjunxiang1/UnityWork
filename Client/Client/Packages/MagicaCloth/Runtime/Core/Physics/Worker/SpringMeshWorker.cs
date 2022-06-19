@@ -159,7 +159,7 @@ namespace MagicaCloth
             [Unity.Collections.ReadOnly]
             public NativeArray<int> springVertexList;
             [Unity.Collections.ReadOnly]
-            public NativeMultiHashMap<int, SpringData> springMap;
+            public NativeParallelMultiHashMap<int, SpringData> springMap;
 
             [Unity.Collections.ReadOnly]
             public NativeArray<PhysicsManagerParticleData.ParticleFlag> flagList;
@@ -187,7 +187,7 @@ namespace MagicaCloth
             [Unity.Collections.ReadOnly]
             public NativeArray<PhysicsManagerMeshData.VirtualMeshInfo> virtualMeshInfoList;
 
-            NativeMultiHashMapIterator<int> iterator;
+            NativeParallelMultiHashMapIterator<int> iterator;
 
             // スプリング対象頂点ごと
             public void Execute(int index)

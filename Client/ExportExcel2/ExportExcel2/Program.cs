@@ -197,9 +197,9 @@ namespace ExportExcel
 
                 mainCS.TabCS = TabM_Cs.ToString();
 
-                File.WriteAllText(parentPath + "/../Client/Client/Assets/Code/Main/Tab/TabM.cs", mainCS.TabCS.ToString());
+                File.WriteAllText(parentPath + "/../Client/Client/Assets/Code/Main/_Gen/TabM.cs", mainCS.TabCS.ToString());
                 for (int i = 0; i < mainCS.className.Count; i++)
-                    File.AppendAllText(parentPath + "/../Client/Client/Assets/Code/Main/Tab/TabM.cs", mainCS.classContent[i]);
+                    File.AppendAllText(parentPath + "/../Client/Client/Assets/Code/Main/_Gen/TabM.cs", mainCS.classContent[i]);
                 File.WriteAllBytes(parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabM.bytes", mainCS.buff);
 
             }
@@ -389,9 +389,9 @@ namespace ExportExcel
 
                 mainCS.TabCS = TabM_Cs.ToString();
 
-                File.WriteAllText(parentPath + "/../Client/Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.TabCS.ToString()); 
+                File.WriteAllText(parentPath + "/../Client/Client/Assets/Code/HotFix/Game/_Gen/TabL.cs", mainCS.TabCS.ToString()); 
                 for (int i = 0; i < mainCS.className.Count; i++)
-                    File.AppendAllText(parentPath + "/../Client/Client/Assets/Code/HotFix/Tab/TabL.cs", mainCS.classContent[i]);
+                    File.AppendAllText(parentPath + "/../Client/Client/Assets/Code/HotFix/Game/_Gen/TabL.cs", mainCS.classContent[i]);
                 File.WriteAllBytes(parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabL.bytes", mainCS.buff);
 
             }

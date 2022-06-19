@@ -35,10 +35,11 @@ partial class FUIFighting
 
     protected override void OnExit()
     {
-
+        if (es.IsCreated)
+            es.Dispose();
     }
 
-    [Event((int)EIDM.QuitGame)]
+    [Event((int)EventIDM.QuitGame)]
     void quit()
     {
         es.Dispose();
@@ -46,13 +47,13 @@ partial class FUIFighting
 
     void _clickBack()
     {
-        _ = SceneMgr.Inst.InLoginScene();
+        _ = GameL.Scene.InLoginScene();
     }
-    void _onValue()
+    async void _onValue()
     {
         Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
         int v = (int)_slider.value;
-        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         if (v < entityCnt)
         {
             em.DestroyEntity(new NativeSlice<Entity>(es, v, entityCnt - v));
@@ -61,20 +62,16 @@ partial class FUIFighting
         {
             if (entityCnt == 0)
             {
-                var en = em.CreateEntity();
+                var en = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskCreater);
                 es[0] = en;
-                em.AddComponentData(en, new LocalToWorld());
                 var p = random.NextFloat3(default, new float3(100, 0, 100));
-                em.AddComponentData(en, new Translation() { Value = p });
-                em.AddComponentData(en, new MaterialColor() { Value = random.NextFloat4() });
-                em.AddComponentData(en, new RenderBounds() { Value = new AABB { Center = default, Extents = new float3(1, 1, 1) } });
-                //em.AddComponentData(en, new Target()
-                //{
-                //    value = p,
-                //    wait = 1,
-                //});
-
-                em.AddSharedComponentData(en, new RenderMesh() { mesh = mesh, material = mat });
+                em.SetComponentData(en, new Translation() { Value = p });
+                em.AddComponentData(en, new HDRPMaterialPropertyBaseColor() { Value = random.NextFloat4() });
+                em.AddComponentData(en, new Target()
+                {
+                    value = p,
+                    wait = 1,
+                });
                 entityCnt = 1;
             }
             for (int i = entityCnt; i < v; i++)
@@ -82,59 +79,59 @@ partial class FUIFighting
                 es[i] = em.Instantiate(es[0]);
                 var p = random.NextFloat3(default, new float3(100, 0, 100));
                 em.SetComponentData(es[i], new Translation() { Value = p });
-                em.AddComponentData(es[i], new MaterialColor() { Value = random.NextFloat4() });
-                //em.SetComponentData(es[i], new Target()
-                //{
-                //    value = p,
-                //    wait = 1,
-                //});
+                em.SetComponentData(es[i], new HDRPMaterialPropertyBaseColor() { Value = random.NextFloat4() });
+                em.SetComponentData(es[i], new Target()
+                {
+                    value = p,
+                    wait = 1,
+                });
             }
         }
         entityCnt = v;
     }
 
-    //struct Target : IComponentData
-    //{
-    //    public float3 last;
-    //    public float3 value;
+    struct Target : IComponentData
+    {
+        public float3 last;
+        public float3 value;
 
-    //    public float cur;
-    //    public float time;
-    //    public float wait;
-    //}
+        public float cur;
+        public float time;
+        public float wait;
+    }
 
-    //class MoveSystem : SystemBase
-    //{
-    //    protected override void OnUpdate()
-    //    {
-    //        Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
-    //        var dt = Time.DeltaTime;
-    //        Entities
-    //            .WithAll<Target, MaterialColor, Translation>()
-    //            .ForEach((Entity e, ref Target t, ref MaterialColor c, ref Translation p) =>
-    //            {
-    //                if (t.wait > 0)
-    //                {
-    //                    t.wait -= dt;
-    //                    if (t.wait <= 0)
-    //                    {
-    //                        float3 pp = random.NextFloat3(default, new float3(100, 0, 100));
-    //                        t.last = t.value;
-    //                        t.value = pp;
-    //                        t.cur = 0;
-    //                        t.time = math.max(math.distance(t.last, t.value) / 2f, 0.1f);
-    //                        c.Value = random.NextFloat4();
-    //                    }
-    //                }
-    //                else
-    //                {
-    //                    t.cur = math.clamp(t.cur + dt, 0, t.time);
-    //                    p.Value = math.lerp(t.last, t.value, t.cur / t.time);
-    //                    if (t.cur >= t.time)
-    //                        t.wait = random.NextFloat(5, 10);
-    //                }
-    //            }).ScheduleParallel();
-    //    }
-    //}
+    partial class MoveSystem : SystemBase
+    {
+        protected override void OnUpdate()
+        {
+            Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
+            var dt = Time.DeltaTime;
+            Entities
+                .WithAll<Target, HDRPMaterialPropertyBaseColor, Translation>()
+                .ForEach((Entity e, ref Target t, ref HDRPMaterialPropertyBaseColor c, ref Translation p) =>
+                {
+                    if (t.wait > 0)
+                    {
+                        t.wait -= dt;
+                        if (t.wait <= 0)
+                        {
+                            float3 pp = random.NextFloat3(default, new float3(100, 0, 100));
+                            t.last = t.value;
+                            t.value = pp;
+                            t.cur = 0;
+                            t.time = math.max(math.distance(t.last, t.value) / 2f, 0.1f);
+                            c.Value = random.NextFloat4();
+                        }
+                    }
+                    else
+                    {
+                        t.cur = math.clamp(t.cur + dt, 0, t.time);
+                        p.Value = math.lerp(t.last, t.value, t.cur / t.time);
+                        if (t.cur >= t.time)
+                            t.wait = random.NextFloat(5, 10);
+                    }
+                }).ScheduleParallel();
+        }
+    }
 }
 

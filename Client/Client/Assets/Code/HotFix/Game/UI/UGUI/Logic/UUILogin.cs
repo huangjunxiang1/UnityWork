@@ -40,10 +40,10 @@ partial class UUILogin
         if (rep.Error == 0)
         {
             this.Dispose();
-            UIS.Open<UUILoading>(1);
+            GameL.UI.Open<UUILoading>(1);
         }
     }
-    [Event((int)EIDM.NetError)]
+    [Event((int)EventIDM.NetError)]
     void connectRet(EventerContent e)
     {
         int error = e.Value;
@@ -54,8 +54,8 @@ partial class UUILogin
     {
         if (v == 0)
         {
-            GameSetting.UIModel = UIModel.FGUI;
-            UIS.Open<FUILogin>();
+            GameL.Setting.UIModel = UIModel.FGUI;
+            GameL.UI.Open<FUILogin>();
             this.Dispose();
         }
     }

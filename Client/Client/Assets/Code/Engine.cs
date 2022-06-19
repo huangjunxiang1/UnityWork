@@ -33,7 +33,6 @@ public class Engine : MonoBehaviour
     void Update()
     {
         ThreadSynchronizationContext.Instance.Update();
-        SysNet.Update();
         Timer.Update();
     }
 
@@ -46,10 +45,7 @@ public class Engine : MonoBehaviour
 #if !ILRuntime && !Assembly
             Type[] a2 = typeof(Init).Assembly.GetTypes();
 
-            Type[] ts = new Type[a1.Length + a2.Length];
-            a1.CopyTo(ts, 0);
-            a2.CopyTo(ts, a1.Length);
-            TypesCache.InitTypes(ts);
+            TypesCache.InitTypes(a1, a2);
 
             Init.Main();
 #else
@@ -79,10 +75,7 @@ public class Engine : MonoBehaviour
 
             Type[] a2 = asm.GetTypes();
 
-            Type[] ts = new Type[a1.Length + a2.Length];
-            a1.CopyTo(ts, 0);
-            a2.CopyTo(ts, a1.Length);
-            TypesCache.InitTypes(ts);
+            TypesCache.InitTypes(a1, a2);
 
             asm.GetType("Init").GetMethod("Main").Invoke(null, null);
         }
@@ -107,10 +100,7 @@ public class Engine : MonoBehaviour
 
             Type[] a2 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
 
-            Type[] ts = new Type[a1.Length + a2.Length];
-            a1.CopyTo(ts, 0);
-            a2.CopyTo(ts, a1.Length);
-            TypesCache.InitTypes(ts);
+            TypesCache.InitTypes(a1, a2);
 
             app.Invoke("Init", "Main", null, null);
         }
@@ -118,6 +108,6 @@ public class Engine : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        SysEvent.ExecuteEvent((int)EIDM.QuitGame);
+        GameM.Event.ExecuteEvent((int)EventIDM.QuitGame);
     }
 }

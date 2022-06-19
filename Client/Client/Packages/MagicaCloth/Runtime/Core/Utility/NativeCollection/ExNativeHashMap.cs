@@ -16,7 +16,7 @@ namespace MagicaCloth
         where TKey : struct, IEquatable<TKey>
         where TValue : struct
     {
-        NativeHashMap<TKey, TValue> nativeHashMap;
+        NativeParallelHashMap<TKey, TValue> nativeHashMap;
 
         /// <summary>
         /// ネイティブリストの配列数
@@ -32,7 +32,7 @@ namespace MagicaCloth
         //=========================================================================================
         public ExNativeHashMap()
         {
-            nativeHashMap = new NativeHashMap<TKey, TValue>(1, Allocator.Persistent);
+            nativeHashMap = new NativeParallelHashMap<TKey, TValue>(1, Allocator.Persistent);
             nativeLength = NativeCount;
         }
 
@@ -168,7 +168,7 @@ namespace MagicaCloth
         /// 内部のNativeHashMapを取得する
         /// </summary>
         /// <returns></returns>
-        public NativeHashMap<TKey, TValue> Map
+        public NativeParallelHashMap<TKey, TValue> Map
         {
             get
             {

@@ -1,4 +1,5 @@
-﻿using Main;
+﻿using Game;
+using Main;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,9 @@ abstract class UUI3D : UUIBase
     {
         base.LoadConfig(config, data);
 
-        this.OnInit(data);
+        this.OnAwake(data);
         this.ui = (RectTransform)AssetLoad.LoadGameObject(url).transform;
-        this.ui.SetParent(UIS.UGUIRoot);
+        this.ui.SetParent(GameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
         this.ui.anchoredPosition = default;
@@ -29,15 +30,16 @@ abstract class UUI3D : UUIBase
 
         this.Binding();
         this.OnEnter(data);
+        this.EnterWaiter = this.OnEnterAsync(data);
     }
     public sealed override async void LoadConfigAsync(UIConfig config, params object[] data)
     {
         base.LoadConfigAsync(config, data);
 
-        this.OnInit(data);
+        this.OnAwake(data);
         GameObject ui = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
         this.ui = (RectTransform)ui.transform;
-        this.ui.SetParent(UIS.UGUIRoot);
+        this.ui.SetParent(GameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
         this.ui.anchoredPosition = default;
@@ -46,6 +48,7 @@ abstract class UUI3D : UUIBase
 
         this.Binding();
         this.OnEnter(data);
+        this.EnterWaiter = this.OnEnterAsync(data);
         this.LoadWaiter.TrySetResult();
     }
 }

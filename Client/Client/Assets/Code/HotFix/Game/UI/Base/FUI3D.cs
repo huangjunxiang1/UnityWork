@@ -31,27 +31,29 @@ abstract class FUI3D : FUIBase
     {
         base.LoadConfig(config, data);
 
-        this.OnInit(data);
+        this.OnAwake(data);
         this.Root = AssetLoad.LoadGameObject(url);
-        this.Root.transform.SetParent(WRoot.Inst.GameObject.transform);
+        this.Root.transform.SetParent(GameM.World.Root.transform);
         this.Panel = this.Root.GetComponentInChildren<UIPanel>();
         this.Panel.sortingOrder = config.SortOrder;
 
         this.Binding();
         this.OnEnter(data);
+        this.EnterWaiter = this.OnEnterAsync(data);
     }
     public sealed override async void LoadConfigAsync(UIConfig config, params object[] data)
     {
         base.LoadConfigAsync(config, data);
 
-        this.OnInit(data);
+        this.OnAwake(data);
         this.Root = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
-        this.Root.transform.SetParent(WRoot.Inst.GameObject.transform);
+        this.Root.transform.SetParent(GameM.World.Root.transform);
         this.Panel = this.Root.GetComponentInChildren<UIPanel>();
         this.Panel.sortingOrder = config.SortOrder;
 
         this.Binding();
         this.OnEnter(data);
+        this.EnterWaiter = this.OnEnterAsync(data);
         this.LoadWaiter.TrySetResult();
     }
     public sealed override void Dispose()

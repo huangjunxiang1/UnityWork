@@ -26,8 +26,8 @@ public class Tool
         code.AppendLine(@"using UnityEngine.UI;");
         code.AppendLine(@"using Game;");
 
-        appendUUICode(Application.dataPath + "/Res/UI/UUI/UIPrefab/", code);
-        File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/UI/UGUI/Auto/UUI.cs", code.ToString());
+        appendUUICode(Application.dataPath + "/Res/UI/UUI/Prefab/", code);
+        File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/_Gen/UUI.cs", code.ToString());
         AssetDatabase.Refresh();
     }
     static void appendUUICode(string path, StringBuilder code)
@@ -110,7 +110,7 @@ public class Tool
                     foreach (var item1 in coms)
                     {
                         code.AppendLine($@"    public {item1.GetType().FullName} {item1.name}{item1.GetType().Name};");
-                        str2.AppendLine($@"        this.{item1.name}{item1.GetType().Name} = this.UI.transform.Find(""{p}"").GetComponent(typeof({item1.GetType().FullName})) as {item1.GetType().FullName};");
+                        str2.AppendLine($@"        this.{item1.name}{item1.GetType().Name} = ({item1.GetType().FullName})this.UI.transform.Find(""{p}"").GetComponent(typeof({item1.GetType().FullName}));");
                     }
                 }
             }
@@ -140,29 +140,65 @@ public class Tool
     [MenuItem("Tools/生成Config代码")]
     static void CreateConfigCode()
     {
-        StringBuilder so = new StringBuilder();
-        so.AppendLine("using UnityEngine;");
-        so.AppendLine("using Game;");
-        so.AppendLine("using Main;");
-        so.AppendLine("");
-        so.AppendLine("static class Setting");
-        so.AppendLine("{");
+        //main
+        {
+            StringBuilder so = new StringBuilder();
+            so.AppendLine("using UnityEngine;");
+            so.AppendLine("using Game;");
+            so.AppendLine("using Main;");
+            so.AppendLine("");
+            so.AppendLine("namespace Game");
+            so.AppendLine("{");
+            so.AppendLine("\tpublic partial class SettingM");
+            so.AppendLine("\t{");
 
-        StringBuilder input = new StringBuilder();
-        input.AppendLine(@"using UnityEngine.InputSystem;");
-        input.AppendLine(@"using Main;");
-        input.AppendLine(@"using UnityEngine;");
-        input.AppendLine(@"");
+            StringBuilder input = new StringBuilder();
+            input.AppendLine(@"using UnityEngine.InputSystem;");
+            input.AppendLine(@"using Main;");
+            input.AppendLine(@"using UnityEngine;");
+            input.AppendLine(@"");
 
-        appendConfigWithDirectory(Application.dataPath + "/Res/Config", so, input);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/SO/Main", so, input);
 
-        so.AppendLine("}");
+            so.AppendLine("\t}");
+            so.AppendLine("}");
 
-        if (!Directory.Exists(Application.dataPath + "/Code/HotFix/Game/Config"))
-            Directory.CreateDirectory(Application.dataPath + "/Code/HotFix/Game/Config");
+            if (!Directory.Exists(Application.dataPath + "/Code/Main/_Gen"))
+                Directory.CreateDirectory(Application.dataPath + "/Code/Main/_Gen");
 
-        File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/Config/Setting.cs", so.ToString());
-        File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/Config/Inputs.cs", input.ToString());
+            File.WriteAllText(Application.dataPath + $"/Code/Main/_Gen/Setting.cs", so.ToString());
+            File.WriteAllText(Application.dataPath + $"/Code/Main/_Gen/Inputs.cs", input.ToString());
+        }
+        //hot
+        {
+            StringBuilder so = new StringBuilder();
+            so.AppendLine("using UnityEngine;");
+            so.AppendLine("using Game;");
+            so.AppendLine("using Main;");
+            so.AppendLine("");
+            so.AppendLine("namespace Game");
+            so.AppendLine("{");
+            so.AppendLine("\tpublic partial class SettingL");
+            so.AppendLine("\t{");
+
+            StringBuilder input = new StringBuilder();
+            input.AppendLine(@"using UnityEngine.InputSystem;");
+            input.AppendLine(@"using Main;");
+            input.AppendLine(@"using UnityEngine;");
+            input.AppendLine(@"");
+
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/SO/Hot", so, input);
+
+            so.AppendLine("\t}");
+            so.AppendLine("}");
+
+            if (!Directory.Exists(Application.dataPath + "/Code/HotFix/Game/Config"))
+                Directory.CreateDirectory(Application.dataPath + "/Code/HotFix/Game/Config");
+
+            File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/_Gen/Setting.cs", so.ToString());
+            File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/_Gen/Inputs.cs", input.ToString());
+        }
+
 
         AssetDatabase.Refresh();
     }
@@ -189,16 +225,16 @@ public class Tool
     {
         var url = AssetDatabase.GetAssetPath(so);
         string type = so.GetType().FullName;
-        code.AppendLine($"    static {type} _{so.name};");
-        code.AppendLine($"    public static {type} {so.name}");
-        code.AppendLine("    {");
-        code.AppendLine("        get");
-        code.AppendLine("        {");
-        code.AppendLine($"            if (!_{so.name})");
-        code.AppendLine($"                _{so.name} = ({type})AssetLoad.Load<ScriptableObject>(\"{url.Replace(AssetLoad.Directory, "")}\");");
-        code.AppendLine($"            return _{so.name};");
-        code.AppendLine("        }");
-        code.AppendLine("    }");
+        code.AppendLine($"\t    {type} _{so.name};");
+        code.AppendLine($"\t    public {type} {so.name}");
+        code.AppendLine("\t    {");
+        code.AppendLine("\t        get");
+        code.AppendLine("\t        {");
+        code.AppendLine($"\t            if (!_{so.name})");
+        code.AppendLine($"\t                _{so.name} = ({type})AssetLoad.Load<ScriptableObject>(\"{url.Replace(AssetLoad.Directory, "")}\");");
+        code.AppendLine($"\t            return _{so.name};");
+        code.AppendLine("\t        }");
+        code.AppendLine("\t    }");
     }
     static void appendInputSystemCode(InputActionAsset input, StringBuilder str)
     {
@@ -256,7 +292,7 @@ public class Tool
         List<FUI3DCodeTemp> components = new List<FUI3DCodeTemp>();
         appendFUI3DCode(Application.dataPath + "/Res/UI/FUI/3DUI", code, components);
         EditorUtility.DisplayDialog("完成", "创建完成", "确定");
-        File.WriteAllText(Application.dataPath + @"\Code\HotFix\Game\UI\FGUI\Auto\FUI3D.cs", code.ToString());
+        File.WriteAllText(Application.dataPath + @"\Code\HotFix\Game\_Gen\FUI3D.cs", code.ToString());
         AssetDatabase.Refresh();
     }
     static void appendFUI3DCode(string path,StringBuilder code, List<FUI3DCodeTemp> components)

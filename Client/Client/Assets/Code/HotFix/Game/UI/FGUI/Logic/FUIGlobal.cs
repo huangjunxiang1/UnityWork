@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.InputSystem;
 using UnityEngine;
+using Game;
 
 partial class FUIGlobal
 {

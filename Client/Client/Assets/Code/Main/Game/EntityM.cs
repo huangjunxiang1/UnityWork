@@ -8,23 +8,22 @@ using UnityEngine;
 
 namespace Game
 {
-    public class EntityM : IDisposable
+    public abstract class EntityM : IDisposable
     {
-        public EntityM() : this(++idValue)
-        {
-
-        }
+        public EntityM() : this(++GenerateID) { }
         public EntityM(long id)
         {
             this.ID = id;
-            if (this.AutoRigisterEvent)
+            if (this.AutoRigisteEvent)
                 this.ListenerEnable = true;
         }
 
-        static long idValue;
+        static long GenerateID;
 
         TaskAwaiterCreater taskCreater;
         bool listenerEnable = false;
+        bool keyListenerEnable = false;
+        long eventKey;
 
         /// <summary>
         /// ID  可自定义赋值
@@ -39,7 +38,7 @@ namespace Game
         /// <summary>
         /// 自动注册事件监听
         /// </summary>
-        public virtual bool AutoRigisterEvent { get; } = true;
+        public virtual bool AutoRigisteEvent { get; } = true;
 
         /// <summary>
         /// 事件监听
@@ -53,16 +52,16 @@ namespace Game
                 {
                     if (!listenerEnable)
                     {
-                        SysEvent.RigisterListener(this);
                         listenerEnable = true;
+                        GameM.Event.RigisteListener(this);
                     }
                 }
                 else
                 {
                     if (listenerEnable)
                     {
-                        SysEvent.RemoveListener(this);
                         listenerEnable = false;
+                        GameM.Event.RemoveListener(this);
                     }
                 }
             }
@@ -89,8 +88,27 @@ namespace Game
 
             this.Disposed = true;
             if (listenerEnable)
-                SysEvent.RemoveListener(this);
+                GameM.Event.RemoveListener(this);
+            if (keyListenerEnable)
+                GameM.Event.RemoveKeyListener(eventKey, this);
             taskCreater?.Dispose();
+        }
+
+        protected void RigisteKeyListener(long key)
+        {
+            if (key == 0)
+            {
+                Loger.Error($"key=0");
+                return;
+            }
+            if (keyListenerEnable)
+            {
+                Loger.Error($"已经注册了key监听 key={key}");
+                return;
+            }
+            eventKey = key;
+            keyListenerEnable = true;
+            GameM.Event.RigisteKeyListener(key, this);
         }
     }
 }

@@ -34,10 +34,10 @@ partial class FUILogin
         if (rep.Error == 0)
         {
             this.Dispose();
-            UIS.Open<FUILoading>(1);
+            GameL.UI.Open<FUILoading>(0.9);
         }
     }
-    [Event((int)EIDM.NetError)]
+    [Event((int)EventIDM.NetError)]
     void connectRet(EventerContent e)
     {
         int error = e.Value;
@@ -47,11 +47,11 @@ partial class FUILogin
     void onUIModel()
     {
         if (_uiType.selectedIndex == 0)
-            GameSetting.UIModel = UIModel.FGUI;
+            GameL.Setting.UIModel = UIModel.FGUI;
         else
         {
-            GameSetting.UIModel = UIModel.UGUI;
-            UIS.Open<UUILogin>();
+            GameL.Setting.UIModel = UIModel.UGUI;
+            GameL.UI.Open<UUILogin>();
             this.Dispose();
         }
     }
@@ -59,11 +59,11 @@ partial class FUILogin
     {
         if (_gameTypeCB.selectedIndex == 0)
         {
-            SysNet.Connect(NetType.TCP, Util.ToIPEndPoint(AppSetting.LoginAddressInner));
+            GameM.Net.Connect(NetType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressInner));
         }
         else if (_gameTypeCB.selectedIndex == 1)
         {
-            SysNet.Connect(NetType.TCP, Util.ToIPEndPoint(AppSetting.LoginAddressOuter));
+            GameM.Net.Connect(NetType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressOuter));
         }
 
         var msg = new C2R_Login()
@@ -71,6 +71,6 @@ partial class FUILogin
             Account = _acc.text,
             Password = _pw.text
         };
-        SysNet.Send(msg);
+        GameM.Net.Send(msg);
     }
 }

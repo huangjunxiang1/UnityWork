@@ -18,15 +18,20 @@ MonoBehaviour:
     m_Values: 
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shader Graphs_cubeShader1
   m_Shader: {fileID: -6465566751694194690, guid: c10795903fe64074191c051061def935, type: 3}
-  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT
-    _SURFACE_TYPE_TRANSPARENT
+  m_ValidKeywords:
+  - _DISABLE_SSR_TRANSPARENT
+  - _DOUBLESIDED_ON
+  - _ENABLE_FOG_ON_TRANSPARENT
+  - _SURFACE_TYPE_TRANSPARENT
+  - _TRANSPARENT_WRITES_MOTION_VEC
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
@@ -112,7 +117,7 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 1
     - _TransparentSortPriority: 0
-    - _TransparentWritingMotionVec: 0
+    - _TransparentWritingMotionVec: 1
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 4
@@ -122,7 +127,7 @@ Material:
     m_Colors:
     - Color_0e5d324a88ce4eeab5d9bc9b97d03be8: {r: 0.9683163, g: 12.075472, b: 6.31836, a: 1}
     - Color_10283c3f13414666a5629058372c85f7: {r: 0, g: 0, b: 0, a: 0}
-    - Color_63aa89e6603e46b396463a47416e2630: {r: 0.73323053, g: 8.147006, b: 15.560781, a: 1}
+    - Color_63aa89e6603e46b396463a47416e2630: {r: 0.22934186, g: 2.5737252, b: 4.867144, a: 1}
     - Vector2_7feedca14d354cc086fdb4b03bea27ff: {r: 0, g: 1, b: 0, a: 0}
     - Vector2_b1779ca828d740a2a45ff2712630e2e3: {r: 0.31, g: -0.72, b: 0, a: 0}
     - Vector3_d2f84000d96e46978c506f58b770fbf4: {r: 1, g: 1, b: -1, a: 0}

@@ -9,7 +9,7 @@
   "compressPNG": false,
   "codeGeneration": {
     "allowGenCode": true,
-    "codePath": "..\\..\\..\\Client\\Client\\Assets\\Code\\HotFix\\Game\\UI\\FGUI\\Auto",
+    "codePath": "..\\..\\..\\Client\\Client\\Assets\\Code\\HotFix\\Game\\_Gen",
     "classNamePrefix": "",
     "memberNamePrefix": "",
     "packageName": null,

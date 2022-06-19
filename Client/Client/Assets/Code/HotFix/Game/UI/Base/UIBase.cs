@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Game;
 using Main;
 
-abstract class UIBase : EntityL
+abstract class UIBase : TreeL<UIBase>
 {
     Eventer _onDispose;
 
-    public override bool AutoRigisterEvent => false;
+    public override bool AutoRigisteEvent => false;
 
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
@@ -22,7 +22,7 @@ abstract class UIBase : EntityL
     {
         get
         {
-            if (_onDispose == null) 
+            if (_onDispose == null)
                 _onDispose = new Eventer(this);
             return _onDispose;
         }
@@ -43,8 +43,17 @@ abstract class UIBase : EntityL
     /// </summary>
     public TaskAwaiter LoadWaiter { get; private set; }
 
-    protected virtual void OnInit(params object[] data) { }
-    protected abstract void OnEnter(params object[] data);
+    /// <summary>
+    /// Enter异步初始化
+    /// </summary>
+    public TaskAwaiter EnterWaiter { get; protected set; }
+
+    protected virtual void OnAwake(params object[] data) { }
+    protected virtual void OnEnter(params object[] data) { }
+    protected virtual TaskAwaiter OnEnterAsync(params object[] data)
+    {
+        return TaskAwaiter.Completed;
+    }
     protected abstract void OnExit();
     protected abstract void Binding();
 
@@ -75,7 +84,7 @@ abstract class UIBase : EntityL
     public override void Dispose()
     {
         //先从列表移除
-        UIS.Remove(this);
+        GameL.UI.Remove(this);
         base.Dispose();
         //先执行退出逻辑
         this.OnExit();

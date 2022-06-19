@@ -1,0 +1,11 @@
+
+=== Fri Jun  3 10:11:17 2022
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.render-pipelines.high-definition from version 12.1.6 to 12.1.7
+  com.unity.scriptablebuildpipeline from version 1.19.6 to 1.20.1
+  com.unity.shadergraph from version 12.1.6 to 12.1.7
+  com.unity.visualeffectgraph from version 12.1.6 to 12.1.7

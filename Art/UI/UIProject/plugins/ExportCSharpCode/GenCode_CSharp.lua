@@ -53,6 +53,7 @@ local function genCode(handler)
             writer:writeln('public %s %s;', memberInfo.type, memberInfo.varName)
             end
         end
+
         writer:writeln()
         if handler.project.type==ProjectType.MonoGame then
             writer:writeln("protected override void Binding()")
@@ -61,9 +62,14 @@ local function genCode(handler)
             writer:writeln('protected override void Binding()')
             writer:startBlock()
         end
-        for j=0,memberCnt-1 do
+        
+        local hasClose = false
+        for j = 0,memberCnt - 1 do
             local memberInfo = members[j]
 
+            if(memberInfo.name=="_close") then
+               hasClose = true
+            end
               if(string.len(memberInfo.name)>=2 and string.sub(memberInfo.name,1,1)=='_')  then
 
                   if memberInfo.group==0 then
@@ -87,6 +93,11 @@ local function genCode(handler)
                   end
               end
         end
+        
+        if(hasClose) then
+            writer:writeln("this._close.onClick.Add(this.Dispose);")
+        end
+        
         writer:endBlock()
 
         writer:endBlock() --class
@@ -95,6 +106,10 @@ local function genCode(handler)
         end
     end
         writer:save(exportCodePath..'/'..'FUI.cs')
+end
+
+local function WriteMembers( writer,parent,path )
+	
 end
 
 return genCode

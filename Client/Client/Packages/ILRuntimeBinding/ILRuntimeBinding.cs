@@ -23,5 +23,7 @@ public unsafe static class ILRuntimeBinding
             var m = clr.GetMethod("Initialize", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             m.Invoke(null, new object[] { appdomain });
         }
+        else
+            Loger.Error("CLRBindings is null");
     }
 }

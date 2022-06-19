@@ -9,6 +9,7 @@ using FairyGUI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Game;
+using Unity.Entities;
 
 namespace Main
 {
@@ -37,6 +38,13 @@ namespace Main
             r.mode = releaseMode;
             return g;
         }
+        public static async TaskAwaiter<Entity> LoadEntityAsync(string url)
+        {
+            GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
+            Entity e = await GameObjectToEntityConversion.ConverToEntity(g);
+            prefabLoader.Release(g);
+            return e;
+        }
         public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiter<UnityEngine.Object> task, ReleaseMode releaseMode = ReleaseMode.Release)
         {
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url, task);
@@ -52,6 +60,13 @@ namespace Main
             r.url = url;
             r.mode = releaseMode;
             return g;
+        }
+        public static async TaskAwaiter<Entity> LoadEntityAsync(string url, TaskAwaiterCreater creater)
+        {
+            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
+            Entity e = await GameObjectToEntityConversion.ConverToEntity(g, creater.Create<Entity>());
+            prefabLoader.Release(g);
+            return e;
         }
 
         public static T Load<T>(string url) where T : UnityEngine.Object

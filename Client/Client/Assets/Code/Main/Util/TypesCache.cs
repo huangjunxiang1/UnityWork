@@ -7,18 +7,26 @@ using System.Threading.Tasks;
 
 public static class TypesCache
 {
-    public static Type[] Types { get; private set; }
-    readonly static Dictionary<Type, ushort> _opCode = new Dictionary<Type, ushort>();
-    readonly static Dictionary<ushort, Type> _opType = new Dictionary<ushort, Type>();
-    readonly static Dictionary<Type, Type> _requestResponse = new Dictionary<Type, Type>();
+    public static Type[] MainTypes { get; private set; }//主工程类型
+    public static Type[] HotTypes { get; private set; }//热更工程类型
+    public static Type[] AllTypes { get; private set; }//所有类型
 
-    public static void InitTypes(Type[] types)
+    readonly static Dictionary<Type, ushort> _opCode = new();
+    readonly static Dictionary<ushort, Type> _opType = new();
+    readonly static Dictionary<Type, Type> _requestResponse = new();
+
+    public static void InitTypes(Type[] mtypes,Type[] htypes)
     {
-        Types = types;
-        int len = types.Length;
+        AllTypes = new Type[mtypes.Length + htypes.Length];
+        mtypes.CopyTo(AllTypes, 0);
+        htypes.CopyTo(AllTypes, mtypes.Length);
+
+        MainTypes = mtypes;
+        HotTypes = htypes;
+        int len = mtypes.Length;
         for (int i = 0; i < len; i++)
         {
-            Type type = types[i];
+            Type type = mtypes[i];
             if (!typeof(IMessage).IsAssignableFrom(type))
                 continue;
             var mas = type.GetCustomAttributes(typeof(MessageAttribute), false);
@@ -39,10 +47,36 @@ public static class TypesCache
 
                 var ras = type.GetCustomAttributes(typeof(ResponseTypeAttribute), false);
                 if (ras.Length == 0)
+                    continue;
+
+                _requestResponse.Add(type, ((ResponseTypeAttribute)ras[0]).Type);
+            }
+        }
+        len = htypes.Length;
+        for (int i = 0; i < len; i++)
+        {
+            Type type = htypes[i];
+            if (!typeof(IMessage).IsAssignableFrom(type))
+                continue;
+            var mas = type.GetCustomAttributes(typeof(MessageAttribute), false);
+            if (mas == null || mas.Length <= 0)
+                continue;
+            ushort opCode = ((MessageAttribute)mas[0]).Opcode;
+            _opCode[type] = opCode;
+            _opType[opCode] = type;
+
+            // 检查request response
+            if (typeof(IRequest).IsAssignableFrom(type))
+            {
+                if (typeof(IActorLocationMessage).IsAssignableFrom(type))
                 {
-                    Loger.Error($"not found responseType: {type}");
+                    _requestResponse.Add(type, typeof(ActorResponse));
                     continue;
                 }
+
+                var ras = type.GetCustomAttributes(typeof(ResponseTypeAttribute), false);
+                if (ras.Length == 0)
+                    continue;
 
                 _requestResponse.Add(type, ((ResponseTypeAttribute)ras[0]).Type);
             }

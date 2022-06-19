@@ -23,7 +23,7 @@ unsafe static class EditorAction
         appdomain.UnityMainThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
 #endif
 
-#if UNITY_EDITOR || DebugEnable
+#if DebugEnable
         appdomain.DebugService.StartDebugService(56000);
 
         //这里做一些ILRuntime的注册
@@ -37,7 +37,7 @@ unsafe static class EditorAction
     }
 
 
-#if UNITY_EDITOR || DebugEnable
+#if DebugEnable
     //编写重定向方法对于刚接触ILRuntime的朋友可能比较困难，比较简单的方式是通过CLR绑定生成绑定代码，然后在这个基础上改，比如下面这个代码是从UnityEngine_Debug_Binding里面复制来改的
     //如何使用CLR绑定请看相关教程和文档
     unsafe static StackObject* LogerLog(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
@@ -177,6 +177,11 @@ unsafe static class EditorAction
     }
     static void AppendBinding(string path, string mark, string content)
     {
+        if (content.Contains(nameof(IntPtr)) || content.Contains(nameof(UIntPtr)))
+        {
+            Loger.Error("事件不支持内存指针参数类型");
+            return;
+        }
         if (File.ReadAllText(path).Contains(content))
         {
             return;

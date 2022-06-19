@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Main;
+using Game;
 
 public static class Timer
 {

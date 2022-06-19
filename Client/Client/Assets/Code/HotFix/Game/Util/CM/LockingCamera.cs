@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Game;
 
 class LockingCamera : BaseCamera
 {
@@ -78,17 +79,17 @@ class LockingCamera : BaseCamera
         Vector3 offset = ct.m_FollowOffset;
         if (_wheel > 0)
         {
-            if (offset.y > Setting.LockingCameraSetting.yMin)
+            if (offset.y > GameL.Setting.LockingCameraSetting.yMin)
             {
-                offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
         else
         {
-            if (offset.y < Setting.LockingCameraSetting.yMax)
+            if (offset.y < GameL.Setting.LockingCameraSetting.yMax)
             {
-                offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
@@ -172,17 +173,17 @@ class LockingCamera : BaseCamera
                     Vector3 offset = ct.m_FollowOffset;
                     if (_wheel > 0)
                     {
-                        if (offset.y > Setting.LockingCameraSetting.yMin)
+                        if (offset.y > GameL.Setting.LockingCameraSetting.yMin)
                         {
-                            offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }
                     else
                     {
-                        if (offset.y < Setting.LockingCameraSetting.yMax)
+                        if (offset.y < GameL.Setting.LockingCameraSetting.yMax)
                         {
-                            offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }
