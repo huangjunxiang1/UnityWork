@@ -30,6 +30,7 @@ namespace Game
             BaseCamera.Current?.DisableCamera();
             GameL.UI.CloseAll();
             GameM.World.RemoveAllChildren();
+            GameL.Close();
 
             GameM.Event.ExecuteEvent((int)EventIDM.OutScene, SceneID);
             SceneID = 1;
@@ -47,6 +48,7 @@ namespace Game
             if (sceneId <= 1 || SceneID == sceneId) return;
 
             var ui = await GameL.UI.OpenAsync<FUILoading>();
+            GameL.Init();
             GameL.UI.CloseAll();
             GameM.World.RemoveAllChildren();
 

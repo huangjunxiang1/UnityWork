@@ -341,11 +341,11 @@ public class Tool
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;
-        TabM.Init(new DBuffer(File.ReadAllBytes(Application.dataPath+ "/Res/Config/Tabs/TabM.bytes")));
-        TabL.Init(new DBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes")));
+        TabM.Init(new DBytesBuffer(File.ReadAllBytes(Application.dataPath+ "/Res/Config/Tabs/TabM.bytes")));
+        TabL.Init(new DBytesBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes")));
         LanguageS.Clear();
-        LanguageS.Load((int)SystemLanguage.Chinese, new DBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes")));
-        LanguageS.Load((int)SystemLanguage.English, new DBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes")));
+        LanguageS.Load((int)SystemLanguage.Chinese, new DBytesBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes")));
+        LanguageS.Load((int)SystemLanguage.English, new DBytesBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes")));
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 }

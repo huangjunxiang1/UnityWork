@@ -29,10 +29,45 @@ public class Init
         GameL.Setting.Languege = SystemLanguage.Chinese;
         GameL.Setting.UIModel = UIModel.FGUI;
 
-        TabM.Init(new DBuffer((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM.bytes")).bytes));
-        TabL.Init(new DBuffer((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabL.bytes")).bytes));
-        LanguageS.Load((int)SystemLanguage.Chinese, new DBuffer((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/Language_cn.bytes")).bytes));
-        LanguageS.Load((int)SystemLanguage.English, new DBuffer((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/Language_en.bytes")).bytes));
+        DBytesBuffer buffM = new((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM.bytes")).bytes);
+        buffM.Compress = false;
+        if (buffM.Readint() != 20220702)
+            Loger.Error("不是TabM数据");
+        else
+        {
+            buffM.Compress = buffM.Readbool();
+            TabM.Init(buffM);
+        }
+
+        DBytesBuffer buffL = new((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabL.bytes")).bytes);
+        buffL.Compress = false;
+        if (buffL.Readint() != 20220702)
+            Loger.Error("不是TabL数据");
+        else
+        {
+            buffL.Compress = buffL.Readbool();
+            TabL.Init(buffL);
+        }
+
+        DBytesBuffer buff_cn = new((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/Language_cn.bytes")).bytes);
+        buff_cn.Compress = false;
+        if (buff_cn.Readint() != 20220702)
+            Loger.Error("不是Language_cn数据");
+        else
+        {
+            buff_cn.Compress = buff_cn.Readbool();
+            LanguageS.Load((int)SystemLanguage.Chinese, buff_cn);
+        }
+
+        DBytesBuffer buff_en = new((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/Language_en.bytes")).bytes);
+        buff_en.Compress = false;
+        if (buff_en.Readint() != 20220702)
+            Loger.Error("不是Language_en数据");
+        else
+        {
+            buff_en.Compress = buff_en.Readbool();
+            LanguageS.Load((int)SystemLanguage.English, buff_en);
+        }
 
         //初始化各个系统
         GameM.Event.ExecuteEvent((int)EventIDM.Init);

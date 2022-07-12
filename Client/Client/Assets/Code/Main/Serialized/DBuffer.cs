@@ -1,277 +1,180 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+#if UNITY_2019_4_OR_NEWER
+using UnityEngine;
+#endif
 
-public unsafe class DBuffer : IDisposable
+public abstract class DBuffer : IDisposable
 {
-    public DBuffer(byte[] data)
-    {
-        this.bytes = data;
-    }
-    public DBuffer(int capacity = 20)
-    {
-        capacity = Math.Max(capacity, 1);
-        this.bytes = new byte[capacity];
-    }
-
-    const byte byteFlag = 128;
+    protected const byte byteFlag = 128;
     public readonly static byte[] EmptyBytes = new byte[0];
 
-    byte[] bytes;
-
-    public int Position { get; set; }
+    public virtual int Position { get; }
 
     /// <summary>
     /// 数据是否压缩
     /// </summary>
     public bool Compress { get; set; } = true;
 
-    public bool ReadBool()
+    public abstract byte Readbyte();
+    public bool Readbool() { return Readbyte() == 1; }
+    public abstract int Readint();
+    public uint Readuint() { return (uint)Readint(); }
+    public abstract long Readlong();
+    public ulong Readulong() { return (ulong)Readlong(); }
+    public abstract float Readfloat();
+    public abstract string Readstring();
+#if UNITY_2019_4_OR_NEWER
+    public Vector2 ReadVector2()
     {
-        return bytes[Position++] == 1;
+        return new Vector2(Readfloat(), Readfloat());
     }
-    public int ReadInt()
+    public Vector2Int ReadVector2Int()
     {
-        fixed (byte* ptr = &bytes[Position])
-        {
-            if (Compress)
-            {
-                int ret = 0;
-                for (int i = 0; i < sizeof(int); i++)
-                {
-                    byte v = ptr[i];
-                    if (v < byteFlag)
-                    {
-                        ret |= v << (7 * i);
-                        Position += i + 1;
-                        return ret;
-                    }
-                    else
-                        ret |= (v & 0x7F) << (7 * i);
-                }
-                Position += sizeof(int) + 1;
-                return ret | (ptr[sizeof(int) + 1] << (7 * 4));
-            }
-            else
-            {
-                Position += sizeof(int);
-                return (ptr[0]
-                    | ptr[1] << 8
-                    | ptr[2] << 16
-                    | ptr[3] << 24);
-            }
-        }
+        return new Vector2Int(Readint(), Readint());
     }
-    public uint ReadUint()
+    public Vector3 ReadVector3()
     {
-        return (uint)ReadInt();
+        return new Vector3(Readfloat(), Readfloat(), Readfloat());
     }
-    public long ReadLong()
+    public Vector3Int ReadVector3Int()
     {
-        fixed (byte* ptr = &bytes[Position])
-        {
-            if (Compress)
-            {
-                long ret = 0;
+        return new Vector3Int(Readint(), Readint(), Readint());
+    }
+#endif
 
-                for (int i = 0; i < sizeof(long); i++)
-                {
-                    byte v = ptr[i];
-                    if (v < byteFlag)
-                    {
-                        ret |= (long)v << (7 * i);
-                        Position += i + 1;
-                        return ret;
-                    }
-                    else
-                        ret |= (long)(v & 0x7F) << (7 * i);
-                }
-                Position += sizeof(ulong) + 1;
-                return ret | ((long)ptr[sizeof(ulong) + 1] << (7 * 8));
-            }
-            else
-            {
-                Position += sizeof(ulong);
-                return (ptr[0]
-                    | ptr[1] << 8
-                    | ptr[2] << 16
-                    | ptr[3] << 24
-                    | ptr[4] << 32
-                    | ptr[5] << 40
-                    | ptr[6] << 48
-                    | ptr[7] << 56);
-            }
-        }
-    }
-    public ulong ReadUlong()
+    public bool[] Readbools()
     {
-        return (ulong)ReadLong();
+        int len = Readint();
+        bool[] result = new bool[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readbool();
+        return result;
     }
-    public float ReadFloat()
+    public int[] Readints()
     {
-        fixed (byte* ptr = &bytes[Position])
-        {
-            FloatInt fi = default;
-            fi.valueUint = (uint)(ptr[0]
-                               | ptr[1] << 8
-                               | ptr[2] << 16
-                               | ptr[3] << 24);
-            Position += sizeof(float);
-            return fi.valueFloat;
-        }
+        int len = Readint();
+        int[] result = new int[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readint();
+        return result;
     }
-    public string ReadString()
+    public uint[] Readuints()
     {
-        int len = ReadInt();
-        if (len == 0) return string.Empty;
-        string s = Encoding.UTF8.GetString(bytes, Position, len);
-        Position += len;
-        return s;
+        int len = Readint();
+        uint[] result = new uint[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readuint();
+        return result;
     }
+    public long[] Readlongs()
+    {
+        int len = Readint();
+        long[] result = new long[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readlong();
+        return result;
+    }
+    public ulong[] Readulongs()
+    {
+        int len = Readint();
+        ulong[] result = new ulong[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readulong();
+        return result;
+    }
+    public float[] Readfloats()
+    {
+        int len = Readint();
+        float[] result = new float[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readfloat();
+        return result;
+    }
+    public string[] Readstrings()
+    {
+        int len = Readint();
+        string[] result = new string[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readstring();
+        return result;
+    }
+    public byte[] Readbytes()
+    {
+        int len = Readint();
+        byte[] result = new byte[len];
+        for (int i = 0; i < len; i++)
+            result[i] = Readbyte();
+        return result;
+    }
+#if UNITY_2019_4_OR_NEWER
+    public Vector2[] ReadVector2s()
+    {
+        int len = Readint();
+        Vector2[] result = new Vector2[len];
+        for (int i = 0; i < len; i++)
+            result[i] = ReadVector2();
+        return result;
+    }
+    public Vector2Int[] ReadVector2Ints()
+    {
+        int len = Readint();
+        Vector2Int[] result = new Vector2Int[len];
+        for (int i = 0; i < len; i++)
+            result[i] = ReadVector2Int();
+        return result;
+    }
+    public Vector3[] ReadVector3s()
+    {
+        int len = Readint();
+        Vector3[] result = new Vector3[len];
+        for (int i = 0; i < len; i++)
+            result[i] = ReadVector3();
+        return result;
+    }
+    public Vector3Int[] ReadVector3Ints()
+    {
+        int len = Readint();
+        Vector3Int[] result = new Vector3Int[len];
+        for (int i = 0; i < len; i++)
+            result[i] = ReadVector3Int();
+        return result;
+    }
+#endif
 
-    public byte[] ReadBytes()
+    public abstract void Write(byte v);
+    public void Write(bool v) { Write(v ? (byte)1 : (byte)0); }
+    public abstract void Write(int v);
+    public void Write(uint v) { Write((int)v); }
+    public abstract void Write(long v);
+    public void Write(ulong v) { Write((long)v); }
+    public abstract void Write(float v);
+    public abstract void Write(string v);
+
+#if UNITY_2019_4_OR_NEWER
+    public void Write(Vector2 v)
     {
-        int len = ReadInt();
-        if (len == 0) return EmptyBytes;
-
-        byte[] ret = new byte[len];
-        fixed (byte* ptr = &bytes[Position], ptr2 = ret)
-        {
-            for (int i = 0; i < len; i++)
-                ptr2[i] = ptr[i];
-        }
-        Position += len;
-        return ret;
+        Write(v.x);
+        Write(v.y);
     }
-
-    public void Write(bool v)
+    public void Write(Vector2Int v)
     {
-        if (Position >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(bool)));
-        bytes[Position++] = v ? (byte)1 : (byte)0;
+        Write(v.x);
+        Write(v.y);
     }
-    public void Write(int v)
+    public void Write(Vector3 v)
     {
-        Write((uint)v);
+        Write(v.x);
+        Write(v.y);
+        Write(v.z);
     }
-    public void Write(uint uv)
+    public void Write(Vector3Int v)
     {
-        if (Compress)
-        {
-            int byteCnt;
-            if (uv < 1 << 7) byteCnt = 1;
-            else if (uv < 1 << 14) byteCnt = 2;
-            else if (uv < 1 << 21) byteCnt = 3;
-            else if (uv < 1 << 28) byteCnt = 4;
-            else byteCnt = 5;
-
-            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
-
-            fixed (byte* ptr = &bytes[Position])
-            {
-                for (int i = 0; i < byteCnt - 1; i++)
-                {
-                    ptr[i] = (byte)(uv | byteFlag);
-                    uv >>= 7;
-                }
-                ptr[byteCnt - 1] = (byte)uv;
-                Position += byteCnt;
-            }
-        }
-        else
-        {
-            if (Position + sizeof(uint) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(uint)));
-
-            fixed (byte* ptr = &bytes[Position])
-            {
-                ptr[0] = (byte)uv;
-                ptr[1] = (byte)(uv >> 8);
-                ptr[2] = (byte)(uv >> 16);
-                ptr[3] = (byte)(uv >> 24);
-            }
-            Position += sizeof(uint);
-        }
+        Write(v.x);
+        Write(v.y);
+        Write(v.z);
     }
-    public void Write(long v)
-    {
-        Write((ulong)v);
-    }
-    public void Write(ulong uv)
-    {
-        if (Compress)
-        {
-            int byteCnt;
-            if (uv < 1ul << 7) byteCnt = 1;
-            else if (uv < 1ul << 14) byteCnt = 2;
-            else if (uv < 1ul << 21) byteCnt = 3;
-            else if (uv < 1ul << 28) byteCnt = 4;
-            else if (uv < 1ul << 35) byteCnt = 5;
-            else if (uv < 1ul << 42) byteCnt = 6;
-            else if (uv < 1ul << 49) byteCnt = 7;
-            else if (uv < 1ul << 56) byteCnt = 8;
-            else byteCnt = 9;
-
-            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
-
-            fixed (byte* ptr = &bytes[Position])
-            {
-                for (int i = 0; i < byteCnt - 1; i++)
-                {
-                    ptr[i] = (byte)(uv | byteFlag);
-                    uv >>= 7;
-                }
-                ptr[byteCnt - 1] = (byte)uv;
-                Position += byteCnt;
-            }
-        }
-        else
-        {
-            if (Position + sizeof(ulong) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(ulong)));
-
-            fixed (byte* ptr = &bytes[Position])
-            {
-                ptr[0] = (byte)uv;
-                ptr[1] = (byte)(uv >> 8);
-                ptr[2] = (byte)(uv >> 16);
-                ptr[3] = (byte)(uv >> 24);
-                ptr[4] = (byte)(uv >> 32);
-                ptr[5] = (byte)(uv >> 40);
-                ptr[6] = (byte)(uv >> 48);
-                ptr[7] = (byte)(uv >> 56);
-            }
-            Position += sizeof(ulong);
-        }
-    }
-    public void Write(float v)
-    {
-        if (Position + sizeof(float) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(float)));
-        FloatInt fi = default;
-        fi.valueFloat = v;
-        fixed (byte* ptr = &bytes[Position])
-        {
-            ptr[0] = (byte)fi.valueUint;
-            ptr[1] = (byte)(fi.valueUint >> 8);
-            ptr[2] = (byte)(fi.valueUint >> 16);
-            ptr[3] = (byte)(fi.valueUint >> 24);
-        }
-        Position += sizeof(float);
-    }
-    public void Write(string v)
-    {
-        if (string.IsNullOrEmpty(v))
-        {
-            Write(0);
-            return;
-        }
-
-        int len = Encoding.UTF8.GetByteCount(v);
-        if (Position + sizeof(int) + 1 + len >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(int) + 1 + len));
-        Write(len);
-        Encoding.UTF8.GetBytes(v, 0, v.Length, bytes, Position);
-        Position += len;
-    }
+#endif
     public void Write(byte[] v)
     {
         if (v == null)
@@ -283,70 +186,195 @@ public unsafe class DBuffer : IDisposable
     }
     public void Write(byte[] v, int index, int length)
     {
-        if (Position + sizeof(int) + 1 + length >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + length));
         Write(length);
-
-        fixed (byte* ptr = &bytes[Position], ptr2 = &v[index])
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(bool[] v)
+    {
+        if (v == null)
         {
-            for (int i = 0; i < length; i++)
-                ptr[i] = ptr2[i];
-        }
-    }
-
-    public byte[] GetBytes()
-    {
-        return bytes;
-    }
-    public byte[] ToBytes()
-    {
-        return ToBytes(0, Position);
-    }
-    public byte[] ToBytes(int position, int length)
-    {
-        byte[] b = new byte[length];
-        fixed (byte* ptr = bytes, ptr2 = b)
-        {
-            for (int i = 0; i < length; i++)
-                ptr2[i] = ptr[position + i];
-        }
-        return b;
-    }
-
-    public void ReSize(int newSize)
-    {
-#if DebugEnable
-        if (bytes != null && newSize <= bytes.Length)
-        {
-            Loger.Error("newSize is too short");
+            Write(0);
             return;
         }
-#endif
-        byte[] b = new byte[newSize];
-        fixed (byte* ptr = bytes, ptr2 = b)
+        Write(v, 0, v.Length);
+    }
+    public void Write(bool[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(int[] v)
+    {
+        if (v == null)
         {
-            int len = bytes.Length;
-            for (int i = 0; i < len; i++)
-                ptr2[i] = ptr[i];
+            Write(0);
+            return;
         }
-        bytes = b;
+        Write(v, 0, v.Length);
+    }
+    public void Write(int[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(uint[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(uint[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(long[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(long[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(ulong[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(ulong[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(float[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(float[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(string[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(string[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
     }
 
-    public void Seek(int index)
+#if UNITY_2019_4_OR_NEWER
+    public void Write(Vector2[] v)
     {
-        Position = index;
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
     }
-
-    public void Dispose()
+    public void Write(Vector2[] v, int index, int length)
     {
-        
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(Vector2Int[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(Vector2Int[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(Vector3[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(Vector3[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(Vector3Int[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(Vector3Int[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+#endif
+
+    public abstract byte[] ToBytes();
+    public abstract byte[] ToBytes(int position, int length);
+
+    public abstract void Seek(int index);
+
+    public virtual void Dispose()
+    {
+
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    struct FloatInt
+    protected struct FixPoint
     {
         [FieldOffset(0)]
         public float valueFloat;
         [FieldOffset(0)]
-        public uint valueUint;
+        public int valueInt;
     }
 }

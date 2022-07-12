@@ -28,7 +28,7 @@ namespace Game
         }
         public static void Close()
         {
-            Data.Dispose();
+            Data?.Dispose();
             Data = null;
         }
     }

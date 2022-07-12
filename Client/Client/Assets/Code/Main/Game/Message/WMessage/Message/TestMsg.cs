@@ -17,13 +17,13 @@ namespace Game
         public override void Read(DBuffer buffer)
         {
             int key;
-            while ((key = buffer.ReadInt()) != 0)
+            while ((key = buffer.Readint()) != 0)
             {
                 if (key == 1)
-                    this.RpcId = buffer.ReadInt();
+                    this.RpcId = buffer.Readint();
                 if (key == 2)
                 {
-                    int len = buffer.ReadInt();
+                    int len = buffer.Readint();
                     items = new List<Item>(len);
                     for (int i = 0; i < len; i++)
                     {
@@ -64,14 +64,14 @@ namespace Game
         public override void Read(DBuffer buffer)
         {
             int key;
-            while ((key = buffer.ReadInt()) != 0)
+            while ((key = buffer.Readint()) != 0)
             {
                 if (key == 1)
-                    this.Error = buffer.ReadInt();
+                    this.Error = buffer.Readint();
                 if (key == 2)
-                    this.Message = buffer.ReadString();
+                    this.Message = buffer.Readstring();
                 if (key == 3)
-                    this.RpcId = buffer.ReadInt();
+                    this.RpcId = buffer.Readint();
             }
         }
 
@@ -104,10 +104,10 @@ namespace Game
         public void Read(DBuffer buffer)
         {
             int key;
-            while ((key = buffer.ReadInt()) != 0)
+            while ((key = buffer.Readint()) != 0)
             {
                 if (key == 1)
-                    this.test = buffer.ReadInt();
+                    this.test = buffer.Readint();
             }
         }
 

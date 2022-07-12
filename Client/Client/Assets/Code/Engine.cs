@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Reflection;
 using Unity.Jobs;
 using Unity.Collections;
+using System.IO;
+using System.Text;
 
 public class Engine : MonoBehaviour
 {
@@ -57,7 +59,7 @@ public class Engine : MonoBehaviour
 #if !Assembly
             Loger.Error("当前Runtime宏定义不正确");
 #endif
-#if UNITY_IL2CPP
+#if ENABLE_IL2CPP
            Loger.Error("IL2CPP模式无法运行");
 #endif
             Assembly asm;
