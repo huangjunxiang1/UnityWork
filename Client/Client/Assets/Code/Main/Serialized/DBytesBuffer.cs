@@ -29,62 +29,62 @@ public unsafe class DBytesBuffer: DBuffer
     {
         return bytes[point++];
     }
-    public override int Readint()
+    public override uint Readuint()
     {
         fixed (byte* ptr = &bytes[Position])
         {
             if (Compress)
             {
-                int ret = 0;
-                for (int i = 0; i < sizeof(int); i++)
+                uint ret = 0;
+                for (int i = 0; i < sizeof(uint); i++)
                 {
                     byte v = ptr[i];
                     if (v < byteFlag)
                     {
-                        ret |= v << (7 * i);
+                        ret |= (uint)(v << (7 * i));
                         point += i + 1;
                         return ret;
                     }
                     else
-                        ret |= (v & 0x7F) << (7 * i);
+                        ret |= (uint)((v & 0x7F) << (7 * i));
                 }
-                point += sizeof(int) + 1;
-                return ret | (ptr[sizeof(int)] << (7 * 4));
+                point += sizeof(uint) + 1;
+                return ret | (uint)((ptr[sizeof(uint)] << (7 * 4)));
             }
             else
             {
-                point += sizeof(int);
-                return *(int*)ptr;
+                point += sizeof(uint);
+                return *(uint*)ptr;
             }
         }
     }
-    public override long Readlong()
+    public override ulong Readulong()
     {
         fixed (byte* ptr = &bytes[Position])
         {
             if (Compress)
             {
-                long ret = 0;
+                ulong ret = 0;
 
-                for (int i = 0; i < sizeof(long); i++)
+                for (int i = 0; i < sizeof(ulong); i++)
                 {
                     byte v = ptr[i];
                     if (v < byteFlag)
                     {
-                        ret |= (long)v << (7 * i);
+                        ret |= (ulong)v << (7 * i);
                         point += i + 1;
                         return ret;
                     }
                     else
-                        ret |= (long)(v & 0x7F) << (7 * i);
+                        ret |= (ulong)(v & 0x7F) << (7 * i);
                 }
-                point += sizeof(long) + 1;
-                return ret | ((long)ptr[sizeof(long)] << (7 * 8));
+                point += sizeof(ulong) + 1;
+                return ret | ((ulong)ptr[sizeof(ulong)] << (7 * 8));
             }
             else
             {
-                point += sizeof(long);
-                return *(long*)ptr;
+                point += sizeof(ulong);
+                return *(ulong*)ptr;
             }
         }
     }
@@ -112,13 +112,12 @@ public unsafe class DBytesBuffer: DBuffer
         if (Position >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(byte)));
         bytes[point++] = v;
     }
-    public override void Write(int v)
+    public override void Write(uint v)
     {
         if (Compress)
         {
             int byteCnt;
-            if (v < 0) byteCnt = 5;
-            else if (v < 1 << 7) byteCnt = 1;
+            if (v < 1 << 7) byteCnt = 1;
             else if (v < 1 << 14) byteCnt = 2;
             else if (v < 1 << 21) byteCnt = 3;
             else if (v < 1 << 28) byteCnt = 4;
@@ -139,20 +138,19 @@ public unsafe class DBytesBuffer: DBuffer
         }
         else
         {
-            if (Position + sizeof(int) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(int)));
+            if (Position + sizeof(uint) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(uint)));
 
             fixed (byte* ptr = &bytes[Position])
-                *(int*)ptr = v;
-            point += sizeof(int);
+                *(uint*)ptr = v;
+            point += sizeof(uint);
         }
     }
-    public override void Write(long v)
+    public override void Write(ulong v)
     {
         if (Compress)
         {
             int byteCnt;
-            if (v < 0) byteCnt = 9;
-            else if (v < 1L << 7) byteCnt = 1;
+            if (v < 1L << 7) byteCnt = 1;
             else if (v < 1L << 14) byteCnt = 2;
             else if (v < 1L << 21) byteCnt = 3;
             else if (v < 1L << 28) byteCnt = 4;
@@ -177,11 +175,11 @@ public unsafe class DBytesBuffer: DBuffer
         }
         else
         {
-            if (Position + sizeof(long) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(long)));
+            if (Position + sizeof(ulong) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(ulong)));
 
             fixed (byte* ptr = &bytes[Position])
-                *(long*)ptr = v;
-            point += sizeof(long);
+                *(ulong*)ptr = v;
+            point += sizeof(ulong);
         }
     }
     public override void Write(float v)

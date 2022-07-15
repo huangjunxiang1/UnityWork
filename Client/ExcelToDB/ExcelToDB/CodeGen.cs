@@ -129,10 +129,10 @@ class CodeGen
             for (int j = 0; j < mainIdx.Count; j++)
             {
                 int idx = mainIdx[j];
-                string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
+                string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
                 sType = Common.getType(sType);
-                string sName = pkg.Workbook.Worksheets[1].Cells[3, idx].Text;
-                Common.appendDefineCode(pkg.Workbook.Worksheets[1].Cells[1, idx].Text, sType, sName, csContent);
+                string sName = pkg.Workbook.Worksheets[0].Cells[3, idx].Text;
+                Common.appendDefineCode(pkg.Workbook.Worksheets[0].Cells[1, idx].Text, sType, sName, csContent);
             }
             csContent.AppendLine();
             csContent.AppendLine($"    public {csName}(DBuffer buffer)");
@@ -141,8 +141,8 @@ class CodeGen
             for (int j = 0; j < mainIdx.Count; j++)
             {
                 int idx = mainIdx[j];
-                string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
-                string sName = pkg.Workbook.Worksheets[1].Cells[3, idx].Text;
+                string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
+                string sName = pkg.Workbook.Worksheets[0].Cells[3, idx].Text;
                 Common.appendReadCode(sType, j, sName, csContent);
             }
             csContent.AppendLine("    }");
@@ -152,11 +152,11 @@ class CodeGen
             mainCS.classContent.Add(csContent.ToString());
 
             List<int> lines = new List<int>();
-            var array = (object[,])pkg.Workbook.Worksheets[1].Cells.Value;
+            var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
             int len = array.GetLength(0);
             for (int j = 3; j < len; j++)
             {
-                if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[j + 1, 1].Text))
+                if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[j + 1, 1].Text))
                     lines.Add(j + 1);
             }
 
@@ -167,8 +167,8 @@ class CodeGen
                 for (int j = 0; j < mainIdx.Count; j++)
                 {
                     int idx = mainIdx[j];
-                    string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
-                    string text = pkg.Workbook.Worksheets[1].Cells[lines[m], idx].Text;
+                    string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
+                    string text = pkg.Workbook.Worksheets[0].Cells[lines[m], idx].Text;
 
                     Common.WriteValue(OneData, arrayTemp, sType, text, fi, lines[m], idx);
                 }

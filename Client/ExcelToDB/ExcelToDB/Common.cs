@@ -658,21 +658,21 @@ static class Common
     public static void GetHead(List<int> coIdx, ExcelPackage pkg, out temp1 t)
     {
         t = new temp1();
-        t.keyType = pkg.Workbook.Worksheets[1].Cells[2, 1].Text;
-        t.keyName = pkg.Workbook.Worksheets[1].Cells[3, 1].Text;
+        t.keyType = pkg.Workbook.Worksheets[0].Cells[2, 1].Text;
+        t.keyName = pkg.Workbook.Worksheets[0].Cells[3, 1].Text;
         if (string.IsNullOrEmpty(t.keyType) || string.IsNullOrEmpty(t.keyName))
         {
             Console.WriteLine(pkg.File.Name + "表没有key索引");
             Console.ReadLine();
             return;
         }
-        var array = (object[,])pkg.Workbook.Worksheets[1].Cells.Value;
+        var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
         int len = array.GetLength(1);
         for (int i = 1; i <= len; i++)
         {
-            if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[2, i].Text))
+            if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[2, i].Text))
                 continue;
-            if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[3, i].Text))
+            if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[3, i].Text))
                 continue;
             coIdx.Add(i);
         }

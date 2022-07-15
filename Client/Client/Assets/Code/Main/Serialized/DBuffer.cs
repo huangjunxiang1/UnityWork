@@ -4,6 +4,9 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 #endif
 
+/// <summary>
+/// int和long采用Varint编码的zigzag编码格式
+/// </summary>
 public abstract class DBuffer : IDisposable
 {
     protected const byte byteFlag = 128;
@@ -18,10 +21,18 @@ public abstract class DBuffer : IDisposable
 
     public abstract byte Readbyte();
     public bool Readbool() { return Readbyte() == 1; }
-    public abstract int Readint();
-    public uint Readuint() { return (uint)Readint(); }
-    public abstract long Readlong();
-    public ulong Readulong() { return (ulong)Readlong(); }
+    public int Readint()
+    { 
+        uint v = Readuint();
+        return (int)((v >> 1) ^ -(v & 1));
+    }
+    public abstract uint Readuint();
+    public long Readlong()
+    {
+        ulong v = Readulong();
+        return (long)(v >> 1) ^ -((long)v & 1);
+    }
+    public abstract ulong Readulong();
     public abstract float Readfloat();
     public abstract string Readstring();
 #if UNITY_2019_4_OR_NEWER
@@ -144,10 +155,16 @@ public abstract class DBuffer : IDisposable
 
     public abstract void Write(byte v);
     public void Write(bool v) { Write(v ? (byte)1 : (byte)0); }
-    public abstract void Write(int v);
-    public void Write(uint v) { Write((int)v); }
-    public abstract void Write(long v);
-    public void Write(ulong v) { Write((long)v); }
+    public void Write(int v)
+    {
+        Write((uint)((v >> 31) ^ (v << 1)));
+    }
+    public abstract void Write(uint v);
+    public void Write(long v)
+    {
+        Write((ulong)((v >> 63) ^ (v << 1)));
+    }
+    public abstract void Write(ulong v);
     public abstract void Write(float v);
     public abstract void Write(string v);
 

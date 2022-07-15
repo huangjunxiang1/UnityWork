@@ -30,61 +30,61 @@ public class DStreamBuffer : DBuffer
     {
         return (byte)stream.ReadByte();
     }
-    public override int Readint()
+    public override uint Readuint()
     {
         if (Compress)
         {
-            int ret = 0;
-            for (int i = 0; i < sizeof(int); i++)
+            uint ret = 0;
+            for (int i = 0; i < sizeof(uint); i++)
             {
                 int v = stream.ReadByte();
                 if (v < byteFlag)
                 {
-                    ret |= v << (7 * i);
+                    ret |= (uint)(v << (7 * i));
                     return ret;
                 }
                 else
-                    ret |= (v & 0x7F) << (7 * i);
+                    ret |= (uint)((v & 0x7F) << (7 * i));
             }
-            return ret | (stream.ReadByte() << (7 * 4));
+            return ret | (uint)((stream.ReadByte() << (7 * 4)));
         }
         else
         {
-            return stream.ReadByte()
-                 | stream.ReadByte() << 8
-                 | stream.ReadByte() << 16
-                 | stream.ReadByte() << 24;
+            return (uint)(stream.ReadByte()
+                        | stream.ReadByte() << 8
+                        | stream.ReadByte() << 16
+                        | stream.ReadByte() << 24);
         }
     }
-    public override long Readlong()
+    public override ulong Readulong()
     {
         if (Compress)
         {
-            long ret = 0;
+            ulong ret = 0;
 
-            for (int i = 0; i < sizeof(long); i++)
+            for (int i = 0; i < sizeof(ulong); i++)
             {
                 int v = stream.ReadByte();
                 if (v < byteFlag)
                 {
-                    ret |= (long)v << (7 * i);
+                    ret |= (ulong)v << (7 * i);
                     return ret;
                 }
                 else
-                    ret |= (long)(v & 0x7F) << (7 * i);
+                    ret |= (ulong)(v & 0x7F) << (7 * i);
             }
-            return ret | (((long)stream.ReadByte()) << (7 * 8));
+            return ret | (((ulong)stream.ReadByte()) << (7 * 8));
         }
         else
         {
-            return stream.ReadByte()
-                 | stream.ReadByte() << 8
-                 | stream.ReadByte() << 16
-                 | stream.ReadByte() << 24
-                 | stream.ReadByte() << 32
-                 | stream.ReadByte() << 40
-                 | stream.ReadByte() << 48
-                 | stream.ReadByte() << 56;
+            return (ulong)(stream.ReadByte()
+                         | stream.ReadByte() << 8
+                         | stream.ReadByte() << 16
+                         | stream.ReadByte() << 24
+                         | stream.ReadByte() << 32
+                         | stream.ReadByte() << 40
+                         | stream.ReadByte() << 48
+                         | stream.ReadByte() << 56);
         }
     }
     public override float Readfloat()
@@ -112,13 +112,12 @@ public class DStreamBuffer : DBuffer
     {
         stream.WriteByte(v);
     }
-    public override void Write(int v)
+    public override void Write(uint v)
     {
         if (Compress)
         {
             int byteCnt;
-            if (v < 0) byteCnt = 5;
-            else if (v < 1 << 7) byteCnt = 1;
+            if (v < 1 << 7) byteCnt = 1;
             else if (v < 1 << 14) byteCnt = 2;
             else if (v < 1 << 21) byteCnt = 3;
             else if (v < 1 << 28) byteCnt = 4;
@@ -139,13 +138,12 @@ public class DStreamBuffer : DBuffer
             stream.WriteByte((byte)(v >> 24));
         }
     }
-    public override void Write(long v)
+    public override void Write(ulong v)
     {
         if (Compress)
         {
             int byteCnt;
-            if (v < 0) byteCnt = 9;
-            else if (v < 1L << 7) byteCnt = 1;
+            if (v < 1L << 7) byteCnt = 1;
             else if (v < 1L << 14) byteCnt = 2;
             else if (v < 1L << 21) byteCnt = 3;
             else if (v < 1L << 28) byteCnt = 4;

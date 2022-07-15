@@ -18,13 +18,14 @@ class Program
 
         string parentPath;
         if (debug)
-            parentPath = Environment.CurrentDirectory + "/../../../../../Excel/";
+            parentPath = Environment.CurrentDirectory + "/../../../../../../Excel/";
         else
             parentPath = Environment.CurrentDirectory + "/";
 
         foreach (var item in Directory.GetFiles(parentPath + "/../Client/Client/Assets/Res/Config/Tabs/"))
             File.Delete(item);
 
+        ExcelPackage.LicenseContext = LicenseContext.Commercial;
         //main
         {
             CodeGen gen = new CodeGen();
@@ -67,7 +68,7 @@ class Program
                 tt.buff.Write(mark);
                 tt.buff.Compress = true;
                 tt.buff.Write(tt.buff.Compress);//是否压缩
-                string name = pkg.Workbook.Worksheets[1].Cells[3, mainIdx[i]].Text;
+                string name = pkg.Workbook.Worksheets[0].Cells[3, mainIdx[i]].Text;
                 tt.name = name;
             }
             List<temp3> temp3Lst = new List<temp3>();
@@ -77,11 +78,11 @@ class Program
                 ExcelPackage pkg = new ExcelPackage(fi);
 
                 List<int> lines = new List<int>();
-                var array = (object[,])pkg.Workbook.Worksheets[1].Cells.Value;
+                var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
                 int len = array.GetLength(0);
                 for (int j = 3; j < len; j++)
                 {
-                    if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[1].Cells[j + 1, 1].Text))
+                    if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[j + 1, 1].Text))
                         lines.Add(j + 1);
                 }
 
@@ -107,11 +108,11 @@ class Program
                     Lan tt = lan[mainIdx[i]];
                     for (int j = 0; j < item.dataLines.Count; j++)
                     {
-                        int key = int.Parse(pkg.Workbook.Worksheets[1].Cells[item.dataLines[j], 1].Text);
+                        int key = int.Parse(pkg.Workbook.Worksheets[0].Cells[item.dataLines[j], 1].Text);
 
                         int idx = mainIdx[i];
-                        string sType = pkg.Workbook.Worksheets[1].Cells[2, idx].Text.ToLower();
-                        string text = pkg.Workbook.Worksheets[1].Cells[item.dataLines[j], idx].Text;
+                        string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
+                        string text = pkg.Workbook.Worksheets[0].Cells[item.dataLines[j], idx].Text;
 
                         tt.buff.Write(key);
                         Common.WriteValue(tt.buff, null, sType, text, item.fi, item.dataLines[j], idx);

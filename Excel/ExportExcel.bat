@@ -1,4 +1,4 @@
 @echo off
-path = %path%;.\..\Client\ExportExcel2\ExportExcel2\bin\Debug\;
-ExportExcel2.exe false
+path = %path%;.\..\Client\ExcelToDB\ExcelToDB\bin\Debug\net6.0\;
+ExcelToDB.exe false
 pause

@@ -10,6 +10,17 @@ using Unity.Mathematics;
 class TabDataTest
 {
     [Test]
+    public void testCustom()
+    {
+        DBytesBuffer buff = new DBytesBuffer();
+        buff.Write(1588994477);
+        buff.Write(-1588994477);
+        buff.Seek(0);
+        Loger.Log(buff.Readint());
+        Loger.Log(buff.Readint());
+    }
+
+    [Test]
     public void testDBytesBuffer()
     {
         DBytesBuffer buffM = new(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM.bytes"));
