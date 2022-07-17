@@ -121,10 +121,9 @@ static class Common
         {
             string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
+            bool[] temp = new bool[arr.Length];
             if (arrayTemp != null)
             {
-                arrayTemp.Seek(0);
-                arrayTemp.Write(arr.Length);
                 for (int i = 0; i < arr.Length; i++)
                 {
                     if (!int.TryParse(arr[i], out var v) || (v != 0 && v != 1))
@@ -133,13 +132,14 @@ static class Common
                         Console.ReadLine();
                         return;
                     }
-                    arrayTemp.Write(v == 1);
+                    temp[i] = v == 1;
                 }
+                arrayTemp.Seek(0);
+                arrayTemp.Write(temp);
                 buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
             }
             else
             {
-                buffer.Write(arr.Length);
                 for (int i = 0; i < arr.Length; i++)
                 {
                     if (!int.TryParse(arr[i], out var v) || (v != 0 && v != 1))
@@ -148,8 +148,9 @@ static class Common
                         Console.ReadLine();
                         return;
                     }
-                    buffer.Write(v == 1);
+                    temp[i] = v == 1;
                 }
+                buffer.Write(temp);
             }
         }
 

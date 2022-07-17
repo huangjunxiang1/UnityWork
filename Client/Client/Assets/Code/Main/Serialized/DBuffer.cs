@@ -21,18 +21,8 @@ public abstract class DBuffer : IDisposable
 
     public abstract byte Readbyte();
     public bool Readbool() { return Readbyte() == 1; }
-    public int Readint()
-    { 
-        uint v = Readuint();
-        return (int)((v >> 1) ^ -(v & 1));
-    }
-    public abstract uint Readuint();
-    public long Readlong()
-    {
-        ulong v = Readulong();
-        return (long)(v >> 1) ^ -((long)v & 1);
-    }
-    public abstract ulong Readulong();
+    public abstract int Readint();
+    public abstract long Readlong();
     public abstract float Readfloat();
     public abstract string Readstring();
 #if UNITY_2019_4_OR_NEWER
@@ -52,119 +42,128 @@ public abstract class DBuffer : IDisposable
     {
         return new Vector3Int(Readint(), Readint(), Readint());
     }
+    public Color ReadColor()
+    {
+        return new Color(Readfloat(), Readfloat(), Readfloat(), Readfloat());
+    }
+    public Color32 ReadColor32()
+    {
+        return new Color32(Readbyte(), Readbyte(), Readbyte(), Readbyte());
+    }
 #endif
 
     public bool[] Readbools()
     {
         int len = Readint();
-        bool[] result = new bool[len];
-        for (int i = 0; i < len; i++)
-            result[i] = Readbool();
-        return result;
+        bool[] arr = new bool[len];
+        if (len > 0)
+        {
+            int c1 = (len - 1) / 8 + 1;
+            for (int i = 0; i < c1; i++)
+            {
+                int c2 = i < c1 - 1 ? 8 : ((len - 1) % 8 + 1);
+                byte bv = Readbyte();
+                for (int j = 0; j < c2; j++)
+                    arr[i * 8 + j] = (bv & (byte)(1 << j)) == 1;
+            }
+        }
+        return arr;
     }
     public int[] Readints()
     {
         int len = Readint();
-        int[] result = new int[len];
+        int[] arr = new int[len];
         for (int i = 0; i < len; i++)
-            result[i] = Readint();
-        return result;
-    }
-    public uint[] Readuints()
-    {
-        int len = Readint();
-        uint[] result = new uint[len];
-        for (int i = 0; i < len; i++)
-            result[i] = Readuint();
-        return result;
+            arr[i] = Readint();
+        return arr;
     }
     public long[] Readlongs()
     {
         int len = Readint();
-        long[] result = new long[len];
+        long[] arr = new long[len];
         for (int i = 0; i < len; i++)
-            result[i] = Readlong();
-        return result;
-    }
-    public ulong[] Readulongs()
-    {
-        int len = Readint();
-        ulong[] result = new ulong[len];
-        for (int i = 0; i < len; i++)
-            result[i] = Readulong();
-        return result;
+            arr[i] = Readlong();
+        return arr;
     }
     public float[] Readfloats()
     {
         int len = Readint();
-        float[] result = new float[len];
+        float[] arr = new float[len];
         for (int i = 0; i < len; i++)
-            result[i] = Readfloat();
-        return result;
+            arr[i] = Readfloat();
+        return arr;
     }
     public string[] Readstrings()
     {
         int len = Readint();
-        string[] result = new string[len];
+        string[] arr = new string[len];
         for (int i = 0; i < len; i++)
-            result[i] = Readstring();
-        return result;
+            arr[i] = Readstring();
+        return arr;
     }
     public byte[] Readbytes()
     {
         int len = Readint();
-        byte[] result = new byte[len];
+        byte[] arr = new byte[len];
         for (int i = 0; i < len; i++)
-            result[i] = Readbyte();
-        return result;
+            arr[i] = Readbyte();
+        return arr;
     }
 #if UNITY_2019_4_OR_NEWER
     public Vector2[] ReadVector2s()
     {
         int len = Readint();
-        Vector2[] result = new Vector2[len];
+        Vector2[] arr = new Vector2[len];
         for (int i = 0; i < len; i++)
-            result[i] = ReadVector2();
-        return result;
+            arr[i] = ReadVector2();
+        return arr;
     }
     public Vector2Int[] ReadVector2Ints()
     {
         int len = Readint();
-        Vector2Int[] result = new Vector2Int[len];
+        Vector2Int[] arr = new Vector2Int[len];
         for (int i = 0; i < len; i++)
-            result[i] = ReadVector2Int();
-        return result;
+            arr[i] = ReadVector2Int();
+        return arr;
     }
     public Vector3[] ReadVector3s()
     {
         int len = Readint();
-        Vector3[] result = new Vector3[len];
+        Vector3[] arr = new Vector3[len];
         for (int i = 0; i < len; i++)
-            result[i] = ReadVector3();
-        return result;
+            arr[i] = ReadVector3();
+        return arr;
     }
     public Vector3Int[] ReadVector3Ints()
     {
         int len = Readint();
-        Vector3Int[] result = new Vector3Int[len];
+        Vector3Int[] arr = new Vector3Int[len];
         for (int i = 0; i < len; i++)
-            result[i] = ReadVector3Int();
-        return result;
+            arr[i] = ReadVector3Int();
+        return arr;
+    }
+    public Color[] ReadColors()
+    {
+        int len = Readint();
+        Color[] arr = new Color[len];
+        for (int i = 0; i < len; i++)
+            arr[i] = ReadColor();
+        return arr;
+    }
+    public Color32[] ReadColor32s()
+    {
+        int len = Readint();
+        Color32[] arr = new Color32[len];
+        for (int i = 0; i < len; i++)
+            arr[i] = ReadColor32();
+        return arr;
     }
 #endif
 
     public abstract void Write(byte v);
     public void Write(bool v) { Write(v ? (byte)1 : (byte)0); }
-    public void Write(int v)
-    {
-        Write((uint)((v >> 31) ^ (v << 1)));
-    }
-    public abstract void Write(uint v);
-    public void Write(long v)
-    {
-        Write((ulong)((v >> 63) ^ (v << 1)));
-    }
-    public abstract void Write(ulong v);
+    public abstract void Write(int v);
+    public abstract void Write(long v);
     public abstract void Write(float v);
     public abstract void Write(string v);
 
@@ -190,6 +189,20 @@ public abstract class DBuffer : IDisposable
         Write(v.x);
         Write(v.y);
         Write(v.z);
+    }
+    public void Write(Color v)
+    {
+        Write(v.r);
+        Write(v.g);
+        Write(v.b);
+        Write(v.a);
+    }
+    public void Write(Color32 v)
+    {
+        Write(v.r);
+        Write(v.g);
+        Write(v.b);
+        Write(v.a);
     }
 #endif
     public void Write(byte[] v)
@@ -218,9 +231,24 @@ public abstract class DBuffer : IDisposable
     }
     public void Write(bool[] v, int index, int length)
     {
+        if (length == 0)
+        {
+            Write(0);
+            return;
+        }
         Write(length);
-        for (int i = 0; i < length; i++)
-            Write(v[index + i]);
+        int c1 = (length - 1) / 8 + 1;
+        for (int i = 0; i < c1; i++)
+        {
+            byte bv = 0;
+            int c2 = i < c1 - 1 ? 8 : ((length - 1) % 8 + 1);
+            for (int j = 0; j < c2; j++)
+            {
+                if (v[index + i * 8 + j])
+                    bv |= (byte)(1 << j);
+            }
+            Write(bv);
+        }
     }
     public void Write(int[] v)
     {
@@ -237,21 +265,6 @@ public abstract class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
-    public void Write(uint[] v)
-    {
-        if (v == null)
-        {
-            Write(0);
-            return;
-        }
-        Write(v, 0, v.Length);
-    }
-    public void Write(uint[] v, int index, int length)
-    {
-        Write(length);
-        for (int i = 0; i < length; i++)
-            Write(v[index + i]);
-    }
     public void Write(long[] v)
     {
         if (v == null)
@@ -262,21 +275,6 @@ public abstract class DBuffer : IDisposable
         Write(v, 0, v.Length);
     }
     public void Write(long[] v, int index, int length)
-    {
-        Write(length);
-        for (int i = 0; i < length; i++)
-            Write(v[index + i]);
-    }
-    public void Write(ulong[] v)
-    {
-        if (v == null)
-        {
-            Write(0);
-            return;
-        }
-        Write(v, 0, v.Length);
-    }
-    public void Write(ulong[] v, int index, int length)
     {
         Write(length);
         for (int i = 0; i < length; i++)
@@ -374,6 +372,36 @@ public abstract class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(Color[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(Color[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(Color32[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(Color32[] v, int index, int length)
+    {
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
 #endif
 
     public abstract byte[] ToBytes();
@@ -385,6 +413,7 @@ public abstract class DBuffer : IDisposable
     {
 
     }
+
 
     [StructLayout(LayoutKind.Explicit)]
     protected struct FixPoint

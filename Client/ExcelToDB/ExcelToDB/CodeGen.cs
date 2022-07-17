@@ -30,8 +30,10 @@ class CodeGen
         DBytesBuffer arrayTemp = new DBytesBuffer();
         buffer.Compress = false;
         buffer.Write(Program.mark);
-        buffer.Compress = true;
+        buffer.Compress = Program.compress;
         buffer.Write(buffer.Compress);//是否压缩
+        OneData.Compress = Program.compress;
+        arrayTemp.Compress = Program.compress;
 
         {
             TabM_Cs.AppendLine("using System.Collections.Generic;");

@@ -26,13 +26,13 @@ public static class LanguageS
 
         if (lan == null)
         {
-            Loger.Error("没有加载语言包 " + LanguageType);
+            Loger.Error($"没有加载语言包 SystemLanguage={LanguageType}");
             return string.Empty;
         }
 
         if (!lan.kvs.TryGetValue(key, out Mapping kv))
         {
-            Loger.Error($"Language没有key:{key} SystemLanguage{LanguageType}" + key);
+            Loger.Error($"Language没有key:{key} SystemLanguage={LanguageType}");
             return string.Empty;
         }
 

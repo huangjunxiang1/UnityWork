@@ -28,7 +28,7 @@ public class Engine : MonoBehaviour
         AppSetting.Debug = Debug;
         /*AppSetting.ServiceType = ServiceType;*/
 
-        EnterGame();
+        EnterGame(); 
     }
 
     // Update is called once per frame

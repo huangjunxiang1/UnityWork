@@ -29,62 +29,35 @@ public unsafe class DBytesBuffer: DBuffer
     {
         return bytes[point++];
     }
-    public override uint Readuint()
+    public override int Readint()
     {
-        fixed (byte* ptr = &bytes[Position])
+        if (Compress)
         {
-            if (Compress)
+            uint v = readVarint32();
+            return (int)((v >> 1) ^ -(v & 1));
+        }
+        else
+        {
+            fixed (byte* ptr = &bytes[Position])
             {
-                uint ret = 0;
-                for (int i = 0; i < sizeof(uint); i++)
-                {
-                    byte v = ptr[i];
-                    if (v < byteFlag)
-                    {
-                        ret |= (uint)(v << (7 * i));
-                        point += i + 1;
-                        return ret;
-                    }
-                    else
-                        ret |= (uint)((v & 0x7F) << (7 * i));
-                }
-                point += sizeof(uint) + 1;
-                return ret | (uint)((ptr[sizeof(uint)] << (7 * 4)));
-            }
-            else
-            {
-                point += sizeof(uint);
-                return *(uint*)ptr;
+                point += sizeof(int);
+                return *(int*)ptr;
             }
         }
     }
-    public override ulong Readulong()
+    public override long Readlong()
     {
-        fixed (byte* ptr = &bytes[Position])
+        if (Compress)
         {
-            if (Compress)
+            ulong v = readVarint64();
+            return (long)(v >> 1) ^ -((long)v & 1);
+        }
+        else
+        {
+            fixed (byte* ptr = &bytes[Position])
             {
-                ulong ret = 0;
-
-                for (int i = 0; i < sizeof(ulong); i++)
-                {
-                    byte v = ptr[i];
-                    if (v < byteFlag)
-                    {
-                        ret |= (ulong)v << (7 * i);
-                        point += i + 1;
-                        return ret;
-                    }
-                    else
-                        ret |= (ulong)(v & 0x7F) << (7 * i);
-                }
-                point += sizeof(ulong) + 1;
-                return ret | ((ulong)ptr[sizeof(ulong)] << (7 * 8));
-            }
-            else
-            {
-                point += sizeof(ulong);
-                return *(ulong*)ptr;
+                point += sizeof(long);
+                return *(long*)ptr;
             }
         }
     }
@@ -112,74 +85,34 @@ public unsafe class DBytesBuffer: DBuffer
         if (Position >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(byte)));
         bytes[point++] = v;
     }
-    public override void Write(uint v)
+    public override void Write(int v)
     {
         if (Compress)
         {
-            int byteCnt;
-            if (v < 1 << 7) byteCnt = 1;
-            else if (v < 1 << 14) byteCnt = 2;
-            else if (v < 1 << 21) byteCnt = 3;
-            else if (v < 1 << 28) byteCnt = 4;
-            else byteCnt = 5;
-
-            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
-
-            fixed (byte* ptr = &bytes[Position])
-            {
-                for (int i = 0; i < byteCnt - 1; i++)
-                {
-                    ptr[i] = (byte)(v | byteFlag);
-                    v >>= 7;
-                }
-                ptr[byteCnt - 1] = (byte)v;
-                point += byteCnt;
-            }
+            writeVarint32((uint)((v >> 31) ^ (v << 1)));
         }
         else
         {
-            if (Position + sizeof(uint) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(uint)));
+            if (Position + sizeof(int) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(int)));
 
             fixed (byte* ptr = &bytes[Position])
-                *(uint*)ptr = v;
-            point += sizeof(uint);
+                *(int*)ptr = v;
+            point += sizeof(int);
         }
     }
-    public override void Write(ulong v)
+    public override void Write(long v)
     {
         if (Compress)
         {
-            int byteCnt;
-            if (v < 1L << 7) byteCnt = 1;
-            else if (v < 1L << 14) byteCnt = 2;
-            else if (v < 1L << 21) byteCnt = 3;
-            else if (v < 1L << 28) byteCnt = 4;
-            else if (v < 1L << 35) byteCnt = 5;
-            else if (v < 1L << 42) byteCnt = 6;
-            else if (v < 1L << 49) byteCnt = 7;
-            else if (v < 1L << 56) byteCnt = 8;
-            else byteCnt = 9;
-
-            if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
-
-            fixed (byte* ptr = &bytes[Position])
-            {
-                for (int i = 0; i < byteCnt - 1; i++)
-                {
-                    ptr[i] = (byte)(v | byteFlag);
-                    v >>= 7;
-                }
-                ptr[byteCnt - 1] = (byte)v;
-                point += byteCnt;
-            }
+            writeVarint64((ulong)((v >> 63) ^ (v << 1)));
         }
         else
         {
-            if (Position + sizeof(ulong) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(ulong)));
+            if (Position + sizeof(long) >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + sizeof(long)));
 
             fixed (byte* ptr = &bytes[Position])
-                *(ulong*)ptr = v;
-            point += sizeof(ulong);
+                *(long*)ptr = v;
+            point += sizeof(long);
         }
     }
     public override void Write(float v)
@@ -250,5 +183,98 @@ public unsafe class DBytesBuffer: DBuffer
     public override void Dispose()
     {
 
+    }
+
+
+    void writeVarint32(uint v)
+    {
+        int byteCnt;
+        if (v < 1 << 7) byteCnt = 1;
+        else if (v < 1 << 14) byteCnt = 2;
+        else if (v < 1 << 21) byteCnt = 3;
+        else if (v < 1 << 28) byteCnt = 4;
+        else byteCnt = 5;
+
+        if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
+
+        fixed (byte* ptr = &bytes[Position])
+        {
+            for (int i = 0; i < byteCnt - 1; i++)
+            {
+                ptr[i] = (byte)(v | byteFlag);
+                v >>= 7;
+            }
+            ptr[byteCnt - 1] = (byte)v;
+            point += byteCnt;
+        }
+    }
+    void writeVarint64(ulong v)
+    {
+        int byteCnt;
+        if (v < 1L << 7) byteCnt = 1;
+        else if (v < 1L << 14) byteCnt = 2;
+        else if (v < 1L << 21) byteCnt = 3;
+        else if (v < 1L << 28) byteCnt = 4;
+        else if (v < 1L << 35) byteCnt = 5;
+        else if (v < 1L << 42) byteCnt = 6;
+        else if (v < 1L << 49) byteCnt = 7;
+        else if (v < 1L << 56) byteCnt = 8;
+        else byteCnt = 9;
+
+        if (Position + byteCnt >= bytes.Length) ReSize(Math.Max(bytes.Length * 2, Position + byteCnt));
+
+        fixed (byte* ptr = &bytes[Position])
+        {
+            for (int i = 0; i < byteCnt - 1; i++)
+            {
+                ptr[i] = (byte)(v | byteFlag);
+                v >>= 7;
+            }
+            ptr[byteCnt - 1] = (byte)v;
+            point += byteCnt;
+        }
+    }
+    uint readVarint32()
+    {
+        fixed (byte* ptr = &bytes[Position])
+        {
+            uint ret = 0;
+            for (int i = 0; i < sizeof(uint); i++)
+            {
+                byte v = ptr[i];
+                if (v < byteFlag)
+                {
+                    ret |= (uint)(v << (7 * i));
+                    point += i + 1;
+                    return ret;
+                }
+                else
+                    ret |= (uint)((v & 0x7F) << (7 * i));
+            }
+            point += sizeof(uint) + 1;
+            return ret | (uint)((ptr[sizeof(uint)] << (7 * 4)));
+        }
+    }
+    ulong readVarint64()
+    {
+        fixed (byte* ptr = &bytes[Position])
+        {
+            ulong ret = 0;
+
+            for (int i = 0; i < sizeof(ulong); i++)
+            {
+                byte v = ptr[i];
+                if (v < byteFlag)
+                {
+                    ret |= (ulong)v << (7 * i);
+                    point += i + 1;
+                    return ret;
+                }
+                else
+                    ret |= (ulong)(v & 0x7F) << (7 * i);
+            }
+            point += sizeof(ulong) + 1;
+            return ret | ((ulong)ptr[sizeof(ulong)] << (7 * 8));
+        }
     }
 }

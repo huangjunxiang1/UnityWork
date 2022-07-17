@@ -8,13 +8,19 @@ using System.Text;
 class Program
 {
     public const int mark = 20220702;
+    public static bool debug = true;
+    public static bool compress = true;
     static void Main(string[] args)
     {
-        bool debug = true;
-        if (args == null || args.Length == 0)
-            debug = true;
-        else
+        if (args != null && args.Length > 0)
             bool.TryParse(args[0], out debug);
+        else
+            debug = true;
+
+        if (args != null && args.Length > 1)
+            bool.TryParse(args[1], out compress);
+        else
+            compress = true;
 
         string parentPath;
         if (debug)
@@ -66,7 +72,7 @@ class Program
                 tt.buff = new DBytesBuffer(100000);
                 tt.buff.Compress = false;
                 tt.buff.Write(mark);
-                tt.buff.Compress = true;
+                tt.buff.Compress = compress;
                 tt.buff.Write(tt.buff.Compress);//是否压缩
                 string name = pkg.Workbook.Worksheets[0].Cells[3, mainIdx[i]].Text;
                 tt.name = name;

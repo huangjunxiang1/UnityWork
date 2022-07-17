@@ -1,0 +1,11 @@
+{
+  "name": "ImportImages",
+  "displayName": "导入资源",
+  "description": "",
+  "version": "1.0",
+  "author": {
+    "name": "Administrator"
+  },
+  "icon": "",
+  "main": "main.lua"
+}
