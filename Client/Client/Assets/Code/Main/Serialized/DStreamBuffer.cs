@@ -35,7 +35,7 @@ public class DStreamBuffer : DBuffer
         if (Compress)
         {
             uint v = readVarint32();
-            return (int)((v >> 1) ^ -(v & 1));
+            return (int)v;
         }
         else
         {
@@ -50,7 +50,7 @@ public class DStreamBuffer : DBuffer
         if (Compress)
         {
             ulong v = readVarint64();
-            return (long)(v >> 1) ^ -((long)v & 1);
+            return (long)v;
         }
         else
         {
@@ -88,7 +88,7 @@ public class DStreamBuffer : DBuffer
     {
         if (Compress)
         {
-            writeVarint32((uint)((v >> 31) ^ (v << 1)));
+            writeVarint32((uint)v);
         }
         else
         {
@@ -102,7 +102,7 @@ public class DStreamBuffer : DBuffer
     {
         if (Compress)
         {
-            writeVarint64((ulong)((v >> 63) ^ (v << 1)));
+            writeVarint64((ulong)v);
         }
         else
         {

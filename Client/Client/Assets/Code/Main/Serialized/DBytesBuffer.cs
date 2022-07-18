@@ -34,7 +34,7 @@ public unsafe class DBytesBuffer: DBuffer
         if (Compress)
         {
             uint v = readVarint32();
-            return (int)((v >> 1) ^ -(v & 1));
+            return (int)v;
         }
         else
         {
@@ -50,7 +50,7 @@ public unsafe class DBytesBuffer: DBuffer
         if (Compress)
         {
             ulong v = readVarint64();
-            return (long)(v >> 1) ^ -((long)v & 1);
+            return (long)v;
         }
         else
         {
@@ -89,7 +89,7 @@ public unsafe class DBytesBuffer: DBuffer
     {
         if (Compress)
         {
-            writeVarint32((uint)((v >> 31) ^ (v << 1)));
+            writeVarint32((uint)v);
         }
         else
         {
@@ -104,7 +104,7 @@ public unsafe class DBytesBuffer: DBuffer
     {
         if (Compress)
         {
-            writeVarint64((ulong)((v >> 63) ^ (v << 1)));
+            writeVarint64((ulong)v);
         }
         else
         {
@@ -149,13 +149,9 @@ public unsafe class DBytesBuffer: DBuffer
     }
     public override byte[] ToBytes(int position, int length)
     {
-        byte[] b = new byte[length];
-        fixed (byte* ptr = bytes, ptr2 = b)
-        {
-            for (int i = 0; i < length; i++)
-                ptr2[i] = ptr[position + i];
-        }
-        return b;
+        byte[] bs = new byte[length];
+        Array.Copy(bytes, position, bs, 0, length);
+        return bs;
     }
 
     public void ReSize(int newSize)
@@ -167,14 +163,9 @@ public unsafe class DBytesBuffer: DBuffer
             return;
         }
 #endif
-        byte[] b = new byte[newSize];
-        fixed (byte* ptr = bytes, ptr2 = b)
-        {
-            int len = bytes.Length;
-            for (int i = 0; i < len; i++)
-                ptr2[i] = ptr[i];
-        }
-        bytes = b;
+        byte[] bs = new byte[newSize];
+        Array.Copy(bytes, 0, bs, 0, point);
+        bytes = bs;
     }
     public override void Seek(int index)
     {
