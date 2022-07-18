@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Client\Assets\Code\Main\Serialized\DBuffer.cs" Link="DBuffer.cs" />
+    <Compile Include="..\..\Client\Assets\Code\Main\Serialized\DBytesBuffer.cs" Link="DBytesBuffer.cs" />
+    <Compile Include="..\..\Client\Assets\Code\Main\Serialized\DStreamBuffer.cs" Link="DStreamBuffer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="6.0.6" />
+  </ItemGroup>
+
+</Project>
