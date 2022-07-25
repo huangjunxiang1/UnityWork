@@ -1,0 +1,9 @@
+message TestPBhot
+{
+  sint32 test =1;
+  int32 test2 =2;
+  string test3 =3;
+  bool test4 =4;
+  float test5 =5;
+  int64 test7 =7;
+}

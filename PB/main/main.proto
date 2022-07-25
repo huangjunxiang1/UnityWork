@@ -1,0 +1,64 @@
+///目前简单测试了下 就是下面这些 我测试的标准pb版本是3.4.1的 互相编码解码都能通过
+///注意项:
+///1,暂未支持pb的 fixed64 sfixed64 double  64位定长数  
+///2.暂未支持pb的 fixed32 sfixed32  32位定长数
+///3.赞未支持message里面再定义message或者enum的定义方式 例如下面这种 
+///message testA
+///{
+///  message testb
+///  {
+///    int32 testb1=1;
+///  }
+///  int32 testA1=1;
+///}
+///4.一些目前我基本没用到过的东西 比如oneof什么的 pb定义方式  也都没支持
+///5.枚举在字段中的定义使用int32 不要直接使用枚举类型  主要考虑ilruntime  里面的枚举有些地方使用有问题 所以字段定义没有支持直接使用枚举
+///6.考虑ilruntime的热更  因此  此pb没有使用任何泛型 反射  对ilruntime比较友好  List<> 之类的泛型除外 这个没法解决
+
+
+////枚举定义注释
+enum COM_Client_Status
+{
+    S_Disconnected = 0;
+    S_Connected = 1;//枚举注释
+    S_Logined = 2;
+    S_Loading = 3;
+    //S_Creating = 4;//注释忽略测试
+    S_Playing = 5;
+    S_Relocating = 6;
+}
+
+//类定义注释
+message TestPBmain
+{
+  bool test =1;//字段注释
+  int32 test2 =2;
+  sint32 test3 =3;
+  int64 test4 =4;
+  sint64 test5 =5;
+  float test6 =6;
+  string test7 =7;
+  TestPB2 test8 =8;
+  map<string,TestPB2> test9=9;
+  map<int64,bool> test10=10;
+  map<sint32,sint64> test11=11;
+  bytes test12=12;
+  //int32 tst13 =13;//注释行测试
+
+  repeated bool test21 =21;
+  repeated int32 test22 =22;
+  repeated sint32 test23 =23;
+  repeated int64 test24 =24;
+  repeated sint64 test25 =25;
+  repeated float test26 =26;
+  repeated string test27 =27;
+  repeated TestPB2 test28 =28;
+}
+message TestPB2
+{
+   int32 test2 =2;
+   repeated int32 test22 =22;
+}
+
+//测试空行 跳行不被认为是注释
+
