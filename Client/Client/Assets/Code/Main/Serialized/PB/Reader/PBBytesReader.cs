@@ -73,6 +73,33 @@ namespace PB
             return s;
         }
 
+        public override uint Readfixed32()
+        {
+            fixed (byte* ptr = &bytes[point])
+            {
+                point += sizeof(uint);
+                return *(uint*)ptr;
+            }
+        }
+
+        public override ulong Readfixed64()
+        {
+            fixed (byte* ptr = &bytes[point])
+            {
+                point += sizeof(ulong);
+                return *(ulong*)ptr;
+            }
+        }
+
+        public override double Readdouble()
+        {
+            fixed (byte* ptr = &bytes[point])
+            {
+                point += sizeof(double);
+                return *(double*)ptr;
+            }
+        }
+
         public override void Seek(int index)
         {
             if (index < min)

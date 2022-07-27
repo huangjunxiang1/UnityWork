@@ -217,6 +217,12 @@ internal class Gen
                                     || vRowType == "int64"
                                     || vRowType == "sint32"
                                     || vRowType == "sint64"
+                                    || vRowType == "fixed32"
+                                    || vRowType == "sfixed32"
+                                    || vRowType == "fixed64"
+                                    || vRowType == "sfixed64"
+                                    || vRowType == "double"
+                                    || vRowType == "float"
                                     || vRowType == "bool")
                                 {
                                     wStr.AppendLine($"                    tmp.WriteTag({vtag});");
@@ -242,7 +248,7 @@ internal class Gen
                             }
                             else
                             {
-                                if (realType == "int" || realType == "long")
+                                if (realType == "int" || realType == "long" || realType == "uint" || realType == "ulong")
                                 {
                                     wStr.AppendLine($"            if (this.{fieldName} != 0)");
                                     wStr.AppendLine("            {");
@@ -265,6 +271,14 @@ internal class Gen
                                 else if (realType == "float")
                                 {
                                     wStr.AppendLine($"            if (this.{fieldName} != 0F)");
+                                    wStr.AppendLine("            {");
+                                    wStr.AppendLine($"                writer.WriteTag({tag});");
+                                    wStr.AppendLine($"                writer.Write{rowType}(this.{fieldName});");
+                                    wStr.AppendLine("            }");
+                                }
+                                else if (realType == "double")
+                                {
+                                    wStr.AppendLine($"            if (this.{fieldName} != 0D)");
                                     wStr.AppendLine("            {");
                                     wStr.AppendLine($"                writer.WriteTag({tag});");
                                     wStr.AppendLine($"                writer.Write{rowType}(this.{fieldName});");
@@ -338,7 +352,13 @@ internal class Gen
                                 else if (vRowType == "int32"
                                     || vRowType == "int64"
                                     || vRowType == "sint32"
-                                    || vRowType == "sint64")
+                                    || vRowType == "sint64"
+                                    || vRowType == "fixed32"
+                                    || vRowType == "sfixed32"
+                                    || vRowType == "fixed64"
+                                    || vRowType == "sfixed64"
+                                    || vRowType == "double"
+                                    || vRowType == "float")
                                     rStr.AppendLine($"                                {vType} v = 0;");
                                 else
                                     rStr.AppendLine($"                                {vType} v = new {vType}();");
@@ -356,6 +376,12 @@ internal class Gen
                                     || vRowType == "int64"
                                     || vRowType == "sint32"
                                     || vRowType == "sint64"
+                                    || vRowType == "fixed32"
+                                    || vRowType == "sfixed32"
+                                    || vRowType == "fixed64"
+                                    || vRowType == "sfixed64"
+                                    || vRowType == "double"
+                                    || vRowType == "float"
                                     || vRowType == "string"
                                     || vRowType == "bool")
                                     rStr.AppendLine($"                                        v = reader.Read{vRowType}();");
@@ -486,8 +512,11 @@ internal class Gen
 
     string getType(string type)
     {
-        if (type == "int32" || type == "sint32") return "int";
-        if (type == "int64" || type == "sint64") return "long";
+        if (type == "int32" || type == "sint32" || type == "sfixed32") return "int";
+        if (type == "int64" || type == "sint64" || type == "sfixed64") return "long";
+        if (type == "fixed32") return "uint";
+        if (type == "fixed64") return "ulong";
+        if (type == "double") return "double";
         if (type == "bytes") return "byte[]";
         return type;
     }
@@ -501,10 +530,16 @@ internal class Gen
             || type == "int64"
             || type == "bool")
             return 0;
+        else if (type == "fixed64"
+              || type == "sfixed64"
+              || type == "double")
+            return 1;
         else if (type == "string"
               || type == "bytes")
             return 2;
-        else if (type == "float")
+        else if (type == "float"
+            || type == "fixed32"
+            || type == "sfixed32")
             return 5;
         return 2;//嵌套类型
     }
@@ -520,6 +555,10 @@ internal class Gen
             && ss[0] != "int64"
             && ss[0] != "sint32"
             && ss[0] != "sint64"
+            && ss[0] != "fixed32"
+            && ss[0] != "sfixed32"
+            && ss[0] != "fixed64"
+            && ss[0] != "sfixed64"
             && ss[0] != "string")
         {
             throw new Exception("暂不支持map的key类型=" + ss[0]);
@@ -536,6 +575,11 @@ internal class Gen
             || type == "sint32"
             || type == "int64"
             || type == "sint64"
+            || type == "fixed32"
+            || type == "sfixed32"
+            || type == "fixed64"
+            || type == "sfixed64"
+            || type == "double"
             || type == "float"
             || type == "string")
             return fieldType.Value;

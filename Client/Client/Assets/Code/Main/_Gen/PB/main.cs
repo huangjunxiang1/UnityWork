@@ -38,6 +38,13 @@ namespace PB.main
         public Dictionary<long, bool> test10 { get; set; } = new Dictionary<long, bool>();
         public Dictionary<int, long> test11 { get; set; } = new Dictionary<int, long>();
         public byte[] test12 { get; set; }
+        public uint test14 { get; set; }
+        public int test15 { get; set; }
+        public ulong test16 { get; set; }
+        public long test17 { get; set; }
+        public double test18 { get; set; }
+        public Dictionary<uint, double> test19 { get; set; } = new Dictionary<uint, double>();
+        public Dictionary<long, string> test20 { get; set; } = new Dictionary<long, string>();
         public List<bool> test21 { get; set; } = new List<bool>();
         public List<int> test22 { get; set; } = new List<int>();
         public List<int> test23 { get; set; } = new List<int>();
@@ -46,6 +53,11 @@ namespace PB.main
         public List<float> test26 { get; set; } = new List<float>();
         public List<string> test27 { get; set; } = new List<string>();
         public List<TestPB2> test28 { get; set; } = new List<TestPB2>();
+        public List<uint> test29 { get; set; } = new List<uint>();
+        public List<int> test30 { get; set; } = new List<int>();
+        public List<ulong> test31 { get; set; } = new List<ulong>();
+        public List<long> test32 { get; set; } = new List<long>();
+        public List<double> test33 { get; set; } = new List<double>();
     }
 
     public partial class TestPB2

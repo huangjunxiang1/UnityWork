@@ -16,7 +16,7 @@ namespace PB
         byte[] bytes;
         int point;
 
-        public override int Position { get => point; set => point = value; }
+        public override int Position { get => point; protected set => point = value; }
 
         public override void Writebool(bool v)
         {
@@ -41,6 +41,29 @@ namespace PB
             bytes[point++] = (byte)uv;
         }
 
+        public override void Writefixed32(uint v)
+        {
+            checkLength(sizeof(uint));
+            fixed (byte* ptr = &bytes[point])
+                *(uint*)ptr = v;
+            point += sizeof(uint);
+        }
+
+        public override void Writefixed64(ulong v)
+        {
+            checkLength(sizeof(ulong));
+            fixed (byte* ptr = &bytes[point])
+                *(ulong*)ptr = v;
+            point += sizeof(ulong);
+        }
+
+        public override void Writedouble(double v)
+        {
+            checkLength(sizeof(double));
+            fixed (byte* ptr = &bytes[point])
+                *(double*)ptr = v;
+            point += sizeof(double);
+        }
         public override void Writefloat(float v)
         {
             checkLength(sizeof(int));

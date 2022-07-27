@@ -44,6 +44,13 @@ message TestPBmain
   map<sint32,sint64> test11=11;
   bytes test12=12;
   //int32 tst13 =13;//注释行测试
+  fixed32 test14=14;
+  sfixed32 test15=15;
+  fixed64 test16=16;
+  sfixed64 test17=17;
+  double test18=18;
+  map<fixed32,double> test19=19;
+  map<sfixed64,string> test20=20;
 
   repeated bool test21 =21;
   repeated int32 test22 =22;
@@ -53,6 +60,11 @@ message TestPBmain
   repeated float test26 =26;
   repeated string test27 =27;
   repeated TestPB2 test28 =28;
+  repeated fixed32 test29 =29;
+  repeated sfixed32 test30 =30;
+  repeated fixed64 test31 =31;
+  repeated sfixed64 test32 =32;
+  repeated double test33 =33;
 }
 message TestPB2
 {

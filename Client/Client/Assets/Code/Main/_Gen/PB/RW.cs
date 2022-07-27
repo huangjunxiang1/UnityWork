@@ -79,6 +79,58 @@ namespace PB.main
                 PBBuffPool.Return(tmp);
             }
             writer.Writebytes(98, this.test12);
+            if (this.test14 != 0)
+            {
+                writer.WriteTag(117);
+                writer.Writefixed32(this.test14);
+            }
+            if (this.test15 != 0)
+            {
+                writer.WriteTag(125);
+                writer.Writesfixed32(this.test15);
+            }
+            if (this.test16 != 0)
+            {
+                writer.WriteTag(129);
+                writer.Writefixed64(this.test16);
+            }
+            if (this.test17 != 0)
+            {
+                writer.WriteTag(137);
+                writer.Writesfixed64(this.test17);
+            }
+            if (this.test18 != 0D)
+            {
+                writer.WriteTag(145);
+                writer.Writedouble(this.test18);
+            }
+            if (this.test19 != null)
+            {
+                PBBytesWriter tmp = PBBuffPool.Get();
+                foreach (var item in this.test19)
+                {
+                    tmp.Seek(0);
+                    tmp.WriteTag(13);
+                    tmp.Writefixed32(item.Key);
+                    tmp.WriteTag(17);
+                    tmp.Writedouble(item.Value);
+                    writer.Writebytes(154, tmp.GetNativeBytes(), 0, tmp.Position);
+                }
+                PBBuffPool.Return(tmp);
+            }
+            if (this.test20 != null)
+            {
+                PBBytesWriter tmp = PBBuffPool.Get();
+                foreach (var item in this.test20)
+                {
+                    tmp.Seek(0);
+                    tmp.WriteTag(9);
+                    tmp.Writesfixed64(item.Key);
+                    tmp.Writestring(18, item.Value);
+                    writer.Writebytes(162, tmp.GetNativeBytes(), 0, tmp.Position);
+                }
+                PBBuffPool.Return(tmp);
+            }
             writer.Writebools(170, this.test21);
             writer.Writeint32s(178, this.test22);
             writer.Writesint32s(186, this.test23);
@@ -92,6 +144,11 @@ namespace PB.main
                 for (int i = 0; i < len; i++)
                     writer.Writemessage(226, this.test28[i]);
             }
+            writer.Writefixed32s(234, this.test29);
+            writer.Writesfixed32s(242, this.test30);
+            writer.Writefixed64s(250, this.test31);
+            writer.Writesfixed64s(258, this.test32);
+            writer.Writedoubles(266, this.test33);
         }
         public void Read(PBReader reader)
         {
@@ -214,6 +271,79 @@ namespace PB.main
                     case 98:
                         this.test12 = reader.Readbytes();
                         break;
+                    case 117:
+                        this.test14 = reader.Readfixed32();
+                        break;
+                    case 125:
+                        this.test15 = reader.Readsfixed32();
+                        break;
+                    case 129:
+                        this.test16 = reader.Readfixed64();
+                        break;
+                    case 137:
+                        this.test17 = reader.Readsfixed64();
+                        break;
+                    case 145:
+                        this.test18 = reader.Readdouble();
+                        break;
+                    case 154:
+                        {
+                            int point;
+                            int max = reader.max;
+                            do
+                            {
+                                int tag2;
+                                uint k = 0;
+                                double v = 0;
+                                int size = reader.Readint32();
+                                point = reader.Position;
+                                reader.SetLimit(point, point + size);
+                                while ((tag2 = reader.ReadTag()) != 0)
+                                {
+                                    if (tag2 == 13)
+                                        k = reader.Readfixed32();
+                                    else if (tag2 == 21)
+                                        v = reader.Readdouble();
+                                    else
+                                        break;
+                                }
+                                point += size;
+                                reader.SetLimit(point, max);
+                                reader.Seek(point);
+                                this.test19[k] = v;
+                            } while (reader.ReadTag() == 154);
+                            reader.Seek(point);
+                        }
+                        break;
+                    case 162:
+                        {
+                            int point;
+                            int max = reader.max;
+                            do
+                            {
+                                int tag2;
+                                long k = 0;
+                                string v = string.Empty;
+                                int size = reader.Readint32();
+                                point = reader.Position;
+                                reader.SetLimit(point, point + size);
+                                while ((tag2 = reader.ReadTag()) != 0)
+                                {
+                                    if (tag2 == 9)
+                                        k = reader.Readsfixed64();
+                                    else if (tag2 == 17)
+                                        v = reader.Readstring();
+                                    else
+                                        break;
+                                }
+                                point += size;
+                                reader.SetLimit(point, max);
+                                reader.Seek(point);
+                                this.test20[k] = v;
+                            } while (reader.ReadTag() == 162);
+                            reader.Seek(point);
+                        }
+                        break;
                     case 170:
                         reader.Readbools(this.test21);
                         break;
@@ -252,6 +382,21 @@ namespace PB.main
                             } while (reader.ReadTag() == 226);
                             reader.Seek(point);
                         }
+                        break;
+                    case 234:
+                        reader.Readfixed32s(this.test29);
+                        break;
+                    case 242:
+                        reader.Readsfixed32s(this.test30);
+                        break;
+                    case 250:
+                        reader.Readfixed64s(this.test31);
+                        break;
+                    case 258:
+                        reader.Readsfixed64s(this.test32);
+                        break;
+                    case 266:
+                        reader.Readdoubles(this.test33);
                         break;
                     default:
                         reader.SeekNext(tag);

@@ -38,6 +38,17 @@ namespace PB
             long v = Readint64();
             return (v >> 1) ^ -(v & 1);
         }
+        public abstract uint Readfixed32();
+        public int Readsfixed32()
+        {
+            return (int)Readfixed32();
+        }
+        public abstract ulong Readfixed64();
+        public long Readsfixed64()
+        {
+            return (long)Readfixed64();
+        }
+        public abstract double Readdouble();
         public abstract float Readfloat();
         public abstract string Readstring();
         public void Readmessage(IPBMessage message)
@@ -90,6 +101,46 @@ namespace PB
                 lst.Add(Readsint64());
             this.Seek(next);
         }
+        public void Readfixed32s(List<uint> lst)
+        {
+            int len = Readint32();
+            int next = Position + len;
+            while (Position < next)
+                lst.Add(Readfixed32());
+            this.Seek(next);
+        }
+        public void Readsfixed32s(List<int> lst)
+        {
+            int len = Readint32();
+            int next = Position + len;
+            while (Position < next)
+                lst.Add(Readsfixed32());
+            this.Seek(next);
+        }
+        public void Readfixed64s(List<ulong> lst)
+        {
+            int len = Readint32();
+            int next = Position + len;
+            while (Position < next)
+                lst.Add(Readfixed64());
+            this.Seek(next);
+        }
+        public void Readsfixed64s(List<long> lst)
+        {
+            int len = Readint32();
+            int next = Position + len;
+            while (Position < next)
+                lst.Add(Readsfixed64());
+            this.Seek(next);
+        }
+        public void Readdoubles(List<double> lst)
+        {
+            int len = Readint32();
+            int next = Position + len;
+            while (Position < next)
+                lst.Add(Readdouble());
+            this.Seek(next);
+        }
         public void Readfloats(List<float> lst)
         {
             int len = Readint32();
@@ -116,10 +167,12 @@ namespace PB
             int type = tag & 7;
             if (type == 0)
                 Readint64();
+            else if (type == 1)
+                this.Seek(Position + 8);
             else if (type == 2)
                 this.Seek(this.Readint32() + Position);
             else if (type == 5)
-                this.Seek(Position + sizeof(int));
+                this.Seek(Position + 4);
             else
                 throw new Exception("未实现类型=" + type);
         }

@@ -9,7 +9,7 @@ namespace PB
 {
     public abstract class PBWriter : IDisposable
     {
-        public virtual int Position { get; set; }
+        public virtual int Position { get; protected set; }
 
         public void WriteTag(int tag) { Writeint32(tag); }
         public abstract void Writebool(bool v);
@@ -25,6 +25,17 @@ namespace PB
             v = (v >> 63) ^ (v << 1);
             Writeint64(v);
         }
+        public abstract void Writefixed32(uint v);
+        public void Writesfixed32(int v)
+        {
+            Writefixed32((uint)v);
+        }
+        public abstract void Writefixed64(ulong v);
+        public void Writesfixed64(long v)
+        {
+            Writefixed64((ulong)v);
+        }
+        public abstract void Writedouble(double v);
         public abstract void Writefloat(float v);
         public abstract void Writestring(int tag, string v);
         public void Writebytes(int tag, byte[] v)
@@ -86,6 +97,61 @@ namespace PB
             int len = v.Count;
             for (int i = 0; i < len; i++)
                 writer.Writesint64(v[i]);
+            Writebytes(tag, writer.GetNativeBytes(), 0, writer.Position);
+            PBBuffPool.Return(writer);
+        }
+        public void Writefixed32s(int tag, List<uint> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            PBBytesWriter writer = PBBuffPool.Get();
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+                writer.Writefixed32(v[i]);
+            Writebytes(tag, writer.GetNativeBytes(), 0, writer.Position);
+            PBBuffPool.Return(writer);
+        }
+        public void Writesfixed32s(int tag, List<int> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            PBBytesWriter writer = PBBuffPool.Get();
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+                writer.Writesfixed32(v[i]);
+            Writebytes(tag, writer.GetNativeBytes(), 0, writer.Position);
+            PBBuffPool.Return(writer);
+        }
+        public void Writefixed64s(int tag, List<ulong> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            PBBytesWriter writer = PBBuffPool.Get();
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+                writer.Writefixed64(v[i]);
+            Writebytes(tag, writer.GetNativeBytes(), 0, writer.Position);
+            PBBuffPool.Return(writer);
+        }
+        public void Writesfixed64s(int tag, List<long> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            PBBytesWriter writer = PBBuffPool.Get();
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+                writer.Writesfixed64(v[i]);
+            Writebytes(tag, writer.GetNativeBytes(), 0, writer.Position);
+            PBBuffPool.Return(writer);
+        }
+        public void Writedoubles(int tag, List<double> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            PBBytesWriter writer = PBBuffPool.Get();
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+                writer.Writedouble(v[i]);
             Writebytes(tag, writer.GetNativeBytes(), 0, writer.Position);
             PBBuffPool.Return(writer);
         }
