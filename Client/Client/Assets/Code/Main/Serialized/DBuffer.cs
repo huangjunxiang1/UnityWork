@@ -5,7 +5,7 @@ using UnityEngine;
 #endif
 
 /// <summary>
-/// int和long采用Varint编码的zigzag编码格式
+/// int和long采用Varint编码
 /// </summary>
 public abstract class DBuffer : IDisposable
 {

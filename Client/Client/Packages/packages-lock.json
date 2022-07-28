@@ -225,6 +225,12 @@
       "dependencies": {},
       "url": "https://packages.unity.cn"
     },
+    "com.unity.odineditor": {
+      "version": "file:OdinEditor",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.platforms": {
       "version": "0.51.0-preview.31",
       "depth": 1,

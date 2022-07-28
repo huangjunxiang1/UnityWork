@@ -13,7 +13,7 @@ public class DStreamBuffer : DBuffer
     }
 
     Stream stream;
-    byte[] tempBytes;
+    byte[] buff;
 
     public override int Position
     {
@@ -74,10 +74,10 @@ public class DStreamBuffer : DBuffer
     {
         int len = Readint();
         if (len == 0) return string.Empty;
-        if (tempBytes == null || tempBytes.Length < len)
-            tempBytes = new byte[len];
-        stream.Read(tempBytes, 0, len);
-        return Encoding.UTF8.GetString(tempBytes, 0, len);
+        if (buff == null || buff.Length < len)
+            buff = new byte[len];
+        stream.Read(buff, 0, len);
+        return Encoding.UTF8.GetString(buff, 0, len);
     }
 
     public override void Write(byte v)
@@ -135,10 +135,10 @@ public class DStreamBuffer : DBuffer
 
         int len = Encoding.UTF8.GetByteCount(v);
         Write(len);
-        if (tempBytes == null || tempBytes.Length < len)
-            tempBytes = new byte[len];
-        Encoding.UTF8.GetBytes(v, 0, v.Length, tempBytes, Position);
-        stream.Write(tempBytes, 0, len);
+        if (buff == null || buff.Length < len)
+            buff = new byte[len];
+        Encoding.UTF8.GetBytes(v, 0, v.Length, buff, Position);
+        stream.Write(buff, 0, len);
     }
 
     public override byte[] ToBytes()
