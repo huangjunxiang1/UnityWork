@@ -239,7 +239,7 @@ namespace MagicaCloth
             [Unity.Collections.ReadOnly]
             public NativeArray<GroupData> groupList;
             [Unity.Collections.ReadOnly]
-            public NativeParallelMultiHashMap<int, int> particleMap;
+            public NativeMultiHashMap<int, int> particleMap;
 
             [Unity.Collections.ReadOnly]
             public NativeArray<PhysicsManagerTeamData.TeamData> teamDataList;

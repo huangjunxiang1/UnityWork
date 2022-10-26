@@ -54,7 +54,7 @@ abstract class UIBase : TreeL<UIBase>
     {
         return TaskAwaiter.Completed;
     }
-    protected abstract void OnExit();
+    protected virtual void OnExit() { }
     protected abstract void Binding();
 
     public virtual void LoadConfig(UIConfig config, params object[] data)

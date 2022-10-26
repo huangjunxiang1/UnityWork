@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace Game
 {
-    class Scene : EntityL
+    class Scene : ObjectL
     {
         public int SceneID { get; private set; }
 
@@ -18,7 +18,7 @@ namespace Game
         void QuitGame()
         {
             if (Application.isEditor)
-                GameM.Event.ExecuteEvent((int)EventIDM.OutScene);
+                GameM.Event.ExecuteEvent((int)EventIDM.OutScene, SceneID);
             GameM.Net.DisConnect();
         }
 
@@ -27,7 +27,7 @@ namespace Game
             if (SceneID == 1) return;
 
             var ui = await GameL.UI.OpenAsync<FUILoading>();
-            BaseCamera.Current?.DisableCamera();
+            BaseCamera.Current?.Dispose();
             GameL.UI.CloseAll();
             GameM.World.RemoveAllChildren();
             GameL.Close();
@@ -52,7 +52,7 @@ namespace Game
             GameL.UI.CloseAll();
             GameM.World.RemoveAllChildren();
 
-            GameM.Event.ExecuteEvent((int)EventIDM.OutScene, sceneId);
+            GameM.Event.ExecuteEvent((int)EventIDM.OutScene, SceneID);
             SceneID = sceneId;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(sceneId).name);

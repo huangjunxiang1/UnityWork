@@ -3,16 +3,29 @@
 using FairyGUI;
 using FairyGUI.Utils;
 
-partial class FUIFighting : FUI
+partial class FUIFighting2 : FUI
 {
-    public override string url => "FUIFighting";
+    public override string url => "FUIFighting2";
     public GButton _btnBack;
-    public GSlider _slider;
+    public GButton _play;
 
     protected override void Binding()
     {
         _btnBack = (GButton)this.UI.GetChild("_btnBack");
-        _slider = (GSlider)this.UI.GetChild("_slider");
+        _play = (GButton)this.UI.GetChild("_play");
+    }
+}
+
+partial class FUIFighting : FUI
+{
+    public override string url => "FUIFighting";
+    public GButton _btnBack;
+    public GButton _play;
+
+    protected override void Binding()
+    {
+        _btnBack = (GButton)this.UI.GetChild("_btnBack");
+        _play = (GButton)this.UI.GetChild("_play");
     }
 }
 
@@ -27,6 +40,21 @@ partial class FUILoading : FUI
     }
 }
 
+partial class FUIFighting3 : FUI
+{
+    public override string url => "FUIFighting3";
+    public GButton _btnBack;
+    public GButton _rangeRoad;
+    public GButton _play;
+
+    protected override void Binding()
+    {
+        _btnBack = (GButton)this.UI.GetChild("_btnBack");
+        _rangeRoad = (GButton)this.UI.GetChild("_rangeRoad");
+        _play = (GButton)this.UI.GetChild("_play");
+    }
+}
+
 partial class FUILogin : FUI
 {
     public override string url => "FUILogin";
@@ -35,6 +63,7 @@ partial class FUILogin : FUI
     public GButton _btnLogin;
     public GTextInput _acc;
     public GTextInput _pw;
+    public GComboBox _demo;
 
     protected override void Binding()
     {
@@ -43,6 +72,7 @@ partial class FUILogin : FUI
         _btnLogin = (GButton)this.UI.GetChild("_btnLogin");
         _acc = (GTextInput)this.UI.GetChild("_acc");
         _pw = (GTextInput)this.UI.GetChild("_pw");
+        _demo = (GComboBox)this.UI.GetChild("_demo");
     }
 }
 

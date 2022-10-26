@@ -16,6 +16,8 @@
     <component id="qnthd" name="Tips.xml" path="/UI/Box/" exported="true"/>
     <component id="rjgbe" name="FUIGlobal.xml" path="/UI/UIs/" exported="true"/>
     <component id="rjgbf" name="Box_YesOrNo.xml" path="/UI/Box/" exported="true"/>
+    <component id="fcrmg" name="FUIFighting2.xml" path="/UI/UIs/" exported="true"/>
+    <component id="owdhh" name="FUIFighting3.xml" path="/UI/UIs/" exported="true"/>
   </resources>
   <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2" genCode="true"/>
 </packageDescription>

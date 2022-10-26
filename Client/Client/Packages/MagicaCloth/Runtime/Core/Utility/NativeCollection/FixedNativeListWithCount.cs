@@ -206,7 +206,7 @@ namespace MagicaCloth
 
         public T[] ToArray()
         {
-            return nativeList.ToArray();
+            return nativeList.AsArray().ToArray();
         }
 
         /// <summary>

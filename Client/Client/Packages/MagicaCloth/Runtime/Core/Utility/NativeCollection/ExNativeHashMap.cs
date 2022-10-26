@@ -13,8 +13,8 @@ namespace MagicaCloth
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
     public class ExNativeHashMap<TKey, TValue>
-        where TKey : struct, IEquatable<TKey>
-        where TValue : struct
+        where TKey : unmanaged, IEquatable<TKey>
+        where TValue : unmanaged
     {
         NativeParallelHashMap<TKey, TValue> nativeHashMap;
 

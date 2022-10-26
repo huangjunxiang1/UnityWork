@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    abstract class TreeL<T> : EntityL  where T : TreeL<T>
+    public abstract class TreeM<T> : ObjectM  where T : TreeM<T>
     {
-        public TreeL(long id) : base(id) { }
-        public TreeL() : base() { }
+        public TreeM(long cid) : base(cid) { }
+        public TreeM() : base() { }
 
         Dictionary<long, T> _childMap = new();
         List<T> _childLst = new();
@@ -23,7 +23,7 @@ namespace Game
         {
             this.RemoveAllChildren();
             if (this.Parent != null)
-                this.Parent.Remove(this.ID);
+                this.Parent.Remove(this.GID);
             base.Dispose();
         }
 
@@ -37,7 +37,7 @@ namespace Game
                 return;
 
             if (this.Parent != null)
-                this.Parent.Remove(this.ID);
+                this.Parent.Remove(this.GID);
             if (parent != null)
                 parent.AddChild((T)this);
         }
@@ -51,18 +51,16 @@ namespace Game
             if (child.Parent == this)
                 return;
             if (child.Parent != null)
-                child.Parent.Remove(child.ID);
-            _childMap.Add(child.ID, child);
+                child.Parent.Remove(child.GID);
+            _childMap.Add(child.GID, child);
             _childLst.Add(child);
             child.Parent = (T)this;
         }
-
         public virtual void AddChild<K>() where K : T, new()
         {
             K child = new();
             this.AddChild(child);
         }
-
 
         /// <summary>
         /// 子获取
@@ -87,7 +85,7 @@ namespace Game
         /// <param name="child"></param>
         public void Remove(T child)
         {
-            Remove(child.ID);
+            Remove(child.GID);
         }
         public virtual void Remove(long id)
         {

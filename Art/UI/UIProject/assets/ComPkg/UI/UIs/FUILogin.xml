@@ -4,26 +4,33 @@
     <image id="n9_kx1d" name="n9" src="kx1d0" fileName="f9d5c084396d06f6-0c7006bf1d0bb8d5-91234bccfdd2f9ec49fc7cd61ec9822f.jpg" pkg="b4meoqof" xy="0,0" size="1334,750">
       <relation target="" sidePair="center-center,middle-middle"/>
     </image>
-    <graph id="n5_qgu2" name="n5" xy="741,280" size="214,29" group="n8_xbva" type="rect"/>
-    <graph id="n6_qgu2" name="n6" xy="741,351" size="214,29" group="n8_xbva" type="rect"/>
-    <component id="n7_qgu2" name="_uiType" src="qgu25" fileName="Common/comBox/CB.xml" xy="379,263" size="165,39" group="n8_xbva">
+    <graph id="n5_qgu2" name="n5" xy="741,338" size="214,29" group="n8_xbva" type="rect"/>
+    <graph id="n6_qgu2" name="n6" xy="741,409" size="214,29" group="n8_xbva" type="rect"/>
+    <component id="n7_qgu2" name="_uiType" src="qgu25" fileName="Common/comBox/CB.xml" xy="379,321" size="165,39" group="n8_xbva">
       <ComboBox visibleItemCount="10">
         <item title="FGUI模式"/>
         <item title="UGUI模式"/>
       </ComboBox>
     </component>
-    <component id="n1_qgu2" name="_gameTypeCB" src="qgu25" fileName="Common/comBox/CB.xml" xy="379,438" size="165,39" group="n8_xbva">
+    <component id="n1_qgu2" name="_gameTypeCB" src="qgu25" fileName="Common/comBox/CB.xml" xy="379,496" size="165,39" group="n8_xbva">
       <ComboBox visibleItemCount="10">
         <item title="单机模式"/>
         <item title="联网模式"/>
       </ComboBox>
     </component>
-    <component id="n2_qgu2" name="_btnLogin" src="qgu27" fileName="Common/btn/btn.xml" xy="757,481" size="191,60" group="n8_xbva">
+    <component id="n2_qgu2" name="_btnLogin" src="qgu27" fileName="Common/btn/btn.xml" xy="757,539" size="191,60" group="n8_xbva">
       <Button title="登录"/>
     </component>
-    <text id="n3_qgu2" name="_acc" xy="741,280" size="214,29" group="n8_xbva" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true" prompt="请输入账号"/>
-    <text id="n4_qgu2" name="_pw" xy="741,351" size="214,29" group="n8_xbva" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true" prompt="请输入密码"/>
-    <group id="n8_xbva" name="n8" xy="379,263" size="576,278" advanced="true">
+    <text id="n3_qgu2" name="_acc" xy="741,338" size="214,29" group="n8_xbva" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true" prompt="请输入账号"/>
+    <text id="n4_qgu2" name="_pw" xy="741,409" size="214,29" group="n8_xbva" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true" prompt="请输入密码"/>
+    <component id="n10_fcrm" name="_demo" src="qgu25" fileName="Common/comBox/CB.xml" xy="379,150" size="133,56" group="n8_xbva">
+      <ComboBox title="demo" visibleItemCount="10">
+        <item title="1_位移墙"/>
+        <item title="2_随机巡逻"/>
+        <item title="3_随机地图+巡逻"/>
+      </ComboBox>
+    </component>
+    <group id="n8_xbva" name="n8" xy="379,150" size="576,449" advanced="true">
       <relation target="" sidePair="center-center,middle-middle"/>
     </group>
   </displayList>

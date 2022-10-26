@@ -16,14 +16,14 @@ namespace Game
     }
     public class WObject : TreeM<WObject>
     {
-        public WObject(long id, WObjectLoadStyle style = WObjectLoadStyle.LogicRoot) : base(id)
+        public WObject(long cid, WObjectLoadStyle style = WObjectLoadStyle.LogicRoot) : base(cid)
         {
             this.ObjectStyle = style;
             if (ObjectStyle == WObjectLoadStyle.LogicRoot)
             {
                 this.Root = new GameObject();
 #if UNITY_EDITOR
-                this.Name = $"{this.GetType().FullName}_id={id}";
+                this.Name = $"{this.GetType().FullName}_id={cid}";
 #endif
             }
         }

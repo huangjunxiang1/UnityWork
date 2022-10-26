@@ -21,6 +21,7 @@ MonoBehaviour:
     m_Address: Assets/Res
     m_ReadOnly: 0
     m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 4310545e919fb094a9f74363b87ca661, type: 2}
   m_SchemaSet:

@@ -13,13 +13,13 @@ namespace MagicaCloth
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
     public class ExNativeMultiHashMap<TKey, TValue>
-        where TKey : struct, IEquatable<TKey>
-        where TValue : struct
+        where TKey : unmanaged, IEquatable<TKey>
+        where TValue : unmanaged
     {
         /// <summary>
         /// ネイティブハッシュマップ
         /// </summary>
-        NativeParallelMultiHashMap<TKey, TValue> nativeMultiHashMap;
+        NativeMultiHashMap<TKey, TValue> nativeMultiHashMap;
 
         /// <summary>
         /// ネイティブリストの配列数
@@ -35,7 +35,7 @@ namespace MagicaCloth
         //=========================================================================================
         public ExNativeMultiHashMap()
         {
-            nativeMultiHashMap = new NativeParallelMultiHashMap<TKey, TValue>(1, Allocator.Persistent);
+            nativeMultiHashMap = new NativeMultiHashMap<TKey, TValue>(1, Allocator.Persistent);
             nativeLength = NativeCount;
         }
 
@@ -92,7 +92,7 @@ namespace MagicaCloth
         public void Remove(TKey key, TValue value)
         {
             TValue data;
-            NativeParallelMultiHashMapIterator<TKey> iterator;
+            NativeMultiHashMapIterator<TKey> iterator;
             if (nativeMultiHashMap.TryGetFirstValue(key, out data, out iterator))
             {
                 do
@@ -126,7 +126,7 @@ namespace MagicaCloth
             foreach (TKey key in useKeyDict.Keys)
             {
                 TValue data;
-                NativeParallelMultiHashMapIterator<TKey> iterator;
+                NativeMultiHashMapIterator<TKey> iterator;
                 if (nativeMultiHashMap.TryGetFirstValue(key, out data, out iterator))
                 {
                     do
@@ -162,7 +162,7 @@ namespace MagicaCloth
             foreach (var key in useKeyDict.Keys)
             {
                 TValue data;
-                NativeParallelMultiHashMapIterator<TKey> iterator;
+                NativeMultiHashMapIterator<TKey> iterator;
                 if (nativeMultiHashMap.TryGetFirstValue(key, out data, out iterator))
                 {
                     do
@@ -190,7 +190,7 @@ namespace MagicaCloth
             foreach (var key in useKeyDict.Keys)
             {
                 TValue data;
-                NativeParallelMultiHashMapIterator<TKey> iterator;
+                NativeMultiHashMapIterator<TKey> iterator;
                 if (nativeMultiHashMap.TryGetFirstValue(key, out data, out iterator))
                 {
                     do
@@ -210,7 +210,7 @@ namespace MagicaCloth
         public void Process(TKey key, Action<TValue> act)
         {
             TValue data;
-            NativeParallelMultiHashMapIterator<TKey> iterator;
+            NativeMultiHashMapIterator<TKey> iterator;
             if (nativeMultiHashMap.TryGetFirstValue(key, out data, out iterator))
             {
                 do
@@ -230,7 +230,7 @@ namespace MagicaCloth
         public bool Contains(TKey key, TValue value)
         {
             TValue data;
-            NativeParallelMultiHashMapIterator<TKey> iterator;
+            NativeMultiHashMapIterator<TKey> iterator;
             if (nativeMultiHashMap.TryGetFirstValue(key, out data, out iterator))
             {
                 do
@@ -294,7 +294,7 @@ namespace MagicaCloth
         /// 内部のNativeMultiHashMapを取得する
         /// </summary>
         /// <returns></returns>
-        public NativeParallelMultiHashMap<TKey, TValue> Map
+        public NativeMultiHashMap<TKey, TValue> Map
         {
             get
             {

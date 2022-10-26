@@ -37,7 +37,7 @@ public static class Timer
         if (AppSetting.Debug)
         {
             if (Contains(call))
-                Loger.Error("已经包含timer calss:" + call.Method.ReflectedType + " method" + call.Method.Name);
+                Loger.Error("已经包含timer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
         }
 
         if (count == 0) return;
@@ -78,7 +78,7 @@ public static class Timer
         if (AppSetting.Debug)
         {
             if (ContainsUTC(call))
-                Loger.Error("已经包含utcTimer calss:" + call.Method.ReflectedType + " method" + call.Method.Name);
+                Loger.Error("已经包含utcTimer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
         }
 
         TempUtc t = new TempUtc();

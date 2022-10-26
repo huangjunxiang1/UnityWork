@@ -34,3 +34,6 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+Client/Client/UserSettings/Layouts/default-2021.dwlt
+Client/Client/bakery_times.log
+Client/Client/bakery_times.log

@@ -10,6 +10,9 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Game;
 using Unity.Entities;
+using Unity.Rendering;
+using Unity.Transforms;
+using Unity.Mathematics;
 
 namespace Main
 {
@@ -41,7 +44,13 @@ namespace Main
         public static async TaskAwaiter<Entity> LoadEntityAsync(string url)
         {
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
-            Entity e = await GameObjectToEntityConversion.ConverToEntity(g);
+            var mgr = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+            Entity e = mgr.CreateEntity();
+            Renderer r = g.GetComponent<Renderer>();
+            MeshFilter mf = g.GetComponent<MeshFilter>();
+            RenderMeshUtility.AddComponents(e, mgr, new RenderMeshDescription(r), new RenderMeshArray(new[] { r.sharedMaterial }, new[] { mf.sharedMesh }), MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            mgr.AddComponentData(e, new LocalToWorld() { Value = float4x4.TRS(float3.zero, g.transform.rotation, g.transform.lossyScale) });
             prefabLoader.Release(g);
             return e;
         }
@@ -64,7 +73,13 @@ namespace Main
         public static async TaskAwaiter<Entity> LoadEntityAsync(string url, TaskAwaiterCreater creater)
         {
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
-            Entity e = await GameObjectToEntityConversion.ConverToEntity(g, creater.Create<Entity>());
+            var mgr = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+            Entity e = mgr.CreateEntity();
+            Renderer r = g.GetComponent<Renderer>();
+            MeshFilter mf = g.GetComponent<MeshFilter>();
+            RenderMeshUtility.AddComponents(e, mgr, new RenderMeshDescription(r), new RenderMeshArray(new[] { r.sharedMaterial }, new[] { mf.sharedMesh }), MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            mgr.AddComponentData(e, new LocalToWorld() { Value = float4x4.TRS(float3.zero, g.transform.rotation, g.transform.lossyScale) });
             prefabLoader.Release(g);
             return e;
         }

@@ -1,24 +1,24 @@
-﻿using System;
+﻿using Main;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Main;
 using UnityEngine;
 
 namespace Game
 {
-    public abstract class EntityM : IDisposable
+    abstract class ObjectL
     {
-        public EntityM() : this(++GenerateID) { }
-        public EntityM(long id)
+        public ObjectL() : this(0) { }
+        public ObjectL(long cid)
         {
-            this.ID = id;
+            this.GID = IDGenerate.GenerateID();
+            this.CID = cid;
+            Objects.Add(this.GID, this);
             if (this.AutoRigisteEvent)
                 this.ListenerEnable = true;
         }
-
-        static long GenerateID;
 
         TaskAwaiterCreater taskCreater;
         bool listenerEnable = false;
@@ -26,9 +26,14 @@ namespace Game
         long eventKey;
 
         /// <summary>
-        /// ID  可自定义赋值
+        /// 自增生成的ID
         /// </summary>
-        public long ID { get; }
+        public long GID { get; }
+
+        /// <summary>
+        /// 自定义ID
+        /// </summary>
+        public long CID { get; }
 
         /// <summary>
         /// 是否已被销毁
@@ -86,6 +91,7 @@ namespace Game
                 return;
             }
 
+            Objects.Remove(this.GID);
             this.Disposed = true;
             if (listenerEnable)
                 GameM.Event.RemoveListener(this);
@@ -103,7 +109,7 @@ namespace Game
             }
             if (keyListenerEnable)
             {
-                Loger.Error($"已经注册了key监听 key={key}");
+                Loger.Error($"已经注册了key监听 key={eventKey}");
                 return;
             }
             eventKey = key;

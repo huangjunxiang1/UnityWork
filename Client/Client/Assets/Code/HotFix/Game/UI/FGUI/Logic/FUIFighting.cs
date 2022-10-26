@@ -11,127 +11,137 @@ using Unity.Rendering;
 using UnityEngine;
 using Main;
 using Game;
+using Unity.Physics;
 
 partial class FUIFighting
 {
     NativeArray<Entity> es = default;
-    int entityCnt = 0;
 
-    Mesh mesh;
-    Material mat;
-    protected override void OnEnter(params object[] data)
+    protected override async void OnEnter(params object[] data)
     {
-        GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        mesh = go.GetComponent<MeshFilter>().mesh;
-        GameObject.Destroy(go);
-        mat = AssetLoad.Load<Material>("3D/Model/ECS/ECSLit.mat");
+        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskCreater);
 
-        es = new NativeArray<Entity>((int)_slider.max, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+        if (this.Disposed)
+        {
+            em.DestroyEntity(one);
+            return;
+        }
+        em.SetComponentData(one, new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
+        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
+
+        es = new NativeArray<Entity>(10000, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+        es[0] = one;
+
+        for (int j = 1; j < es.Length; j++)
+        {
+            es[j] = em.Instantiate(es[0]);
+            em.SetComponentData(es[j], new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
+            em.SetComponentData(es[j], new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
+        }
 
         _btnBack.onClick.Add(_clickBack);
-        _slider.value = 0;
-        _slider.onChanged.Add(_onValue);
+        _play.onClick.Add(_onPlay);
     }
 
     protected override void OnExit()
     {
+        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         if (es.IsCreated)
+        {
+            em.DestroyEntity(es);
             es.Dispose();
+        }
     }
 
     [Event((int)EventIDM.QuitGame)]
     void quit()
     {
-        es.Dispose();
+        if (es.IsCreated)
+            es.Dispose();
     }
 
     void _clickBack()
     {
         _ = GameL.Scene.InLoginScene();
     }
-    async void _onValue()
+    int lastRange = -1;
+    void _onPlay()
     {
-        Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
-        int v = (int)_slider.value;
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        if (v < entityCnt)
+     
+        if (lastRange == -1)
+            lastRange = UnityEngine.Random.Range(0, 6);
+        else
         {
-            em.DestroyEntity(new NativeSlice<Entity>(es, v, entityCnt - v));
+            int r = UnityEngine.Random.Range(1, 6);
+            var rv = (lastRange + r) % 6;
+            lastRange = rv;
         }
-        else if (v > entityCnt)
+        
+        int idx = lastRange / 2;
+        int v = lastRange % 2;
+        for (int i = 0; i < es.Length; i++)
         {
-            if (entityCnt == 0)
-            {
-                var en = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskCreater);
-                es[0] = en;
-                var p = random.NextFloat3(default, new float3(100, 0, 100));
-                em.SetComponentData(en, new Translation() { Value = p });
-                em.AddComponentData(en, new HDRPMaterialPropertyBaseColor() { Value = random.NextFloat4() });
-                em.AddComponentData(en, new Target()
-                {
-                    value = p,
-                    wait = 1,
-                });
-                entityCnt = 1;
-            }
-            for (int i = entityCnt; i < v; i++)
-            {
-                es[i] = em.Instantiate(es[0]);
-                var p = random.NextFloat3(default, new float3(100, 0, 100));
-                em.SetComponentData(es[i], new Translation() { Value = p });
-                em.SetComponentData(es[i], new HDRPMaterialPropertyBaseColor() { Value = random.NextFloat4() });
-                em.SetComponentData(es[i], new Target()
-                {
-                    value = p,
-                    wait = 1,
-                });
-            }
+            var n = noise.cnoise(new float2(i % 100, i / 100) / 3f);
+            var dTime = math.remap(-1, 1, 0, 1, n);
+            float3 f3 = default;
+            f3[idx % 3] = i % 100;
+            f3[(idx + 1) % 3] = i / 100;
+            f3[(idx + 2) % 3] = v * 100;
+            em.AddComponentData(es[i], new Demo1Delay { dTime = dTime, lTime = 1, v3 = f3 });
         }
-        entityCnt = v;
+    }
+    [GenerateTestsForBurstCompatibility]
+    partial struct Demo1Sys : ISystem
+    {
+        public void OnCreate(ref SystemState state)
+        {
+        
+        }
+
+        public void OnDestroy(ref SystemState state)
+        {
+           
+        }
+
+        [GenerateTestsForBurstCompatibility]
+        public void OnUpdate(ref SystemState state)
+        {
+            var dt = SystemAPI.Time.DeltaTime;
+            foreach (var t in SystemAPI.Query<Demo1Asp>())
+                t.Move(dt);
+        }
     }
 
-    struct Target : IComponentData
-    {
-        public float3 last;
-        public float3 value;
 
-        public float cur;
-        public float time;
-        public float wait;
-    }
+}
 
-    partial class MoveSystem : SystemBase
+[GenerateTestsForBurstCompatibility]
+struct Demo1Delay : IComponentData
+{
+    public float dTime;
+    public float lTime;
+    public float3 v3;
+}
+[GenerateTestsForBurstCompatibility]
+readonly partial struct Demo1Asp : IAspect
+{
+    readonly RefRW<Demo1Delay> target;
+    readonly RefRW<LocalToWorld> pos;
+
+    [GenerateTestsForBurstCompatibility]
+    public void Move(float dt)
     {
-        protected override void OnUpdate()
+        if (target.ValueRW.dTime > 0)
         {
-            Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
-            var dt = Time.DeltaTime;
-            Entities
-                .WithAll<Target, HDRPMaterialPropertyBaseColor, Translation>()
-                .ForEach((Entity e, ref Target t, ref HDRPMaterialPropertyBaseColor c, ref Translation p) =>
-                {
-                    if (t.wait > 0)
-                    {
-                        t.wait -= dt;
-                        if (t.wait <= 0)
-                        {
-                            float3 pp = random.NextFloat3(default, new float3(100, 0, 100));
-                            t.last = t.value;
-                            t.value = pp;
-                            t.cur = 0;
-                            t.time = math.max(math.distance(t.last, t.value) / 2f, 0.1f);
-                            c.Value = random.NextFloat4();
-                        }
-                    }
-                    else
-                    {
-                        t.cur = math.clamp(t.cur + dt, 0, t.time);
-                        p.Value = math.lerp(t.last, t.value, t.cur / t.time);
-                        if (t.cur >= t.time)
-                            t.wait = random.NextFloat(5, 10);
-                    }
-                }).ScheduleParallel();
+            target.ValueRW.dTime -= dt;
+            return;
         }
+        target.ValueRW.lTime = math.max(0, target.ValueRW.lTime - dt / 3f);
+        float4x4 f44 = pos.ValueRW.Value;
+        f44.c3.xyz = math.lerp(target.ValueRW.v3, f44.c3.xyz, target.ValueRW.lTime);
+        pos.ValueRW.Value = f44;
     }
 }
 

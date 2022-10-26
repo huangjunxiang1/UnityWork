@@ -41,6 +41,15 @@ class FreedomCamera : BaseCamera
     bool isClickOutSide = false;
     bool isClickFui = false;
 
+    public override void Init(GameObject target)
+    {
+        base.Init(target);
+        var m = Camera.main;
+        if (!m) return;
+        var v3 = Target.transform.position;
+        v3.y = Math.Clamp(Target.transform.position.y, GameL.Setting.FreedomCameraSetting.yMin, GameL.Setting.FreedomCameraSetting.yMax);
+        Target.transform.position = v3;
+    }
     public override void Dispose()
     {
         base.Dispose();

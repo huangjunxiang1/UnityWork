@@ -7,6 +7,7 @@ using Main;
 
 partial class FUILogin
 {
+    static int demoIdx = 0;
     protected override void OnEnter(params object[] data)
     {
         _btnLogin.onClick.Add(login);
@@ -16,6 +17,7 @@ partial class FUILogin
             "Outer",
         };
         _gameTypeCB.selectedIndex = 1;
+        _demo.selectedIndex = demoIdx;
         _uiType.onChanged.Add(onUIModel);
         _uiType.selectedIndex = 0;
         _acc.text = "t1";
@@ -24,7 +26,7 @@ partial class FUILogin
 
     protected override void OnExit()
     {
-
+        demoIdx = _demo.selectedIndex;
     }
 
     [Msg(CMDL.R2C_Login)]
@@ -55,8 +57,18 @@ partial class FUILogin
             this.Dispose();
         }
     }
-    void login()
+    async void login()
     {
+        await GameL.Scene.InScene(10001);
+        if (_demo.selectedIndex == 0)
+            await GameL.UI.OpenAsync<FUIFighting>();
+        else if (_demo.selectedIndex == 1)
+            await GameL.UI.OpenAsync<FUIFighting2>();
+        else if (_demo.selectedIndex == 2)
+            await GameL.UI.OpenAsync<FUIFighting3>();
+        return;
+
+        //链接服务器演示
         if (_gameTypeCB.selectedIndex == 0)
         {
             GameM.Net.Connect(NetType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressInner));

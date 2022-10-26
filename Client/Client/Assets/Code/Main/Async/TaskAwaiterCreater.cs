@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 public class TaskAwaiterCreater
 {
+    public bool Disposed { get; private set; } = false;
+
     readonly List<TaskAwaiter> tasks = new();
 
     public TaskAwaiter Create()
@@ -117,6 +119,7 @@ public class TaskAwaiterCreater
         for (int i = 0; i < tasks.Count; i++)
             tasks[i].TryCancel();
         tasks.Clear();
+        this.Disposed = true;
     }
 
     async void waitRemove(TaskAwaiter task)
