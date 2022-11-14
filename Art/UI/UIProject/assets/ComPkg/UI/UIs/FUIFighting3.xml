@@ -12,5 +12,11 @@
       <relation target="" sidePair="left-left,top-top"/>
       <Button title="播放"/>
     </component>
+    <component id="n6_l0o3" name="_findStyle" src="qgu25" fileName="Common/comBox/CB.xml" xy="253,77" size="137,20">
+      <ComboBox visibleItemCount="10">
+        <item title="job+burst寻路"/>
+        <item title="ComputeShader寻路"/>
+      </ComboBox>
+    </component>
   </displayList>
 </component>

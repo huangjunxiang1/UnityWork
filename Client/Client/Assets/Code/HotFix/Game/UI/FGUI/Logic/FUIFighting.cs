@@ -21,12 +21,13 @@ partial class FUIFighting
     {
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskCreater);
-
+      
         if (this.Disposed)
         {
             em.DestroyEntity(one);
             return;
         }
+        
         em.SetComponentData(one, new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
         em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
 
@@ -127,6 +128,7 @@ struct Demo1Delay : IComponentData
 [GenerateTestsForBurstCompatibility]
 readonly partial struct Demo1Asp : IAspect
 {
+    readonly Entity self;
     readonly RefRW<Demo1Delay> target;
     readonly RefRW<LocalToWorld> pos;
 

@@ -59,6 +59,7 @@ abstract class FUI3D : FUIBase
     public sealed override void Dispose()
     {
         base.Dispose();
-        AssetLoad.Release(this.Root);
+        if (this.Root)
+            AssetLoad.Release(this.Root);
     }
 }

@@ -46,12 +46,14 @@ partial class FUIFighting3 : FUI
     public GButton _btnBack;
     public GButton _rangeRoad;
     public GButton _play;
+    public GComboBox _findStyle;
 
     protected override void Binding()
     {
         _btnBack = (GButton)this.UI.GetChild("_btnBack");
         _rangeRoad = (GButton)this.UI.GetChild("_rangeRoad");
         _play = (GButton)this.UI.GetChild("_play");
+        _findStyle = (GComboBox)this.UI.GetChild("_findStyle");
     }
 }
 

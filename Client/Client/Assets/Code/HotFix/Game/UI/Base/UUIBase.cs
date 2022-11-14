@@ -29,7 +29,10 @@ abstract class UUIBase : UIBase
     {
         base.Dispose();
         //ui不做池管理
-        AssetLoad.ReleaseTextureRef(this.UI.gameObject);
-        AssetLoad.Release(this.UI.gameObject);
+        if (this.UI)
+        {
+            AssetLoad.ReleaseTextureRef(this.UI.gameObject);
+            AssetLoad.Release(this.UI.gameObject);
+        }
     }
 }

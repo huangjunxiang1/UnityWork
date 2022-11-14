@@ -1,0 +1,307 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+struct FindData {
+    int index;
+    int2 xy;
+};
+
+Buffer<bool> road;
+int2 now;
+int2 target;
+RWBuffer<int2> paths;
+RWBuffer<int> pathsCount;
+RWBuffer<int> finded;
+int mark;
+int size;
+RWStructuredBuffer<FindData> tmp;
+
+RWBuffer<int> test;
+
+
+[numthreads(1,1,1)]
+void CSMain ()
+{
+    for (int i = 0; i < test.Length; i++)
+    {
+        test[i] = i;
+    }
+    return;
+    finded[now.y * size + now.x] = mark;
+
+    FindData fd;
+    fd.xy = now;
+    fd.index = -1;
+   
+    int tmpIdx = 0;
+    tmp[tmpIdx++] = fd;
+
+    while (true)
+    {
+        int2 offset = target - fd.xy;
+        bool addded = false;
+        bool find = false;
+        int index = tmp.Length - 1;
+        if (offset.x > 0 && offset.x >= abs(offset.y))
+        {
+            if (!find && fd.xy.x > 0)
+            {
+                int2 xy = int2(fd.xy.x - 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.y > 0)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y - 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.y < size - 1)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y + 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.x < size - 1)
+            {
+                int2 xy = int2(fd.xy.x + 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+        }
+        else if (offset.x < 0 && -offset.x >= abs(offset.y))
+        {
+            if (!find && fd.xy.x < size - 1)
+            {
+                int2 xy = int2(fd.xy.x + 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.y > 0)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y - 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.y < size - 1)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y + 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.x > 0)
+            {
+                int2 xy = int2(fd.xy.x - 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+        }
+        else if (offset.y > 0 && offset.y > abs(offset.x))
+        {
+            if (!find && fd.xy.y > 0)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y - 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.x > 0)
+            {
+                int2 xy = int2(fd.xy.x - 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.x < size - 1)
+            {
+                int2 xy = int2(fd.xy.x + 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.y < size - 1)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y + 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+        }
+        else
+        {
+            if (!find && fd.xy.y < size - 1)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y + 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.x > 0)
+            {
+                int2 xy = int2(fd.xy.x - 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.x < size - 1)
+            {
+                int2 xy = int2(fd.xy.x + 1, fd.xy.y);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+            if (!find && fd.xy.y > 0)
+            {
+                int2 xy = int2(fd.xy.x, fd.xy.y - 1);
+                int idx = xy.y * size + xy.x;
+                if (road[idx] && finded[idx] != mark)
+                {
+                    tmp[tmpIdx].xy = xy;
+                    tmp[tmpIdx].index = index;
+                    tmpIdx++;
+                    addded = true;
+                    find = all(xy == target);
+                    finded[idx] = mark;
+                }
+            }
+        }
+        if (find)
+            break;
+        if (!addded)
+            tmpIdx--;
+
+        if (tmp.Length > 0)
+            fd = tmp[tmpIdx - 1];
+        else
+            break;
+    }
+
+    int pathIdx = 0;
+    if (tmp.Length > 0)
+    {
+        FindData t = tmp[tmpIdx - 1];
+        while (t.index > -1)
+        {
+            paths[pathIdx++] = t.xy;
+            t = tmp[t.index];
+        }
+        paths[pathIdx++]= t.xy;
+    }
+    pathsCount[0] = pathIdx;
+}

@@ -14,11 +14,11 @@
       "dependencies": {}
     },
     "com.unity.addressables": {
-      "version": "1.20.5",
+      "version": "1.21.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.scriptablebuildpipeline": "1.20.2",
+        "com.unity.scriptablebuildpipeline": "1.21.0",
         "com.unity.modules.assetbundle": "1.0.0",
         "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0",
@@ -68,7 +68,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.collab-proxy": {
-      "version": "1.17.6",
+      "version": "1.17.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -95,7 +95,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.entities": {
-      "version": "1.0.0-exp.8",
+      "version": "1.0.0-exp.12",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -116,11 +116,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.entities.graphics": {
-      "version": "1.0.0-exp.8",
-      "depth": 1,
+      "version": "1.0.0-exp.14",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.entities": "1.0.0-exp.8",
+        "com.unity.entities": "1.0.0-exp.12",
         "com.unity.render-pipelines.core": "14.0.3"
       },
       "url": "https://packages.unity.com"
@@ -170,7 +170,7 @@
       "dependencies": {}
     },
     "com.unity.inputsystem": {
-      "version": "1.4.2",
+      "version": "1.4.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -237,13 +237,13 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.physics": {
-      "version": "1.0.0-exp.8",
+      "version": "1.0.0-exp.12",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.burst": "1.7.3",
         "com.unity.collections": "2.1.0-exp.4",
-        "com.unity.entities": "1.0.0-exp.8",
+        "com.unity.entities": "1.0.0-exp.12",
         "com.unity.jobs": "0.70.0-preview.7",
         "com.unity.mathematics": "1.2.6",
         "com.unity.test-framework": "1.1.33",
@@ -347,17 +347,8 @@
         "com.unity.render-pipelines.core": "14.0.3"
       }
     },
-    "com.unity.rendering.hybrid": {
-      "version": "0.61.0-preview.7",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.entities.graphics": "1.0.0-exp.8"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.20.2",
+      "version": "1.21.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -384,7 +375,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.services.core": {
-      "version": "1.4.3",
+      "version": "1.5.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {

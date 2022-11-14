@@ -120,7 +120,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         await task;
         taskAwaiter.TrySetResult();
     }
-    public static async TaskAwaiter WaitAll(IEnumerable<TaskAwaiter> itor)
+    public static async TaskAwaiter All(IEnumerable<TaskAwaiter> itor)
     {
         if (itor == null)
             await TaskAwaiter.Completed;
@@ -129,7 +129,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         for (int i = 0; i < tasks.Length; i++)
             await tasks[i];
     }
-    public static async TaskAwaiter<K[]> WaitAll<K>(IEnumerable<TaskAwaiter<K>> itor)
+    public static async TaskAwaiter<K[]> All<K>(IEnumerable<TaskAwaiter<K>> itor)
     {
         if (itor == null)
             return new K[0];
@@ -142,7 +142,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             return rs;
         }
     }
-    public static TaskAwaiter WaitAny(IEnumerable<TaskAwaiter> itor, bool canelOthersAfterCompleted = true)
+    public static TaskAwaiter Any(IEnumerable<TaskAwaiter> itor, bool canelOthersAfterCompleted = true)
     {
         if (itor == null)
             return TaskAwaiter.Completed;
@@ -165,7 +165,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             wait(tasks[i]);
         return waiter;
     }
-    public static TaskAwaiter<K> WaitAny<K>(IEnumerable<TaskAwaiter<K>> itor, bool canelOthersAfterCompleted = true)
+    public static TaskAwaiter<K> Any<K>(IEnumerable<TaskAwaiter<K>> itor, bool canelOthersAfterCompleted = true)
     {
         TaskAwaiter<K> waiter = new();
         if (itor == null) waiter.TrySetResult(default);

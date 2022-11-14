@@ -70,7 +70,7 @@ abstract class FUI : FUIBase
     public sealed override void Dispose()
     {
         base.Dispose();
-        this.ui.Dispose();
+        this.ui?.Dispose();
         this.ui = null;
     }
 }
