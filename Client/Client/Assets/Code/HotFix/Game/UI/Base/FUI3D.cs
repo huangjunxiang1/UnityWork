@@ -27,7 +27,7 @@ abstract class FUI3D : FUIBase
     public GameObject Root { get; private set; }
     public UIPanel Panel { get; private set; }
 
-    public sealed override void LoadConfig(UIConfig config, params object[] data)
+    public sealed override void LoadConfig(Main.UIConfig config, params object[] data)
     {
         base.LoadConfig(config, data);
 
@@ -41,7 +41,7 @@ abstract class FUI3D : FUIBase
         this.OnEnter(data);
         this.EnterWaiter = this.OnEnterAsync(data);
     }
-    public sealed override async void LoadConfigAsync(UIConfig config, params object[] data)
+    public sealed override async void LoadConfigAsync(Main.UIConfig config, params object[] data)
     {
         base.LoadConfigAsync(config, data);
 

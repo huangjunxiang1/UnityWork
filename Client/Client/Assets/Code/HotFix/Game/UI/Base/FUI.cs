@@ -23,12 +23,12 @@ abstract class FUI : FUIBase
 
     GComponent ui;
 
-    public sealed override void LoadConfig(UIConfig config, params object[] data)
+    public sealed override void LoadConfig(Main.UIConfig config, params object[] data)
     {
         base.LoadConfig(config, data);
 
         this.OnAwake(data);
-        this.ui = UIConfig.ComPkg.CreateObject(this.url).asCom;
+        this.ui = UIPkg.ComPkg.CreateObject(this.url).asCom;
         GRoot.inst.AddChild(this.ui);
         this.ui.MakeFullScreen();
         this.ui.AddRelation(GRoot.inst, RelationType.Size);
@@ -40,12 +40,12 @@ abstract class FUI : FUIBase
         this.OnEnter(data);
         this.EnterWaiter = this.OnEnterAsync(data);
     }
-    public sealed override void LoadConfigAsync(UIConfig config, params object[] data)
+    public sealed override void LoadConfigAsync(Main.UIConfig config, params object[] data)
     {
         base.LoadConfigAsync(config, data);
 
         this.OnAwake(data);
-        UIConfig.ComPkg.CreateObjectAsync(this.url, obj =>
+        UIPkg.ComPkg.CreateObjectAsync(this.url, obj =>
         {
             if (this.Disposed)
             {

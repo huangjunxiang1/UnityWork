@@ -8,7 +8,7 @@ static class Box
 {
     public static void Tips(string s)
     {
-        var g = UIConfig.ComPkg.CreateObject("Tips").asCom;
+        var g = UIPkg.ComPkg.CreateObject("Tips").asCom;
         GRoot.inst.AddChild(g);
         g.xy = new UnityEngine.Vector2(GRoot.inst.width - g.width, GRoot.inst.height - g.height) / 2f;
         g.sortingOrder = int.MaxValue;
@@ -17,7 +17,7 @@ static class Box
     }
     public static void Op_YesOrNo(string title, string text, string yes, string no, EventCallback0 onYes, EventCallback0 onNo = null)
     {
-        var g = UIConfig.ComPkg.CreateObject("Box_YesOrNo").asCom;
+        var g = UIPkg.ComPkg.CreateObject("Box_YesOrNo").asCom;
         GRoot.inst.AddChild(g);
         g.xy = new UnityEngine.Vector2(GRoot.inst.width - g.width, GRoot.inst.height - g.height) / 2f;
         g.sortingOrder = int.MaxValue - 1;

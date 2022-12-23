@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="100,50" extention="Button">
+  <controller name="button" pages="2,up,3,down,4,disabled,5,selectedDisabled" selected="0"/>
+  <displayList>
+    <graph id="n0_mxup" name="n0" xy="0,0" size="100,50" touchable="false" type="rect" lineSize="0">
+      <gearDisplay controller="button" pages="3"/>
+      <relation target="" sidePair="width-width,height-height"/>
+    </graph>
+    <graph id="n2_mxup" name="n2" xy="0,0" size="100,50" touchable="false" type="rect" lineSize="0" fillColor="#7fcccccc">
+      <relation target="" sidePair="width-width,height-height"/>
+    </graph>
+    <text id="n3_mxup" name="title" xy="0,0" size="100,50" fontSize="12" align="center" vAlign="middle" autoSize="none" text="显示Cube">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </text>
+  </displayList>
+  <Button mode="Check"/>
+</component>

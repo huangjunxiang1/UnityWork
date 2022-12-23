@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 using Game;
 using Main;
 
+[DisableAutoRegisteredEvent]
 abstract class UIBase : TreeL<UIBase>
 {
     Eventer _onDispose;
 
-    public override bool AutoRigisteEvent => false;
-
-    public UIConfig uiConfig { get; private set; }
+    public Main.UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
     /// <summary>
@@ -57,13 +56,13 @@ abstract class UIBase : TreeL<UIBase>
     protected virtual void OnExit() { }
     protected abstract void Binding();
 
-    public virtual void LoadConfig(UIConfig config, params object[] data)
+    public virtual void LoadConfig(Main.UIConfig config, params object[] data)
     {
         this.uiConfig = config;
         this.LoadWaiter = TaskAwaiter.Completed;
         this.ListenerEnable = true;
     }
-    public virtual async void LoadConfigAsync(UIConfig config, params object[] data)
+    public virtual async void LoadConfigAsync(Main.UIConfig config, params object[] data)
     {
         this.uiConfig = config;
         this.LoadWaiter = TaskCreater.Create();

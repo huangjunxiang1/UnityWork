@@ -17,7 +17,7 @@ public class Init
             if (!ConstDefM.Debug && ConstDefL.Debug)
                 Loger.Error("主工程不是debug模式 热更是debug模式");
         }
-        Application.targetFrameRate = 60;
+        Application.targetFrameRate = -1;
         FairyGUI.UIConfig.defaultFont = "Impact";
         DG.Tweening.DOTween.Init();
         System.Threading.SynchronizationContext.SetSynchronizationContext(ThreadSynchronizationContext.Instance);

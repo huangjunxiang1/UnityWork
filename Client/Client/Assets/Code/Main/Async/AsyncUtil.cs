@@ -53,13 +53,29 @@ public static class AsyncUtil
     public static TaskAwaiter GetAwaiter(this EventListener eventListener)
     {
         TaskAwaiter task = new();
-        eventListener.Add(task.TrySetResult);
+
+        //只触发一次 然后移除掉
+        void trigger()
+        {
+            eventListener.Remove(trigger);
+            task.TrySetResult();
+        }
+        eventListener.Add(trigger);
+
         return task;
     }
     public static TaskAwaiter GetAwaiter(this UnityEvent unityEvent)
     {
         TaskAwaiter task = new();
-        unityEvent.AddListener(task.TrySetResult);
+
+        //只触发一次 然后移除掉
+        void trigger()
+        {
+            unityEvent.RemoveListener(trigger);
+            task.TrySetResult();
+        }
+        unityEvent.AddListener(trigger);
+
         return task;
     }
 }

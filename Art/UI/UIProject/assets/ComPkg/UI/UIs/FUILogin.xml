@@ -28,6 +28,7 @@
         <item title="1_位移墙"/>
         <item title="2_随机巡逻"/>
         <item title="3_随机地图+巡逻"/>
+        <item title="4_GPU寻路+绘制"/>
       </ComboBox>
     </component>
     <group id="n8_xbva" name="n8" xy="379,150" size="576,449" advanced="true">

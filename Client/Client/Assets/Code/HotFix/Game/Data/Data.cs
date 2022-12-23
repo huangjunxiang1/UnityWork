@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 //缓存数据
-partial class Data : ObjectL
+class Data : ObjectL
 {
-
+    
 }

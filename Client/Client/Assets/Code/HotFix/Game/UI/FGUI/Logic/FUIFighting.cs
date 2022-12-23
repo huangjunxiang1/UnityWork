@@ -13,6 +13,7 @@ using Main;
 using Game;
 using Unity.Physics;
 
+[Main.UIConfig(20)]
 partial class FUIFighting
 {
     NativeArray<Entity> es = default;

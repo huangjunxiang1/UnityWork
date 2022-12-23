@@ -16,7 +16,7 @@ namespace Game
             this.GID = IDGenerate.GenerateID();
             this.CID = cid;
             Objects.Add(this.GID, this);
-            if (this.AutoRigisteEvent)
+            if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredEvent), true))
                 this.ListenerEnable = true;
         }
 
@@ -39,11 +39,6 @@ namespace Game
         /// 是否已被销毁
         /// </summary>
         public bool Disposed { get; private set; }
-
-        /// <summary>
-        /// 自动注册事件监听
-        /// </summary>
-        public virtual bool AutoRigisteEvent { get; } = true;
 
         /// <summary>
         /// 事件监听
@@ -99,7 +94,22 @@ namespace Game
                 GameM.Event.RemoveKeyListener(eventKey, this);
             taskCreater?.Dispose();
         }
-
+        protected void RigisteKeyListener()
+        {
+            if (CID == 0)
+            {
+                Loger.Error($"CID=0");
+                return;
+            }
+            if (keyListenerEnable)
+            {
+                Loger.Error($"已经注册了key监听 key={CID}");
+                return;
+            }
+            eventKey = CID;
+            keyListenerEnable = true;
+            GameM.Event.RigisteKeyListener(CID, this);
+        }
         protected void RigisteKeyListener(long key)
         {
             if (key == 0)

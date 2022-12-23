@@ -98,3 +98,20 @@ partial class FUIGlobal : FUI
         _log = (GButton)this.UI.GetChild("_log");
     }
 }
+
+partial class FUIFighting4 : FUI
+{
+    public override string url => "FUIFighting4";
+    public GButton _btnBack;
+    public GButton _rangeRoad;
+    public GButton _play;
+    public GButton _showCube;
+
+    protected override void Binding()
+    {
+        _btnBack = (GButton)this.UI.GetChild("_btnBack");
+        _rangeRoad = (GButton)this.UI.GetChild("_rangeRoad");
+        _play = (GButton)this.UI.GetChild("_play");
+        _showCube = (GButton)this.UI.GetChild("_showCube");
+    }
+}

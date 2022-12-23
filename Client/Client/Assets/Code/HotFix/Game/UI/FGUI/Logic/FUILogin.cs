@@ -66,6 +66,8 @@ partial class FUILogin
             await GameL.UI.OpenAsync<FUIFighting2>();
         else if (_demo.selectedIndex == 2)
             await GameL.UI.OpenAsync<FUIFighting3>();
+        else if (_demo.selectedIndex == 3)
+            await GameL.UI.OpenAsync<FUIFighting4>();
         return;
 
         //链接服务器演示

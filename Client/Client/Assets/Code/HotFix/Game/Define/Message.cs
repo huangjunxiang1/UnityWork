@@ -20,7 +20,6 @@ public partial class C2R_Login : IRequest
 
 	[ProtoMember(2)]
 	public string Password { get; set; }
-
 }
 
 [Message(CMDL.R2C_Login)]

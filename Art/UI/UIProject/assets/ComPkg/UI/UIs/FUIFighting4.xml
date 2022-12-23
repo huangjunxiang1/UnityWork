@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1334,750" opaque="false">
+  <displayList>
+    <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
+      <relation target="" sidePair="right-right,top-top"/>
+    </component>
+    <component id="n4_omwm" name="_rangeRoad" src="qgu27" fileName="Common/btn/btn.xml" xy="36,57" size="113,43">
+      <relation target="" sidePair="left-left,top-top"/>
+      <Button title="随机地图"/>
+    </component>
+    <component id="n5_ub09" name="_play" src="qgu27" fileName="Common/btn/btn.xml" xy="37,140" size="113,43">
+      <relation target="" sidePair="left-left,top-top"/>
+      <Button title="播放"/>
+    </component>
+    <component id="n7_mxup" name="_showCube" src="mxupl" fileName="Common/toggle/tog.xml" xy="39,231">
+      <relation target="" sidePair="left-left,top-top"/>
+    </component>
+  </displayList>
+</component>

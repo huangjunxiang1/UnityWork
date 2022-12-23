@@ -56,9 +56,9 @@ static class UIHelper
     }
     public static string GetFGUIItemUrl(string name)
     {
-        PackageItem pi = UIConfig.ResPkg.GetItem(name);
+        PackageItem pi = UIPkg.ResPkg.GetItem(name);
         if (pi == null)
             return null;
-        return $"{UIPackage.URL_PREFIX}{UIConfig.ResPkg.id}{pi.id}";
+        return $"{UIPackage.URL_PREFIX}{UIPkg.ResPkg.id}{pi.id}";
     }
 }

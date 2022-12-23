@@ -74,13 +74,13 @@ namespace Animancer
         /// <para></para>
         /// The default value is true.
         /// <para></para>
-        /// This property wraps <see cref="Animator.keepAnimatorControllerStateOnDisable"/> and inverts its value.
+        /// This property wraps <see cref="Animator.keepAnimatorStateOnDisable"/> and inverts its value.
         /// The value is serialized by the <see cref="UnityEngine.Animator"/>.
         /// </summary>
         public bool StopOnDisable
         {
-            get => !_Animator.keepAnimatorControllerStateOnDisable;
-            set => _Animator.keepAnimatorControllerStateOnDisable = !value;
+            get => !_Animator.keepAnimatorStateOnDisable;
+            set => _Animator.keepAnimatorStateOnDisable = !value;
         }
 
         /************************************************************************************************************************/
@@ -305,7 +305,7 @@ namespace Animancer
         {
             IsPlaying = false;
 
-            if (_Animator.keepAnimatorControllerStateOnDisable)
+            if (_Animator.keepAnimatorStateOnDisable)
                 return;
 
             if (IsInitialised)

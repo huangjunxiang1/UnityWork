@@ -55,8 +55,8 @@ namespace Game
             {
                 GRoot.inst.visible = GameL.Setting.UIModel == UIModel.FGUI;
                 StageCamera.main.gameObject.SetActive(GameL.Setting.UIModel == UIModel.FGUI);
-                UIConfig.ComPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
-                UIConfig.ResPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
+                UIPkg.ComPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
+                UIPkg.ResPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
             }
         }
         async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
@@ -96,8 +96,13 @@ namespace Game
             T ui = Get<T>();
             if (ui != null)
                 return ui;
-            if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
-                cfg = UIConfig.Default;
+
+            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
+            Main.UIConfig cfg;
+            if (os.Length == 0)
+                cfg = Main.UIConfig.Default;
+            else
+                cfg = (Main.UIConfig)os[0];
 
             ui = new();
             _uiLst.Add(ui);
@@ -110,8 +115,13 @@ namespace Game
             T ui = Get<T>();
             if (ui != null)
                 return ui;
-            if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
-                cfg = UIConfig.Default;
+
+            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
+            Main.UIConfig cfg;
+            if (os.Length == 0)
+                cfg = Main.UIConfig.Default;
+            else
+                cfg = (Main.UIConfig)os[0];
 
             ui = new();
             _uiLst.Add(ui);
@@ -123,8 +133,12 @@ namespace Game
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
-                cfg = UIConfig.Default;
+            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
+            Main.UIConfig cfg;
+            if (os.Length == 0)
+                cfg = Main.UIConfig.Default;
+            else
+                cfg = (Main.UIConfig)os[0];
 
             T ui = new();
             _3duiLst.Add(ui);
@@ -134,8 +148,12 @@ namespace Game
         }
         public async TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
         {
-            if (!UIConfig.UIConfigMap.TryGetValue(typeof(T), out UIConfig cfg))
-                cfg = UIConfig.Default;
+            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
+            Main.UIConfig cfg;
+            if (os.Length == 0)
+                cfg = Main.UIConfig.Default;
+            else
+                cfg = (Main.UIConfig)os[0];
 
             T ui = new();
             _3duiLst.Add(ui);

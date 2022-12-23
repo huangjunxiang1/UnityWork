@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: LockingCameraSetting
   m_EditorClassIdentifier: Main::LockingCameraSetting
   yMin: 0
-  yMax: 0
-  wheelSpeed: 0
+  yMax: 10
+  wheelSpeed: 0.1

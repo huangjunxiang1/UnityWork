@@ -22,7 +22,7 @@ partial class FUIFighting3
     NativeArray<Entity> block;
     int blockCount = 3000;
     NativeArray<Entity> Player;
-    public const int playerCount = 200;
+    public const int playerCount = 2000;
     SystemHandle sys;
 
     protected override async void OnEnter(params object[] data)
@@ -31,7 +31,7 @@ partial class FUIFighting3
 
         Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskCreater);
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        em.SetComponentData(one, new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
+        em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
         em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(0, 0, 1, 1) });
         block = new NativeArray<Entity>(blockCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         block[0] = one;
@@ -41,7 +41,7 @@ partial class FUIFighting3
             block[i] = e;
         }
         _findStyle.selectedIndex = 0;
-
+ 
         _rangeRoad.onClick.Add(_click_rangeRoad);
         _play.onClick.Add(_click_play);
         _btnBack.onClick.Add(_clickBack);
@@ -49,6 +49,8 @@ partial class FUIFighting3
     protected override void OnExit()
     {
         base.OnExit();
+        if (sys != SystemHandle.Null)
+            Unity.Entities.World.DefaultGameObjectInjectionWorld.DestroySystem(sys);
         if (road.IsCreated)
             road.Dispose();
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -62,8 +64,6 @@ partial class FUIFighting3
             em.DestroyEntity(Player);
             Player.Dispose();
         }
-        if (sys != SystemHandle.Null)
-            Unity.Entities.World.DefaultGameObjectInjectionWorld.DestroySystem(sys);
     }
 
     [Event((int)EventIDM.QuitGame)]
@@ -73,6 +73,10 @@ partial class FUIFighting3
             road.Dispose();
         if (block.IsCreated)
             block.Dispose();
+        if (Player.IsCreated)
+            Player.Dispose();
+        if (sys != SystemHandle.Null)
+            Unity.Entities.World.DefaultGameObjectInjectionWorld.DestroySystem(sys);
     }
     void _clickBack()
     {
@@ -112,7 +116,7 @@ partial class FUIFighting3
                 Player[i] = e;
             }
         }
-       
+
         Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
         for (int i = 0; i < Player.Length; i++)
         {
@@ -142,7 +146,7 @@ partial class FUIFighting3
                     break;
                 }
             }
-            road[r.y * size + r.x]++;
+            //road[r.y * size + r.x]++;
             em.SetComponentData(Player[i], new LocalToWorld() { Value = float4x4.Translate(new float3(r.x, 0, r.y) + 0.5f) });
         }
 
@@ -161,8 +165,10 @@ partial struct Demo3Sys : ISystem
     ComponentTypeHandle<Demo3Com> dTypeHandle;
     ComponentTypeHandle<LocalToWorld> LTypeHandle;
     static int tmpMv;
+    NativeArray<int3> ps;
     public void OnCreate(ref SystemState state)
     {
+        ps = new NativeArray<int3>(FUIFighting3.playerCount, Allocator.Persistent);
         query = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Demo3Com), typeof(LocalToWorld));
         dTypeHandle = state.GetComponentTypeHandle<Demo3Com>();
         LTypeHandle = state.GetComponentTypeHandle<LocalToWorld>();
@@ -170,6 +176,7 @@ partial struct Demo3Sys : ISystem
 
     public void OnDestroy(ref SystemState state)
     {
+        ps.Dispose();
         query.Dispose();
     }
 
@@ -177,9 +184,6 @@ partial struct Demo3Sys : ISystem
     {
         var road = GameL.UI.Get<FUIFighting3>().road;
 
-        state.Dependency.Complete();
-        NativeArray<JobHandle> jobs = new NativeArray<JobHandle>(FUIFighting3.playerCount, Allocator.Temp);
-        NativeArray<int3> ps = new NativeArray<int3>(FUIFighting3.playerCount, Allocator.TempJob);
         var chunks = query.ToArchetypeChunkArray(Allocator.TempJob);
         dTypeHandle.Update(ref state);
         LTypeHandle.Update(ref state);
@@ -188,8 +192,8 @@ partial struct Demo3Sys : ISystem
         for (int cc = 0; cc < chunks.Length; cc++)
         {
             var chunk = chunks[cc];
-            var ds = chunk.GetNativeArray(dTypeHandle);
-            var ls = chunk.GetNativeArray(LTypeHandle);
+            var ds = chunk.GetNativeArray(ref dTypeHandle);
+            var ls = chunk.GetNativeArray(ref LTypeHandle);
 
             for (int c = 0; c < chunk.Count; c++)
             {
@@ -209,12 +213,9 @@ partial struct Demo3Sys : ISystem
 
                 job.mv = mv;
 
-                jobs[job.pIdx] = job.Schedule();
+                job.Schedule();
             }
         }
-     
-        JobHandle.CompleteAll(jobs);
-        jobs.Dispose();
 
         JobforMove move = new JobforMove();
         move.chunks = chunks;
@@ -224,8 +225,8 @@ partial struct Demo3Sys : ISystem
         move.random = SharedStatic<Unity.Mathematics.Random>.GetOrCreate<Unity.Mathematics.Random>();
         move.random.Data.state = (uint)(SystemAPI.Time.ElapsedTime * 1000);
         move.paths = ps;
-        move.Schedule(chunks.Length, 64, state.Dependency).Complete();
-        ps.Dispose();
+        state.Dependency = move.Schedule(chunks.Length, 64, state.Dependency);
+
         chunks.Dispose();
     }
 }
@@ -238,7 +239,8 @@ public struct Demo3Com : IComponentData
 [BurstCompile]
 public partial struct JobforMove : IJobParallelFor
 {
-    [ReadOnly] 
+    [ReadOnly]
+    [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
     public NativeArray<ArchetypeChunk> chunks;
 
     public ComponentTypeHandle<Demo3Com> dTypeHandle;
@@ -247,20 +249,21 @@ public partial struct JobforMove : IJobParallelFor
     [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
     public NativeArray<int> road;
 
-    [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestriction] 
+    [ReadOnly]
+    [Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestriction] 
     public SharedStatic<Unity.Mathematics.Random> random;
 
-    [ReadOnly] 
+    [ReadOnly]
+    [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
     public NativeArray<int3> paths;
 
     const float speed = 0.1f;
-    const int size = 100;
     [BurstCompile]
     public void Execute(int index)
     {
         var chunk = chunks[index];
-        var ds = chunk.GetNativeArray(dTypeHandle);
-        var ls = chunk.GetNativeArray(LTypeHandle);
+        var ds = chunk.GetNativeArray(ref dTypeHandle);
+        var ls = chunk.GetNativeArray(ref LTypeHandle);
         for (int c = 0; c < chunk.Count; c++)
         {
             Demo3Com t1 = ds[c];
@@ -273,15 +276,15 @@ public partial struct JobforMove : IJobParallelFor
 
             if (r3.z == 0 || math.all(t1.target == now) || math.all(t1.target == int2.zero))
             {
-                int2 r = random.Data.NextInt2(0, size);
+                int2 r = random.Data.NextInt2(0, FUIFighting3.size);
                 int2 xy = default;
                 bool find = false;
-                for (int i = r.y * size + r.x; i < road.Length; i++)
+                for (int i = r.y * FUIFighting3.size + r.x; i < road.Length; i++)
                 {
-                    if (road[i] > 0 || i == now.y * size + now.x)
+                    if (road[i] > 0 || i == now.y * FUIFighting3.size + now.x)
                         continue;
-                    int x = i % size;
-                    int y = i / size;
+                    int x = i % FUIFighting3.size;
+                    int y = i / FUIFighting3.size;
                     xy.x = x;
                     xy.y = y;
                     find = true;
@@ -289,12 +292,12 @@ public partial struct JobforMove : IJobParallelFor
                 }
                 if (!find)
                 {
-                    for (int i = 0; i < r.y * size + r.x; i++)
+                    for (int i = 0; i < r.y * FUIFighting3.size + r.x; i++)
                     {
-                        if (road[i] > 0 || i == now.y * size + now.x)
+                        if (road[i] > 0 || i == now.y * FUIFighting3.size + now.x)
                             continue;
-                        int x = i % size;
-                        int y = i / size;
+                        int x = i % FUIFighting3.size;
+                        int y = i / FUIFighting3.size;
                         xy.x = x;
                         xy.y = y;
                         break;
@@ -306,12 +309,12 @@ public partial struct JobforMove : IJobParallelFor
             else
             {
                 f44.c3.xz += speed * math.normalize(((float2)r3.xy + 0.5f - f44.c3.xz));
-                int2 next = (int2)f44.c3.xz;
+                /*int2 next = (int2)f44.c3.xz;
                 if (math.any(now != next))
                 {
-                    --road[now.y * size + now.x];
-                    ++road[next.y * size + next.x];
-                }
+                    --road[now.y * FUIFighting3.size + now.x];
+                    ++road[next.y * FUIFighting3.size + next.x];
+                }*/
                 pos.Value = f44;
             }
             ds[c] = t1;
@@ -319,261 +322,6 @@ public partial struct JobforMove : IJobParallelFor
         }
     }
 }
-
-/*//深度搜索
-[BurstCompile]
-public struct PathFindJob : IJob
-{
-    public NativeArray<bool> road;
-    public int2 now;
-    public int2 target;
-    public NativeList<int2> paths;
-    public NativeArray<int> finded;
-    public int mark;
-    public NativeList<FindData> tmp;
-    [BurstCompile]
-    public void Execute()
-    {
-        finded[now.y * FUIFighting3.size + now.x] = mark;
-
-        FindData fd = new FindData { xy = now, index = -1 };
-        tmp.Clear();
-        tmp.Add(fd);
-
-        while (true)
-        {
-            int2 offset = target - fd.xy;
-            bool addded = false;
-            bool find = false;
-            int index = tmp.Length - 1;
-            if (offset.x > 0 && offset.x >= math.abs(offset.y))
-            {
-                if (!find && fd.xy.x > 0)
-                {
-                    int2 xy = new int2(fd.xy.x - 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.y > 0)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y - 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.y < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y + 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.x < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x + 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-            }
-            else if (offset.x < 0 && -offset.x >= math.abs(offset.y))
-            {
-                if (!find && fd.xy.x < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x + 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.y > 0)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y - 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.y < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y + 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.x > 0)
-                {
-                    int2 xy = new int2(fd.xy.x - 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-            }
-            else if (offset.y > 0 && offset.y > math.abs(offset.x))
-            {
-                if (!find && fd.xy.y > 0)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y - 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.x > 0)
-                {
-                    int2 xy = new int2(fd.xy.x - 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.x < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x + 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.y < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y + 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-            }
-            else
-            {
-                if (!find && fd.xy.y < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y + 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.x > 0)
-                {
-                    int2 xy = new int2(fd.xy.x - 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.x < FUIFighting3.size - 1)
-                {
-                    int2 xy = new int2(fd.xy.x + 1, fd.xy.y);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-                if (!find && fd.xy.y > 0)
-                {
-                    int2 xy = new int2(fd.xy.x, fd.xy.y - 1);
-                    int idx = xy.y * FUIFighting3.size + xy.x;
-                    if (road[idx] && finded[idx] != mark)
-                    {
-                        tmp.Add(new FindData { xy = xy, index = index });
-                        addded = true;
-                        find = math.all(xy == target);
-                        finded[idx] = mark;
-                    }
-                }
-            }
-            if (find)
-                break;
-            if (!addded)
-                tmp.RemoveAt(tmp.Length - 1);
-
-            if (tmp.Length > 0)
-                fd = tmp[tmp.Length - 1];
-            else
-                break;
-        }
-
-        paths.Clear();
-        if (tmp.Length > 0)
-        {
-            FindData t = tmp[tmp.Length - 1];
-            while (t.index > -1)
-            {
-                paths.Add(t.xy);
-                t = tmp[t.index];
-            }
-            paths.Add(t.xy);
-        }
-    }
-}*/
 
 //广度搜索
 [BurstCompile]
@@ -597,13 +345,11 @@ public struct PathFindJob2 : IJob
     [ReadOnly]
     public int mv;
 
-    const int size = 100;
-
     [BurstCompile]
     public void Execute()
     {
-        NativeArray<int> mark = new NativeArray<int>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
-        NativeArray<Point> temp = new NativeArray<Point>(size * size, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+        NativeArray<int> mark = new NativeArray<int>(FUIFighting3.size * FUIFighting3.size, Allocator.Temp);
+        NativeArray<Point> temp = new NativeArray<Point>(FUIFighting3.size * FUIFighting3.size, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
         Point p = new Point();
         p.xy = now;
@@ -612,7 +358,6 @@ public struct PathFindJob2 : IJob
         bool find = false;
         int sIdx = 0;
         int eIdx = 0;
-
 
         {
             Point pp = p;
