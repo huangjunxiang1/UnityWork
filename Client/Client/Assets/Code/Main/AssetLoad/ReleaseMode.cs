@@ -9,7 +9,7 @@ namespace Main
     public enum ReleaseMode
     {
         None,
-        Release,
-        ReleaseToPool,
+        Destroy,
+        PutToPool,
     }
 }

@@ -43,7 +43,7 @@ local function genCode(handler)
         writer:startBlock()
 
         if(b==false) then
-              writer:writeln('public override string url => "'..classInfo.className..'";')
+              writer:writeln('public sealed override string url => "'..classInfo.className..'";')
         end
 
         local memberCnt = members.Count
@@ -56,10 +56,10 @@ local function genCode(handler)
 
         writer:writeln()
         if handler.project.type==ProjectType.MonoGame then
-            writer:writeln("protected override void Binding()")
+            writer:writeln("protected sealed override void Binding()")
             writer:startBlock()
         else
-            writer:writeln('protected override void Binding()')
+            writer:writeln('protected sealed override void Binding()')
             writer:startBlock()
         end
         

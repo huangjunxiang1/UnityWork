@@ -29,7 +29,10 @@ abstract class UUI : UUIBase
         this.ui.anchorMax = Vector2.one;
         this.ui.anchoredPosition = default;
         this.canvas = this.ui.GetComponent<Canvas>();
-        this.canvas.sortingOrder = config.SortOrder;
+        if (this.IsPage)
+            this.canvas.sortingOrder = (config.SortOrder + 10000) * 100000;
+        else
+            this.canvas.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
         this.Binding();
         this.OnEnter(data);
@@ -50,7 +53,10 @@ abstract class UUI : UUIBase
         this.ui.anchorMax = Vector2.one;
         this.ui.anchoredPosition = default;
         this.canvas = this.ui.GetComponent<Canvas>();
-        this.canvas.sortingOrder = config.SortOrder;
+        if (this.IsPage)
+            this.canvas.sortingOrder = (config.SortOrder + 10000) * 100000;
+        else
+            this.canvas.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
         this.Binding();
         this.OnEnter(data);

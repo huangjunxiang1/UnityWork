@@ -14,7 +14,7 @@
     "memberNamePrefix": "",
     "packageName": null,
     "ignoreNoname": true,
-    "getMemberByName": true,
+    "getMemberByName": false,
     "codeType": ""
   },
   "includeHighResolution": 0,

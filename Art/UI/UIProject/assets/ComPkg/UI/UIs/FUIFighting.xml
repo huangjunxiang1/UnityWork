@@ -9,4 +9,8 @@
       <Button title="播放"/>
     </component>
   </displayList>
+  <transition name="open">
+    <item time="0" type="XY" target="n2_n68q" tween="true" startValue="-,-114" endValue="-,50" duration="6"/>
+    <item time="0" type="XY" target="n4_omwm" tween="true" startValue="-,-93" endValue="-,57" duration="6"/>
+  </transition>
 </component>

@@ -18,7 +18,7 @@ namespace Game
         void QuitGame()
         {
             if (Application.isEditor)
-                GameM.Event.ExecuteEvent((int)EventIDM.OutScene, SceneID);
+                GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID);
             GameM.Net.DisConnect();
         }
 
@@ -30,9 +30,8 @@ namespace Game
             BaseCamera.Current?.Dispose();
             GameL.UI.CloseAll();
             GameM.World.RemoveAllChildren();
-            GameL.Close();
 
-            GameM.Event.ExecuteEvent((int)EventIDM.OutScene, SceneID);
+            GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID);
             SceneID = 1;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(SceneID).name);
@@ -41,18 +40,18 @@ namespace Game
             await GameL.UI.OpenAsync<FUILogin>();
             ui.max = 1;
 
-            GameM.Event.ExecuteEvent((int)EventIDM.InScene, SceneID);
+            GameM.Event.RunEvent((int)EventIDM.InScene, SceneID);
         }
         public async TaskAwaiter InScene(int sceneId)
         {
             if (sceneId <= 1 || SceneID == sceneId) return;
 
             var ui = await GameL.UI.OpenAsync<FUILoading>();
-            GameL.Init();
+            GameL.ChangeScene();
             GameL.UI.CloseAll();
             GameM.World.RemoveAllChildren();
 
-            GameM.Event.ExecuteEvent((int)EventIDM.OutScene, SceneID);
+            GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID);
             SceneID = sceneId;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(sceneId).name);
@@ -60,7 +59,7 @@ namespace Game
 
             ui.max = 1;
 
-            GameM.Event.ExecuteEvent((int)EventIDM.InScene, sceneId);
+            GameM.Event.RunEvent((int)EventIDM.InScene, sceneId);
             BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
             GameObject cm = new GameObject("CMTarget");
             cm.transform.position = new Vector3(0, 0, 0);

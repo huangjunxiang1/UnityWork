@@ -12,13 +12,13 @@ abstract class FUI3D : FUIBase
 {
     public sealed override GComponent UI => this.Panel.ui;
 
-    public override int SortOrder
+    public sealed override int SortOrder
     {
         get { return this.Panel.sortingOrder; }
         set { this.Panel.sortingOrder = value; }
     }
 
-    public override bool IsShow
+    public sealed override bool IsShow
     {
         get { return this.Root.activeSelf; }
         set { this.Root.SetActive(value); }
@@ -34,8 +34,11 @@ abstract class FUI3D : FUIBase
         this.OnAwake(data);
         this.Root = AssetLoad.LoadGameObject(url);
         this.Root.transform.SetParent(GameM.World.Root.transform);
-        this.Panel = this.Root.GetComponentInChildren<UIPanel>();
-        this.Panel.sortingOrder = config.SortOrder;
+        this.Panel = this.Root.GetComponentInChildren<UIPanel>(); 
+        if (this.IsPage)
+            this.Panel.sortingOrder = (config.SortOrder + 10000) * 100000;
+        else
+            this.Panel.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
         this.Binding();
         this.OnEnter(data);
@@ -49,7 +52,10 @@ abstract class FUI3D : FUIBase
         this.Root = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
         this.Root.transform.SetParent(GameM.World.Root.transform);
         this.Panel = this.Root.GetComponentInChildren<UIPanel>();
-        this.Panel.sortingOrder = config.SortOrder;
+        if (this.IsPage)
+            this.Panel.sortingOrder = (config.SortOrder + 10000) * 100000;
+        else
+            this.Panel.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
         this.Binding();
         this.OnEnter(data);
@@ -59,7 +65,13 @@ abstract class FUI3D : FUIBase
     public sealed override void Dispose()
     {
         base.Dispose();
-        if (this.Root)
-            AssetLoad.Release(this.Root);
+
+        if (this.Root != null)
+        {
+            this.Hide(true, () =>
+            {
+                AssetLoad.Release(this.Root);
+            });
+        }
     }
 }

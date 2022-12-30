@@ -1,5 +1,5 @@
 {
-  "libview.firstColumnWidth": 283,
+  "libview.firstColumnWidth": 303,
   "libview.iconScale": 0,
   "doc.openedDocs": [
     "ui://zvziziwiodqh0",
@@ -25,15 +25,11 @@
   "test.device": "Huawei Mate20 Pro",
   "canvasColor": 10066329,
   "auxline2": true,
-  "doc.activeDoc": "ui://zvziziwiyj39i",
+  "doc.activeDoc": "ui://zvziziwin68q8",
   "libview.twoColumn": false,
   "libview.expandedNodes": [
     "zvziziwi",
     "/",
-    "zvziziwi",
-    "/Common/",
-    "zvziziwi",
-    "/Common/toggle/",
     "zvziziwi",
     "/UI/",
     "zvziziwi",

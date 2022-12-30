@@ -25,7 +25,7 @@ namespace Main
         static readonly AssetBaseLoader primitiveLoader = new AssetPrimitiveLoader();
         static readonly AssetBaseLoader copyLoader = new AssetCopyLoader();
 
-        public static GameObject LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.Release)
+        public static GameObject LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             GameObject g = (GameObject)prefabLoader.Load(url);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
@@ -33,7 +33,7 @@ namespace Main
             r.mode = releaseMode;
             return g;
         }
-        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Release)
+        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
@@ -54,7 +54,7 @@ namespace Main
             prefabLoader.Release(g);
             return e;
         }
-        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiter<UnityEngine.Object> task, ReleaseMode releaseMode = ReleaseMode.Release)
+        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiter<UnityEngine.Object> task, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url, task);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
@@ -62,7 +62,7 @@ namespace Main
             r.mode = releaseMode;
             return g;
         }
-        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiterCreater creater, ReleaseMode releaseMode = ReleaseMode.Release)
+        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiterCreater creater, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
@@ -176,10 +176,10 @@ namespace Main
             switch (r.mode)
             {
                 case ReleaseMode.None:
-                case ReleaseMode.Release:
+                case ReleaseMode.Destroy:
                     prefabLoader.Release(r.gameObject);
                     break;
-                case ReleaseMode.ReleaseToPool:
+                case ReleaseMode.PutToPool:
                     r.hasChange = false;
                     prefabLoader.ReleaseToPool(r.gameObject, r.url);
                     break;

@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine;
 using Game;
 
-[Main.UIConfig(100, CloseOnChangeScene = false)]
+[Main.UIConfig(100, UIType = Main.UIType.GlobalUI)]
 partial class FUIGlobal
 {
     bool showExit = false;
@@ -37,7 +37,7 @@ partial class FUIGlobal
     {
         if (showExit)
             return;
-        if(e.ReadValueAsButton())
+        if (e.ReadValueAsButton())
         {
             showExit = true;
             Box.Op_YesOrNo("退出游戏", "是否退出游戏?", "确定", "取消", () =>

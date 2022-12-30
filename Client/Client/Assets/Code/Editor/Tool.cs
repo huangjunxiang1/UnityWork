@@ -11,7 +11,7 @@ using UnityEngine.InputSystem;
 
 public class Tool
 {
-    [MenuItem("Tools/生成UGUI代码")]
+    [MenuItem("Tools/MyTool/生成UGUI代码")]
     static void CreateUICode()
     {
         StringBuilder code = new StringBuilder();
@@ -54,13 +54,14 @@ public class Tool
 
         foreach (var go in uis)
         {
-            if (go.GetComponentInChildren<Canvas>() == null)
+            if (go.GetComponent<Canvas>() == null)
             {
                 Debug.LogError(go.name + "不是Canvas对象");
                 continue;
             }
 
-            StringBuilder str2 = new StringBuilder();
+            StringBuilder getUICode = new StringBuilder();
+            getUICode.AppendLine("        Transform c;");
             code.AppendLine(@"");
             if (go.name.StartsWith("UUI3D"))
                 code.AppendLine(@$"partial class {go.name} : UUI3D");
@@ -68,63 +69,97 @@ public class Tool
                 code.AppendLine(@$"partial class {go.name} : UUI");
              
             code.AppendLine(@"{");
-            code.AppendLine($"    public override string url => \"{AssetDatabase.GetAssetPath(go).Replace(AssetLoad.Directory, "")}\";");
+            code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(go).Replace(AssetLoad.Directory, "")}\";");
 
             var childs = go.GetComponentsInChildren<Transform>(true);
             for (int j = 0; j < childs.Length; j++)
             {
                 var child = childs[j];
-                if (child.name.StartsWith("_"))
+                if (child.name.StartsWith("_") || child == go.transform)
                 {
                     var coms = child.GetComponents<Component>().ToList();
-                    coms.RemoveAll(t =>
+                    if (child == go.transform)
                     {
-                        if (t is Mask) return true;
-                        if (t is ContentSizeFitter) return true;
-                        if (t is Shadow) return true;
-                        if (t is Outline) return true;
-                        if (t is CanvasRenderer) return true;
-                        return false;
-                    });
+                        coms.RemoveAll(t =>
+                        {
+                            if (t is Mask) return true;
+                            if (t is ContentSizeFitter) return true;
+                            if (t is Shadow) return true;
+                            if (t is Outline) return true;
+                            if (t is CanvasRenderer) return true;
+
+                            if (t is Canvas) return true;
+                            if (t is CanvasScaler) return true;
+                            if (t is GraphicRaycaster) return true;
+                            return false;
+                        });
+                    }
+                    else
+                    {
+                        coms.RemoveAll(t =>
+                        {
+                            if (t is Mask) return true;
+                            if (t is ContentSizeFitter) return true;
+                            if (t is Shadow) return true;
+                            if (t is Outline) return true;
+                            if (t is CanvasRenderer) return true;
+                            return false;
+                        });
+                    }
+
                     if (coms.Find(t => t is Selectable) != null)
                         coms.RemoveAll(t => t is UnityEngine.UI.Image);
 
-                    if (coms.Count > 1)
+                    if (coms.Count > 1 || child == go.transform)
                         coms.Remove(child.GetComponent<Transform>());
 
-                    List<string> paths = new List<string>();
-                    var temp = child;
-                    paths.Add(temp.name);
-                    while (temp.transform.parent != go.transform)
+                    if (child == go.transform)
                     {
-                        temp = temp.transform.parent;
-                        paths.Add(temp.name);
+                        for (int i = 0; i < coms.Count; i++)
+                        {
+                            var item1 = coms[i];
+                            code.AppendLine($@"    public {item1.GetType().FullName} UI_{item1.GetType().Name};");
+                            getUICode.AppendLine($@"        this.UI_{item1.GetType().Name} = ({item1.GetType().FullName})this.UI.GetComponent(typeof({item1.GetType().FullName}));");
+                        }
                     }
-                    string p = null;
-                    for (int k = paths.Count - 1; k >= 0; k--)
+                    else
                     {
-                        p += paths[k];
-                        if (k != 0) p += "/";
-                    }
+                        getUICode.Append($@"        c = this.UI");
+                        var temp = child;
+                        List<int> idxs = new List<int>();
+                        idxs.Add(temp.GetSiblingIndex());
+                        while (temp.transform.parent != go.transform)
+                        {
+                            temp = temp.transform.parent;
+                            idxs.Add(temp.GetSiblingIndex());
+                        }
+                        for (int i = idxs.Count - 1; i >= 0; i--)
+                        {
+                            getUICode.Append($".GetChild({idxs[i]})");
+                        }
+                        getUICode.AppendLine(";");
 
-                    foreach (var item1 in coms)
-                    {
-                        code.AppendLine($@"    public {item1.GetType().FullName} {item1.name}{item1.GetType().Name};");
-                        str2.AppendLine($@"        this.{item1.name}{item1.GetType().Name} = ({item1.GetType().FullName})this.UI.transform.Find(""{p}"").GetComponent(typeof({item1.GetType().FullName}));");
+
+                        for (int i = 0; i < coms.Count; i++)
+                        {
+                            var item1 = coms[i];
+                            code.AppendLine($@"    public {item1.GetType().FullName} {item1.name}{item1.GetType().Name};");
+                            getUICode.AppendLine($@"        this.{item1.name}{item1.GetType().Name} = ({item1.GetType().FullName})c.GetComponent(typeof({item1.GetType().FullName}));");
+                        }
                     }
                 }
             }
 
             code.AppendLine(@"");
-            code.AppendLine(@"    protected override void Binding()");
+            code.AppendLine(@"    protected sealed override void Binding()");
             code.AppendLine(@"    {");
-            code.AppendLine(str2.ToString());
+            code.Append(getUICode.ToString());
             code.AppendLine(@"    }");
             code.Append(@"}");
         }
     }
 
-    [MenuItem("Tools/CopyTexture")]
+    [MenuItem("Tools/MyTool/CopyTexture")]
     static void DoIt()
     {
         var fs = Directory.GetFiles(Application.dataPath+"/../../../Art/Texture");
@@ -137,7 +172,7 @@ public class Tool
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
 
-    [MenuItem("Tools/生成Config代码")]
+    [MenuItem("Tools/MyTool/生成Config代码")]
     static void CreateConfigCode()
     {
         //main
@@ -285,7 +320,7 @@ public class Tool
         public string path;
         public string name;
     }
-    [MenuItem("Tools/生成FUI3D代码")]
+    [MenuItem("Tools/MyTool/生成FUI3D代码")]
     static void CreateFUI3DCode()
     {
         StringBuilder code = new StringBuilder();
@@ -332,12 +367,12 @@ public class Tool
             components.Add(c);
             code.AppendLine($"partial class {panel.componentName}");
             code.AppendLine("{");
-            code.AppendLine($"    public override string url => \"{AssetDatabase.GetAssetPath(g).Replace(AssetLoad.Directory, "")}\";");
+            code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(g).Replace(AssetLoad.Directory, "")}\";");
             code.AppendLine("}");
         }
     }
 
-    [MenuItem("Tools/热重载配置表")]
+    [MenuItem("Tools/MyTool/热重载配置表")]
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;

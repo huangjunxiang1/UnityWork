@@ -45,12 +45,12 @@ namespace Game
         {
             Loger.Error("Net Error Code:" + error);
             _ChannelID = 0;
-            GameM.Event.ExecuteEvent((int)EventIDM.NetError, error);
+            GameM.Event.RunEvent((int)EventIDM.NetError, error);
         }
         void _onResponse(long channelId, MemoryStream memoryStream)
         {
             ushort opcode = BitConverter.ToUInt16(memoryStream.GetBuffer(), Packet.KcpOpcodeIndex);
-            Type type = TypesCache.GetOPType(opcode);
+            Type type = Types.GetOPType(opcode);
             bool hasRsp = type != null;
             IMessage message = null;
             if (hasRsp)
@@ -62,7 +62,7 @@ namespace Game
             }
 
             //自动注册的事件一般是底层事件 所以先执行底层监听
-            bool has = GameM.Event.ExecuteMessage(opcode, message);
+            bool has = GameM.Event.RunMsg(opcode, message);
 #if DebugEnable
             if (!has && (hasRsp && !_requestTask.ContainsKey(type)))
                 Loger.Error("没有注册的消息返回 opCode:" + opcode + "  msg:" + type);
@@ -125,7 +125,7 @@ namespace Game
             var ms = new MemoryStream(Packet.OpcodeLength);
             ms.Seek(Packet.OpcodeLength, SeekOrigin.Begin);
             ms.SetLength(Packet.OpcodeLength);
-            ushort opCode = TypesCache.GetOPCode(message.GetType());
+            ushort opCode = Types.GetOPCode(message.GetType());
             ms.GetBuffer().WriteTo(0, opCode);
             ProtoBuf.Serializer.Serialize(ms, message);
             ms.Seek(0, SeekOrigin.Begin);
@@ -154,7 +154,7 @@ namespace Game
 #endif
             t = request.GetType();
 
-            var rsp = TypesCache.GetResponseType(t);
+            var rsp = Types.GetResponseType(t);
             if (rsp == null)
             {
                 Loger.Error("没有responseType类型 req=" + t);
@@ -185,7 +185,7 @@ namespace Game
 #endif
             t = request.GetType();
 
-            var rsp = TypesCache.GetResponseType(t);
+            var rsp = Types.GetResponseType(t);
             if (rsp == null)
             {
                 Loger.Error("没有responseType类型 req=" + t);

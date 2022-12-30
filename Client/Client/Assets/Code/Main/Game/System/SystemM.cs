@@ -14,27 +14,27 @@ namespace Game
         [Event((int)EventIDM.Init)]
         static void Init()
         {
-            for (int i = 0; i < TypesCache.MainTypes.Length; i++)
+            for (int i = 0; i < Types.MainTypes.Length; i++)
             {
-                if (typeof(SystemM).IsAssignableFrom(TypesCache.MainTypes[i]))
+                if (typeof(SystemM).IsAssignableFrom(Types.MainTypes[i]))
                 {
-                    if (TypesCache.MainTypes[i] == typeof(SystemM))
+                    if (Types.MainTypes[i] == typeof(SystemM))
                         continue;
-                    SystemM sys = (SystemM)Activator.CreateInstance(TypesCache.MainTypes[i]);
+                    SystemM sys = (SystemM)Activator.CreateInstance(Types.MainTypes[i]);
                     systems.Add(sys);
                 }
             }
             systems.Sort((x, y) =>
             {
-                var ax = x.GetType().GetCustomAttributes(typeof(SystemExecuteOrderAttribute), true);
-                var ay = y.GetType().GetCustomAttributes(typeof(SystemExecuteOrderAttribute), true);
+                var ax = Reflection.GetAttribute(x.GetType(), typeof(SystemExecuteOrderAttribute));
+                var ay = Reflection.GetAttribute(y.GetType(), typeof(SystemExecuteOrderAttribute));
 
                 int ox = 0;
                 int oy = 0;
-                if (ax.Length > 0)
-                    ox = ((SystemExecuteOrderAttribute)ax[0]).SortOrder;
-                if (ay.Length > 0)
-                    oy = ((SystemExecuteOrderAttribute)ay[0]).SortOrder;
+                if (ax != null)
+                    ox = ((SystemExecuteOrderAttribute)ax).SortOrder;
+                if (ay != null)
+                    oy = ((SystemExecuteOrderAttribute)ay).SortOrder;
                 return oy - ox;
             });
 

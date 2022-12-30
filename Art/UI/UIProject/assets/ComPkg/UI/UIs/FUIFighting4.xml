@@ -16,4 +16,14 @@
       <relation target="" sidePair="left-left,top-top"/>
     </component>
   </displayList>
+  <transition name="open">
+    <item time="0" type="XY" target="n2_n68q" value="1071,-"/>
+    <item time="0" type="XY" target="n2_n68q" tween="true" startValue="1722,-" endValue="1067,-" duration="8"/>
+    <item time="0" type="XY" target="n4_omwm" value="36,-"/>
+    <item time="0" type="XY" target="n4_omwm" tween="true" startValue="-236,-" endValue="37,-" duration="8"/>
+    <item time="0" type="XY" target="n5_ub09" value="37,-"/>
+    <item time="0" type="XY" target="n5_ub09" tween="true" startValue="-236,-" endValue="37,-" duration="8"/>
+    <item time="0" type="XY" target="n7_mxup" value="39,-"/>
+    <item time="0" type="XY" target="n7_mxup" tween="true" startValue="-236,-" endValue="37,-" duration="8"/>
+  </transition>
 </component>

@@ -5,61 +5,61 @@ using FairyGUI.Utils;
 
 partial class FUIFighting2 : FUI
 {
-    public override string url => "FUIFighting2";
+    public sealed override string url => "FUIFighting2";
     public GButton _btnBack;
     public GButton _play;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _btnBack = (GButton)this.UI.GetChild("_btnBack");
-        _play = (GButton)this.UI.GetChild("_play");
+        _btnBack = (GButton)this.UI.GetChildAt(0);
+        _play = (GButton)this.UI.GetChildAt(1);
     }
 }
 
 partial class FUIFighting : FUI
 {
-    public override string url => "FUIFighting";
+    public sealed override string url => "FUIFighting";
     public GButton _btnBack;
     public GButton _play;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _btnBack = (GButton)this.UI.GetChild("_btnBack");
-        _play = (GButton)this.UI.GetChild("_play");
+        _btnBack = (GButton)this.UI.GetChildAt(0);
+        _play = (GButton)this.UI.GetChildAt(1);
     }
 }
 
 partial class FUILoading : FUI
 {
-    public override string url => "FUILoading";
+    public sealed override string url => "FUILoading";
     public GProgressBar _loadingBar;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _loadingBar = (GProgressBar)this.UI.GetChild("_loadingBar");
+        _loadingBar = (GProgressBar)this.UI.GetChildAt(1);
     }
 }
 
 partial class FUIFighting3 : FUI
 {
-    public override string url => "FUIFighting3";
+    public sealed override string url => "FUIFighting3";
     public GButton _btnBack;
     public GButton _rangeRoad;
     public GButton _play;
     public GComboBox _findStyle;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _btnBack = (GButton)this.UI.GetChild("_btnBack");
-        _rangeRoad = (GButton)this.UI.GetChild("_rangeRoad");
-        _play = (GButton)this.UI.GetChild("_play");
-        _findStyle = (GComboBox)this.UI.GetChild("_findStyle");
+        _btnBack = (GButton)this.UI.GetChildAt(0);
+        _rangeRoad = (GButton)this.UI.GetChildAt(1);
+        _play = (GButton)this.UI.GetChildAt(2);
+        _findStyle = (GComboBox)this.UI.GetChildAt(3);
     }
 }
 
 partial class FUILogin : FUI
 {
-    public override string url => "FUILogin";
+    public sealed override string url => "FUILogin";
     public GComboBox _uiType;
     public GComboBox _gameTypeCB;
     public GButton _btnLogin;
@@ -67,14 +67,14 @@ partial class FUILogin : FUI
     public GTextInput _pw;
     public GComboBox _demo;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _uiType = (GComboBox)this.UI.GetChild("_uiType");
-        _gameTypeCB = (GComboBox)this.UI.GetChild("_gameTypeCB");
-        _btnLogin = (GButton)this.UI.GetChild("_btnLogin");
-        _acc = (GTextInput)this.UI.GetChild("_acc");
-        _pw = (GTextInput)this.UI.GetChild("_pw");
-        _demo = (GComboBox)this.UI.GetChild("_demo");
+        _uiType = (GComboBox)this.UI.GetChildAt(3);
+        _gameTypeCB = (GComboBox)this.UI.GetChildAt(4);
+        _btnLogin = (GButton)this.UI.GetChildAt(5);
+        _acc = (GTextInput)this.UI.GetChildAt(6);
+        _pw = (GTextInput)this.UI.GetChildAt(7);
+        _demo = (GComboBox)this.UI.GetChildAt(8);
     }
 }
 
@@ -82,36 +82,36 @@ partial class FUI3DHeader : FUI3D
 {
     public GTextField _title;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _title = (GTextField)this.UI.GetChild("_title");
+        _title = (GTextField)this.UI.GetChildAt(0);
     }
 }
 
 partial class FUIGlobal : FUI
 {
-    public override string url => "FUIGlobal";
+    public sealed override string url => "FUIGlobal";
     public GButton _log;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _log = (GButton)this.UI.GetChild("_log");
+        _log = (GButton)this.UI.GetChildAt(0);
     }
 }
 
 partial class FUIFighting4 : FUI
 {
-    public override string url => "FUIFighting4";
+    public sealed override string url => "FUIFighting4";
     public GButton _btnBack;
     public GButton _rangeRoad;
     public GButton _play;
     public GButton _showCube;
 
-    protected override void Binding()
+    protected sealed override void Binding()
     {
-        _btnBack = (GButton)this.UI.GetChild("_btnBack");
-        _rangeRoad = (GButton)this.UI.GetChild("_rangeRoad");
-        _play = (GButton)this.UI.GetChild("_play");
-        _showCube = (GButton)this.UI.GetChild("_showCube");
+        _btnBack = (GButton)this.UI.GetChildAt(0);
+        _rangeRoad = (GButton)this.UI.GetChildAt(1);
+        _play = (GButton)this.UI.GetChildAt(2);
+        _showCube = (GButton)this.UI.GetChildAt(3);
     }
 }

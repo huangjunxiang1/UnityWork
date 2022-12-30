@@ -26,7 +26,10 @@ abstract class UUI3D : UUIBase
         this.ui.rotation = default;
         this.ui.anchoredPosition = default;
         this.canvas = this.ui.GetComponentInChildren<Canvas>();
-        this.canvas.sortingOrder = config.SortOrder;
+        if (this.IsPage)
+            this.canvas.sortingOrder = (config.SortOrder + 10000) * 100000;
+        else
+            this.canvas.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
         this.Binding();
         this.OnEnter(data);
@@ -44,7 +47,10 @@ abstract class UUI3D : UUIBase
         this.ui.rotation = default;
         this.ui.anchoredPosition = default;
         this.canvas = this.ui.GetComponentInChildren<Canvas>();
-        this.canvas.sortingOrder = config.SortOrder;
+        if (this.IsPage)
+            this.canvas.sortingOrder = (config.SortOrder + 10000) * 100000;
+        else
+            this.canvas.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
         this.Binding();
         this.OnEnter(data);

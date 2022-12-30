@@ -16,7 +16,7 @@ namespace Game
             this.GID = IDGenerate.GenerateID();
             this.CID = cid;
             Objects.Add(this.GID, this);
-            if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredEvent), true))
+            if (!Reflection.HasDefineAttribute(this.GetType(), typeof(DisableAutoRegisteredEvent)))
                 this.ListenerEnable = true;
         }
 

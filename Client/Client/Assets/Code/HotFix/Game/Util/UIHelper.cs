@@ -10,6 +10,22 @@ using FairyGUI;
 
 static class UIHelper
 {
+    static int EnableCounter = 0;
+    public static void EnableUIInput(bool enable)
+    {
+        if (!enable) EnableCounter++;
+        else EnableCounter--;
+
+        if (GameL.Setting.UIModel == UIModel.UGUI)
+        {
+            var sys = UnityEngine.EventSystems.EventSystem.current;
+            if (sys)
+                sys.enabled = EnableCounter <= 0;
+        }
+        else
+            GRoot.inst.touchable = EnableCounter <= 0;
+    }
+
     public static bool IsOnTouchFUI()
     {
         GObject g = GRoot.inst.touchTarget;

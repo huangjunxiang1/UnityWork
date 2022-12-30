@@ -27,7 +27,7 @@ namespace Game
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
-        static MethodData[] _getListnerMethods(Type t)
+        static MethodData[] _getListenerMethods(Type t)
         {
             if (!_listenerMethodCache.TryGetValue(t, out MethodData[] result))
             {
@@ -136,7 +136,7 @@ namespace Game
             }
             return result;
         }
-        static MethodData[] _getListnerWithKeyMethods(Type t)
+        static MethodData[] _getListenerWithKeyMethods(Type t)
         {
             if (!_listenerWithKeyMethodCache.TryGetValue(t, out MethodData[] result))
             {
@@ -253,10 +253,10 @@ namespace Game
         {
             if (_rigistedStaticMethodEvt) return;
             _rigistedStaticMethodEvt = true;
-            int cnt = TypesCache.AllTypes.Length;
+            int cnt = Types.AllTypes.Length;
             for (int i = 0; i < cnt; i++)
             {
-                Type type = TypesCache.AllTypes[i];
+                Type type = Types.AllTypes[i];
                 var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
                 int len = methods.Length;
                 for (int j = 0; j < len; j++)
@@ -386,12 +386,12 @@ namespace Game
             MethodData[] ms;
 #if ILRuntime
             if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                ms = _getListnerMethods(ilInstance.Type.ReflectionType);
+                ms = _getListenerMethods(ilInstance.Type.ReflectionType);
             else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                ms = _getListnerMethods(ilWarp.ILInstance.Type.ReflectionType);
+                ms = _getListenerMethods(ilWarp.ILInstance.Type.ReflectionType);
             else
 #endif
-            ms = _getListnerMethods(target.GetType());
+            ms = _getListenerMethods(target.GetType());
 
             for (int i = 0; i < ms.Length; i++)
             {
@@ -468,12 +468,12 @@ namespace Game
             MethodData[] ms;
 #if ILRuntime
             if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                ms = _getListnerWithKeyMethods(ilInstance.Type.ReflectionType);
+                ms = _getListenerWithKeyMethods(ilInstance.Type.ReflectionType);
             else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                ms = _getListnerWithKeyMethods(ilWarp.ILInstance.Type.ReflectionType);
+                ms = _getListenerWithKeyMethods(ilWarp.ILInstance.Type.ReflectionType);
             else
 #endif
-            ms = _getListnerWithKeyMethods(target.GetType());
+            ms = _getListenerWithKeyMethods(target.GetType());
 
             for (int i = 0; i < ms.Length; i++)
             {
@@ -678,7 +678,7 @@ namespace Game
         /// </summary>
         /// <param name="opCode"></param>
         /// <param name="message"></param>
-        public bool ExecuteMessage(int opCode, IMessage message = null)
+        public bool RunMsg(int opCode, IMessage message = null)
         {
             if (!_msgMap.TryGetValue(opCode, out var evts))
                 return false;
@@ -706,7 +706,7 @@ namespace Game
 
             return true;
         }
-        public bool ExecuteMessageWithKey(int opCode, long key, IMessage message = null)
+        public bool RunMsgWithKey(int opCode, long key, IMessage message = null)
         {
             if (!_msgKeyMap.TryGetValue(key, out var map))
                 return false;
@@ -743,19 +743,19 @@ namespace Game
         /// </summary>
         /// <param name="eventID"></param>
         /// <param name="data"></param>
-        public void ExecuteEvent(int eventID)
+        public void RunEvent(int eventID)
         {
-            ExecuteEvent(eventID, 0, null);
+            RunEvent(eventID, 0, null);
         }
-        public void ExecuteEvent(int eventID, object data)
+        public void RunEvent(int eventID, object data)
         {
-            ExecuteEvent(eventID, 0, data);
+            RunEvent(eventID, 0, data);
         }
-        public void ExecuteEvent(int eventID, int value)
+        public void RunEvent(int eventID, int value)
         {
-            ExecuteEvent(eventID, value, null);
+            RunEvent(eventID, value, null);
         }
-        public void ExecuteEvent(int eventID, int value, object data)
+        public void RunEvent(int eventID, int value, object data)
         {
             if (_evtMap.TryGetValue(eventID, out var evts))
             {
@@ -787,19 +787,19 @@ namespace Game
         /// </summary>
         /// <param name="eventID"></param>
         /// <param name="key"></param>
-        public void ExecuteKeyEvent(int eventID, long key)
+        public void RunEventWithKey(int eventID, long key)
         {
-            ExecuteKeyEvent(eventID, key, 0, null);
+            RunEventWithKey(eventID, key, 0, null);
         }
-        public void ExecuteKeyEvent(int eventID, long key, object data)
+        public void RunEventWithKey(int eventID, long key, object data)
         {
-            ExecuteKeyEvent(eventID, key, 0, data);
+            RunEventWithKey(eventID, key, 0, data);
         }
-        public void ExecuteKeyEvent(int eventID, long key, int value)
+        public void RunEventWithKey(int eventID, long key, int value)
         {
-            ExecuteKeyEvent(eventID, key, value, null);
+            RunEventWithKey(eventID, key, value, null);
         }
-        public void ExecuteKeyEvent(int eventID, long key, int value, object data)
+        public void RunEventWithKey(int eventID, long key, int value, object data)
         {
             if (!_evtKeyMap.TryGetValue(key, out var map))
                 return;

@@ -9,13 +9,13 @@ abstract class FUI : FUIBase
 {
     public sealed override GComponent UI => this.ui;
 
-    public override int SortOrder
+    public sealed override int SortOrder
     {
         get { return this.ui.sortingOrder; }
         set { this.ui.sortingOrder = value; }
     }
 
-    public override bool IsShow
+    public sealed override bool IsShow
     {
         get { return this.ui.visible; }
         set { this.ui.visible = value; }
@@ -34,7 +34,10 @@ abstract class FUI : FUIBase
         this.ui.AddRelation(GRoot.inst, RelationType.Size);
         this.ui.AddRelation(GRoot.inst, RelationType.Center_Center);
         this.ui.fairyBatching = true;
-        this.ui.sortingOrder = config.SortOrder;
+        if (this.IsPage)
+            this.ui.sortingOrder = (config.SortOrder + 10000) * 100000;
+        else
+            this.ui.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
         this.Binding();
         this.OnEnter(data);
@@ -58,7 +61,10 @@ abstract class FUI : FUIBase
             this.ui.AddRelation(GRoot.inst, RelationType.Size);
             this.ui.AddRelation(GRoot.inst, RelationType.Center_Center);
             this.ui.fairyBatching = true;
-            this.ui.sortingOrder = config.SortOrder;
+            if (this.IsPage)
+                this.ui.sortingOrder = (config.SortOrder + 10000) * 100000;
+            else
+                this.ui.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
 
             this.Binding();
             this.OnEnter(data);
@@ -70,7 +76,14 @@ abstract class FUI : FUIBase
     public sealed override void Dispose()
     {
         base.Dispose();
-        this.ui?.Dispose();
-        this.ui = null;
+
+        if (this.ui != null)
+        {
+            this.Hide(true, () =>
+            {
+                this.ui.Dispose();
+                this.ui = null;
+            });
+        }
     }
 }

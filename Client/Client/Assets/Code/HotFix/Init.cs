@@ -70,7 +70,7 @@ public class Init
         }
 
         //初始化各个系统
-        GameM.Event.ExecuteEvent((int)EventIDM.Init);
+        GameM.Event.RunEvent((int)EventIDM.Init);
 
         await GameL.UI.OpenAsync<FUIGlobal>();
         await GameL.Scene.InLoginScene();

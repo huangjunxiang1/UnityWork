@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Game
 {
@@ -74,11 +70,15 @@ namespace Game
             _childMap.TryGetValue(id, out T child);
             return child;
         }
-        public List<T> GetChildren()
+        public List<T> ToChildren()
         {
             List<T> lst = new(_childLst.Count);
             lst.AddRange(_childLst);
             return lst;
+        }
+        public List<T> GetChildren()
+        {
+            return _childLst;
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Game
             if (_childLst.Count <= 0)
                 return;
 
-            var lst = GetChildren();
+            var lst = ToChildren();
             for (int i = lst.Count - 1; i >= 0; i--)
                 lst[i].Dispose();
             _childMap.Clear();

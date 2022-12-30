@@ -40,14 +40,14 @@ public class Engine : MonoBehaviour
 
     void EnterGame()
     {
-        Type[] a1 = typeof(TypesCache).Assembly.GetTypes();
+        Type[] a1 = typeof(Types).Assembly.GetTypes();
 
         if (AppSetting.Runtime == CodeRuntime.Native)
         {
 #if !ILRuntime && !Assembly
             Type[] a2 = typeof(Init).Assembly.GetTypes();
 
-            TypesCache.InitTypes(a1, a2);
+            Types.InitTypes(a1, a2);
 
             Init.Main();
 #else
@@ -77,7 +77,7 @@ public class Engine : MonoBehaviour
 
             Type[] a2 = asm.GetTypes();
 
-            TypesCache.InitTypes(a1, a2);
+            Types.InitTypes(a1, a2);
 
             asm.GetType("Init").GetMethod("Main").Invoke(null, null);
         }
@@ -102,7 +102,7 @@ public class Engine : MonoBehaviour
 
             Type[] a2 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
 
-            TypesCache.InitTypes(a1, a2);
+            Types.InitTypes(a1, a2);
 
             app.Invoke("Init", "Main", null, null);
         }
@@ -110,6 +110,6 @@ public class Engine : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        GameM.Event.ExecuteEvent((int)EventIDM.QuitGame);
+        GameM.Event.RunEvent((int)EventIDM.QuitGame);
     }
 }

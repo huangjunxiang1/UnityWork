@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public static class TypesCache
+public static class Types
 {
     public static Type[] MainTypes { get; private set; }//主工程类型
     public static Type[] HotTypes { get; private set; }//热更工程类型

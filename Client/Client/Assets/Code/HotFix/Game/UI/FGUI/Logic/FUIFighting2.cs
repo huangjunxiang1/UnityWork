@@ -57,6 +57,10 @@ partial class FUIFighting2
 
         _btnBack.onClick.Add(_clickBack);
         _play.onClick.Add(_onPlay);
+
+        AI_XunLuoSys.start = true;
+        AI_XunLuoSys.road = road;
+        AI_XunLuoSys.roadSize = roadSize;
     }
     protected override void OnExit()
     {
@@ -71,7 +75,9 @@ partial class FUIFighting2
         }
         if (road.IsCreated)
             road.Dispose();
+        AI_XunLuoSys.start = false;
     }
+
     [Event((int)EventIDM.QuitGame)]
     void quit()
     {
@@ -83,6 +89,8 @@ partial class FUIFighting2
 
     void _clickBack()
     {
+        this.Dispose();
+        return;
         _ = GameL.Scene.InLoginScene();
     }
     void _onPlay()
@@ -90,72 +98,4 @@ partial class FUIFighting2
         start = !start;
     }
 }
-[GenerateTestsForBurstCompatibility]
-partial struct AI_XunLuoSys : ISystem
-{
-    public void OnCreate(ref SystemState state)
-    {
 
-    }
-
-    public void OnDestroy(ref SystemState state)
-    {
-
-    }
-
-    [GenerateTestsForBurstCompatibility]
-    public void OnUpdate(ref SystemState state)
-    {
-        FUIFighting2 ui = GameL.UI.Get<FUIFighting2>();
-        if (ui == null || !ui.start)
-            return;
-        var dt = SystemAPI.Time.DeltaTime;
-        var random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
-        foreach (var t in SystemAPI.Query<AI_XunLuoAsp>())
-            t.Move(dt, ui.road, ui.roadSize, ref random);
-    }
-}
-[GenerateTestsForBurstCompatibility]
-struct AI_XunLuo : IComponentData
-{
-    public float3 last;
-    public float3 target;
-    public float dTime;
-}
-[GenerateTestsForBurstCompatibility]
-readonly partial struct AI_XunLuoAsp : IAspect
-{
-    readonly RefRW<AI_XunLuo> target;
-    readonly RefRW<LocalToWorld> pos;
-
-    [GenerateTestsForBurstCompatibility]
-    public void Move(float dt, NativeArray<int> roads, int2 size, ref Unity.Mathematics.Random random)
-    {
-        float4x4 f44 = pos.ValueRO.Value;
-        int2 now = math.clamp((int2)f44.c3.xz, 0, size.x);
-        int2 t = (int2)target.ValueRO.target.xz;
-        int num = roads[t.y * size.x + t.x];
-        if (num == 1)
-        {
-            int2 r = random.NextInt2(-1, 2);
-            target.ValueRW.last = f44.c3.xyz;
-            target.ValueRW.target = math.clamp(f44.c3.xyz + new float3(r.x, 0, r.y), 0, size.x - 1);
-            target.ValueRW.dTime = 0;
-        }
-        if (math.all(now == t) || num == 0)
-        {
-            f44.c3.xyz = math.lerp(target.ValueRO.last, target.ValueRO.target, math.clamp(target.ValueRW.dTime += dt, 0, 1));
-            pos.ValueRW.Value = f44;
-            int2 next = (int2)f44.c3.xz;
-            if (math.any(now != next) || math.all(now == t))
-            {
-                --roads[now.y * size.x + now.x];
-                ++roads[next.y * size.x + next.x];
-                int2 r = random.NextInt2(-1, 2);
-                target.ValueRW.last = f44.c3.xyz;
-                target.ValueRW.target = math.clamp(f44.c3.xyz + new float3(r.x, 0, r.y), 0, size.x - 1);
-                target.ValueRW.dTime = 0;
-            }
-        }
-    }
-}

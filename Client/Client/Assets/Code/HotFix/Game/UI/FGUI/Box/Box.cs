@@ -15,7 +15,7 @@ static class Box
         g.GetChild("title").text = s;
         g.GetTransition("my").Play(g.Dispose);
     }
-    public static void Op_YesOrNo(string title, string text, string yes, string no, EventCallback0 onYes, EventCallback0 onNo = null)
+    public static void Op_YesOrNo(string title, string text, string yes, string no, EventCallback0 onYes = null, EventCallback0 onNo = null)
     {
         var g = UIPkg.ComPkg.CreateObject("Box_YesOrNo").asCom;
         GRoot.inst.AddChild(g);
@@ -27,7 +27,11 @@ static class Box
 
         GButton btnYes = g.GetChild("_yes").asButton;
         btnYes.title = yes;
-        btnYes.onClick.Add(onYes);
+        btnYes.onClick.Add(() =>
+        {
+            g.Dispose();
+            onYes?.Invoke();
+        });
 
         GButton btnNo = g.GetChild("_no").asButton;
         btnNo.title = no;

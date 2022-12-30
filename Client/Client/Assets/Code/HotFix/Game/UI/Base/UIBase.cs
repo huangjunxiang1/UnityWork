@@ -38,6 +38,11 @@ abstract class UIBase : TreeL<UIBase>
     public virtual bool IsShow { get; set; }
 
     /// <summary>
+    /// isPage=true 是页签UI  isPage=false 是页签UI的弹窗
+    /// </summary>
+    public bool IsPage => this.Parent == null;
+
+    /// <summary>
     /// 异步加载等待
     /// </summary>
     public TaskAwaiter LoadWaiter { get; private set; }
@@ -46,15 +51,6 @@ abstract class UIBase : TreeL<UIBase>
     /// Enter异步初始化
     /// </summary>
     public TaskAwaiter EnterWaiter { get; protected set; }
-
-    protected virtual void OnAwake(params object[] data) { }
-    protected virtual void OnEnter(params object[] data) { }
-    protected virtual TaskAwaiter OnEnterAsync(params object[] data)
-    {
-        return TaskAwaiter.Completed;
-    }
-    protected virtual void OnExit() { }
-    protected abstract void Binding();
 
     public virtual void LoadConfig(Main.UIConfig config, params object[] data)
     {
@@ -70,23 +66,32 @@ abstract class UIBase : TreeL<UIBase>
         this.ListenerEnable = true;
     }
 
-    public virtual void Hide()
-    {
-        this.Hide(false);
-    }
-    public virtual void Hide(bool playAnimation)
-    {
-        if (playAnimation) this.IsShow = true;
-        else this.IsShow = true;
-    }
+    public abstract void Hide(bool playAnimation = true, Action callBack = null);
+    public abstract TaskAwaiter HideAsync(bool playAnimation = true);
+    public abstract void Show(bool playAnimation = true, Action callBack = null);
+    public abstract TaskAwaiter ShowAsync(bool playAnimation = true);
 
     public override void Dispose()
-    {
+    {  
         //先从列表移除
         GameL.UI.Remove(this);
         base.Dispose();
         //先执行退出逻辑
         this.OnExit();
+        //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
+        GameL.UI.ShowLastPageUI();
         if (_onDispose != null) _onDispose.Call();
     }
+
+    protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用
+    protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用
+    protected virtual TaskAwaiter OnEnterAsync(params object[] data)
+    {
+        return TaskAwaiter.Completed;
+    }//UI加载完毕调用
+    protected virtual void OnExit() { }//UI关闭调用
+    protected virtual void OnShow() { }//UI每次重显示调用 包括第一次打开
+    protected virtual void OnHide() { }//UI每次隐藏时调用 
+    protected abstract void Binding();//UI元件绑定
+
 }

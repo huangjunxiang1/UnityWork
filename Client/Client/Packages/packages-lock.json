@@ -77,8 +77,8 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.collections": {
-      "version": "2.1.0-pre.2",
-      "depth": 1,
+      "version": "2.1.0-pre.6",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.burst": "1.7.4",

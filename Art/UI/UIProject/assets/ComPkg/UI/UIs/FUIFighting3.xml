@@ -19,4 +19,7 @@
       </ComboBox>
     </component>
   </displayList>
+  <transition name="open">
+    <item time="0" type="XY" target="n6_l0o3" tween="true" startValue="-,-63" endValue="-,70" duration="6"/>
+  </transition>
 </component>

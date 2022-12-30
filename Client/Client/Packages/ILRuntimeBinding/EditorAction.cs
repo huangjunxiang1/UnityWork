@@ -128,9 +128,9 @@ unsafe static class EditorAction
                         StringBuilder sb = new StringBuilder();
                         sb.AppendLine("using System;");
                         sb.AppendLine("");
+                        sb.AppendLine("[ILRuntimeDelegateBinding]");
                         sb.AppendLine($"unsafe static class GenerateDelegateBinding_{SystemInfo.deviceUniqueIdentifier}");
                         sb.AppendLine("{");
-                        sb.AppendLine("    [ILRuntimeDelegateBinding]");
                         sb.AppendLine("    public static void Binding(ILRuntime.Runtime.Enviorment.AppDomain appdomain)");
                         sb.AppendLine("    {");
                         sb.AppendLine("        //xx1Start");
@@ -170,6 +170,7 @@ unsafe static class EditorAction
                     {
                         Loger.Error("分析不出来的注册类型");
                     }
+                    UnityEditor.AssetDatabase.Refresh();
                 }
             }
 

@@ -5,6 +5,7 @@ unsafe static class DelegateBinding
     public static void Binding(ILRuntime.Runtime.Enviorment.AppDomain appdomain)
     {
         //xx1Start
+        appdomain.DelegateManager.RegisterFunctionDelegate<ILRuntime.Runtime.Intepreter.ILTypeInstance, System.Boolean>();
         appdomain.DelegateManager.RegisterMethodDelegate<UnityEngine.Texture>();
         appdomain.DelegateManager.RegisterMethodDelegate<Main.IMessage>();
         appdomain.DelegateManager.RegisterMethodDelegate<UnityEngine.AudioClip>();
@@ -32,10 +33,9 @@ unsafe static class DelegateBinding
 
         foreach (var type in typeof(DelegateBinding).Assembly.GetTypes())
         {
-            foreach (var method in type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
+            if (type.IsDefined(typeof(ILRuntimeDelegateBindingAttribute), true))
             {
-                if (method.GetCustomAttributes(typeof(ILRuntimeDelegateBindingAttribute), false).Length > 0)
-                    method.Invoke(null, new object[] { appdomain });
+                type.GetMethod("Binding").Invoke(null, new object[] { appdomain });
             }
         }
     }

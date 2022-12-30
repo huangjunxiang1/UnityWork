@@ -31,7 +31,7 @@ namespace Game
         //缓存数据
         Eventer _onDispose;
         string _url;
-        bool _isLogicRoot;
+        int resVersion;
 
         //挂载数据
         public int value;
@@ -90,10 +90,17 @@ namespace Game
         /// <param name="res"></param>
         public virtual void SetRes(GameObject res)
         {
+            ++resVersion;
             switch (ObjectStyle)
             {
                 case WObjectLoadStyle.Static:
+                    if (this.Root)
+                    {
+                        Loger.Error("已set 游戏对象");
+                        return;
+                    }
                     this.Root = res;
+                    this.Res = res;
                     break;
                 case WObjectLoadStyle.Resource:
                     if (res == this.Root)
@@ -139,7 +146,14 @@ namespace Game
             if (_url == url)
                 return;
             _url = url;
-            SetRes(await AssetLoad.LoadGameObjectAsync(_url, TaskCreater));
+            int ver = ++resVersion;
+            GameObject res = await AssetLoad.LoadGameObjectAsync(_url, TaskCreater);
+            if (ver != resVersion)
+            {
+                AssetLoad.Release(res);
+                return;
+            }
+            SetRes(res);
         }
 
         /// <summary>

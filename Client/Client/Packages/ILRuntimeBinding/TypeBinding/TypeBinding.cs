@@ -20,6 +20,7 @@ unsafe static class TypeBinding
         appdomain.RegisterCrossBindingAdaptor(new IRequestAdapter());
         appdomain.RegisterCrossBindingAdaptor(new IResponseAdapter());
         appdomain.RegisterCrossBindingAdaptor(new ScriptableObjectAdapter());
+        appdomain.RegisterCrossBindingAdaptor(new IPBMessageAdapter());
 
         appdomain.RegisterValueTypeBinder(typeof(Quaternion), new QuaternionBinder());
         appdomain.RegisterValueTypeBinder(typeof(Vector2), new Vector2Binder());

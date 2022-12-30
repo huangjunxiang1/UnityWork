@@ -97,16 +97,17 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
-            Main.UIConfig cfg;
-            if (os.Length == 0)
+            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
+            if (cfg == null)
                 cfg = Main.UIConfig.Default;
-            else
-                cfg = (Main.UIConfig)os[0];
 
+            UIBase lastPage = GetLastPageUI();
             ui = new();
             _uiLst.Add(ui);
             ui.LoadConfig(cfg, data);
+            _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
+            lastPage?.Hide();
+            ui.Show();
 
             return ui;
         }
@@ -116,29 +117,80 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
-            Main.UIConfig cfg;
-            if (os.Length == 0)
+            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
+            if (cfg == null)
                 cfg = Main.UIConfig.Default;
-            else
-                cfg = (Main.UIConfig)os[0];
 
+            UIHelper.EnableUIInput(false);
+            UIBase lastPage = GetLastPageUI();
             ui = new();
             _uiLst.Add(ui);
             ui.LoadConfigAsync(cfg, data);
+            _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
             await ui.LoadWaiter;
+            lastPage?.Hide();
+            ui.Show();
+            UIHelper.EnableUIInput(true);
+
+            return ui;
+        }
+        public T OpenSubUI<T>(UIBase parent, params object[] data) where T : UIBase, new()
+        {
+            if (parent == null)
+                throw new Exception("parent=null");
+            else if (parent.Parent != null)
+                throw new Exception("parent has parent");
+
+            T ui = Get<T>();
+            if (ui != null)
+                return ui;
+
+            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
+            if (cfg == null)
+                cfg = Main.UIConfig.Default;
+
+            ui = new();
+            _uiLst.Add(ui);
+            ui.SetParent(parent);
+            ui.LoadConfig(cfg, data);
+            _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
+            ui.Show();
+
+            return ui;
+        }
+        public async TaskAwaiter<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
+        {
+            if (parent == null)
+                throw new Exception("parent=null");
+            else if (parent.Parent != null)
+                throw new Exception("parent has parent");
+
+            T ui = Get<T>();
+            if (ui != null)
+                return ui;
+
+            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
+            if (cfg == null)
+                cfg = Main.UIConfig.Default;
+
+            UIHelper.EnableUIInput(false);
+            ui = new();
+            _uiLst.Add(ui);
+            ui.SetParent(parent);
+            ui.LoadConfigAsync(cfg, data);
+            _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
+            await ui.LoadWaiter;
+            ui.Show();
+            UIHelper.EnableUIInput(true);
 
             return ui;
         }
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
-            Main.UIConfig cfg;
-            if (os.Length == 0)
+            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
+            if (cfg == null)
                 cfg = Main.UIConfig.Default;
-            else
-                cfg = (Main.UIConfig)os[0];
 
             T ui = new();
             _3duiLst.Add(ui);
@@ -148,24 +200,29 @@ namespace Game
         }
         public async TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
         {
-            var os = typeof(T).GetCustomAttributes(typeof(Main.UIConfig), true);
-            Main.UIConfig cfg;
-            if (os.Length == 0)
+            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
+            if (cfg == null)
                 cfg = Main.UIConfig.Default;
-            else
-                cfg = (Main.UIConfig)os[0];
 
+            UIHelper.EnableUIInput(false);
             T ui = new();
             _3duiLst.Add(ui);
             ui.LoadConfigAsync(cfg, data);
             await ui.LoadWaiter;
+            UIHelper.EnableUIInput(true);
 
             return ui;
         }
 
+
         public T Get<T>() where T : UIBase
         {
             return _uiLst.Find(t => t is T) as T;
+        }
+
+        public UIBase GetLastPageUI()
+        {
+            return _uiLst.Find(t => t.IsPage && t.uiConfig.UIType < UIType.GlobalUI);
         }
 
         /// <summary>
@@ -187,8 +244,8 @@ namespace Game
             int len = _uiLst.Count;
             for (; len > 0; len--)
             {
-                var ui = _uiLst[len - 1];
-                if (!ui.uiConfig.CloseOnChangeScene)
+                UIBase ui = _uiLst[len - 1];
+                if (ui.uiConfig.UIType >= UIType.GlobalUI)
                     continue;
                 ui.Dispose();
             }
@@ -202,7 +259,7 @@ namespace Game
             for (; len > 0; len--)
             {
                 var ui = _uiLst[len - 1];
-                if (!ui.uiConfig.CloseOnChangeScene)
+                if (ui.uiConfig.UIType >= UIType.GlobalUI)
                     continue;
                 ui.Dispose();
             }
@@ -224,6 +281,22 @@ namespace Game
                 _3duiLst.Remove(ui);
             else
                 _uiLst.Remove(ui);
+        }
+
+        public bool ShowLastPageUI()
+        {
+            for (int i = _uiLst.Count - 1; i >= 0; i--)
+            {
+                UIBase ui = _uiLst[i];
+                if (!ui.IsPage || ui.uiConfig.UIType >= UIType.GlobalUI)
+                    continue;
+                if (!ui.IsShow)
+                {
+                    ui.Show();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
