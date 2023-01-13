@@ -21,15 +21,16 @@ namespace Main
         public const string Directory = "Assets/Res/";
 
         static readonly AssetPrefabLoader prefabLoader = new AssetPrefabLoader();
-        static readonly AssetBaseLoader counterLoader = new AssetCounterLoader();
+        //static readonly AssetBaseLoader counterLoader = new AssetCounterLoader();
         static readonly AssetBaseLoader primitiveLoader = new AssetPrimitiveLoader();
-        static readonly AssetBaseLoader copyLoader = new AssetCopyLoader();
+        //static readonly AssetBaseLoader copyLoader = new AssetCopyLoader();
 
         public static GameObject LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             GameObject g = (GameObject)prefabLoader.Load(url);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
             r.url = url;
+            r.isFromLoad = true;
             r.mode = releaseMode;
             return g;
         }
@@ -38,6 +39,7 @@ namespace Main
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
             r.url = url;
+            r.isFromLoad = true;
             r.mode = releaseMode;
             return g;
         }
@@ -59,6 +61,7 @@ namespace Main
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url, task);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
             r.url = url;
+            r.isFromLoad = true;
             r.mode = releaseMode;
             return g;
         }
@@ -67,6 +70,7 @@ namespace Main
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
             r.url = url;
+            r.isFromLoad = true;
             r.mode = releaseMode;
             return g;
         }
@@ -94,8 +98,6 @@ namespace Main
                 return default;
             }
 #endif
-            if (t == typeof(Texture))
-                return (T)counterLoader.Load(url);
             return (T)primitiveLoader.Load(url);
         }
         public static async TaskAwaiter<T> LoadAsync<T>(string url) where T : UnityEngine.Object
@@ -108,8 +110,6 @@ namespace Main
                 return default;
             }
 #endif
-            if (t == typeof(Texture))
-                return (T)await counterLoader.LoadAsync(url);
             return (T)await primitiveLoader.LoadAsync(url);
         }
         public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskAwaiter<UnityEngine.Object> task) where T : UnityEngine.Object
@@ -122,8 +122,6 @@ namespace Main
                 return default;
             }
 #endif
-            if (t == typeof(Texture))
-                return (T)await counterLoader.LoadAsync(url, task);
             return (T)await primitiveLoader.LoadAsync(url, task);
         }
         public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskAwaiterCreater creater) where T : UnityEngine.Object
@@ -136,8 +134,6 @@ namespace Main
                 return default;
             }
 #endif
-            if (t == typeof(Texture))
-                return (T)await counterLoader.LoadAsync(url, creater);
             return (T)await primitiveLoader.LoadAsync(url, creater);
         }
 
@@ -150,37 +146,51 @@ namespace Main
             }
             if (target is GameObject g)
             {
+
+#if DebugEnable
+                //debug模式检查一次Release的是不是加载对象
                 UrlRef r = g.GetComponent<UrlRef>();
                 if (r == null)
                 {
+                    Loger.Error($"不是从资源加载的对象 target={target}");
                     GameObject.DestroyImmediate(target);
                     return;
                 }
-                //GetComponentsInChildren这里获取的  包含他自己  所以用if else
-                if (r.hasChange)
-                {
-                    UrlRef[] rs = r.transform.GetComponentsInChildren<UrlRef>();
-                    for (int i = rs.Length - 1; i >= 0; i--)
-                        ReleaseGameObject(rs[i]);
-                }
-                else
-                    ReleaseGameObject(r);
+#endif
+                UrlRef[] rs = g.GetComponentsInChildren<UrlRef>();
+                for (int i = rs.Length - 1; i >= 0; i--)
+                    ReleaseGameObject(rs[i], false);
             }
-            else if (target is Texture)
-                counterLoader.Release(target);
             else
                 primitiveLoader.Release(target);
         }
-        static void ReleaseGameObject(UrlRef r)
+        public static void TryReleaseGameObject(GameObject target)
+        {
+            if (!target)
+            {
+                Loger.Error("Asset is null");
+                return;
+            }
+            UrlRef r = target.GetComponent<UrlRef>();
+            if (r == null)
+            {
+                GameObject.DestroyImmediate(target);
+                return;
+            }
+            ReleaseGameObject(r, true);
+        }
+        static void ReleaseGameObject(UrlRef r, bool destroyIfIsNotLoad = true)
         {
             switch (r.mode)
             {
                 case ReleaseMode.None:
                 case ReleaseMode.Destroy:
-                    prefabLoader.Release(r.gameObject);
+                    if (r.isFromLoad)
+                        prefabLoader.Release(r.gameObject);
+                    else if (destroyIfIsNotLoad)
+                        GameObject.DestroyImmediate(r.gameObject);
                     break;
                 case ReleaseMode.PutToPool:
-                    r.hasChange = false;
                     prefabLoader.ReleaseToPool(r.gameObject, r.url);
                     break;
                 default:
@@ -191,7 +201,7 @@ namespace Main
         {
             TextureRef tr = target.GetComponent<TextureRef>() ?? target.AddComponent<TextureRef>();
             if (tr.texture)
-                counterLoader.Release(tr.texture);
+                primitiveLoader.Release(tr.texture);
             tr.texture = texture;
         }
         public static void ReleaseTextureRef(GameObject target)
@@ -207,24 +217,33 @@ namespace Main
             {
                 TextureRef r = rs[i];
                 if (r.texture)
-                    counterLoader.Release(r.texture);
+                    primitiveLoader.Release(r.texture);
             }
         }
-
+       
+        public static void SetEmptyTextureIfIsNotFromLoad(GameObject target)
+        {
+#if DebugEnable
+            //debug模式重置texture 以方便查问题
+            TextureRef[] rs = target.GetComponentsInChildren<TextureRef>();
+            int len = rs.Length;
+            for (int i = 0; i < len; i++)
+            {
+                TextureRef r = rs[i];
+                UnityEngine.UI.RawImage ri = r.gameObject.GetComponent<UnityEngine.UI.RawImage>();
+                if (!r.texture && ri && ri.texture)
+                    ri.texture = Texture2D.whiteTexture;
+            }
+#endif
+        }
 
         class UrlRef : MonoBehaviour
         {
-            [NonSerialized]
-            public string url;
-            [NonSerialized]
             public ReleaseMode mode;
+            public string url;
 
-            public bool hasChange;
-
-            void OnTransformChildrenChanged()
-            {
-                hasChange = true;
-            }
+            [NonSerialized]
+            public bool isFromLoad;
         }
         class TextureRef : MonoBehaviour
         {

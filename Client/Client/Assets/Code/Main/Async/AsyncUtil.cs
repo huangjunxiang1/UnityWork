@@ -16,6 +16,9 @@ public static class AsyncUtil
 {
     public static TaskAwaiter GetAwaiter(this AsyncOperation op)
     {
+        if (op.isDone)
+            return TaskAwaiter.Completed;
+        
         TaskAwaiter task = new();
         op.completed += e => task.TrySetResult();
         return task;
@@ -23,8 +26,10 @@ public static class AsyncUtil
 
     public static TaskAwaiter GetAwaiter(this IEnumerator ie)
     {
-        TaskAwaiter task = new();
+        if(ie.MoveNext())
+            return TaskAwaiter.Completed;
 
+        TaskAwaiter task = new();
         void update()
         {
             if (ie.MoveNext())
@@ -34,17 +39,22 @@ public static class AsyncUtil
             }
         }
         Timer.Add(0.1f, -1, update);
-
         return task;
     }
     public static TaskAwaiter GetAwaiter(this GTweener tween)
     {
+        if (tween.completed)
+            return TaskAwaiter.Completed;
+
         TaskAwaiter task = new();
         tween.OnComplete(task.TrySetResult);
         return task;
     }
     public static TaskAwaiter GetAwaiter(this Tween tween)
     {
+        if (tween.IsComplete())
+            return TaskAwaiter.Completed;
+
         TaskAwaiter task = new();
         tween.OnComplete(task.TrySetResult);
         return task;

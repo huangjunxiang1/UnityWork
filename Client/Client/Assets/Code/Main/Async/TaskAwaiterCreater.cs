@@ -14,28 +14,28 @@ public class TaskAwaiterCreater
     {
         TaskAwaiter task = new();
         tasks.Add(task);
-        waitRemove(task);
+        task.AddEvent(() => Remove(task));
         return task;
     }
     public TaskAwaiter<T> Create<T>()
     {
         TaskAwaiter<T> task = new();
         tasks.Add(task);
-        waitRemove(task);
+        task.AddEvent(() => Remove(task));
         return task;
     }
     public TaskAwaiter Create(object tag)
     {
         TaskAwaiter task = new(tag);
         tasks.Add(task);
-        waitRemove(task);
+        task.AddEvent(() => Remove(task));
         return task;
     }
     public TaskAwaiter<T> Create<T>(object tag)
     {
         TaskAwaiter<T> task = new(tag);
         tasks.Add(task);
-        waitRemove(task);
+        task.AddEvent(() => Remove(task));
         return task;
     }
     public TaskAwaiter GetOrCreate(ref TaskAwaiter task)
@@ -75,7 +75,8 @@ public class TaskAwaiterCreater
             else
             {
                 task.Clear();
-                waitRemove(task);//重新添加一个等待移除
+                TaskAwaiter tmp = task;
+                task.AddEvent(() => Remove(tmp));
             }
         }
         return task;
@@ -99,7 +100,8 @@ public class TaskAwaiterCreater
             else
             {
                 task.Clear();
-                waitRemove(task);//重新添加一个等待移除
+                TaskAwaiter tmp = task;
+                task.AddEvent(() => Remove(tmp));
             }
         }
         return task;
@@ -107,7 +109,7 @@ public class TaskAwaiterCreater
     public TaskAwaiter Add(TaskAwaiter task)
     {
         tasks.Add(task);
-        waitRemove(task);
+        task.AddEvent(() => Remove(task));
         return task;
     }
     public void Remove(TaskAwaiter task)
@@ -120,11 +122,5 @@ public class TaskAwaiterCreater
             tasks[i].TryCancel();
         tasks.Clear();
         this.Disposed = true;
-    }
-
-    async void waitRemove(TaskAwaiter task)
-    {
-        await task;
-        Remove(task);
     }
 }

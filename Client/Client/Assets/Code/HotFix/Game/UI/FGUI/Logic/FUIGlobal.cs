@@ -18,12 +18,9 @@ partial class FUIGlobal
         if (this._log.visible)
             this._log.onClick.Add(log);
 
-        if (!Application.isEditor)
-        {
-            input = new ESCInput();
-            input.esconEsc.started += esc;
-            input.esc.Enable();
-        }
+        input = new ESCInput();
+        input.esconEsc.started += esc;
+        input.esc.Enable();
     }
     protected override void OnExit()
     {
@@ -40,7 +37,7 @@ partial class FUIGlobal
         if (e.ReadValueAsButton())
         {
             showExit = true;
-            Box.Op_YesOrNo("退出游戏", "是否退出游戏?", "确定", "取消", () =>
+            Box.Op_YesOrNo("退出游戏", "是否退出游戏?", "确定", "取消",() =>
             {
                 UnityEngine.Application.Quit();
                 showExit = false;

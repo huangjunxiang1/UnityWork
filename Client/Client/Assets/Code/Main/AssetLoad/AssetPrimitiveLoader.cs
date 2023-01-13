@@ -42,7 +42,7 @@ namespace Main
         {
             var wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
 
-            await wait.Task;
+             await wait.Task;
 
             //如果状态是没完成 但是被释放了 说明异步被中途取消
             if (!task.IsCompleted && !task.IsDisposed)

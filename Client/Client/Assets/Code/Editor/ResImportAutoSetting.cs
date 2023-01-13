@@ -14,10 +14,16 @@ public class ResImportAutoSetting : AssetPostprocessor
                 uiSprite(ti);
             return;
         }
-        if (this.assetPath.StartsWith("Assets/Res/UI/FUI"))
+        if (this.assetPath.StartsWith("Assets/Res/UI"))
         {
             if (this.assetImporter is TextureImporter ti)
-                fguiTex(ti);
+            {
+                texture(ti);
+                if (this.assetPath.StartsWith("Assets/Res/UI/FUI/ComPkg"))
+                {
+                    EditorUtility.DisplayDialog("错误", "FUI的组件包不应该导出texture 请检查导出设置", "确定");
+                }
+            }
             return;
         }
     }
@@ -27,7 +33,7 @@ public class ResImportAutoSetting : AssetPostprocessor
         ti.textureType = TextureImporterType.Sprite;
     }
 
-    void fguiTex(TextureImporter ti)
+    void texture(TextureImporter ti)
     {
         ti.mipmapEnabled = false;
     }

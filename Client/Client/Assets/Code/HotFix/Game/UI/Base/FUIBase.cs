@@ -11,22 +11,38 @@ using FairyGUI;
 
 abstract class FUIBase : UIBase
 {
+    bool isShowing = false;
+    TaskAwaiter showTask;
+    bool isHiding = false;
+    TaskAwaiter hideTask;
+
     public abstract GComponent UI { get; }
 
     public sealed override void Hide(bool playAnimation = true, Action callBack = null)
     {
+        if (isHiding)
+        {
+            hideTask.AddEvent(callBack);
+            return;
+        }
+
         this.OnHide();
+        base.Hide(playAnimation, callBack);
         if (playAnimation)
         {
             Transition close = this.UI.GetTransition("close");
             if (close != null)
             {
+                isHiding = true;
+                hideTask = TaskCreater.Create();
                 UIHelper.EnableUIInput(false);
                 close.Play(() =>
                 {
+                    isHiding = false;
                     UIHelper.EnableUIInput(true);
-                    this.IsShow = false;
+                    this.isShow = false;
                     callBack?.Invoke();
+                    hideTask.TrySetResult();
                 });
                 return;
             }
@@ -35,72 +51,98 @@ abstract class FUIBase : UIBase
                 Transition open = this.UI.GetTransition("open");
                 if (open != null)
                 {
+                    isHiding = true;
+                    hideTask = TaskCreater.Create();
+                    open.Stop(false, true);
                     UIHelper.EnableUIInput(false);
                     open.PlayReverse(() =>
                     {
+                        isHiding = false;
                         UIHelper.EnableUIInput(true);
-                        this.IsShow = false;
+                        this.isShow = false;
                         callBack?.Invoke();
+                        hideTask.TrySetResult();
                     });
                     return;
                 }
             }
         }
-        this.IsShow = false;
+        this.isShow = false;
         callBack?.Invoke();
     }
     public sealed override TaskAwaiter HideAsync(bool playAnimation = true)
     {
+        if (isHiding)
+            return hideTask;
+
         this.OnHide();
+        base.HideAsync(playAnimation);
         if (playAnimation)
         {
             Transition close = this.UI.GetTransition("close");
             if (close != null)
             {
+                isHiding = true;
+                hideTask = TaskCreater.Create();
                 UIHelper.EnableUIInput(false);
-                TaskAwaiter task = TaskCreater.Create();
                 close.Play(() =>
                 {
+                    isHiding = false;
                     UIHelper.EnableUIInput(true);
-                    this.IsShow = false;
-                    task.TrySetResult();
+                    this.isShow = false;
+                    hideTask.TrySetResult();
                 });
-                return task;
+                return hideTask;
             }
             else
             {
                 Transition open = this.UI.GetTransition("open");
                 if (open != null)
                 {
+                    isHiding = true;
+                    hideTask = TaskCreater.Create();
+                    open.Stop(false, true);
                     UIHelper.EnableUIInput(false);
-                    TaskAwaiter task = TaskCreater.Create();
                     open.PlayReverse(() =>
                     {
+                        isHiding = false;
                         UIHelper.EnableUIInput(true);
-                        this.IsShow = false;
-                        task.TrySetResult();
+                        this.isShow = false;
+                        hideTask.TrySetResult();
                     });
-                    return task;
+                    return hideTask;
                 }
             }
         }
-        this.IsShow = false;
+        this.isShow = false;
         return TaskAwaiter.Completed;
     }
     public sealed override void Show(bool playAnimation = true, Action callBack = null)
     {
-        this.IsShow = true;
+        if (isShowing)
+        {
+            showTask.AddEvent(callBack);
+            return;
+        }
+
+        this.isShow = true;
         this.OnShow();
+        base.Show(playAnimation, callBack);
         if (playAnimation)
         {
             Transition open = this.UI.GetTransition("open");
             if (open != null)
             {
+                isShowing = true;
+                showTask = TaskCreater.Create();
+                open.Stop(false, true);
                 UIHelper.EnableUIInput(false);
                 open.Play(() =>
                 {
+                    isShowing = false;
                     UIHelper.EnableUIInput(true);
                     callBack?.Invoke();
+                    showTask.TrySetResult();
                 });
                 return;
             }
@@ -109,21 +151,28 @@ abstract class FUIBase : UIBase
     }
     public sealed override TaskAwaiter ShowAsync(bool playAnimation = true)
     {
-        this.IsShow = true;
+        if (isShowing)
+            return showTask;
+
+        this.isShow = true;
         this.OnShow();
+        base.ShowAsync(playAnimation);
         if (playAnimation)
         {
             Transition open = this.UI.GetTransition("open");
             if (open != null)
             {
+                isShowing = true;
+                showTask = TaskCreater.Create();
+                open.Stop(false, true);
                 UIHelper.EnableUIInput(false);
-                TaskAwaiter task = TaskCreater.Create();
                 open.Play(() =>
                 {
+                    isShowing = false;
                     UIHelper.EnableUIInput(true);
-                    task.TrySetResult();
+                    showTask.TrySetResult();
                 });
-                return task;
+                return showTask;
             }
         }
         return TaskAwaiter.Completed;

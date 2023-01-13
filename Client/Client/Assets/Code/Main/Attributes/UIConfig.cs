@@ -18,12 +18,13 @@ namespace Main
 
         public int SortOrder { get; }
         public UIType UIType { get; set; } = UIType.SceneUI;
+        public bool HideOnOpenOtherUI { get; set; } = true;//打开新UI 自动隐藏当前UI
 
 
         public UIConfig(int SortOrder)
         {
-            if (SortOrder > 10000)
-                Loger.Error("SortOrder不能超过10000");
+            if (SortOrder > 100 || SortOrder < -100)
+                Loger.Error("SortOrder不能超过-100到100");
             
             this.SortOrder = SortOrder;
         }

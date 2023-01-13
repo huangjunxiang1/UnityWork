@@ -21,10 +21,12 @@ namespace Game
             this.ObjectStyle = style;
             if (ObjectStyle == WObjectLoadStyle.LogicRoot)
             {
-                this.Root = new GameObject();
+                this.goRoot = new GameObject();
 #if UNITY_EDITOR
                 this.Name = $"{this.GetType().FullName}_id={cid}";
 #endif
+                if (this is not World)
+                    this.goRoot.transform.SetParent(GameM.World.goRoot.transform);
             }
         }
 
@@ -32,34 +34,31 @@ namespace Game
         Eventer _onDispose;
         string _url;
         int resVersion;
-
-        //挂载数据
-        public int value;
-        public object data;
+        Vector3 _pos;
 
         /// <summary>
-        /// 逻辑节点
+        /// 逻辑节点 WObjectLoadStyle.Resource模式 Root==Res
         /// </summary>
-        public GameObject Root { get; private set; }
+        public GameObject goRoot { get; private set; }
 
         /// <summary>
         /// 资源模型
         /// </summary>
-        public GameObject Res { get; private set; }
+        public GameObject goRes { get; private set; }
 
         public virtual string Name
         {
-            get => Root?.name;
+            get => goRoot?.name;
             set
             {
-                if (!Root)
+                if (!goRoot)
                     return;
-                Root.name = value;
+                goRoot.name = value;
             }
         }
 
         /// <summary>
-        /// 
+        ///  
         /// </summary>
         public WObjectLoadStyle ObjectStyle { get; }
 
@@ -68,8 +67,18 @@ namespace Game
         /// </summary>
         public Vector3 Position
         {
-            get { return Root.transform.position; }
-            set { Root.transform.position = value; }
+            get { return _pos; }
+            set
+            {
+                if (ObjectStyle == WObjectLoadStyle.Static)
+                {
+                    Loger.Error("静态物体不能设置坐标");
+                    return;
+                }
+                _pos = value;
+                if (this.goRoot)
+                    this.goRoot.transform.position = value;
+            }
         }
 
         /// <summary>
@@ -94,38 +103,47 @@ namespace Game
             switch (ObjectStyle)
             {
                 case WObjectLoadStyle.Static:
-                    if (this.Root)
+                    if (this.goRoot)
                     {
                         Loger.Error("已set 游戏对象");
                         return;
                     }
-                    this.Root = res;
-                    this.Res = res;
+                    this.goRoot = res;
+                    this.goRes = res;
+                    _pos = this.goRoot.transform.position;
                     break;
                 case WObjectLoadStyle.Resource:
-                    if (res == this.Root)
+                    if (res == this.goRes)
                         return;
 
-                    if (this.Root)
+                    if (this.goRes)
                     {
-                        res.transform.parent = this.Root.transform.parent;
-                        res.transform.rotation = this.Root.transform.rotation;
-                        res.transform.position = this.Root.transform.position;
+                        res.transform.parent = this.goRes.transform.parent;
+                        res.transform.rotation = this.goRes.transform.rotation;
+                        res.transform.position = this.goRes.transform.position;
+                        AssetLoad.Release(this.goRes);
                     }
-                    this.Root = res;
-                    this.Res = res;
+                    else
+                    {
+                        res.transform.SetParent(GameM.World.goRoot.transform);
+                        res.transform.rotation = Quaternion.identity;
+                        res.transform.position = _pos;
+                    }
+
+                    this.goRoot = res;
+                    this.goRes = res;
                     break;
                 case WObjectLoadStyle.LogicRoot:
-                    if (res == this.Res)
+                    if (res == this.goRes)
                         return;
 
-                    res.transform.parent = this.Root.transform;
+                    res.transform.parent = this.goRoot.transform;
                     res.transform.rotation = Quaternion.identity;
                     res.transform.localPosition = default;
 
-                    if (this.Res)
-                        AssetLoad.Release(this.Res);
-                    this.Res = res;
+                    if (this.goRes)
+                        AssetLoad.Release(this.goRes);
+                    this.goRes = res;
                     break;
                 default:
                     break;
@@ -136,7 +154,7 @@ namespace Game
         /// 主动加载资源
         /// </summary>
         /// <param name="url"></param>
-        public async TaskAwaiter LoadRes(string url)
+        public async TaskAwaiter LoadRes(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             if (this.ObjectStyle == WObjectLoadStyle.Static)
             {
@@ -147,7 +165,7 @@ namespace Game
                 return;
             _url = url;
             int ver = ++resVersion;
-            GameObject res = await AssetLoad.LoadGameObjectAsync(_url, TaskCreater);
+            GameObject res = await AssetLoad.LoadGameObjectAsync(_url, TaskCreater, releaseMode);
             if (ver != resVersion)
             {
                 AssetLoad.Release(res);
@@ -168,13 +186,13 @@ namespace Game
                 case WObjectLoadStyle.Static:
                     break;
                 case WObjectLoadStyle.Resource:
-                    if (this.Res)
-                        AssetLoad.Release(this.Res);
+                    if (this.goRes)
+                        AssetLoad.Release(this.goRes);
                     break;
                 case WObjectLoadStyle.LogicRoot:
-                    if (this.Res)
-                        AssetLoad.Release(this.Res);
-                    GameObject.DestroyImmediate(this.Root);
+                    if (this.goRes)
+                        AssetLoad.Release(this.goRes);
+                    GameObject.DestroyImmediate(this.goRoot);
                     break;
                 default:
                     break;

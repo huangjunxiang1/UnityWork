@@ -26,8 +26,8 @@ namespace Game
             }
             systems.Sort((x, y) =>
             {
-                var ax = Reflection.GetAttribute(x.GetType(), typeof(SystemExecuteOrderAttribute));
-                var ay = Reflection.GetAttribute(y.GetType(), typeof(SystemExecuteOrderAttribute));
+                var ax = Types.GetAttribute(x.GetType(), typeof(SystemExecuteOrderAttribute));
+                var ay = Types.GetAttribute(y.GetType(), typeof(SystemExecuteOrderAttribute));
 
                 int ox = 0;
                 int oy = 0;

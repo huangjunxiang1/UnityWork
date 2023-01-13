@@ -90,6 +90,13 @@ namespace Main
         }
         public void ReleaseToPool(GameObject target,string url)
         {
+#if DebugEnable
+            if (string.IsNullOrEmpty(url))
+            {
+                Loger.Error("url is empty");
+                return;
+            }
+#endif
             if (!_pool.TryGetValue(url, out var lst))
             {
                 lst = new List<GameObject>();

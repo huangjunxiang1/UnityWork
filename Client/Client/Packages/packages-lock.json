@@ -34,7 +34,7 @@
       "dependencies": {}
     },
     "com.unity.animation.rigging": {
-      "version": "1.2.0",
+      "version": "1.2.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -139,7 +139,7 @@
       "dependencies": {}
     },
     "com.unity.ide.rider": {
-      "version": "3.0.17",
+      "version": "3.0.18",
       "depth": 0,
       "source": "registry",
       "dependencies": {

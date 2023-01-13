@@ -16,10 +16,11 @@ partial class UUILoading : UUI
 
     protected sealed override void Binding()
     {
+        RectTransform ui = this.UI;
         Transform c;
-        c = this.UI.GetChild(0);
+        c = ui.GetChild(0);
         this._fillImage = (UnityEngine.UI.Image)c.GetComponent(typeof(UnityEngine.UI.Image));
-        c = this.UI.GetChild(1);
+        c = ui.GetChild(1);
         this._txtText = (UnityEngine.UI.Text)c.GetComponent(typeof(UnityEngine.UI.Text));
     }
 }
@@ -34,16 +35,17 @@ partial class UUILogin : UUI
 
     protected sealed override void Binding()
     {
+        RectTransform ui = this.UI;
         Transform c;
-        c = this.UI.GetChild(0);
+        c = ui.GetChild(0);
         this._acInputField = (UnityEngine.UI.InputField)c.GetComponent(typeof(UnityEngine.UI.InputField));
-        c = this.UI.GetChild(1);
+        c = ui.GetChild(1);
         this._pwInputField = (UnityEngine.UI.InputField)c.GetComponent(typeof(UnityEngine.UI.InputField));
-        c = this.UI.GetChild(2);
+        c = ui.GetChild(2);
         this._loginButton = (UnityEngine.UI.Button)c.GetComponent(typeof(UnityEngine.UI.Button));
-        c = this.UI.GetChild(3);
+        c = ui.GetChild(3);
         this._DropdownUITypeDropdown = (UnityEngine.UI.Dropdown)c.GetComponent(typeof(UnityEngine.UI.Dropdown));
-        c = this.UI.GetChild(4);
+        c = ui.GetChild(4);
         this._DropdownGameTypeDropdown = (UnityEngine.UI.Dropdown)c.GetComponent(typeof(UnityEngine.UI.Dropdown));
     }
 }

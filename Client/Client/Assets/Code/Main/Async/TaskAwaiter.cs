@@ -105,6 +105,18 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         this._event = null;
     }
 
+    public void AddEvent(Action evt)
+    {
+        if (evt == null)
+            return;
+        if (IsCompleted)
+        {
+            evt.Invoke();
+            return;
+        }
+        this._event += evt;
+    }
+
     void INotifyCompletion.OnCompleted(Action callBack)
     {
         this._event += callBack;
@@ -120,12 +132,22 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         await task;
         taskAwaiter.TrySetResult();
     }
+
+    public static TaskAwaiter Delay(int millisecondsDelay)
+    {
+        return new TaskAwaiter(Task.Delay(millisecondsDelay));
+    }
     public static async TaskAwaiter All(IEnumerable<TaskAwaiter> itor)
     {
         if (itor == null)
             await TaskAwaiter.Completed;
 
         TaskAwaiter[] tasks = itor.ToArray();
+        for (int i = 0; i < tasks.Length; i++)
+            await tasks[i];
+    }
+    public static async TaskAwaiter All(params TaskAwaiter[] tasks)
+    {
         for (int i = 0; i < tasks.Length; i++)
             await tasks[i];
     }
@@ -142,7 +164,14 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             return rs;
         }
     }
-    public static TaskAwaiter Any(IEnumerable<TaskAwaiter> itor, bool canelOthersAfterCompleted = true)
+    public static async TaskAwaiter<K[]> All<K>(params TaskAwaiter<K>[] tasks)
+    {
+        K[] rs = new K[tasks.Length];
+        for (int i = 0; i < tasks.Length; i++)
+            rs[i] = await tasks[i];
+        return rs;
+    }
+    public static TaskAwaiter Any(IEnumerable<TaskAwaiter> itor)
     {
         if (itor == null)
             return TaskAwaiter.Completed;
@@ -154,18 +183,26 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         {
             await task;
             waiter.TrySetResult();
-            if (canelOthersAfterCompleted)
-            {
-                for (int j = 0; j < tasks.Length; j++)
-                    tasks[j].TryCancel();
-            }
         }
 
         for (int i = 0; i < tasks.Length; i++)
             wait(tasks[i]);
         return waiter;
     }
-    public static TaskAwaiter<K> Any<K>(IEnumerable<TaskAwaiter<K>> itor, bool canelOthersAfterCompleted = true)
+    public static TaskAwaiter Any(params TaskAwaiter[] tasks)
+    {
+        TaskAwaiter waiter = new();
+        async void wait(TaskAwaiter task)
+        {
+            await task;
+            waiter.TrySetResult();
+        }
+
+        for (int i = 0; i < tasks.Length; i++)
+            wait(tasks[i]);
+        return waiter;
+    }
+    public static TaskAwaiter<K> Any<K>(IEnumerable<TaskAwaiter<K>> itor)
     {
         TaskAwaiter<K> waiter = new();
         if (itor == null) waiter.TrySetResult(default);
@@ -177,16 +214,26 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             {
                 await task;
                 waiter.TrySetResult(task.GetResult());
-                if (canelOthersAfterCompleted)
-                {
-                    for (int j = 0; j < tasks.Length; j++)
-                        tasks[j].TryCancel();
-                }
             }
 
             for (int i = 0; i < tasks.Length; i++)
                 wait(tasks[i]);
         }
+        return waiter;
+    }
+    public static TaskAwaiter<K> Any<K>(params TaskAwaiter<K>[] tasks)
+    {
+        TaskAwaiter<K> waiter = new();
+
+        async void wait(TaskAwaiter<K> task)
+        {
+            await task;
+            waiter.TrySetResult(task.GetResult());
+        }
+
+        for (int i = 0; i < tasks.Length; i++)
+            wait(tasks[i]);
+
         return waiter;
     }
 }

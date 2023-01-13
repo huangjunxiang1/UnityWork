@@ -11,7 +11,8 @@ namespace Game
         public TreeM(long cid) : base(cid) { }
         public TreeM() : base() { }
 
-        Dictionary<long, T> _childMap = new();
+        Dictionary<long, T> _childGMap = new();
+        Dictionary<long, T> _childCMap = new();
         List<T> _childLst = new();
 
         /// <summary>
@@ -19,27 +20,44 @@ namespace Game
         /// </summary>
         public T Parent { get; private set; }
 
-        public override void Dispose()
+        /// <summary>
+        /// 根
+        /// </summary>
+        public T Root
         {
-            this.RemoveAllChildren();
-            if (this.Parent != null)
-                this.Parent.Remove(this.GID);
-            base.Dispose();
+            get
+            {
+                T root = (T)this;
+                while (root.Parent != null)
+                    root = root.Parent;
+                return root;
+            }
         }
 
         /// <summary>
-        /// 设置父管理节点
+        /// 节点层级
         /// </summary>
-        /// <param name="parent"></param>
-        public void SetParent(T parent)
+        public int Layer
         {
-            if (this.Parent == parent)
-                return;
+            get
+            {
+                int layer = 0;
+                TreeM<T> parent = this.Parent;
+                while (parent != null)
+                {
+                    layer++;
+                    parent = this.Parent;
+                }
+                return layer;
+            }
+        }
 
+        public override void Dispose()
+        {
+            this.DisposeAllChildren();
             if (this.Parent != null)
-                this.Parent.Remove(this.GID);
-            if (parent != null)
-                parent.AddChild((T)this);
+                this.Parent.Remove((T)this);
+            base.Dispose();
         }
 
         /// <summary>
@@ -50,16 +68,33 @@ namespace Game
         {
             if (child.Parent == this)
                 return;
+
+#if DebugEnable
+            TreeM<T> o = this;
+            do
+            {
+                if (o == child)
+                {
+                    Loger.Error("树节点循环");
+                    return;
+                }
+            } while ((o = o.Parent) != null);
+#endif
+
             if (child.Parent != null)
-                child.Parent.Remove(child.GID);
-            _childMap.Add(child.GID, child);
+                child.Parent.Remove(child);
+
+            _childGMap.Add(child.GID, child);
+            if (child.CID > 0)
+            {
+                if (!_childCMap.ContainsKey(child.CID))
+                    _childCMap[child.CID] = child;
+                else
+                    Loger.Error($"已经包含子对象 this={this.GetType()} cid={this.CID}  child={child.GetType()} cid={child.CID}");
+            }
+
             _childLst.Add(child);
             child.Parent = (T)this;
-        }
-        public virtual void AddChild<K>() where K : T, new()
-        {
-            K child = new();
-            this.AddChild(child);
         }
 
         /// <summary>
@@ -67,9 +102,19 @@ namespace Game
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T GetChild(long id)
+        public T GetChildGID(long gid)
         {
-            _childMap.TryGetValue(id, out T child);
+            _childGMap.TryGetValue(gid, out T child);
+            return child;
+        }
+        public T GetChildCID(long cid)
+        {
+            if (cid == 0)
+            {
+                Loger.Error("无效cid");
+                return null;
+            }
+            _childCMap.TryGetValue(cid, out T child);
             return child;
         }
         public List<T> ToChildren()
@@ -89,26 +134,47 @@ namespace Game
         /// <param name="child"></param>
         public void Remove(T child)
         {
-            Remove(child.GID);
-        }
-        public virtual void Remove(long id)
-        {
-            if (!_childMap.TryGetValue(id, out T child))
-                return;
-            _childMap.Remove(id);
+            _childGMap.Remove(child.GID);
+            if (child.CID > 0)
+                _childCMap.Remove(child.CID);
             _childLst.Remove(child);
             child.Parent = null;
         }
-        public void RemoveAllChildren()
+        public virtual void RemoveGID(long gid)
+        {
+            if (!_childGMap.TryGetValue(gid, out T child))
+                return;
+            _childGMap.Remove(gid);
+            if (child.CID > 0)
+                _childCMap.Remove(child.CID);
+            _childLst.Remove(child);
+            child.Parent = null;
+        }
+        public virtual void RemoveCID(long cid)
+        {
+            if (cid == 0)
+            {
+                Loger.Error("无效cid");
+                return;
+            }
+            if (!_childCMap.TryGetValue(cid, out T child))
+                return;
+            _childGMap.Remove(child.GID);
+            _childCMap.Remove(cid);
+            _childLst.Remove(child);
+            child.Parent = null;
+        }
+        public void DisposeAllChildren()
         {
             if (_childLst.Count <= 0)
                 return;
 
             var lst = ToChildren();
+            _childGMap.Clear();
+            _childCMap.Clear();
+            _childLst.Clear();
             for (int i = lst.Count - 1; i >= 0; i--)
                 lst[i].Dispose();
-            _childMap.Clear();
-            _childLst.Clear();
         }
     }
 }

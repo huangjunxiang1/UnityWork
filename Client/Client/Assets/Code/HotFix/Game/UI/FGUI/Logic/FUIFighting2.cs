@@ -11,7 +11,6 @@ using Unity.Rendering;
 using UnityEngine;
 using Main;
 using Game;
-using Unity.Physics;
 using Unity.Jobs;
 
 partial class FUIFighting2

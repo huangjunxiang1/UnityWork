@@ -14,10 +14,12 @@ abstract class UIBase : TreeL<UIBase>
     public Main.UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
+
+    public abstract UIStates uiStates { get; }
     /// <summary>
     /// dispose 监听
     /// </summary>
-    public Eventer OnDispose
+    public Eventer onDispose
     {
         get
         {
@@ -26,69 +28,87 @@ abstract class UIBase : TreeL<UIBase>
             return _onDispose;
         }
     }
-
     /// <summary>
     /// UI层级
     /// </summary>
-    public virtual int SortOrder { get; set; }
-
+    public virtual int sortOrder { get; set; }
     /// <summary>
     /// UI隐藏
     /// </summary>
-    public virtual bool IsShow { get; set; }
-
+    public virtual bool isShow { get; set; }
     /// <summary>
-    /// isPage=true 是页签UI  isPage=false 是页签UI的弹窗
+    /// 自定义界面是否已经可以打开
     /// </summary>
-    public bool IsPage => this.Parent == null;
-
+    public virtual TaskAwaiter onTask { get; }
     /// <summary>
-    /// 异步加载等待
+    /// 加载中异步
     /// </summary>
-    public TaskAwaiter LoadWaiter { get; private set; }
+    public TaskAwaiter onCompleted { get; private set; }
 
-    /// <summary>
-    /// Enter异步初始化
-    /// </summary>
-    public TaskAwaiter EnterWaiter { get; protected set; }
-
-    public virtual void LoadConfig(Main.UIConfig config, params object[] data)
+    public virtual TaskAwaiter LoadConfig(Main.UIConfig config, TaskAwaiter completed, params object[] data)
     {
         this.uiConfig = config;
-        this.LoadWaiter = TaskAwaiter.Completed;
         this.ListenerEnable = true;
+        onCompleted = completed;
+        return TaskAwaiter.Completed;
     }
-    public virtual async void LoadConfigAsync(Main.UIConfig config, params object[] data)
+    public virtual TaskAwaiter LoadConfigAsync(Main.UIConfig config, TaskAwaiter completed, params object[] data)
     {
         this.uiConfig = config;
-        this.LoadWaiter = TaskCreater.Create();
-        await this.LoadWaiter;
-        this.ListenerEnable = true;
+        onCompleted = completed;
+        return TaskAwaiter.Completed;
     }
-
-    public abstract void Hide(bool playAnimation = true, Action callBack = null);
-    public abstract TaskAwaiter HideAsync(bool playAnimation = true);
-    public abstract void Show(bool playAnimation = true, Action callBack = null);
-    public abstract TaskAwaiter ShowAsync(bool playAnimation = true);
-
+    public T GetSubUI<T>() where T : UIBase
+    {
+        return this.GetChildren().Find(t => t is T) as T;
+    }
+    public virtual void Hide(bool playAnimation = true, Action callBack = null)
+    {
+        List<UIBase> uis = this.GetChildren();
+        for (int i = uis.Count - 1; i >= 0; i--)
+            uis[i].Hide(playAnimation);
+    }
+    public virtual TaskAwaiter HideAsync(bool playAnimation = true)
+    {
+        List<UIBase> uis = this.GetChildren();
+        for (int i = uis.Count - 1; i >= 0; i--)
+            uis[i].HideAsync(playAnimation);
+        return TaskAwaiter.Completed;
+    }
+    public virtual void Show(bool playAnimation = true, Action callBack = null)
+    {
+        List<UIBase> uis = this.GetChildren();
+        for (int i = uis.Count - 1; i >= 0; i--)
+            uis[i].Show(playAnimation);
+    }
+    public virtual TaskAwaiter ShowAsync(bool playAnimation = true)
+    {
+        List<UIBase> uis = this.GetChildren();
+        for (int i = uis.Count - 1; i >= 0; i--)
+            uis[i].ShowAsync(playAnimation);
+        return TaskAwaiter.Completed;
+    }
     public override void Dispose()
     {  
         //先从列表移除
         GameL.UI.Remove(this);
         base.Dispose();
-        //先执行退出逻辑
-        this.OnExit();
+        //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
         //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
-        GameL.UI.ShowLastPageUI();
+        if (this.uiStates == UIStates.Success)
+            GameL.UI.ShowLastUI();
+        //先执行退出逻辑
+        if (this.uiStates >= UIStates.OnTask)
+            this.OnExit();
         if (_onDispose != null) _onDispose.Call();
     }
 
     protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用
     protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用
-    protected virtual TaskAwaiter OnEnterAsync(params object[] data)
+    protected virtual TaskAwaiter OnTask(params object[] data)
     {
         return TaskAwaiter.Completed;
-    }//UI加载完毕调用
+    }//自定义何时界面可以打开
     protected virtual void OnExit() { }//UI关闭调用
     protected virtual void OnShow() { }//UI每次重显示调用 包括第一次打开
     protected virtual void OnHide() { }//UI每次隐藏时调用 

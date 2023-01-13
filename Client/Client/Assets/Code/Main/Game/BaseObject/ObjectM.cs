@@ -15,15 +15,17 @@ namespace Game
         {
             this.GID = IDGenerate.GenerateID();
             this.CID = cid;
-            Objects.Add(this.GID, this);
             if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredEvent), true))
                 this.ListenerEnable = true;
         }
 
-        TaskAwaiterCreater taskCreater;
-        bool listenerEnable = false;
-        bool keyListenerEnable = false;
-        long eventKey;
+        TaskAwaiterCreater _taskCreater;
+        bool _listenerEnable = false;
+        bool _keyListenerEnable = false;
+        long _eventKey;
+
+        public long value;
+        public object data;
 
         /// <summary>
         /// 自增生成的ID
@@ -45,22 +47,22 @@ namespace Game
         /// </summary>
         public bool ListenerEnable
         {
-            get => listenerEnable;
+            get => _listenerEnable;
             set
             {
                 if (value)
                 {
-                    if (!listenerEnable)
+                    if (!_listenerEnable)
                     {
-                        listenerEnable = true;
+                        _listenerEnable = true;
                         GameM.Event.RigisteListener(this);
                     }
                 }
                 else
                 {
-                    if (listenerEnable)
+                    if (_listenerEnable)
                     {
-                        listenerEnable = false;
+                        _listenerEnable = false;
                         GameM.Event.RemoveListener(this);
                     }
                 }
@@ -72,7 +74,14 @@ namespace Game
         /// </summary>
         public TaskAwaiterCreater TaskCreater
         {
-            get { return taskCreater ??= new(); }
+            get
+            {
+                if (this.Disposed)
+                    return null;
+                if (_taskCreater == null)
+                    _taskCreater = new TaskAwaiterCreater();
+                return _taskCreater;
+            }
         }
 
         /// <summary>
@@ -86,13 +95,12 @@ namespace Game
                 return;
             }
 
-            Objects.Remove(this.GID);
             this.Disposed = true;
-            if (listenerEnable)
+            if (_listenerEnable)
                 GameM.Event.RemoveListener(this);
-            if (keyListenerEnable)
-                GameM.Event.RemoveKeyListener(eventKey, this);
-            taskCreater?.Dispose();
+            if (_keyListenerEnable)
+                GameM.Event.RemoveKeyListener(_eventKey, this);
+            _taskCreater?.Dispose();
         }
 
         protected void RigisteKeyListener()
@@ -102,13 +110,13 @@ namespace Game
                 Loger.Error($"CID=0");
                 return;
             }
-            if (keyListenerEnable)
+            if (_keyListenerEnable)
             {
                 Loger.Error($"已经注册了key监听 key={CID}");
                 return;
             }
-            eventKey = CID;
-            keyListenerEnable = true;
+            _eventKey = CID;
+            _keyListenerEnable = true;
             GameM.Event.RigisteKeyListener(CID, this);
         }
         protected void RigisteKeyListener(long key)
@@ -118,13 +126,13 @@ namespace Game
                 Loger.Error($"key=0");
                 return;
             }
-            if (keyListenerEnable)
+            if (_keyListenerEnable)
             {
                 Loger.Error($"已经注册了key监听 key={key}");
                 return;
             }
-            eventKey = key;
-            keyListenerEnable = true;
+            _eventKey = key;
+            _keyListenerEnable = true;
             GameM.Event.RigisteKeyListener(key, this);
         }
     }

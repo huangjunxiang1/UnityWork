@@ -12,9 +12,9 @@ using UnityEngine.InputSystem;
 public class Tool
 {
     [MenuItem("Tools/MyTool/生成UGUI代码")]
-    static void CreateUICode()
+    static void CreateUUICode()
     {
-        StringBuilder code = new StringBuilder();
+        StringBuilder code = new StringBuilder(100000);
 
         code.AppendLine(@"using System;");
         code.AppendLine(@"using System.Collections.Generic;");
@@ -27,8 +27,11 @@ public class Tool
         code.AppendLine(@"using Game;");
 
         appendUUICode(Application.dataPath + "/Res/UI/UUI/Prefab/", code);
-        File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/_Gen/UUI.cs", code.ToString());
-        AssetDatabase.Refresh();
+        if (EditorUtility.DisplayDialog("完成", "创建完成", "确定"))
+        {
+            File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/_Gen/UUI.cs", code.ToString());
+            AssetDatabase.Refresh();
+        }
     }
     static void appendUUICode(string path, StringBuilder code)
     {
@@ -119,12 +122,12 @@ public class Tool
                         {
                             var item1 = coms[i];
                             code.AppendLine($@"    public {item1.GetType().FullName} UI_{item1.GetType().Name};");
-                            getUICode.AppendLine($@"        this.UI_{item1.GetType().Name} = ({item1.GetType().FullName})this.UI.GetComponent(typeof({item1.GetType().FullName}));");
+                            getUICode.AppendLine($@"        this.UI_{item1.GetType().Name} = ({item1.GetType().FullName})ui.GetComponent(typeof({item1.GetType().FullName}));");
                         }
                     }
                     else
                     {
-                        getUICode.Append($@"        c = this.UI");
+                        getUICode.Append($@"        c = ui");
                         var temp = child;
                         List<int> idxs = new List<int>();
                         idxs.Add(temp.GetSiblingIndex());
@@ -153,9 +156,143 @@ public class Tool
             code.AppendLine(@"");
             code.AppendLine(@"    protected sealed override void Binding()");
             code.AppendLine(@"    {");
+            code.AppendLine(@"        RectTransform ui = this.UI;");
             code.Append(getUICode.ToString());
             code.AppendLine(@"    }");
             code.Append(@"}");
+        }
+    }
+
+    [MenuItem("Tools/MyTool/生成FGUI代码")]
+    static void CreateFUICode()
+    {
+        UIPackage.RemoveAllPackages();
+        FairyGUI.UIConfig.defaultFont = "Impact";
+        var pkg = UIPackage.AddPackage($"{AssetLoad.Directory}/UI/FUI/ComPkg/ComPkg");
+        StringBuilder code = new StringBuilder(100000);
+        code.AppendLine("using FairyGUI;");
+        code.AppendLine("using FairyGUI.Utils;");
+
+        foreach (var item in pkg.GetItems())
+        {
+            if (item.name.StartsWith("FUI") && !item.name.StartsWith("FUI3D"))
+            {
+                code.AppendLine($"partial class {item.name} : FUI");
+                code.AppendLine("{");
+                code.AppendLine($"    public sealed override string url => \"{item.name}\";");
+
+                appendFUICode(code, item);
+
+                code.AppendLine("}");
+            }
+        }
+       
+        appendFUI3DCode(code, Application.dataPath + "/Res/UI/FUI/3DUI", pkg);
+        UIPackage.RemoveAllPackages();
+
+        if (EditorUtility.DisplayDialog("完成", "创建完成", "确定"))
+        {
+            File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/_Gen/FUI.cs", code.ToString());
+            AssetDatabase.Refresh();
+        }
+    }
+    static void appendFUICode(StringBuilder code, PackageItem item)
+    {
+        var obj = item.owner.CreateObject(item.name).asCom;
+        if (obj == null)
+        {
+            Debug.LogError(item.name + "不是FGUI组件类型");
+            return;
+        }
+
+        addChildCode("", obj, code);
+
+        code.AppendLine($"    protected sealed override void Binding()");
+        code.AppendLine("    {");
+        code.AppendLine("        GComponent ui = this.UI;");
+
+        addChildBinding("", "ui", obj, code);
+
+        code.AppendLine("    }");
+
+        obj.Dispose();
+    }
+    static void addChildCode(string name, GComponent obj, StringBuilder code)
+    {
+        var cs = obj.GetChildren();
+        for (int i = 0; i < cs.Length; i++)
+        {
+            var c = cs[i];
+            if (!c.name.StartsWith("_"))
+                continue;
+            code.AppendLine($"    public {c.GetType().Name} {name + c.name};");
+
+            if (c is GComponent)
+            {
+                addChildCode(name + c.name, c.asCom, code);
+            }
+        }
+    }
+    static void addChildBinding(string name,string path, GComponent obj, StringBuilder code)
+    {
+        var cs = obj.GetChildren();
+        for (int i = 0; i < cs.Length; i++)
+        {
+            var c = cs[i];
+            if (!c.name.StartsWith("_"))
+                continue;
+            code.AppendLine($"        {name + c.name} = ({c.GetType().Name}){path}.GetChildAt({i});");
+
+            if (c is GComponent)
+            {
+                addChildBinding(name + c.name, name + c.name, c.asCom, code);
+            }
+        }
+    }
+    static void appendFUI3DCode(StringBuilder code, string path, UIPackage pkg)
+    {
+        var ds = Directory.GetDirectories(path);
+        foreach (var d in ds)
+        {
+            appendFUI3DCode(code,d, pkg);
+        }
+        var fs = Directory.GetFiles(path);
+        foreach (var f in fs)
+        {
+            if (!f.EndsWith(".prefab")) continue;
+            var ff = "Assets" + f.Replace(Application.dataPath, "");
+            ff = ff.Replace("\\", "/");
+            var g = (GameObject)AssetDatabase.LoadMainAssetAtPath(ff);
+            UIPanel panel = g.GetComponentInChildren<UIPanel>();
+            if (panel == null)
+            {
+                Debug.LogError($"{ff}非FUI3D对象");
+                continue;
+            }
+            if (string.IsNullOrEmpty(panel.packageName) || string.IsNullOrEmpty(panel.componentName))
+            {
+                Debug.LogError("目录:" + ff + "  包名或组件名为空");
+                continue;
+            }
+            if (panel.packageName != pkg.name)
+            {
+                Debug.LogError($"包名不一致 prefab设置包名{panel.packageName} UI包名{pkg.name}");
+                continue;
+            }
+            if (!panel.componentName.StartsWith("FUI3D"))
+            {
+                Debug.LogError("目录:" + ff + "  3DUI以FUI3D开头");
+                continue;
+            }
+            string className = g.name;
+            code.AppendLine($"partial class {className} : FUI3D");
+            code.AppendLine("{");
+            code.AppendLine($"    public sealed override string url => \"{ff}\";");
+
+            var pi = pkg.GetItemByName(panel.componentName);
+            appendFUICode(code, pi);
+
+            code.AppendLine("}");
         }
     }
 
@@ -313,63 +450,6 @@ public class Tool
         }
         str.AppendLine("    }");
         str.AppendLine(@"}");
-    }
-
-    class FUI3DCodeTemp
-    {
-        public string path;
-        public string name;
-    }
-    [MenuItem("Tools/MyTool/生成FUI3D代码")]
-    static void CreateFUI3DCode()
-    {
-        StringBuilder code = new StringBuilder();
-        List<FUI3DCodeTemp> components = new List<FUI3DCodeTemp>();
-        appendFUI3DCode(Application.dataPath + "/Res/UI/FUI/3DUI", code, components);
-        EditorUtility.DisplayDialog("完成", "创建完成", "确定");
-        File.WriteAllText(Application.dataPath + @"\Code\HotFix\Game\_Gen\FUI3D.cs", code.ToString());
-        AssetDatabase.Refresh();
-    }
-    static void appendFUI3DCode(string path,StringBuilder code, List<FUI3DCodeTemp> components)
-    {
-        var ds = Directory.GetDirectories(path);
-        foreach (var d in ds)
-        {
-            appendFUI3DCode(d, code, components);
-        }
-        var fs = Directory.GetFiles(path);
-        foreach (var f in fs)
-        {
-            if (!f.EndsWith(".prefab")) continue;
-            var ff = "Assets" + f.Replace(Application.dataPath, "");
-            var g = (GameObject)AssetDatabase.LoadMainAssetAtPath(ff);
-            UIPanel panel = g.GetComponentInChildren<UIPanel>();
-            if (panel == null) continue;
-            if (string.IsNullOrEmpty(panel.packageName) || string.IsNullOrEmpty(panel.componentName))
-            {
-                Debug.LogError("目录:" + ff + "  包名或组件名为空");
-                continue;
-            }
-            if (!panel.componentName.StartsWith("FUI3D"))
-            {
-                Debug.LogError("目录:" + ff + "  3DUI必须以FUI3D开头");
-                continue;
-            }
-            var c = components.Find(t => t.name == panel.componentName);
-            if (c != null)
-            {
-                Debug.LogError($"目录:{ff}  和目录{c.path} 使用了相同的组件");
-                continue;
-            }
-            c = new FUI3DCodeTemp();
-            c.path = ff;
-            c.name = panel.componentName;
-            components.Add(c);
-            code.AppendLine($"partial class {panel.componentName}");
-            code.AppendLine("{");
-            code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(g).Replace(AssetLoad.Directory, "")}\";");
-            code.AppendLine("}");
-        }
     }
 
     [MenuItem("Tools/MyTool/热重载配置表")]

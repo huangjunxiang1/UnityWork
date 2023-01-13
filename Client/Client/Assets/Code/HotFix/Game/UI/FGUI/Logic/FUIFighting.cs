@@ -11,7 +11,6 @@ using Unity.Rendering;
 using UnityEngine;
 using Main;
 using Game;
-using Unity.Physics;
 
 [Main.UIConfig(20)]
 partial class FUIFighting

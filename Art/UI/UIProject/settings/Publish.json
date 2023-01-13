@@ -8,8 +8,8 @@
   "jpegQuality": 80,
   "compressPNG": false,
   "codeGeneration": {
-    "allowGenCode": true,
-    "codePath": "..\\..\\..\\Client\\Client\\Assets\\Code\\HotFix\\Game\\_Gen",
+    "allowGenCode": false,
+    "codePath": "",
     "classNamePrefix": "",
     "memberNamePrefix": "",
     "packageName": null,

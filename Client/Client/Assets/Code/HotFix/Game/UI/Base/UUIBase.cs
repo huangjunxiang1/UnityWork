@@ -9,17 +9,19 @@ using Main;
 using Game;
 abstract class UUIBase : UIBase
 {
+    bool isShowing = false;
+    TaskAwaiter showTask;
+    bool isHiding = false;
+    TaskAwaiter hideTask;
+
     public abstract Canvas Canvas { get; }
-
     public abstract RectTransform UI { get; }
-
-    public sealed override int SortOrder
+    public sealed override int sortOrder
     {
         get { return this.Canvas.sortingOrder; }
         set { this.Canvas.sortingOrder = value; }
     }
-
-    public sealed override bool IsShow
+    public sealed override bool isShow
     {
         get { return this.UI.gameObject.activeSelf; }
         set { this.UI.gameObject.SetActive(value); }
@@ -27,101 +29,174 @@ abstract class UUIBase : UIBase
 
     public sealed override void Hide(bool playAnimation = true, Action callBack = null)
     {
+        if (isHiding)
+        {
+            hideTask.AddEvent(callBack);
+            return;
+        }
+
+        this.OnHide();
+        base.Hide(playAnimation,callBack);
         if (playAnimation)
         {
             Animation ani = this.UI.GetComponent<Animation>();
             if (ani)
             {
-                if (ani.Play("close"))
+                if (ani.GetClip("close") != null)
                 {
+                    ani.Stop();
+                    ani.Play("close");
+                    isHiding = true;
+                    hideTask = TaskCreater.Create();
                     UIHelper.EnableUIInput(false);
                     Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
+                        isHiding = false;
                         UIHelper.EnableUIInput(true);
-                        this.IsShow = false;
+                        this.isShow = false;
                         callBack?.Invoke();
+                        hideTask.TrySetResult();
+                    });
+                    return;
+                }
+                if (ani.GetClip("open") != null)
+                {
+                    ani.Stop();
+                    ani.Rewind("open");
+                    isHiding = true;
+                    hideTask = TaskCreater.Create();
+                    UIHelper.EnableUIInput(false);
+                    Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    {
+                        isHiding = false;
+                        UIHelper.EnableUIInput(true);
+                        this.isShow = false;
+                        callBack?.Invoke();
+                        hideTask.TrySetResult();
                     });
                     return;
                 }
             }
         }
-        this.IsShow = false;
+        this.isShow = false;
         callBack?.Invoke();
     }
     public sealed override TaskAwaiter HideAsync(bool playAnimation = true)
     {
+        if (isHiding)
+            return showTask;
+
+        this.OnHide();
+        base.HideAsync(playAnimation);
         if (playAnimation)
         {
             Animation ani = this.UI.GetComponent<Animation>();
             if (ani)
             {
-                if (ani.Play("close"))
+                ani.Stop();
+                if (ani.GetClip("close") != null)
                 {
+                    ani.Stop();
+                    ani.Play("close");
+                    isHiding = true;
+                    hideTask = TaskCreater.Create();
                     UIHelper.EnableUIInput(false);
-                    TaskAwaiter task = TaskCreater.Create();
                     Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
+                        isHiding = false;
                         UIHelper.EnableUIInput(true);
-                        this.IsShow = false;
-                        task.TrySetResult();
+                        this.isShow = false;
+                        hideTask.TrySetResult();
                     });
-                    return task;
+                    return hideTask;
+                }
+                if (ani.GetClip("open") != null)
+                {
+                    ani.Stop();
+                    ani.Rewind("open");
+                    isHiding = true;
+                    hideTask = TaskCreater.Create();
+                    UIHelper.EnableUIInput(false);
+                    Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    {
+                        isHiding = false;
+                        UIHelper.EnableUIInput(true);
+                        this.isShow = false;
+                        hideTask.TrySetResult();
+                    });
+                    return hideTask;
                 }
             }
         }
-        this.IsShow = false;
+        this.isShow = false;
         return TaskAwaiter.Completed;
     }
-    public override void Show(bool playAnimation = true, Action callBack = null)
+    public sealed override void Show(bool playAnimation = true, Action callBack = null)
     {
-        this.IsShow = true;
+        if (isShowing)
+        {
+            showTask.AddEvent(callBack);
+            return;
+        }
+
+        this.isShow = true;
+        this.OnShow();
+        base.Show(playAnimation,callBack);
         if (playAnimation)
         {
             Animation ani = this.UI.GetComponent<Animation>();
             if (ani)
             {
+                ani.Stop();
                 if (ani.Play("open"))
                 {
-                    if (callBack != null)
+                    isShowing = true;
+                    showTask = TaskCreater.Create();
+                    UIHelper.EnableUIInput(false);
+                    Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
-                        UIHelper.EnableUIInput(false);
-                        Timer.Add(ani["open"].length + 0.1f, 1, () =>
-                        {
-                            UIHelper.EnableUIInput(true);
-                            callBack?.Invoke();
-                        });
-                    }
+                        isShowing = false;
+                        UIHelper.EnableUIInput(true);
+                        callBack?.Invoke();
+                        showTask.TrySetResult();
+                    });
                     return;
                 }
             }
         }
         callBack?.Invoke();
     }
-    public override TaskAwaiter ShowAsync(bool playAnimation = true)
+    public sealed override TaskAwaiter ShowAsync(bool playAnimation = true)
     {
-        this.IsShow = true;
+        if (isShowing)
+            return showTask;
+
+        this.isShow = true;
+        this.OnShow();
+        base.ShowAsync(playAnimation);
         if (playAnimation)
         {
             Animation ani = this.UI.GetComponent<Animation>();
             if (ani)
             {
+                ani.Stop();
                 if (ani.Play("open"))
                 {
+                    isShowing = true;
+                    showTask = TaskCreater.Create();
                     UIHelper.EnableUIInput(false);
-                    TaskAwaiter task = TaskCreater.Create();
                     Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         UIHelper.EnableUIInput(true);
-                        this.IsShow = true;
-                        task.TrySetResult();
+                        this.isShow = true;
+                        showTask.TrySetResult();
                     });
-                    return task;
+                    return showTask;
                 }
             }
         }
         return TaskAwaiter.Completed;
     }
-
     public sealed override void Dispose()
     {
         base.Dispose();

@@ -28,7 +28,7 @@ public class Engine : MonoBehaviour
         AppSetting.Debug = Debug;
         /*AppSetting.ServiceType = ServiceType;*/
 
-        EnterGame(); 
+        EnterGame();
     }
 
     // Update is called once per frame
@@ -110,6 +110,6 @@ public class Engine : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        GameM.Event.RunEvent((int)EventIDM.QuitGame);
+        GameM.Event?.RunEvent((int)EventIDM.QuitGame);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FairyGUI;
+using Main;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,47 +8,46 @@ using System.Threading.Tasks;
 
 abstract class FUI : FUIBase
 {
-    public sealed override GComponent UI => this.ui;
+    GComponent ui;
+    TaskAwaiter task;
+    UIStates states;
 
-    public sealed override int SortOrder
+    public sealed override UIStates uiStates => states;
+    public sealed override GComponent UI => this.ui;
+    public sealed override int sortOrder
     {
         get { return this.ui.sortingOrder; }
         set { this.ui.sortingOrder = value; }
     }
-
-    public sealed override bool IsShow
+    public sealed override bool isShow
     {
         get { return this.ui.visible; }
         set { this.ui.visible = value; }
     }
+    public sealed override TaskAwaiter onTask => task;
 
-    GComponent ui;
-
-    public sealed override void LoadConfig(Main.UIConfig config, params object[] data)
+    public sealed override TaskAwaiter LoadConfig(Main.UIConfig config, TaskAwaiter completed, params object[] data)
     {
-        base.LoadConfig(config, data);
+        base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
+        this.states = UIStates.Loading;
         this.ui = UIPkg.ComPkg.CreateObject(this.url).asCom;
-        GRoot.inst.AddChild(this.ui);
-        this.ui.MakeFullScreen();
-        this.ui.AddRelation(GRoot.inst, RelationType.Size);
-        this.ui.AddRelation(GRoot.inst, RelationType.Center_Center);
-        this.ui.fairyBatching = true;
-        if (this.IsPage)
-            this.ui.sortingOrder = (config.SortOrder + 10000) * 100000;
-        else
-            this.ui.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
-
         this.Binding();
+        this.setConfig();
+        this.states = UIStates.OnTask;
+        task = this.OnTask(data);
+        this.states = UIStates.Success;
         this.OnEnter(data);
-        this.EnterWaiter = this.OnEnterAsync(data);
+        return TaskAwaiter.Completed;
     }
-    public sealed override void LoadConfigAsync(Main.UIConfig config, params object[] data)
+    public sealed override TaskAwaiter LoadConfigAsync(Main.UIConfig config, TaskAwaiter completed, params object[] data)
     {
-        base.LoadConfigAsync(config, data);
+        base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
+        TaskAwaiter loadTask = new TaskAwaiter();
+        this.states = UIStates.Loading;
         UIPkg.ComPkg.CreateObjectAsync(this.url, obj =>
         {
             if (this.Disposed)
@@ -56,28 +56,26 @@ abstract class FUI : FUIBase
                 return;
             }
             this.ui = obj.asCom;
-            GRoot.inst.AddChild(this.ui);
-            this.ui.MakeFullScreen();
-            this.ui.AddRelation(GRoot.inst, RelationType.Size);
-            this.ui.AddRelation(GRoot.inst, RelationType.Center_Center);
-            this.ui.fairyBatching = true;
-            if (this.IsPage)
-                this.ui.sortingOrder = (config.SortOrder + 10000) * 100000;
-            else
-                this.ui.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
-
+            this.ui.visible = false;
             this.Binding();
+            this.setConfig();
+            this.states = UIStates.OnTask;
+            task = this.OnTask(data);
+            task.AddEvent(() =>
+            {
+                this.states = UIStates.Success;
+                this.ui.visible = true;
+            });
             this.OnEnter(data);
-            this.EnterWaiter = this.OnEnterAsync(data);
-            this.LoadWaiter.TrySetResult();
+            loadTask.TrySetResult();
         });
+        return loadTask;
     }
-
     public sealed override void Dispose()
     {
         base.Dispose();
 
-        if (this.ui != null)
+        if (this.ui != null && this.uiStates == UIStates.Success)
         {
             this.Hide(true, () =>
             {
@@ -85,5 +83,22 @@ abstract class FUI : FUIBase
                 this.ui = null;
             });
         }
+    }
+
+    void setConfig()
+    {
+        GRoot.inst.AddChild(this.ui);
+        this.ui.MakeFullScreen();
+        this.ui.AddRelation(GRoot.inst, RelationType.Size);
+        this.ui.AddRelation(GRoot.inst, RelationType.Center_Center);
+        this.ui.fairyBatching = true;
+
+        int layer = this.Layer;
+        if (layer > 3)
+            Loger.Error("层级太深");
+        if (this.Parent == null)
+            this.ui.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
+        else
+            this.ui.sortingOrder = Parent.sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
     }
 }

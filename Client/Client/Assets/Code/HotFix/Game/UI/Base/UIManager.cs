@@ -14,7 +14,12 @@ public enum UIModel
     UGUI,
     FGUI,
 }
-
+public enum UIStates
+{
+    Loading,
+    OnTask,
+    Success,
+}
 namespace Game
 {
     class UIManager
@@ -97,132 +102,170 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
-            if (cfg == null)
+            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
                 cfg = Main.UIConfig.Default;
 
-            UIBase lastPage = GetLastPageUI();
             ui = new();
             _uiLst.Add(ui);
-            ui.LoadConfig(cfg, data);
+            ui.LoadConfig(cfg, new TaskAwaiter<T>(), data);
             _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
-            lastPage?.Hide();
+
+            for (int i = _uiLst.Count - 1; i >= 0; i--)
+            {
+                UIBase tmp = _uiLst[i];
+                if (tmp == ui)
+                    continue;
+                if (tmp.uiConfig.HideOnOpenOtherUI && tmp.isShow && tmp.uiConfig.UIType < UIType.GlobalUI)
+                {
+                    tmp.Hide();
+                    break;
+                }
+            }
             ui.Show();
+            ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
 
             return ui;
         }
-        public async TaskAwaiter<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
+        public TaskAwaiter<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
         {
             T ui = Get<T>();
-            if (ui != null)
-                return ui;
+            if (ui == null)
+            {
+                open();
+                async void open()
+                {
+                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                        cfg = Main.UIConfig.Default;
 
-            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
-            if (cfg == null)
-                cfg = Main.UIConfig.Default;
+                    UIHelper.EnableUIInput(false);
+                    ui = new();
+                    //在执行异步的过程中有可能会关闭这个UI
+                    ui.onDispose.Add(() =>
+                    {
+                        if (ui.uiStates < UIStates.Success)
+                            UIHelper.EnableUIInput(true);
+                    });
+                    _uiLst.Add(ui);
+                    TaskAwaiter loadTask = ui.LoadConfigAsync(cfg, new TaskAwaiter<T>(), data);
+                    _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
+                    await loadTask;
+                    await ui.onTask;
+                    if (ui.Disposed)
+                        return;
 
-            UIHelper.EnableUIInput(false);
-            UIBase lastPage = GetLastPageUI();
-            ui = new();
-            _uiLst.Add(ui);
-            ui.LoadConfigAsync(cfg, data);
-            _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
-            await ui.LoadWaiter;
-            lastPage?.Hide();
-            ui.Show();
-            UIHelper.EnableUIInput(true);
+                    for (int i = _uiLst.Count - 1; i >= 0; i--)
+                    {
+                        UIBase tmp = _uiLst[i];
+                        if (tmp == ui)
+                            continue;
+                        if (tmp.uiConfig.HideOnOpenOtherUI && tmp.isShow && tmp.uiConfig.UIType < UIType.GlobalUI)
+                        {
+                            tmp.Hide();
+                            break;
+                        }
+                    }
+                    ui.ListenerEnable = true;
+                    ui.Show();
+                    UIHelper.EnableUIInput(true);
 
-            return ui;
+                    ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
+                }
+            }
+          
+            return (TaskAwaiter<T>)ui.onCompleted;
         }
+
         public T OpenSubUI<T>(UIBase parent, params object[] data) where T : UIBase, new()
         {
-            if (parent == null)
-                throw new Exception("parent=null");
-            else if (parent.Parent != null)
-                throw new Exception("parent has parent");
-
-            T ui = Get<T>();
+            T ui = parent.GetSubUI<T>();
             if (ui != null)
                 return ui;
 
-            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
-            if (cfg == null)
+            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
                 cfg = Main.UIConfig.Default;
 
             ui = new();
-            _uiLst.Add(ui);
-            ui.SetParent(parent);
-            ui.LoadConfig(cfg, data);
-            _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
+            parent.AddChild(ui);
+            ui.LoadConfig(cfg, new TaskAwaiter<T>(), data);
             ui.Show();
+            ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
 
             return ui;
         }
-        public async TaskAwaiter<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
+        public TaskAwaiter<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
         {
-            if (parent == null)
-                throw new Exception("parent=null");
-            else if (parent.Parent != null)
-                throw new Exception("parent has parent");
+            T ui = parent.GetSubUI<T>();
+            if (ui == null)
+            {
+                open();
+                async void open()
+                {
+                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                        cfg = Main.UIConfig.Default;
 
-            T ui = Get<T>();
-            if (ui != null)
-                return ui;
+                    UIHelper.EnableUIInput(false);
+                    ui = new();
+                    //在执行异步的过程中有可能会关闭这个UI
+                    ui.onDispose.Add(() =>
+                    {
+                        if (ui.uiStates < UIStates.Success)
+                            UIHelper.EnableUIInput(true);
+                    });
+                    parent.AddChild(ui);
+                    await ui.LoadConfigAsync(cfg, new TaskAwaiter<T>(), data);
+                    await ui.onTask;
+                    if (ui.Disposed)
+                        return;
 
-            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
-            if (cfg == null)
-                cfg = Main.UIConfig.Default;
+                    ui.ListenerEnable = true;
+                    ui.Show();
+                    UIHelper.EnableUIInput(true);
 
-            UIHelper.EnableUIInput(false);
-            ui = new();
-            _uiLst.Add(ui);
-            ui.SetParent(parent);
-            ui.LoadConfigAsync(cfg, data);
-            _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
-            await ui.LoadWaiter;
-            ui.Show();
-            UIHelper.EnableUIInput(true);
-
-            return ui;
+                    ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
+                }
+            }
+           
+            return (TaskAwaiter<T>)ui.onCompleted;
         }
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
-            if (cfg == null)
+            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
                 cfg = Main.UIConfig.Default;
 
             T ui = new();
             _3duiLst.Add(ui);
-            ui.LoadConfig(cfg, data);
+            ui.LoadConfig(cfg, new TaskAwaiter<T>(), data);
+            ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
 
             return ui;
         }
-        public async TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
+        public TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
         {
-            Main.UIConfig cfg = Reflection.GetAttribute(typeof(T), typeof(Main.UIConfig)) as Main.UIConfig;
-            if (cfg == null)
-                cfg = Main.UIConfig.Default;
+            TaskAwaiter<T> task = new();
+            open();
+            async void open()
+            {
+                if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                    cfg = Main.UIConfig.Default;
 
-            UIHelper.EnableUIInput(false);
-            T ui = new();
-            _3duiLst.Add(ui);
-            ui.LoadConfigAsync(cfg, data);
-            await ui.LoadWaiter;
-            UIHelper.EnableUIInput(true);
+                T ui = new();
+                _3duiLst.Add(ui);
+                await ui.LoadConfigAsync(cfg, task, data);
+                await ui.onTask;
+                if (ui.Disposed)
+                    return;
 
-            return ui;
+                ui.ListenerEnable = true;
+
+                task.TrySetResult(ui);
+            }
+            return task;
         }
-
 
         public T Get<T>() where T : UIBase
         {
             return _uiLst.Find(t => t is T) as T;
-        }
-
-        public UIBase GetLastPageUI()
-        {
-            return _uiLst.Find(t => t.IsPage && t.uiConfig.UIType < UIType.GlobalUI);
         }
 
         /// <summary>
@@ -283,14 +326,12 @@ namespace Game
                 _uiLst.Remove(ui);
         }
 
-        public bool ShowLastPageUI()
+        public bool ShowLastUI()
         {
             for (int i = _uiLst.Count - 1; i >= 0; i--)
             {
                 UIBase ui = _uiLst[i];
-                if (!ui.IsPage || ui.uiConfig.UIType >= UIType.GlobalUI)
-                    continue;
-                if (!ui.IsShow)
+                if (!ui.isShow)
                 {
                     ui.Show();
                     return true;

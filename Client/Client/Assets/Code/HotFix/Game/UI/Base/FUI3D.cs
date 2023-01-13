@@ -10,67 +10,67 @@ using Game;
 
 abstract class FUI3D : FUIBase
 {
-    public sealed override GComponent UI => this.Panel.ui;
+    TaskAwaiter task;
+    UIStates states;
 
-    public sealed override int SortOrder
+    public sealed override UIStates uiStates => states;
+    public sealed override GComponent UI => this.Panel.ui;
+    public sealed override int sortOrder
     {
         get { return this.Panel.sortingOrder; }
-        set { this.Panel.sortingOrder = value; }
+        set { this.Panel.SetSortingOrder(value, true); }
     }
-
-    public sealed override bool IsShow
+    public sealed override bool isShow
     {
-        get { return this.Root.activeSelf; }
-        set { this.Root.SetActive(value); }
+        get { return this.goRoot.activeSelf; }
+        set { this.goRoot.SetActive(value); }
     }
-
-    public GameObject Root { get; private set; }
+    public sealed override TaskAwaiter onTask => task;
+    public GameObject goRoot { get; private set; }
     public UIPanel Panel { get; private set; }
 
-    public sealed override void LoadConfig(Main.UIConfig config, params object[] data)
+    public sealed override TaskAwaiter LoadConfig(Main.UIConfig config, TaskAwaiter completed, params object[] data)
     {
-        base.LoadConfig(config, data);
+        base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
-        this.Root = AssetLoad.LoadGameObject(url);
-        this.Root.transform.SetParent(GameM.World.Root.transform);
-        this.Panel = this.Root.GetComponentInChildren<UIPanel>(); 
-        if (this.IsPage)
-            this.Panel.sortingOrder = (config.SortOrder + 10000) * 100000;
-        else
-            this.Panel.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
+        this.states = UIStates.Loading;
+        this.goRoot = AssetLoad.LoadGameObject(url);
+        this.goRoot.transform.SetParent(GameM.World.goRoot.transform);
+        this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
+        this.states = UIStates.OnTask;
+        task = this.OnTask(data);
+        this.states = UIStates.Success;
         this.OnEnter(data);
-        this.EnterWaiter = this.OnEnterAsync(data);
+        return TaskAwaiter.Completed;
     }
-    public sealed override async void LoadConfigAsync(Main.UIConfig config, params object[] data)
+    public sealed override async TaskAwaiter LoadConfigAsync(Main.UIConfig config, TaskAwaiter completed, params object[] data)
     {
-        base.LoadConfigAsync(config, data);
+        _ = base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
-        this.Root = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
-        this.Root.transform.SetParent(GameM.World.Root.transform);
-        this.Panel = this.Root.GetComponentInChildren<UIPanel>();
-        if (this.IsPage)
-            this.Panel.sortingOrder = (config.SortOrder + 10000) * 100000;
-        else
-            this.Panel.sortingOrder = (config.SortOrder + 20000) + Parent.SortOrder;
+        this.states = UIStates.Loading;
+        this.goRoot = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
+        this.goRoot.transform.SetParent(GameM.World.goRoot.transform);
+        this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
+        this.states = UIStates.OnTask;
+        task = this.OnTask(data);
+        task.AddEvent(() => this.states = UIStates.Success);
         this.OnEnter(data);
-        this.EnterWaiter = this.OnEnterAsync(data);
-        this.LoadWaiter.TrySetResult();
     }
     public sealed override void Dispose()
     {
         base.Dispose();
 
-        if (this.Root != null)
+        if (this.goRoot != null)
         {
             this.Hide(true, () =>
             {
-                AssetLoad.Release(this.Root);
+                AssetLoad.Release(this.goRoot);
             });
         }
     }

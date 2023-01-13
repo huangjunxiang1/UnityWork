@@ -4,10 +4,16 @@ using UnityEngine;
 using Game;
 using FairyGUI;
 using Main;
+using System.Threading.Tasks;
 
 partial class FUILogin
 {
     static int demoIdx = 0;
+
+    protected override async TaskAwaiter OnTask(params object[] data)
+    {
+        await this._bg.SetTexture("UI/Texture/BG/bg.jpg");
+    }
     protected override void OnEnter(params object[] data)
     {
         _btnLogin.onClick.Add(login);
@@ -46,14 +52,14 @@ partial class FUILogin
 
     }
 
-    void onUIModel()
+    async void onUIModel()
     {
         if (_uiType.selectedIndex == 0)
             GameL.Setting.UIModel = UIModel.FGUI;
         else
         {
             GameL.Setting.UIModel = UIModel.UGUI;
-            GameL.UI.Open<UUILogin>();
+            await GameL.UI.OpenAsync<UUILogin>();
             this.Dispose();
         }
     }

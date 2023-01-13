@@ -50,12 +50,12 @@ partial class UUILogin
 
     }
 
-    void onValue(int v)
+    async void onValue(int v)
     {
         if (v == 0)
         {
             GameL.Setting.UIModel = UIModel.FGUI;
-            GameL.UI.Open<FUILogin>();
+            await GameL.UI.OpenAsync<FUILogin>();
             this.Dispose();
         }
     }

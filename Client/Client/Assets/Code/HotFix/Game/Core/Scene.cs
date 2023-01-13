@@ -29,13 +29,13 @@ namespace Game
             var ui = await GameL.UI.OpenAsync<FUILoading>();
             BaseCamera.Current?.Dispose();
             GameL.UI.CloseAll();
-            GameM.World.RemoveAllChildren();
+            GameM.World.DisposeAllChildren();
 
             GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID);
             SceneID = 1;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(SceneID).name);
-            await Task.Delay(100);//场景重复加载时 会有一帧延迟才能find场景的GameObject
+            await Task.Delay(100);//场景加载时 会有一帧延迟才能find场景的GameObject
 
             await GameL.UI.OpenAsync<FUILogin>();
             ui.max = 1;
@@ -49,7 +49,7 @@ namespace Game
             var ui = await GameL.UI.OpenAsync<FUILoading>();
             GameL.ChangeScene();
             GameL.UI.CloseAll();
-            GameM.World.RemoveAllChildren();
+            GameM.World.DisposeAllChildren();
 
             GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID);
             SceneID = sceneId;
