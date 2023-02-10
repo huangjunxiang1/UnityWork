@@ -88,4 +88,18 @@ public static class AsyncUtil
 
         return task;
     }
+    public static TaskAwaiter GetAwaiter(this Eventer eventer)
+    {
+        TaskAwaiter task = new();
+
+        //只触发一次 然后移除掉
+        void trigger()
+        {
+            eventer.Remove(trigger);
+            task.TrySetResult();
+        }
+        eventer.Add(trigger);
+
+        return task;
+    }
 }

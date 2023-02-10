@@ -41,7 +41,7 @@ abstract class UUI : UUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        GameObject g = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
+        GameObject g = await AssetLoad.LoadGameObjectAsync(url, TaskManager);
         g.SetActive(false);
         this.ui = (RectTransform)g.transform;
         this.canvas = this.ui.GetComponent<Canvas>();

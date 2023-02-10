@@ -48,6 +48,19 @@ namespace Game
             }
         }
 
+        /// <summary>
+        /// 在父节点的下标
+        /// </summary>
+        public int SiblingIndex
+        {
+            get
+            {
+                if (Parent == null)
+                    return 0;
+                return Parent._childLst.IndexOf((T)this);
+            }
+        }
+
         public override void Dispose()
         {
             this.DisposeAllChildren();
@@ -81,13 +94,13 @@ namespace Game
             if (child.Parent != null)
                 child.Parent.Remove(child);
 
-            _childGMap.Add(child.GID, child);
-            if (child.CID > 0)
+            _childGMap.Add(child.gid, child);
+            if (child.cid > 0)
             {
-                if (!_childCMap.ContainsKey(child.CID))
-                    _childCMap[child.CID] = child;
+                if (!_childCMap.ContainsKey(child.cid))
+                    _childCMap[child.cid] = child;
                 else
-                    Loger.Error($"已经包含子对象 this={this.GetType()} cid={this.CID}  child={child.GetType()} cid={child.CID}");
+                    Loger.Error($"已经包含子对象 this={this.GetType()} cid={this.cid}  child={child.GetType()} cid={child.cid}");
             }
        
             _childLst.Add(child);
@@ -99,12 +112,12 @@ namespace Game
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T GetChildGID(long gid)
+        public T GetChildGid(long gid)
         {
             _childGMap.TryGetValue(gid, out T child);
             return child;
         }
-        public T GetChildCID(long cid)
+        public T GetChildCid(long cid)
         {
             if (cid == 0)
             {
@@ -131,23 +144,23 @@ namespace Game
         /// <param name="child"></param>
         public void Remove(T child)
         {
-            _childGMap.Remove(child.GID);
-            if (child.CID > 0)
-                _childCMap.Remove(child.CID);
+            _childGMap.Remove(child.gid);
+            if (child.cid > 0)
+                _childCMap.Remove(child.cid);
             _childLst.Remove(child);
             child.Parent = null;
         }
-        public virtual void RemoveGID(long gid)
+        public virtual void RemoveGid(long gid)
         {
             if (!_childGMap.TryGetValue(gid, out T child))
                 return;
             _childGMap.Remove(gid);
-            if (child.CID > 0)
-                _childCMap.Remove(child.CID);
+            if (child.cid > 0)
+                _childCMap.Remove(child.cid);
             _childLst.Remove(child);
             child.Parent = null;
         }
-        public virtual void RemoveCID(long cid)
+        public virtual void RemoveCid(long cid)
         {
             if (cid == 0)
             {
@@ -156,7 +169,7 @@ namespace Game
             }
             if (!_childCMap.TryGetValue(cid, out T child))
                 return;
-            _childGMap.Remove(child.GID);
+            _childGMap.Remove(child.gid);
             _childCMap.Remove(cid);
             _childLst.Remove(child);
             child.Parent = null;

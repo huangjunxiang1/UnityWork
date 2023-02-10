@@ -24,7 +24,7 @@ partial class FUIFighting2
     {
         base.OnEnter(data);
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskCreater);
+        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskManager);
 
         if (this.Disposed)
         {
@@ -88,8 +88,6 @@ partial class FUIFighting2
 
     void _clickBack()
     {
-        this.Dispose();
-        return;
         _ = GameL.Scene.InLoginScene();
     }
     void _onPlay()

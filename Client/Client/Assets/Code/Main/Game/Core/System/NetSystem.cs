@@ -171,11 +171,11 @@ namespace Game
             return task;
         }
 
-        public TaskAwaiter<IMessage> SendAsync(IRequest request, TaskAwaiterCreater taskCreater)
+        public TaskAwaiter<IMessage> SendAsync(IRequest request, TaskManager taskManager)
         {
-            return SendAsync(0, request, taskCreater);
+            return SendAsync(0, request, taskManager);
         }
-        public TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request, TaskAwaiterCreater taskCreater)
+        public TaskAwaiter<IMessage> SendAsync(long actorId, IRequest request, TaskManager taskManager)
         {
             Type t;
 #if ILRuntime
@@ -196,7 +196,7 @@ namespace Game
                 queue = new Queue<TaskAwaiter<IMessage>>();
                 _requestTask[rsp] = queue;
             }
-            TaskAwaiter<IMessage> task = taskCreater.Create<IMessage>();
+            TaskAwaiter<IMessage> task = taskManager.Create<IMessage>();
             queue.Enqueue(task);
             Send(actorId, request);
             return task;

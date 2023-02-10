@@ -33,7 +33,7 @@ namespace Game
         //缓存数据
         Eventer _onDispose;
         string _url;
-        int resVersion;
+        int _resVersion;
         Vector3 _pos;
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Game
         /// <param name="res"></param>
         public virtual void SetRes(GameObject res)
         {
-            ++resVersion;
+            ++_resVersion;
             switch (ObjectStyle)
             {
                 case WObjectLoadStyle.Static:
@@ -164,9 +164,9 @@ namespace Game
             if (_url == url)
                 return;
             _url = url;
-            int ver = ++resVersion;
-            GameObject res = await AssetLoad.LoadGameObjectAsync(_url, TaskCreater, releaseMode);
-            if (ver != resVersion)
+            int ver = ++_resVersion;
+            GameObject res = await AssetLoad.LoadGameObjectAsync(_url, TaskManager, releaseMode);
+            if (ver != _resVersion)
             {
                 AssetLoad.Release(res);
                 return;

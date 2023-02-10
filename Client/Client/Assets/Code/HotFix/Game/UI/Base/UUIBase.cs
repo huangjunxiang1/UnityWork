@@ -47,7 +47,7 @@ abstract class UUIBase : UIBase
                     ani.Stop();
                     ani.Play("close");
                     isHiding = true;
-                    hideTask = TaskCreater.Create();
+                    hideTask = new();
                     UIHelper.EnableUIInput(false);
                     Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
@@ -64,7 +64,7 @@ abstract class UUIBase : UIBase
                     ani.Stop();
                     ani.Rewind("open");
                     isHiding = true;
-                    hideTask = TaskCreater.Create();
+                    hideTask = new();
                     UIHelper.EnableUIInput(false);
                     Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
@@ -99,7 +99,7 @@ abstract class UUIBase : UIBase
                     ani.Stop();
                     ani.Play("close");
                     isHiding = true;
-                    hideTask = TaskCreater.Create();
+                    hideTask = new();
                     UIHelper.EnableUIInput(false);
                     Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
@@ -115,7 +115,7 @@ abstract class UUIBase : UIBase
                     ani.Stop();
                     ani.Rewind("open");
                     isHiding = true;
-                    hideTask = TaskCreater.Create();
+                    hideTask = new();
                     UIHelper.EnableUIInput(false);
                     Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
@@ -151,7 +151,7 @@ abstract class UUIBase : UIBase
                 if (ani.Play("open"))
                 {
                     isShowing = true;
-                    showTask = TaskCreater.Create();
+                    showTask = new();
                     UIHelper.EnableUIInput(false);
                     Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
@@ -183,7 +183,7 @@ abstract class UUIBase : UIBase
                 if (ani.Play("open"))
                 {
                     isShowing = true;
-                    showTask = TaskCreater.Create();
+                    showTask = new();
                     UIHelper.EnableUIInput(false);
                     Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {

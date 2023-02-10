@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class TaskAwaiterCreater
+/// <summary>
+/// 任务管理器
+/// </summary>
+public class TaskManager
 {
     public bool Disposed { get; private set; } = false;
 
@@ -38,7 +41,7 @@ public class TaskAwaiterCreater
         task.AddEvent(() => Remove(task));
         return task;
     }
-    public TaskAwaiter GetOrCreate(ref TaskAwaiter task)
+    public TaskAwaiter Single(ref TaskAwaiter task)
     {
         if (task == null || task.IsCompleted || task.IsDisposed)
         {
@@ -47,7 +50,7 @@ public class TaskAwaiterCreater
         }
         return task;
     }
-    public TaskAwaiter<T> GetOrCreate<T>(ref TaskAwaiter<T> task)
+    public TaskAwaiter<T> Single<T>(ref TaskAwaiter<T> task)
     {
         if (task == null || task.IsCompleted || task.IsDisposed)
         {
@@ -56,7 +59,7 @@ public class TaskAwaiterCreater
         }
         return task;
     }
-    public TaskAwaiter GetOrCreate(ref TaskAwaiter task,object tag)
+    public TaskAwaiter Single(ref TaskAwaiter task,object tag)
     {
         if (task == null || task.IsCompleted || task.IsDisposed)
         {
@@ -81,7 +84,7 @@ public class TaskAwaiterCreater
         }
         return task;
     }
-    public TaskAwaiter<T> GetOrCreate<T>(ref TaskAwaiter<T> task, object tag)
+    public TaskAwaiter<T> Single<T>(ref TaskAwaiter<T> task, object tag)
     {
         if (task == null || task.IsCompleted || task.IsDisposed)
         {
@@ -104,6 +107,13 @@ public class TaskAwaiterCreater
                 task.AddEvent(() => Remove(tmp));
             }
         }
+        return task;
+    }
+    public TaskAwaiter Lock(ref TaskLocker locker)
+    {
+        TaskAwaiter task = TaskLocker.Lock(ref locker);
+        if (task != TaskAwaiter.Completed)
+            this.Add(task);
         return task;
     }
     public TaskAwaiter Add(TaskAwaiter task)

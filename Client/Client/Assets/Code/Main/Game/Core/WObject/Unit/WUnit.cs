@@ -58,7 +58,7 @@ namespace Game
 
             string path = "3D/Util/pathLine.prefab";
             if (!_pathLine)
-                _pathLine = await AssetLoad.LoadAsync<GameObject>(path, TaskCreater.GetOrCreate(ref _pathLineTask, path));
+                _pathLine = await AssetLoad.LoadAsync<GameObject>(path, TaskManager.Single(ref _pathLineTask, path));
             _pathLine.transform.SetParent(GameM.World.goRoot.transform);
             _pathLine.transform.rotation = Quaternion.Euler(90, 0, 0);
             LineRenderer line = _pathLine.GetComponent<LineRenderer>();

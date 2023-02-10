@@ -7,6 +7,7 @@ using Game;
 using Main;
 
 [DisableAutoRegisteredEvent]
+[DisableAutoRegisteredKeyEvent]
 abstract class UIBase : TreeL<UIBase>
 {
     Eventer _onDispose;

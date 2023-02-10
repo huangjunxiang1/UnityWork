@@ -11,4 +11,9 @@ namespace Main
     {
 
     }
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    public class DisableAutoRegisteredKeyEvent : Attribute
+    {
+
+    }
 }

@@ -14,9 +14,9 @@ namespace Main
         public abstract UnityEngine.Object Load(string path);
         public abstract TaskAwaiter<UnityEngine.Object> LoadAsync(string path);
         public abstract TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> customTask); 
-        public TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiterCreater creater)
+        public TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskManager manager)
         {
-            return LoadAsync(path, creater.Create<UnityEngine.Object>());
+            return LoadAsync(path, manager.Create<UnityEngine.Object>());
         }
         public abstract void Release(UnityEngine.Object target);
     }

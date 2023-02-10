@@ -28,7 +28,7 @@ namespace Game
         static void DestroyUnit(IMessage message)
         {
             M2C_DestroyUnit rep = message as M2C_DestroyUnit;
-            GameM.World.GetChildCID(rep.Units)?.Dispose();
+            GameM.World.GetChildCid(rep.Units)?.Dispose();
         }
         [Msg(OuterOpcode.M2C_PathfindingResult)]
         static void PathfindingResult(IMessage message)
@@ -37,7 +37,7 @@ namespace Game
             List<Vector3> path = new List<Vector3>(rep.Xs.Count);
             for (int i = 0; i < rep.Xs.Count; i++)
                 path.Add(new Vector3(rep.Xs[i], rep.Ys[i], rep.Zs[i]));
-            WRole role = GameM.World.GetChildCID(rep.Id) as WRole;
+            WRole role = GameM.World.GetChildCid(rep.Id) as WRole;
             role.MovePath(path);
         }
 
@@ -45,7 +45,7 @@ namespace Game
         static void M2C_Stop(IMessage message)
         {
             M2C_Stop rep = message as M2C_Stop;
-            WRole role = GameM.World.GetChildCID(rep.Id) as WRole;
+            WRole role = GameM.World.GetChildCid(rep.Id) as WRole;
             role.Stop(new Vector3(rep.X, rep.Y, rep.Z));
         }
 
@@ -56,7 +56,7 @@ namespace Game
         }
         public static void AddWObject(UnitInfo Unit)
         {
-            WRole role = GameM.World.GetChildCID(Unit.UnitId) as WRole;
+            WRole role = GameM.World.GetChildCid(Unit.UnitId) as WRole;
             if (role == null)
             {
                 role = new WRole(Unit.UnitId);

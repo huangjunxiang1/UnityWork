@@ -45,7 +45,7 @@ abstract class UUI3D : UUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        GameObject ui = await AssetLoad.LoadGameObjectAsync(url, TaskCreater);
+        GameObject ui = await AssetLoad.LoadGameObjectAsync(url, TaskManager);
         this.ui = (RectTransform)ui.transform;
         this.ui.SetParent(GameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;

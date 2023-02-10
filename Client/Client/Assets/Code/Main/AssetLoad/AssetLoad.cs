@@ -65,18 +65,18 @@ namespace Main
             r.mode = releaseMode;
             return g;
         }
-        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiterCreater creater, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskManager manager, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
-            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
+            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, manager);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
             r.url = url;
             r.isFromLoad = true;
             r.mode = releaseMode;
             return g;
         }
-        public static async TaskAwaiter<Entity> LoadEntityAsync(string url, TaskAwaiterCreater creater)
+        public static async TaskAwaiter<Entity> LoadEntityAsync(string url, TaskManager manager)
         {
-            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, creater);
+            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, manager);
             var mgr = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
             Entity e = mgr.CreateEntity();
             Renderer r = g.GetComponent<Renderer>();
@@ -124,7 +124,7 @@ namespace Main
 #endif
             return (T)await primitiveLoader.LoadAsync(url, task);
         }
-        public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskAwaiterCreater creater) where T : UnityEngine.Object
+        public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskManager manager) where T : UnityEngine.Object
         {
             Type t = typeof(T);
 #if DebugEnable
@@ -134,7 +134,7 @@ namespace Main
                 return default;
             }
 #endif
-            return (T)await primitiveLoader.LoadAsync(url, creater);
+            return (T)await primitiveLoader.LoadAsync(url, manager);
         }
 
         public static void Release(UnityEngine.Object target)

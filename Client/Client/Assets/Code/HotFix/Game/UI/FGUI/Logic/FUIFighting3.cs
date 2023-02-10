@@ -27,7 +27,7 @@ partial class FUIFighting3
     {
         base.OnEnter(data);
 
-        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskCreater);
+        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskManager);
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
         em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(0, 0, 1, 1) });
@@ -45,7 +45,6 @@ partial class FUIFighting3
         _btnBack.onClick.Add(_clickBack);
 
         Demo3Sys.playerCount = playerCount;
-        Demo3Sys.road = road;
     }
     protected override void OnExit()
     {
@@ -86,7 +85,10 @@ partial class FUIFighting3
     void _click_rangeRoad()
     {
         if (!road.IsCreated)
+        {
             road = new NativeArray<int>(Demo3DF.size * Demo3DF.size, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+            Demo3Sys.road = road;
+        }
         for (int i = 0; i < Demo3DF.size * Demo3DF.size; i++)
             road[i] = 0;
         Unity.Mathematics.Random random = new((uint)DateTime.Now.Ticks);
@@ -153,7 +155,7 @@ partial class FUIFighting3
 
         if (sys == SystemHandle.Null)
         {
-            sys = Unity.Entities.World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<Demo3Sys>();
+            sys = Unity.Entities.World.DefaultGameObjectInjectionWorld.CreateSystem<Demo3Sys>();
             Unity.Entities.World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<SimulationSystemGroup>().AddSystemToUpdateList(sys);
         }
     }

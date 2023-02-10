@@ -170,9 +170,11 @@ public partial struct Demo3Sys : ISystem
     ComponentTypeHandle<LocalToWorld> LTypeHandle;
     static int tmpMv;
     NativeArray<int3> ps;
+    NativeList<JobHandle> jobs;
     public void OnCreate(ref SystemState state)
     {
         ps = new NativeArray<int3>(playerCount, Allocator.Persistent);
+        jobs = new NativeList<JobHandle>(100, AllocatorManager.Persistent);
         query = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Demo3Com), typeof(LocalToWorld));
         dTypeHandle = state.GetComponentTypeHandle<Demo3Com>();
         LTypeHandle = state.GetComponentTypeHandle<LocalToWorld>();
@@ -180,6 +182,9 @@ public partial struct Demo3Sys : ISystem
 
     public void OnDestroy(ref SystemState state)
     {
+        state.CompleteDependency();
+        state.Dependency.Complete();
+        jobs.Dispose();
         ps.Dispose();
         query.Dispose();
     }
@@ -190,6 +195,7 @@ public partial struct Demo3Sys : ISystem
         dTypeHandle.Update(ref state);
         LTypeHandle.Update(ref state);
 
+        jobs.Clear();
         int mv = ++tmpMv;
         for (int cc = 0; cc < chunks.Length; cc++)
         {
@@ -215,7 +221,7 @@ public partial struct Demo3Sys : ISystem
 
                 job.mv = mv;
 
-                job.Schedule();
+                jobs.Add(job.Schedule());
             }
         }
 
@@ -227,7 +233,8 @@ public partial struct Demo3Sys : ISystem
         move.random = SharedStatic<Unity.Mathematics.Random>.GetOrCreate<Unity.Mathematics.Random>();
         move.random.Data.state = (uint)(SystemAPI.Time.ElapsedTime * 1000);
         move.paths = ps;
-        state.Dependency = move.Schedule(chunks.Length, 64, state.Dependency);
+        jobs.Add(move.Schedule(chunks.Length, 64));
+        state.Dependency = JobHandle.CombineDependencies(jobs.AsArray());
 
         chunks.Dispose();
     }

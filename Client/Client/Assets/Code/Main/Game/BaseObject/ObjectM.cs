@@ -13,13 +13,18 @@ namespace Game
         public ObjectM() : this(0) { }
         public ObjectM(long cid)
         {
-            this.GID = IDGenerate.GenerateID();
-            this.CID = cid;
+            this.gid = IDGenerate.GenerateID();
+            this.cid = cid;
             if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredEvent), true))
                 this.ListenerEnable = true;
+            if (cid != 0)
+            {
+                if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredKeyEvent), true))
+                    this.RigisteKeyListener(cid);
+            }
         }
 
-        TaskAwaiterCreater _taskCreater;
+        TaskManager _taskManager;
         bool _listenerEnable = false;
         bool _keyListenerEnable = false;
         long _eventKey;
@@ -30,12 +35,12 @@ namespace Game
         /// <summary>
         /// 自增生成的ID
         /// </summary>
-        public long GID { get; }
+        public long gid { get; }
 
         /// <summary>
         /// 自定义ID
         /// </summary>
-        public long CID { get; }
+        public long cid { get; }
 
         /// <summary>
         /// 是否已被销毁
@@ -72,15 +77,15 @@ namespace Game
         /// <summary>
         /// 异步拯救者 - =|
         /// </summary>
-        public TaskAwaiterCreater TaskCreater
+        public TaskManager TaskManager
         {
             get
             {
                 if (this.Disposed)
                     return null;
-                if (_taskCreater == null)
-                    _taskCreater = new TaskAwaiterCreater();
-                return _taskCreater;
+                if (_taskManager == null)
+                    _taskManager = new TaskManager();
+                return _taskManager;
             }
         }
 
@@ -100,25 +105,9 @@ namespace Game
                 GameM.Event.RemoveListener(this);
             if (_keyListenerEnable)
                 GameM.Event.RemoveKeyListener(_eventKey, this);
-            _taskCreater?.Dispose();
+            _taskManager?.Dispose();
         }
 
-        protected void RigisteKeyListener()
-        {
-            if (CID == 0)
-            {
-                Loger.Error($"CID=0");
-                return;
-            }
-            if (_keyListenerEnable)
-            {
-                Loger.Error($"已经注册了key监听 key={CID}");
-                return;
-            }
-            _eventKey = CID;
-            _keyListenerEnable = true;
-            GameM.Event.RigisteKeyListener(CID, this);
-        }
         protected void RigisteKeyListener(long key)
         {
             if (key == 0)

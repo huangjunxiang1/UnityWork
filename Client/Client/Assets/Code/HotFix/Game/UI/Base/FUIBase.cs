@@ -34,7 +34,7 @@ abstract class FUIBase : UIBase
             if (close != null)
             {
                 isHiding = true;
-                hideTask = TaskCreater.Create();
+                hideTask = new();
                 UIHelper.EnableUIInput(false);
                 close.Play(() =>
                 {
@@ -52,7 +52,7 @@ abstract class FUIBase : UIBase
                 if (open != null)
                 {
                     isHiding = true;
-                    hideTask = TaskCreater.Create();
+                    hideTask = new();
                     open.Stop(false, true);
                     UIHelper.EnableUIInput(false);
                     open.PlayReverse(() =>
@@ -83,7 +83,7 @@ abstract class FUIBase : UIBase
             if (close != null)
             {
                 isHiding = true;
-                hideTask = TaskCreater.Create();
+                hideTask = new();
                 UIHelper.EnableUIInput(false);
                 close.Play(() =>
                 {
@@ -100,7 +100,7 @@ abstract class FUIBase : UIBase
                 if (open != null)
                 {
                     isHiding = true;
-                    hideTask = TaskCreater.Create();
+                    hideTask = new();
                     open.Stop(false, true);
                     UIHelper.EnableUIInput(false);
                     open.PlayReverse(() =>
@@ -134,7 +134,7 @@ abstract class FUIBase : UIBase
             if (open != null)
             {
                 isShowing = true;
-                showTask = TaskCreater.Create();
+                showTask = new();
                 open.Stop(false, true);
                 UIHelper.EnableUIInput(false);
                 open.Play(() =>
@@ -163,7 +163,7 @@ abstract class FUIBase : UIBase
             if (open != null)
             {
                 isShowing = true;
-                showTask = TaskCreater.Create();
+                showTask = new();
                 open.Stop(false, true);
                 UIHelper.EnableUIInput(false);
                 open.Play(() =>
