@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Buffers;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 #if UNITY_2019_4_OR_NEWER
 using UnityEngine;
 #endif
@@ -7,24 +10,93 @@ using UnityEngine;
 /// <summary>
 /// int和long采用Varint编码
 /// </summary>
-public abstract class DBuffer : IDisposable
+public class DBuffer : IDisposable
 {
-    protected const byte byteFlag = 128;
-    public readonly static byte[] EmptyBytes = new byte[0];
+    public DBuffer(Stream stream)
+    {
+        this.stream = stream;
+    }
 
-    public virtual int Position { get; }
+    Stream stream;
+
+    public int Position
+    {
+        get
+        {
+            long point = stream.Position;
+            if (point > int.MaxValue)
+                throw new Exception("长度超出限制");
+            return (int)point;
+        }
+    }
+    public Stream Stream { get { return stream; } }
 
     /// <summary>
     /// 数据是否压缩
     /// </summary>
     public bool Compress { get; set; } = true;
 
-    public abstract byte Readbyte();
+    public byte Readbyte()
+    {
+        return (byte)stream.ReadByte();
+    }
     public bool Readbool() { return Readbyte() == 1; }
-    public abstract int Readint();
-    public abstract long Readlong();
-    public abstract float Readfloat();
-    public abstract string Readstring();
+    public int Readint()
+    {
+        if (Compress)
+        {
+            uint v = readVarint32();
+            return (int)v;
+        }
+        else
+        {
+            return stream.ReadByte()
+                 | stream.ReadByte() << 8
+                 | stream.ReadByte() << 16
+                 | stream.ReadByte() << 24;
+        }
+    }
+    public long Readlong()
+    {
+        if (Compress)
+        {
+            ulong v = readVarint64();
+            return (long)v;
+        }
+        else
+        {
+            long v = 0;
+            for (int i = 0; i < sizeof(long); i++)
+                v |= (long)stream.ReadByte() << (8 * i);
+            return v;
+        }
+    }
+    public float Readfloat()
+    {
+        FixPoint fp = default;
+        int value = stream.ReadByte()
+                  | stream.ReadByte() << 8
+                  | stream.ReadByte() << 16
+                  | stream.ReadByte() << 24;
+        fp.valueInt = value;
+        return fp.valueFloat;
+    }
+    public string Readstring()
+    {
+        int len = Readint();
+        if (len == 0) return string.Empty;
+
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(len);
+        try
+        {
+            stream.Read(buffer, 0, len);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+        return Encoding.UTF8.GetString(buffer, 0, len);
+    }
 #if UNITY_2019_4_OR_NEWER
     public Vector2 ReadVector2()
     {
@@ -160,12 +232,74 @@ public abstract class DBuffer : IDisposable
     }
 #endif
 
-    public abstract void Write(byte v);
+    public void Write(byte v)
+    {
+        stream.WriteByte(v);
+    }
     public void Write(bool v) { Write(v ? (byte)1 : (byte)0); }
-    public abstract void Write(int v);
-    public abstract void Write(long v);
-    public abstract void Write(float v);
-    public abstract void Write(string v);
+    public void Write(int v)
+    {
+        if (Compress)
+        {
+            writeVarint32((uint)v);
+        }
+        else
+        {
+            stream.WriteByte((byte)v);
+            stream.WriteByte((byte)(v >> 8));
+            stream.WriteByte((byte)(v >> 16));
+            stream.WriteByte((byte)(v >> 24));
+        }
+    }
+    public void Write(long v)
+    {
+        if (Compress)
+        {
+            writeVarint64((ulong)v);
+        }
+        else
+        {
+            stream.WriteByte((byte)v);
+            stream.WriteByte((byte)(v >> 8));
+            stream.WriteByte((byte)(v >> 16));
+            stream.WriteByte((byte)(v >> 24));
+            stream.WriteByte((byte)(v >> 32));
+            stream.WriteByte((byte)(v >> 40));
+            stream.WriteByte((byte)(v >> 48));
+            stream.WriteByte((byte)(v >> 56));
+        }
+    }
+    public void Write(float v)
+    {
+        FixPoint fp = default;
+        fp.valueFloat = v;
+        stream.WriteByte((byte)fp.valueInt);
+        stream.WriteByte((byte)(fp.valueInt >> 8));
+        stream.WriteByte((byte)(fp.valueInt >> 16));
+        stream.WriteByte((byte)(fp.valueInt >> 24));
+    }
+    public void Write(string v)
+    {
+        if (string.IsNullOrEmpty(v))
+        {
+            Write(0);
+            return;
+        }
+
+        int len = Encoding.UTF8.GetByteCount(v);
+        Write(len);
+
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(len);
+        try
+        {
+            Encoding.UTF8.GetBytes(v, 0, v.Length, buffer, 0);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+        stream.Write(buffer, 0, len);
+    }
 
 #if UNITY_2019_4_OR_NEWER
     public void Write(Vector2 v)
@@ -310,6 +444,23 @@ public abstract class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(DBuffer buff)
+    {
+        int size = buff.Position;
+        buff.Seek(0);
+        Write(size);
+
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(size);
+        try
+        {
+            buff.stream.Read(buffer, 0, size);
+            stream.Write(buffer, 0, size);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
 
 #if UNITY_2019_4_OR_NEWER
     public void Write(Vector2[] v)
@@ -404,14 +555,78 @@ public abstract class DBuffer : IDisposable
     }
 #endif
 
-    public abstract byte[] ToBytes();
-    public abstract byte[] ToBytes(int position, int length);
+    public byte[] ToBytes()
+    {
+        return ToBytes(0, Position);
+    }
+    public byte[] ToBytes(int position, int length)
+    {
+        this.Seek(position);
+        byte[] b = new byte[length];
+        stream.Read(b, 0, length);
+        return b;
+    }
 
-    public abstract void Seek(int index);
+    public void Seek(int index)
+    {
+        stream.Seek(index, SeekOrigin.Begin);
+    }
 
     public virtual void Dispose()
     {
+        stream.Dispose();
+    }
 
+    void writeVarint32(uint v)
+    {
+        while (v > 127)
+        {
+            stream.WriteByte((byte)(v | 128));
+            v >>= 7;
+        }
+        stream.WriteByte((byte)v);
+    }
+    void writeVarint64(ulong v)
+    {
+        while (v > 127)
+        {
+            stream.WriteByte((byte)(v | 128));
+            v >>= 7;
+        }
+        stream.WriteByte((byte)v);
+    }
+    uint readVarint32()
+    {
+        uint ret = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            int v = stream.ReadByte();
+            if (v < 128)
+            {
+                ret |= (uint)(v << (7 * i));
+                return ret;
+            }
+            else
+                ret |= (uint)((v & 0x7F) << (7 * i));
+        }
+        return ret | (uint)(stream.ReadByte() << (7 * 4));
+    }
+    ulong readVarint64()
+    {
+        ulong ret = 0;
+
+        for (int i = 0; i < 9; i++)
+        {
+            int v = stream.ReadByte();
+            if (v < 128)
+            {
+                ret |= (ulong)v << (7 * i);
+                return ret;
+            }
+            else
+                ret |= (ulong)(v & 0x7F) << (7 * i);
+        }
+        return ret | (((ulong)stream.ReadByte()) << (7 * 9));
     }
 
 

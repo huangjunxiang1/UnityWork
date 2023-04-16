@@ -456,7 +456,7 @@ GameObject:
   - component: {fileID: 361743710574496217}
   - component: {fileID: 8241831883244965064}
   m_Layer: 5
-  m_Name: _DropdownUIType
+  m_Name: _UIType
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1273,7 +1273,7 @@ GameObject:
   - component: {fileID: 7115353748045205519}
   - component: {fileID: 6983260434667855626}
   m_Layer: 5
-  m_Name: _DropdownGameType
+  m_Name: _GameType
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2531,7 +2531,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1189, y: 661}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!223 &8232323558375604566
 Canvas:
@@ -2780,7 +2780,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 128.40002, y: 15}
+  m_AnchoredPosition: {x: 128.40002, y: 15.0000305}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8232323558513236177

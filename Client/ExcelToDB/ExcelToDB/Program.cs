@@ -37,7 +37,7 @@ class Program
             CodeGen gen = new CodeGen();
             gen.name = "TabM";
             gen.excelPath = parentPath + "/main";
-            gen.codePath = parentPath + "/../Client/Client/Assets/Code/Main/_Gen/TabM.cs";
+            gen.codePath = parentPath + "/../Client/Client/Assets/Code/Main/_Gen/TabM";
             gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabM.bytes";
             gen.mappingIsClass = false;
             gen.Gen();
@@ -48,7 +48,7 @@ class Program
             CodeGen gen = new CodeGen();
             gen.name = "TabL";
             gen.excelPath = parentPath + "/hot";
-            gen.codePath = parentPath + "/../Client/Client/Assets/Code/HotFix/Game/_Gen/TabL.cs";
+            gen.codePath = parentPath + "/../Client/Client/Assets/Code/HotFix/Game/_Gen/TabL";
             gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabL.bytes";
             gen.mappingIsClass = true;
             gen.Gen();
@@ -69,7 +69,7 @@ class Program
                 FileInfo fi = new FileInfo(mains[0]);
                 ExcelPackage pkg = new ExcelPackage(fi);
                 Lan tt = lan[mainIdx[i]] = new Lan();
-                tt.buff = new DBytesBuffer(100000);
+                tt.buff = new DBuffer(new MemoryStream(100000));
                 tt.buff.Compress = false;
                 tt.buff.Write(mark);
                 tt.buff.Compress = compress;

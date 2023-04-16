@@ -32,20 +32,14 @@ static class Common
             code.AppendLine("");
             code.AppendLine($"    int _{name}Idx;");
             code.AppendLine($"    {type} _{name}Tmp;");
-            code.AppendLine("    /// <summary>");
-            code.AppendLine("    /// " + des);
-            code.AppendLine("    /// </summary>");
-            code.AppendLine($"    public {type} {name}");
+            code.AppendLine($"    public {type} get{name}()");
             code.AppendLine(@"    {");
-            code.AppendLine(@"        get");
-            code.AppendLine(@"        {");
-            code.AppendLine($"            if (_{name}Tmp == null)");
-            code.AppendLine(@"            {");
-            code.AppendLine($"                dbuff.Seek(_{name}Idx);");
-            code.AppendLine($"                _{name}Tmp = dbuff.Read{type}();");
-            code.AppendLine(@"            }");
-            code.AppendLine($"            return _{name}Tmp;");
-            code.AppendLine(@"        }");
+            code.AppendLine($"        if (_{name}Tmp == null)");
+            code.AppendLine($"        {{");
+            code.AppendLine($"            dbuff.Seek(_{name}Idx);");
+            code.AppendLine($"            _{name}Tmp = dbuff.Readstring();");
+            code.AppendLine($"        }}");
+            code.AppendLine($"        return _{name}Tmp;");
             code.AppendLine(@"    }");
         }
         else if (type.Contains("[]"))
@@ -54,25 +48,28 @@ static class Common
             code.AppendLine("");
             code.AppendLine($"    int _{name}Idx;");
             code.AppendLine($"    {type} _{name}Tmp;");
+            code.AppendLine($"    public {type} get{name}()");
+            code.AppendLine(@"    {");
+            code.AppendLine($"        if (_{name}Tmp == null)");
+            code.AppendLine($"        {{");
+            code.AppendLine($"            dbuff.Seek(_{name}Idx);");
+            code.AppendLine($"            _{name}Tmp = dbuff.Read{realType}s();");
+            code.AppendLine($"        }}");
+            code.AppendLine($"        return _{name}Tmp;");
+            code.AppendLine(@"    }");
+        }
+    }
+    public static void appendDefineCode2(string des, string type, string name, StringBuilder code)
+    {
+        if (type == "string" || type.Contains("[]"))
+        {
             code.AppendLine("    /// <summary>");
             code.AppendLine("    /// " + des);
             code.AppendLine("    /// </summary>");
-            code.AppendLine($"    public {type} {name}");
-            code.AppendLine(@"    {");
-            code.AppendLine(@"        get");
-            code.AppendLine(@"        {");
-            code.AppendLine($"            if (_{name}Tmp == null)");
-            code.AppendLine(@"            {");
-            code.AppendLine($"                dbuff.Seek(_{name}Idx);");
-            code.AppendLine($"                _{name}Tmp = dbuff.Read{realType}s();");
-            code.AppendLine(@"            }");
-            code.AppendLine($"            return _{name}Tmp;");
-            code.AppendLine(@"        }");
-            code.AppendLine(@"    }");
+            code.AppendLine($"    public {type} {name} => get{name}();");
         }
         else
         {
-            code.AppendLine("");
             code.AppendLine("    /// <summary>");
             code.AppendLine("    /// " + des);
             code.AppendLine("    /// </summary>");
@@ -98,7 +95,7 @@ static class Common
             csContent.AppendLine($"        this.{sName} = buffer.Read{sType}();");
     }
 
-    public static void WriteValue(DBytesBuffer buffer, DBytesBuffer arrayTemp, string sType, string text, FileInfo fi, int lineIdx, int idx)
+    public static void WriteValue(DBuffer buffer, DBuffer arrayTemp, string sType, string text, FileInfo fi, int lineIdx, int idx)
     {
         ///arrayTemp  如果写入的是数组 arrayTemp不为空时  数据先写入数组的数据总大小 arrayTemp为空则不写入数组的数据总大小
         sType = getType(sType);
@@ -136,7 +133,7 @@ static class Common
                 }
                 arrayTemp.Seek(0);
                 arrayTemp.Write(temp);
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -187,7 +184,7 @@ static class Common
                     }
                     arrayTemp.Write(v);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -238,7 +235,7 @@ static class Common
                     }
                     arrayTemp.Write(v);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -289,7 +286,7 @@ static class Common
                     }
                     arrayTemp.Write(v);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -321,7 +318,7 @@ static class Common
                 arrayTemp.Write(arr.Length);
                 for (int i = 0; i < arr.Length; i++)
                     arrayTemp.Write(arr[i]);
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -375,7 +372,7 @@ static class Common
                     arrayTemp.Write(v1);
                     arrayTemp.Write(v2);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -438,7 +435,7 @@ static class Common
                     arrayTemp.Write(v1);
                     arrayTemp.Write(v2);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -503,7 +500,7 @@ static class Common
                     arrayTemp.Write(v2);
                     arrayTemp.Write(v3);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -569,7 +566,7 @@ static class Common
                     arrayTemp.Write(v2);
                     arrayTemp.Write(v3);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -622,7 +619,7 @@ static class Common
                     }
                     arrayTemp.Write(v);
                 }
-                buffer.Write(arrayTemp.GetNativeBytes(), 0, arrayTemp.Position);
+                buffer.Write(arrayTemp);
             }
             else
             {
@@ -638,6 +635,12 @@ static class Common
                     buffer.Write(v);
                 }
             }
+        }
+
+        else
+        {
+            Console.WriteLine("未识别类型->" + sType);
+            Console.ReadLine();
         }
     }
 
@@ -699,6 +702,6 @@ class temp3
 }
 class Lan
 {
-    public DBytesBuffer buff;
+    public DBuffer buff;
     public string name;
 }

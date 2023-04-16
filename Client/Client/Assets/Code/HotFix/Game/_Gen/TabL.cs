@@ -5,6 +5,7 @@ using System.Linq;
 public static class TabL
 {
     static DBuffer dbbuff;
+    static bool debug;
 
     static Dictionary<int, Mapping> _mapSceneIdx;
     static TabScene[] _SceneArray;
@@ -15,6 +16,7 @@ public static class TabL
         {
             if (_SceneArray == null)
             {
+                bool isDebug = debug;
                 int[] keys = _mapSceneIdx.Keys.ToArray();
                 int len = keys.Length;
                 _SceneArray = new TabScene[_mapSceneIdx.Count];
@@ -27,11 +29,12 @@ public static class TabL
                     else
                     {
                         dbbuff.Seek(v.point);
-                        TabScene tmp = new TabScene(dbbuff);
+                        TabScene tmp = new TabScene(dbbuff, isDebug);
                         _mapScene[k] = tmp;
                         _SceneArray[v.index] = tmp;
                     }
                 }
+                _mapSceneIdx = null;
             }
             return _SceneArray;
         }
@@ -46,6 +49,7 @@ public static class TabL
         {
             if (__test1Array == null)
             {
+                bool isDebug = debug;
                 int[] keys = _map_test1Idx.Keys.ToArray();
                 int len = keys.Length;
                 __test1Array = new Tab_test1[_map_test1Idx.Count];
@@ -58,24 +62,27 @@ public static class TabL
                     else
                     {
                         dbbuff.Seek(v.point);
-                        Tab_test1 tmp = new Tab_test1(dbbuff);
+                        Tab_test1 tmp = new Tab_test1(dbbuff, isDebug);
                         _map_test1[k] = tmp;
                         __test1Array[v.index] = tmp;
                     }
                 }
+                _map_test1Idx = null;
             }
             return __test1Array;
         }
     }
 
 
-    public static void Init(DBuffer buffer)
+    public static void Init(DBuffer buffer, bool isDebug)
     {
         dbbuff = buffer;
+        debug = isDebug;
 
         int len0 = buffer.Readint();
         _mapSceneIdx = new Dictionary<int, Mapping>(len0);
         _mapScene = new Dictionary<int, TabScene>(len0);
+        _SceneArray = null;
         for (int i = 0; i < len0; i++)
         {
             int offset = buffer.Readint();
@@ -85,10 +92,12 @@ public static class TabL
             _mapSceneIdx.Add(buffer.Readint(), map);
             buffer.Seek(map.point + offset);
         }
+        if (isDebug) _ = SceneArray;
 
         int len1 = buffer.Readint();
         _map_test1Idx = new Dictionary<int, Mapping>(len1);
         _map_test1 = new Dictionary<int, Tab_test1>(len1);
+        __test1Array = null;
         for (int i = 0; i < len1; i++)
         {
             int offset = buffer.Readint();
@@ -98,6 +107,7 @@ public static class TabL
             _map_test1Idx.Add(buffer.Readint(), map);
             buffer.Seek(map.point + offset);
         }
+        if (isDebug) _ = _test1Array;
 
     }
 
@@ -105,7 +115,7 @@ public static class TabL
     {
         if (_mapScene.TryGetValue(key, out var value))
             return value;
-        if (_mapSceneIdx.TryGetValue(key, out Mapping map))
+        if (_mapSceneIdx != null && _mapSceneIdx.TryGetValue(key, out Mapping map))
         {
             dbbuff.Seek(map.point);
             TabScene tmp = new TabScene(dbbuff);
@@ -120,7 +130,7 @@ public static class TabL
     {
         if (_map_test1.TryGetValue(key, out var value))
             return value;
-        if (_map_test1Idx.TryGetValue(key, out Mapping map))
+        if (_map_test1Idx != null && _map_test1Idx.TryGetValue(key, out Mapping map))
         {
             dbbuff.Seek(map.point);
             Tab_test1 tmp = new Tab_test1(dbbuff);
@@ -139,175 +149,112 @@ public static class TabL
     }
 }
 
-public class TabScene
+public partial class TabScene
 {
     DBuffer dbuff;
 
-    /// <summary>
-    /// id
-    /// </summary>
-    public int id { get; }
-
     int _nameIdx;
     string _nameTmp;
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public string name
+    public string getname()
     {
-        get
+        if (_nameTmp == null)
         {
-            if (_nameTmp == null)
-            {
-                dbuff.Seek(_nameIdx);
-                _nameTmp = dbuff.Readstring();
-            }
-            return _nameTmp;
+            dbuff.Seek(_nameIdx);
+            _nameTmp = dbuff.Readstring();
         }
+        return _nameTmp;
     }
 
-    public TabScene(DBuffer buffer)
+    public TabScene(DBuffer buffer, bool isDebug = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();
         this._nameIdx = buffer.Position;
         buffer.Seek(buffer.Readint() + buffer.Position);
+        if (isDebug)
+        {
+            _ = this.name;
+        }
     }
 }
 
-public class Tab_test1
+public partial class Tab_test1
 {
     DBuffer dbuff;
 
-    /// <summary>
-    /// id
-    /// </summary>
-    public int id { get; }
-
     int _value2Idx;
     int[] _value2Tmp;
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public int[] value2
+    public int[] getvalue2()
     {
-        get
+        if (_value2Tmp == null)
         {
-            if (_value2Tmp == null)
-            {
-                dbuff.Seek(_value2Idx);
-                _value2Tmp = dbuff.Readints();
-            }
-            return _value2Tmp;
+            dbuff.Seek(_value2Idx);
+            _value2Tmp = dbuff.Readints();
         }
+        return _value2Tmp;
     }
 
     int _desIdx;
     string _desTmp;
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public string des
+    public string getdes()
     {
-        get
+        if (_desTmp == null)
         {
-            if (_desTmp == null)
-            {
-                dbuff.Seek(_desIdx);
-                _desTmp = dbuff.Readstring();
-            }
-            return _desTmp;
+            dbuff.Seek(_desIdx);
+            _desTmp = dbuff.Readstring();
         }
+        return _desTmp;
     }
 
     int _des2Idx;
     string[] _des2Tmp;
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public string[] des2
+    public string[] getdes2()
     {
-        get
+        if (_des2Tmp == null)
         {
-            if (_des2Tmp == null)
-            {
-                dbuff.Seek(_des2Idx);
-                _des2Tmp = dbuff.Readstrings();
-            }
-            return _des2Tmp;
+            dbuff.Seek(_des2Idx);
+            _des2Tmp = dbuff.Readstrings();
         }
+        return _des2Tmp;
     }
-
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public Vector2Int v2t { get; }
 
     int _v2t2Idx;
     Vector2Int[] _v2t2Tmp;
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public Vector2Int[] v2t2
+    public Vector2Int[] getv2t2()
     {
-        get
+        if (_v2t2Tmp == null)
         {
-            if (_v2t2Tmp == null)
-            {
-                dbuff.Seek(_v2t2Idx);
-                _v2t2Tmp = dbuff.ReadVector2Ints();
-            }
-            return _v2t2Tmp;
+            dbuff.Seek(_v2t2Idx);
+            _v2t2Tmp = dbuff.ReadVector2Ints();
         }
+        return _v2t2Tmp;
     }
-
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public float f1 { get; }
 
     int _f2Idx;
     float[] _f2Tmp;
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public float[] f2
+    public float[] getf2()
     {
-        get
+        if (_f2Tmp == null)
         {
-            if (_f2Tmp == null)
-            {
-                dbuff.Seek(_f2Idx);
-                _f2Tmp = dbuff.Readfloats();
-            }
-            return _f2Tmp;
+            dbuff.Seek(_f2Idx);
+            _f2Tmp = dbuff.Readfloats();
         }
+        return _f2Tmp;
     }
-
-    /// <summary>
-    /// x'x
-    /// </summary>
-    public bool b1 { get; }
 
     int _b2Idx;
     bool[] _b2Tmp;
-    /// <summary>
-    /// xx
-    /// </summary>
-    public bool[] b2
+    public bool[] getb2()
     {
-        get
+        if (_b2Tmp == null)
         {
-            if (_b2Tmp == null)
-            {
-                dbuff.Seek(_b2Idx);
-                _b2Tmp = dbuff.Readbools();
-            }
-            return _b2Tmp;
+            dbuff.Seek(_b2Idx);
+            _b2Tmp = dbuff.Readbools();
         }
+        return _b2Tmp;
     }
 
-    public Tab_test1(DBuffer buffer)
+    public Tab_test1(DBuffer buffer, bool isDebug = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();
@@ -331,5 +278,14 @@ public class Tab_test1
         int next9 = buffer.Readint() + buffer.Position;
         this._b2Idx = buffer.Position;
         buffer.Seek(next9);
+        if (isDebug)
+        {
+            _ = this.value2;
+            _ = this.des;
+            _ = this.des2;
+            _ = this.v2t2;
+            _ = this.f2;
+            _ = this.b2;
+        }
     }
 }

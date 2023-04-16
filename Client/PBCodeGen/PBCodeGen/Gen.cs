@@ -200,7 +200,7 @@ internal class Gen
                                 int vtag = (2 << 3) | vmark;
                                 wStr.AppendLine($"            if (this.{fieldName} != null)");
                                 wStr.AppendLine("            {");
-                                wStr.AppendLine($"                PBBytesWriter tmp = PBBuffPool.Get();");
+                                wStr.AppendLine($"                PBWriter tmp = PBBuffPool.Get();");
                                 wStr.AppendLine($"                foreach (var item in this.{fieldName})");
                                 wStr.AppendLine($"                {{");
                                 wStr.AppendLine($"                    tmp.Seek(0);");
@@ -237,7 +237,7 @@ internal class Gen
                                     wStr.AppendLine($"                    tmp.Writemessage({vtag}, item.Value);");
                                 }
 
-                                wStr.AppendLine($"                    writer.Writebytes({tag}, tmp.GetNativeBytes(), 0, tmp.Position);");
+                                wStr.AppendLine($"                    writer.WriteBuff({tag}, tmp);");
                                 wStr.AppendLine($"                }}");
                                 wStr.AppendLine($"                PBBuffPool.Return(tmp);");
                                 wStr.AppendLine("            }");

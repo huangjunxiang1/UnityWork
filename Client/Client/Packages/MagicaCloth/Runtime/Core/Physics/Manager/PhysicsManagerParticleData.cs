@@ -1338,7 +1338,7 @@ namespace MagicaCloth
 
             // トランスフォームごと
             [Unity.Collections.ReadOnly]
-            public NativeMultiHashMap<int, int> transformParticleIndexMap;
+            public NativeParallelMultiHashMap<int, int> transformParticleIndexMap;
             [Unity.Collections.ReadOnly]
             public NativeArray<int> writeBoneIndexList;
             [NativeDisableParallelForRestriction]
@@ -1352,7 +1352,7 @@ namespace MagicaCloth
             public void Execute(int index)
             {
                 int pindex;
-                NativeMultiHashMapIterator<int> iterator;
+                NativeParallelMultiHashMapIterator<int> iterator;
                 if (transformParticleIndexMap.TryGetFirstValue(index, out pindex, out iterator))
                 {
                     // パーティクルは登録されている中から最初にヒットしたものを採用する

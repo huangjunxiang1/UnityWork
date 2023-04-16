@@ -11,21 +11,23 @@ partial class UUILogin
     protected override void OnEnter(params object[] data)
     {
         _loginButton.onClick.AddListener(login);
-        _DropdownGameTypeDropdown.ClearOptions();
-        _DropdownGameTypeDropdown.AddOptions(new List<string>
+
+        
+        _GameTypeDropdown.ClearOptions();
+        _GameTypeDropdown.AddOptions(new List<string>
         {
             "单机模式",
             "联网模式",
         });
 
-        _DropdownUITypeDropdown.onValueChanged.AddListener(onValue);
-        _DropdownUITypeDropdown.ClearOptions();
-        _DropdownUITypeDropdown.AddOptions(new List<string>
+        _UITypeDropdown.onValueChanged.AddListener(onValue);
+        _UITypeDropdown.ClearOptions();
+        _UITypeDropdown.AddOptions(new List<string>
         {
             "FGUI",
             "UGUI",
         });
-        _DropdownUITypeDropdown.value = 1;
+        _UITypeDropdown.value = 1;
     }
 
     protected override void OnExit()

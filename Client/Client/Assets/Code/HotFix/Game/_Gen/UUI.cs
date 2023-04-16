@@ -11,17 +11,20 @@ using Game;
 partial class UUILoading : UUI
 {
     public sealed override string url => "UI/UUI/Prefab/UUILoading.prefab";
-    public UnityEngine.UI.Image _fillImage;
-    public UnityEngine.UI.Text _txtText;
+    public PropertyBinding<UnityEngine.UI.Image, float> _fillImageBinding;
+    public PropertyBinding<UnityEngine.UI.Text, float> _txtTextBinding;
 
     protected sealed override void Binding()
     {
         RectTransform ui = this.UI;
         Transform c;
         c = ui.GetChild(0);
-        this._fillImage = (UnityEngine.UI.Image)c.GetComponent(typeof(UnityEngine.UI.Image));
+        this._fillImageBinding = new PropertyBinding<UnityEngine.UI.Image, float>((UnityEngine.UI.Image)c.GetComponent(typeof(UnityEngine.UI.Image)));
         c = ui.GetChild(1);
-        this._txtText = (UnityEngine.UI.Text)c.GetComponent(typeof(UnityEngine.UI.Text));
+        this._txtTextBinding = new PropertyBinding<UnityEngine.UI.Text, float>((UnityEngine.UI.Text)c.GetComponent(typeof(UnityEngine.UI.Text)));
+        this.VMBinding();
+        this._fillImageBinding.CallEvent();
+        this._txtTextBinding.CallEvent();
     }
 }
 partial class UUILogin : UUI
@@ -30,8 +33,8 @@ partial class UUILogin : UUI
     public UnityEngine.UI.InputField _acInputField;
     public UnityEngine.UI.InputField _pwInputField;
     public UnityEngine.UI.Button _loginButton;
-    public UnityEngine.UI.Dropdown _DropdownUITypeDropdown;
-    public UnityEngine.UI.Dropdown _DropdownGameTypeDropdown;
+    public UnityEngine.UI.Dropdown _UITypeDropdown;
+    public UnityEngine.UI.Dropdown _GameTypeDropdown;
 
     protected sealed override void Binding()
     {
@@ -44,8 +47,9 @@ partial class UUILogin : UUI
         c = ui.GetChild(2);
         this._loginButton = (UnityEngine.UI.Button)c.GetComponent(typeof(UnityEngine.UI.Button));
         c = ui.GetChild(3);
-        this._DropdownUITypeDropdown = (UnityEngine.UI.Dropdown)c.GetComponent(typeof(UnityEngine.UI.Dropdown));
+        this._UITypeDropdown = (UnityEngine.UI.Dropdown)c.GetComponent(typeof(UnityEngine.UI.Dropdown));
         c = ui.GetChild(4);
-        this._DropdownGameTypeDropdown = (UnityEngine.UI.Dropdown)c.GetComponent(typeof(UnityEngine.UI.Dropdown));
+        this._GameTypeDropdown = (UnityEngine.UI.Dropdown)c.GetComponent(typeof(UnityEngine.UI.Dropdown));
+        this.VMBinding();
     }
 }

@@ -10,26 +10,32 @@ using Unity.Mathematics;
 class TabDataTest
 {
     [Test]
-    public void testDBytesBuffer()
+    public void testDBuffer()
     {
-        DBytesBuffer buffM = new(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM.bytes"));
-        DBytesBuffer buffL = new(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes"));
-        DBytesBuffer buff_cn = new(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes"));
-        DBytesBuffer buff_en = new(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes"));
-        test(buffM, buffL, buff_cn, buff_en);
+        using DBuffer buffM = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM.bytes")));
+        using DBuffer buffL = new(File.Open(Application.dataPath + "/Res/Config/Tabs/TabL.bytes", FileMode.Open));
+        using DBuffer buff_cn = new(File.Open(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes", FileMode.Open));
+        using DBuffer buff_en = new(File.Open(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes", FileMode.Open));
+        try
+        {
+            test(buffM, buffL, buff_cn, buff_en, false);
+            buffM.Seek(0);
+            buffL.Seek(0);
+            buff_cn.Seek(0);
+            buff_en.Seek(0);
+            test(buffM, buffL, buff_cn, buff_en, true);
+        }
+        catch (System.Exception e)
+        {
+            buffM?.Dispose();
+            buffL?.Dispose();
+            buff_cn?.Dispose();
+            buff_en?.Dispose();
+            throw e;
+        }
     }
 
-    [Test]
-    public void testDStreamBuffer()
-    {
-        using DStreamBuffer buffM = new(File.Open(Application.dataPath + "/Res/Config/Tabs/TabM.bytes", FileMode.Open));
-        using DStreamBuffer buffL = new(File.Open(Application.dataPath + "/Res/Config/Tabs/TabL.bytes", FileMode.Open));
-        using DStreamBuffer buff_cn = new(File.Open(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes", FileMode.Open));
-        using DStreamBuffer buff_en = new(File.Open(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes", FileMode.Open));
-        test(buffM, buffL, buff_cn, buff_en);
-    }
-
-    void test(DBuffer buffM, DBuffer buffL, DBuffer buff_cn, DBuffer buff_en)
+    void test(DBuffer buffM, DBuffer buffL, DBuffer buff_cn, DBuffer buff_en, bool debug)
     {
         buffM.Compress = false;
         if (buffM.Readint() != 20220702)
@@ -37,7 +43,7 @@ class TabDataTest
         else
         {
             buffM.Compress = buffM.Readbool();
-            TabM.Init(buffM);
+            TabM.Init(buffM, debug);
             int key = 1;
 
             if (TabM.Get_test2(key).value2[0] != 5)
@@ -103,7 +109,7 @@ class TabDataTest
         else
         {
             buffL.Compress = buffL.Readbool();
-            TabL.Init(buffL);
+            TabL.Init(buffL, debug);
         }
 
         buff_cn.Compress = false;
@@ -112,7 +118,7 @@ class TabDataTest
         else
         {
             buff_cn.Compress = buff_cn.Readbool();
-            LanguageS.Load((int)SystemLanguage.Chinese, buff_cn);
+            LanguageS.Load((int)SystemLanguage.Chinese, buff_cn, true);
         }
 
         buff_en.Compress = false;
@@ -121,7 +127,7 @@ class TabDataTest
         else
         {
             buff_en.Compress = buff_en.Readbool();
-            LanguageS.Load((int)SystemLanguage.English, buff_en);
+            LanguageS.Load((int)SystemLanguage.English, buff_en, true);
         }
     }
 }

@@ -40,19 +40,19 @@ namespace PB.main
             writer.Writemessage(66, this.test8);
             if (this.test9 != null)
             {
-                PBBytesWriter tmp = PBBuffPool.Get();
+                PBWriter tmp = PBBuffPool.Get();
                 foreach (var item in this.test9)
                 {
                     tmp.Seek(0);
                     tmp.Writestring(10, item.Key);
                     tmp.Writemessage(18, item.Value);
-                    writer.Writebytes(74, tmp.GetNativeBytes(), 0, tmp.Position);
+                    writer.WriteBuff(74, tmp);
                 }
                 PBBuffPool.Return(tmp);
             }
             if (this.test10 != null)
             {
-                PBBytesWriter tmp = PBBuffPool.Get();
+                PBWriter tmp = PBBuffPool.Get();
                 foreach (var item in this.test10)
                 {
                     tmp.Seek(0);
@@ -60,13 +60,13 @@ namespace PB.main
                     tmp.Writeint64(item.Key);
                     tmp.WriteTag(16);
                     tmp.Writebool(item.Value);
-                    writer.Writebytes(82, tmp.GetNativeBytes(), 0, tmp.Position);
+                    writer.WriteBuff(82, tmp);
                 }
                 PBBuffPool.Return(tmp);
             }
             if (this.test11 != null)
             {
-                PBBytesWriter tmp = PBBuffPool.Get();
+                PBWriter tmp = PBBuffPool.Get();
                 foreach (var item in this.test11)
                 {
                     tmp.Seek(0);
@@ -74,7 +74,7 @@ namespace PB.main
                     tmp.Writesint32(item.Key);
                     tmp.WriteTag(16);
                     tmp.Writesint64(item.Value);
-                    writer.Writebytes(90, tmp.GetNativeBytes(), 0, tmp.Position);
+                    writer.WriteBuff(90, tmp);
                 }
                 PBBuffPool.Return(tmp);
             }
@@ -106,7 +106,7 @@ namespace PB.main
             }
             if (this.test19 != null)
             {
-                PBBytesWriter tmp = PBBuffPool.Get();
+                PBWriter tmp = PBBuffPool.Get();
                 foreach (var item in this.test19)
                 {
                     tmp.Seek(0);
@@ -114,20 +114,20 @@ namespace PB.main
                     tmp.Writefixed32(item.Key);
                     tmp.WriteTag(17);
                     tmp.Writedouble(item.Value);
-                    writer.Writebytes(154, tmp.GetNativeBytes(), 0, tmp.Position);
+                    writer.WriteBuff(154, tmp);
                 }
                 PBBuffPool.Return(tmp);
             }
             if (this.test20 != null)
             {
-                PBBytesWriter tmp = PBBuffPool.Get();
+                PBWriter tmp = PBBuffPool.Get();
                 foreach (var item in this.test20)
                 {
                     tmp.Seek(0);
                     tmp.WriteTag(9);
                     tmp.Writesfixed64(item.Key);
                     tmp.Writestring(18, item.Value);
-                    writer.Writebytes(162, tmp.GetNativeBytes(), 0, tmp.Position);
+                    writer.WriteBuff(162, tmp);
                 }
                 PBBuffPool.Return(tmp);
             }

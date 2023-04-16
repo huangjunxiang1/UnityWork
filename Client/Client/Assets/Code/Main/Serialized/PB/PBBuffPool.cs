@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,21 +9,21 @@ namespace PB
 {
     public static class PBBuffPool
     {
-        public static int MaxSize = 2048;
+        public static int MaxSize = 1024;
 
-        static Queue<PBBytesWriter> bytes = new Queue<PBBytesWriter>();
+        static Queue<PBWriter> bytes = new Queue<PBWriter>();
 
-        public static PBBytesWriter Get()
+        public static PBWriter Get()
         {
             if (bytes.Count > 0)
             {
-                PBBytesWriter writer = bytes.Dequeue();
+                PBWriter writer = bytes.Dequeue();
                 writer.Seek(0);
                 return writer;
             }
-            return new PBBytesWriter(new byte[MaxSize]);
+            return new PBWriter(new MemoryStream(MaxSize));
         }
-        public static void Return(PBBytesWriter writer)
+        public static void Return(PBWriter writer)
         {
             if (writer == null)
                 throw new NullReferenceException("空 PBBytesWriter");

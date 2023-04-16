@@ -1,23 +1,33 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PB
 {
-    public abstract class PBReader : IDisposable
+    public unsafe class PBReader : IDisposable
     {
-        public PBReader(int index, int length)
+        public PBReader(Stream s, int index, int length)
         {
             min = index;
             max = index + length;
+            stream = s;
         }
+        public PBReader(Stream s) : this(s, 0, (int)s.Length)
+        {
+            stream = s;
+        }
+
+        Stream stream;
 
         public int min { get; private set; }
         public int max { get; private set; }
 
-        public virtual int Position { get; protected set; }
+        public int Position { get => (int)stream.Position; private set => this.Seek(value); }
 
         public int ReadTag()
         {
@@ -25,32 +35,85 @@ namespace PB
                 return 0;
             return Readint32();
         }
-        public abstract bool Readbool();
-        public abstract int Readint32();
+        public bool Readbool()
+        {
+            return stream.ReadByte() == 1;
+        }
+        public int Readint32()
+        {
+            return (int)Readint64();
+        }
         public int Readsint32()
         {
             int v = Readint32();
             return (v >> 1) ^ -(v & 1);
         }
-        public abstract long Readint64();
+        public long Readint64()
+        {
+            ulong v = 0;
+            for (int i = 0; i < sizeof(ulong) + 2; i++)
+            {
+                ulong bv = (ulong)stream.ReadByte();
+                v |= ((bv & 0x7f) << 7 * i);
+                if (bv < 128)
+                    break;
+            }
+            return (long)v;
+        }
         public long Readsint64()
         {
             long v = Readint64();
             return (v >> 1) ^ -(v & 1);
         }
-        public abstract uint Readfixed32();
+        public uint Readfixed32()
+        {
+            uint v = 0;
+            for (int i = 0; i < sizeof(uint); i++)
+                v |= (uint)stream.ReadByte() << (i * 8);
+            return v;
+        }
         public int Readsfixed32()
         {
             return (int)Readfixed32();
         }
-        public abstract ulong Readfixed64();
+        public ulong Readfixed64()
+        {
+            ulong v = 0;
+            for (int i = 0; i < sizeof(ulong); i++)
+                v |= (ulong)stream.ReadByte() << (i * 8);
+            return v;
+        }
         public long Readsfixed64()
         {
             return (long)Readfixed64();
         }
-        public abstract double Readdouble();
-        public abstract float Readfloat();
-        public abstract string Readstring();
+        public double Readdouble()
+        {
+            ulong v = Readfixed64();
+            return *(double*)&v;
+        }
+        public float Readfloat()
+        {
+            uint v = Readfixed32();
+            return *(float*)&v;
+        }
+        public string Readstring()
+        {
+            int len = Readint32();
+            if (len <= 0)
+                return string.Empty;
+
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(len);
+            try
+            {
+                stream.Read(buffer, 0, len);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+            return Encoding.UTF8.GetString(buffer, 0, len);
+        }
         public void Readmessage(IPBMessage message)
         {
             int min = this.min;
@@ -60,7 +123,13 @@ namespace PB
             message.Read(this);
             this.SetLimit(min, max);
         }
-        public abstract byte[] Readbytes();
+        public byte[] Readbytes()
+        {
+            int len = Readint32();
+            byte[] bs = new byte[len];
+            stream.Read(bs, 0, len);
+            return bs;
+        }
         public void Readbools(List<bool> lst)
         {
             int len = Readint32();
@@ -160,7 +229,14 @@ namespace PB
             this.Seek(point);
         }
 
-        public abstract void Seek(int index);
+        public void Seek(int index)
+        {
+            if (index < min)
+                index = min;
+            else if (index > max)
+                index = max;
+            stream.Seek(index, SeekOrigin.Begin);
+        }
 
         public void SeekNext(int tag)
         {
@@ -179,7 +255,7 @@ namespace PB
 
         public void Dispose()
         {
-           
+            stream.Dispose();
         }
         public void SetLimit(int min, int max)
         {

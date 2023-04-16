@@ -10,8 +10,6 @@
 
   <ItemGroup>
     <Compile Include="..\..\Client\Assets\Code\Main\Serialized\DBuffer.cs" Link="DBuffer.cs" />
-    <Compile Include="..\..\Client\Assets\Code\Main\Serialized\DBytesBuffer.cs" Link="DBytesBuffer.cs" />
-    <Compile Include="..\..\Client\Assets\Code\Main\Serialized\DStreamBuffer.cs" Link="DStreamBuffer.cs" />
   </ItemGroup>
 
   <ItemGroup>

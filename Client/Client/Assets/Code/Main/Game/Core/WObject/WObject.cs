@@ -23,7 +23,7 @@ namespace Game
             {
                 this.goRoot = new GameObject();
 #if UNITY_EDITOR
-                this.Name = $"{this.GetType().FullName}_id={cid}";
+                this.Name = $"{this.GetType().Name}_id={cid}";
 #endif
                 if (this is not World)
                     this.goRoot.transform.SetParent(GameM.World.goRoot.transform);

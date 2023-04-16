@@ -47,7 +47,7 @@ public static class LanguageS
         return kv.value;
     }
 
-    public static void Load(int languageType, DBuffer buff)
+    public static void Load(int languageType, DBuffer buff, bool isDebug)
     {
         int len = buff.Readint();
         Language lan = languageArray[languageType] = new Language();
@@ -59,6 +59,12 @@ public static class LanguageS
             int key = buff.Readint();
             map.index = buff.Position;
             buff.Seek(buff.Readint() + buff.Position);
+            if (isDebug)
+            {
+                buff.Seek(map.index);
+                map.value = buff.Readstring();
+                map.isReaded = true;
+            }
             lan.kvs.Add(key, map);
         }
     }

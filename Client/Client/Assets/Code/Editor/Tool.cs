@@ -64,6 +64,7 @@ public class Tool
             }
 
             StringBuilder getUICode = new StringBuilder();
+            StringBuilder vmCallCode = new StringBuilder();
             getUICode.AppendLine("        Transform c;");
             code.AppendLine(@"");
             if (go.name.StartsWith("UUI3D"))
@@ -142,12 +143,32 @@ public class Tool
                         }
                         getUICode.AppendLine(";");
 
-
-                        for (int i = 0; i < coms.Count; i++)
+                        if (child.name.EndsWith("_str")
+                            || child.name.EndsWith("_int")
+                            || child.name.EndsWith("_bool")
+                            || child.name.EndsWith("_float"))
                         {
-                            var item1 = coms[i];
-                            code.AppendLine($@"    public {item1.GetType().FullName} {item1.name}{item1.GetType().Name};");
-                            getUICode.AppendLine($@"        this.{item1.name}{item1.GetType().Name} = ({item1.GetType().FullName})c.GetComponent(typeof({item1.GetType().FullName}));");
+                            int idx = child.name.LastIndexOf('_');
+                            string bType = child.name.Split('_').Last();
+                            if (bType == "str")
+                                bType = "string";
+                            string name = child.name.Substring(0, idx);
+                            for (int i = 0; i < coms.Count; i++)
+                            {
+                                var item1 = coms[i];
+                                code.AppendLine($@"    public PropertyBinding<{item1.GetType().FullName}, {bType}> {name}{item1.GetType().Name}Binding;");
+                                getUICode.AppendLine($@"        this.{name}{item1.GetType().Name}Binding = new PropertyBinding<{item1.GetType().FullName}, {bType}>(({item1.GetType().FullName})c.GetComponent(typeof({item1.GetType().FullName})));");
+                                vmCallCode.AppendLine($"        this.{name}{item1.GetType().Name}Binding.CallEvent();");
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < coms.Count; i++)
+                            {
+                                var item1 = coms[i];
+                                code.AppendLine($@"    public {item1.GetType().FullName} {item1.name}{item1.GetType().Name};");
+                                getUICode.AppendLine($@"        this.{item1.name}{item1.GetType().Name} = ({item1.GetType().FullName})c.GetComponent(typeof({item1.GetType().FullName}));");
+                            }
                         }
                     }
                 }
@@ -158,6 +179,8 @@ public class Tool
             code.AppendLine(@"    {");
             code.AppendLine(@"        RectTransform ui = this.UI;");
             code.Append(getUICode.ToString());
+            code.AppendLine(@"        this.VMBinding();");
+            code.Append(vmCallCode.ToString());
             code.AppendLine(@"    }");
             code.Append(@"}");
         }
@@ -456,11 +479,11 @@ public class Tool
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;
-        TabM.Init(new DBytesBuffer(File.ReadAllBytes(Application.dataPath+ "/Res/Config/Tabs/TabM.bytes")));
-        TabL.Init(new DBytesBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes")));
+        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM.bytes"))), ConstDefM.Debug);
+        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes"))), ConstDefM.Debug);
         LanguageS.Clear();
-        LanguageS.Load((int)SystemLanguage.Chinese, new DBytesBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes")));
-        LanguageS.Load((int)SystemLanguage.English, new DBytesBuffer(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes")));
+        LanguageS.Load((int)SystemLanguage.Chinese, new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes"))), ConstDefM.Debug);
+        LanguageS.Load((int)SystemLanguage.English, new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes"))), ConstDefM.Debug);
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 }

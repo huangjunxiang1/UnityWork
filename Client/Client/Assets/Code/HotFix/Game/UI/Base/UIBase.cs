@@ -105,11 +105,12 @@ abstract class UIBase : TreeL<UIBase>
     }
 
     protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用
-    protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用
-    protected virtual TaskAwaiter OnTask(params object[] data)
+    protected virtual TaskAwaiter OnTask(params object[] data)//自定义何时界面可以打开
     {
         return TaskAwaiter.Completed;
-    }//自定义何时界面可以打开
+    }
+    protected virtual void VMBinding() { }//显示绑定
+    protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用
     protected virtual void OnExit() { }//UI关闭调用
     protected virtual void OnShow() { }//UI每次重显示调用 包括第一次打开
     protected virtual void OnHide() { }//UI每次隐藏时调用 
