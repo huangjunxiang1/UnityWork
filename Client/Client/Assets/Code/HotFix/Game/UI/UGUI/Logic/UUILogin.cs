@@ -35,16 +35,6 @@ partial class UUILogin
 
     }
 
-    [Msg(CMDL.R2C_Login)]
-    void R2C_Login(IMessage message)
-    {
-        R2C_Login rep = message as R2C_Login;
-        if (rep.Error == 0)
-        {
-            this.Dispose();
-            GameL.UI.Open<UUILoading>(1);
-        }
-    }
     [Event((int)EventIDM.NetError)]
     void connectRet(EventerContent e)
     {

@@ -1,12 +1,21 @@
-﻿namespace Main
-{
-    public class MessageAttribute : BaseAttribute
-    {
-        public ushort Opcode { get; }
+﻿using System;
 
-        public MessageAttribute(ushort opcode)
+namespace Main
+{
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class MessageAttribute : Attribute
+    {
+        public uint cmd { get; }
+        public Type ResponseType { get; }
+
+        public MessageAttribute(ushort mainCmd, ushort subCmd)
         {
-            this.Opcode = opcode;
+            cmd = (uint)(mainCmd | subCmd << 16);
+        }
+        public MessageAttribute(ushort mainCmd, ushort subCmd, Type ResponseType)
+        {
+            cmd = (uint)(mainCmd | subCmd << 16);
+            this.ResponseType = ResponseType;
         }
     }
 }

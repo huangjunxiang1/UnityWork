@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 public partial class TabScene
 {
@@ -12,6 +10,10 @@ public partial class TabScene
     /// xxxx
     /// </summary>
     public string name => getname();
+    /// <summary>
+    /// 类型
+    /// </summary>
+    public int type { get; }
 }
 
 public partial class Tab_test1

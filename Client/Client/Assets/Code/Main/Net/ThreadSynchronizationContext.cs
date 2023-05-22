@@ -18,6 +18,8 @@ namespace Main
         public ThreadSynchronizationContext(int threadId)
         {
             this.threadId = threadId;
+            Loger.MainThreadID = Thread.CurrentThread.ManagedThreadId;
+            Loger.PostToMainThread += Post;
         }
 
         public void Update()
@@ -65,6 +67,10 @@ namespace Main
         public void PostNext(Action action)
         {
             this.queue.Enqueue(action);
+        }
+        public void Dispose()
+        {
+            Loger.PostToMainThread = null;
         }
     }
 }

@@ -32,6 +32,22 @@ internal class Gen
         rw.AppendLine("using System.Collections.Generic;");
         rw.AppendLine();
 
+        HashSet<string> enums = new HashSet<string>();
+        foreach (var item in Directory.GetFiles(resPath))
+        {
+            string[] strs = File.ReadAllLines(item);
+            for (int i = 0; i < strs.Length; i++)
+            {
+                string s = strs[i];
+                string s2 = s.Replace(" ", null);
+                if (s2.StartsWith("enum"))
+                {
+                    string enumName = s.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1];
+                    enums.Add(enumName);
+                }
+            }
+        }
+
         foreach (var item in Directory.GetFiles(resPath))
         {
             if (!item.EndsWith(".proto"))
@@ -130,6 +146,7 @@ internal class Gen
                             bool isLst = arr2.Length == 4 && arr2[0] == "repeated";
                             bool isMap = arr2.Length == 3 && arr2[0].Contains("map<");
                             bool isBytes = arr2.Length == 3 && arr2[0] == "bytes";
+                            bool isEnum = arr2.Length == 3 && enums.Contains(arr2[0]);
 
                             string rowType = arr2[arr2.Length - 3];
                             string realType = null;
@@ -163,6 +180,10 @@ internal class Gen
                             else if (isBytes)
                             {
                                 df.AppendLine($"        public byte[] {fieldName} {{ get; set; }}");
+                            }
+                            else if (isEnum)
+                            {
+                                df.AppendLine($"        public {realType} {fieldName}" + " { get; set; }");
                             }
                             else
                             {
@@ -245,6 +266,14 @@ internal class Gen
                             else if (isBytes)
                             {
                                 wStr.AppendLine($"            writer.Writebytes({tag}, this.{fieldName});");
+                            }
+                            else if (isEnum)
+                            {
+                                wStr.AppendLine($"            if (this.{fieldName} != 0)");
+                                wStr.AppendLine("            {");
+                                wStr.AppendLine($"                writer.WriteTag({tag});");
+                                wStr.AppendLine($"                writer.Writeint32((int)this.{fieldName});");
+                                wStr.AppendLine("            }");
                             }
                             else
                             {
@@ -404,6 +433,12 @@ internal class Gen
                             {
                                 rStr.AppendLine($"                    case {tag}:");
                                 rStr.AppendLine($"                        this.{fieldName} = reader.Readbytes();");
+                                rStr.AppendLine($"                        break;");
+                            }
+                            else if (isEnum)
+                            {
+                                rStr.AppendLine($"                    case {tag}:");
+                                rStr.AppendLine($"                        this.{fieldName} = ({rowType})reader.Readint32();");
                                 rStr.AppendLine($"                        break;");
                             }
                             else

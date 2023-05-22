@@ -55,7 +55,7 @@ public static class PrintField
             return;
         }
         var type = o.GetType();
-        if (type.IsPrimitive || type == typeof(string))
+        if (type.IsPrimitive || type == typeof(string) || type.IsEnum)
         {
             str.AppendLine(o.ToString());
             return;
@@ -170,11 +170,21 @@ public static class PrintField
             str.AppendLine();
         }
     }
+    static string[] spaceStrs = new string[]
+    {
+        " ",
+        "  ",
+        "   ",
+        "    ",
+        "     ",
+        "      ",
+        "       ",
+        "        ",
+        "         ",
+        "          ",
+    };
     static string getSpaceInLayer(int layer)
     {
-        string s = "";
-        for (int i = 0; i < layer; i++)
-            s += "    ";
-        return s;
+        return spaceStrs[layer];
     }
 }

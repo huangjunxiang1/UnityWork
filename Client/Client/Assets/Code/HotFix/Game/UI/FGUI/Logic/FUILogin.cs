@@ -35,16 +35,6 @@ partial class FUILogin
         demoIdx = _demo.selectedIndex;
     }
 
-    [Msg(CMDL.R2C_Login)]
-    void R2C_Login(IMessage message)
-    {
-        R2C_Login rep = message as R2C_Login;
-        if (rep.Error == 0)
-        {
-            this.Dispose();
-            GameL.UI.Open<FUILoading>(0.9);
-        }
-    }
     [Event((int)EventIDM.NetError)]
     void connectRet(EventerContent e)
     {
@@ -79,18 +69,11 @@ partial class FUILogin
         //链接服务器演示
         if (_gameTypeCB.selectedIndex == 0)
         {
-            GameM.Net.Connect(NetType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressInner));
+            await GameM.Net.Connect(ServerType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressInner));
         }
         else if (_gameTypeCB.selectedIndex == 1)
         {
-            GameM.Net.Connect(NetType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressOuter));
+            await GameM.Net.Connect(ServerType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressOuter));
         }
-
-        var msg = new C2R_Login()
-        {
-            Account = _acc.text,
-            Password = _pw.text
-        };
-        GameM.Net.Send(msg);
     }
 }

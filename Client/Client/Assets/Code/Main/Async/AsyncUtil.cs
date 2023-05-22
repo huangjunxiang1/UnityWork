@@ -14,7 +14,7 @@ using UnityEngine.Events;
 [DebuggerNonUserCode]
 public static class AsyncUtil
 {
-    public static TaskAwaiter GetAwaiter(this AsyncOperation op)
+    public static TaskAwaiter AsTask(this AsyncOperation op)
     {
         if (op.isDone)
             return TaskAwaiter.Completed;
@@ -24,7 +24,7 @@ public static class AsyncUtil
         return task;
     }
 
-    public static TaskAwaiter GetAwaiter(this IEnumerator ie)
+    public static TaskAwaiter AsTask(this IEnumerator ie)
     {
         if(ie.MoveNext())
             return TaskAwaiter.Completed;
@@ -41,7 +41,7 @@ public static class AsyncUtil
         Timer.Add(0.1f, -1, update);
         return task;
     }
-    public static TaskAwaiter GetAwaiter(this GTweener tween)
+    public static TaskAwaiter AsTask(this GTweener tween)
     {
         if (tween.completed)
             return TaskAwaiter.Completed;
@@ -50,7 +50,7 @@ public static class AsyncUtil
         tween.OnComplete(task.TrySetResult);
         return task;
     }
-    public static TaskAwaiter GetAwaiter(this Tween tween)
+    public static TaskAwaiter AsTask(this Tween tween)
     {
         if (tween.IsComplete())
             return TaskAwaiter.Completed;
@@ -60,7 +60,7 @@ public static class AsyncUtil
         return task;
     }
 
-    public static TaskAwaiter GetAwaiter(this EventListener eventListener)
+    public static TaskAwaiter AsTask(this EventListener eventListener)
     {
         TaskAwaiter task = new();
 
@@ -74,7 +74,7 @@ public static class AsyncUtil
 
         return task;
     }
-    public static TaskAwaiter GetAwaiter(this UnityEvent unityEvent)
+    public static TaskAwaiter AsTask(this UnityEvent unityEvent)
     {
         TaskAwaiter task = new();
 
@@ -88,7 +88,7 @@ public static class AsyncUtil
 
         return task;
     }
-    public static TaskAwaiter GetAwaiter(this Eventer eventer)
+    public static TaskAwaiter AsTask(this Eventer eventer)
     {
         TaskAwaiter task = new();
 

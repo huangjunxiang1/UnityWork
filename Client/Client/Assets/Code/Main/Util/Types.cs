@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.InputSystem;
 
 public static class Types
 {
@@ -11,15 +12,16 @@ public static class Types
     public static Type[] HotTypes { get; private set; }//热更工程类型
     public static Type[] AllTypes { get; private set; }//所有类型
 
-    readonly static Dictionary<Type, ushort> _opCode = new();
-    readonly static Dictionary<ushort, Type> _opType = new();
+    readonly static Dictionary<Type, uint> _cmdCode = new();
+    readonly static Dictionary<uint, Type> _cmdType = new();
     readonly static Dictionary<Type, Type> _requestResponse = new();
 
     static Dictionary<Type, ulong> typeMaskV = new();
     static Dictionary<Type, int> attributeMask = new();
-    static Dictionary<Type, object> typeAttributeMap = new();
+    static Dictionary<Type, object[]> typeAttributeMap = new();
+    static Dictionary<Type, Type[]> assignableTypesMap = new();
 
-    public static void InitTypes(Type[] mtypes,Type[] htypes)
+    public static void InitTypes(Type[] mtypes, Type[] htypes)
     {
         AllTypes = new Type[mtypes.Length + htypes.Length];
         mtypes.CopyTo(AllTypes, 0);
@@ -40,74 +42,36 @@ public static class Types
                 else
                     attributeMask[type] = ++index;
             }
-
-            if (typeof(IMessage).IsAssignableFrom(type))
-            {
-                var mas = type.GetCustomAttributes(typeof(MessageAttribute), false);
-                if (mas == null || mas.Length <= 0)
-                    continue;
-                ushort opCode = ((MessageAttribute)mas[0]).Opcode;
-                _opCode[type] = opCode;
-                _opType[opCode] = type;
-
-                // 检查request response
-                if (typeof(IRequest).IsAssignableFrom(type))
-                {
-                    if (typeof(IActorLocationMessage).IsAssignableFrom(type))
-                    {
-                        _requestResponse.Add(type, typeof(ActorResponse));
-                        continue;
-                    }
-
-                    var ras = type.GetCustomAttributes(typeof(ResponseTypeAttribute), false);
-                    if (ras.Length == 0)
-                        continue;
-
-                    _requestResponse.Add(type, ((ResponseTypeAttribute)ras[0]).Type);
-                }
-            }
         }
-        len = htypes.Length;
+        len = AllTypes.Length;
         for (int i = 0; i < len; i++)
         {
-            Type type = htypes[i];
-            if (!typeof(IMessage).IsAssignableFrom(type))
+            Type type = AllTypes[i];
+            if (!typeof(PB.IPBMessage).IsAssignableFrom(type))
                 continue;
             var mas = type.GetCustomAttributes(typeof(MessageAttribute), false);
             if (mas == null || mas.Length <= 0)
                 continue;
-            ushort opCode = ((MessageAttribute)mas[0]).Opcode;
-            _opCode[type] = opCode;
-            _opType[opCode] = type;
-
-            // 检查request response
-            if (typeof(IRequest).IsAssignableFrom(type))
-            {
-                if (typeof(IActorLocationMessage).IsAssignableFrom(type))
-                {
-                    _requestResponse.Add(type, typeof(ActorResponse));
-                    continue;
-                }
-
-                var ras = type.GetCustomAttributes(typeof(ResponseTypeAttribute), false);
-                if (ras.Length == 0)
-                    continue;
-
-                _requestResponse.Add(type, ((ResponseTypeAttribute)ras[0]).Type);
-            }
+            var att = (MessageAttribute)mas[0];
+            uint cmd = att.cmd;
+            _cmdCode.Add(type, cmd);
+            _cmdType.Add(cmd, type);
+            if (att.ResponseType != null)
+                _requestResponse[type] = att.ResponseType;
         }
     }
 
 
-    public static ushort GetOPCode(Type type)
+    public static uint GetCMDCode(Type type)
     {
-        if (!_opCode.TryGetValue(type, out var code))
-            Loger.Error("消息没有opCode type:" + type.FullName);
+        if (!_cmdCode.TryGetValue(type, out var code))
+            Loger.Error("消息没有cmdCode type:" + type.FullName);
         return code;
     }
-    public static Type GetOPType(ushort code)
+    public static Type GetCMDType(uint cmd)
     {
-        _opType.TryGetValue(code, out var type);
+        if (!_cmdType.TryGetValue(cmd, out var type))
+            Loger.Error($"cmd没有类型 cmd: main={(ushort)cmd} sub={cmd >> 16}");
         return type;
     }
     public static Type GetResponseType(Type request)
@@ -155,16 +119,39 @@ public static class Types
         return (vs & (1ul << v)) != 0;
     }
 
+    public static object[] GetAttributes(Type t)
+    {
+        if (!typeAttributeMap.TryGetValue(t, out var lst))
+            typeAttributeMap[t] = lst = t.GetCustomAttributes(true);
+        return lst;
+    }
+
     public static object GetAttribute(Type t, Type attribute)
     {
-        if (!typeAttributeMap.TryGetValue(t, out object v))
+        var arr = GetAttributes(t);
+        for (int i = 0; i < arr.Length; i++)
         {
-            var os = t.GetCustomAttributes(attribute, true);
-            if (os.Length == 0)
-                typeAttributeMap[t] = null;
-            else
-                typeAttributeMap[t] = v = os[0];
+            if (arr[i].GetType() == attribute)
+                return arr[i];
         }
-        return v;
+        return null;
+    }
+
+    public static Type[] GetAllAssignableTypes(Type t)
+    {
+        if (!assignableTypesMap.TryGetValue(t, out var arr))
+        {
+            var lst = new List<Type>();
+            int len = AllTypes.Length;
+            for (int i = 0; i < len; i++)
+            {
+                Type type = AllTypes[i];
+                if (!t.IsAssignableFrom(type) || t == type)
+                    continue;
+                lst.Add(type);
+            }
+            assignableTypesMap[t] = arr = lst.ToArray();
+        }
+        return arr;
     }
 }

@@ -38,8 +38,9 @@ class Program
             gen.name = "TabM";
             gen.excelPath = parentPath + "/main";
             gen.codePath = parentPath + "/../Client/Client/Assets/Code/Main/_Gen/TabM";
-            gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabM.bytes";
-            gen.mappingIsClass = false;
+            gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabM";
+            gen.genMapping = true;
+            gen.genEcs = true;
             gen.Gen();
         }
 
@@ -49,8 +50,7 @@ class Program
             gen.name = "TabL";
             gen.excelPath = parentPath + "/hot";
             gen.codePath = parentPath + "/../Client/Client/Assets/Code/HotFix/Game/_Gen/TabL";
-            gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabL.bytes";
-            gen.mappingIsClass = true;
+            gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabL";
             gen.Gen();
         }
 

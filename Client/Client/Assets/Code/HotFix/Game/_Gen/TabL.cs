@@ -7,7 +7,7 @@ public static class TabL
     static DBuffer dbbuff;
     static bool debug;
 
-    static Dictionary<int, Mapping> _mapSceneIdx;
+    static Dictionary<int, TabMapping> _mapSceneIdx;
     static TabScene[] _SceneArray;
     static Dictionary<int, TabScene> _mapScene;
     public static TabScene[] SceneArray
@@ -23,7 +23,7 @@ public static class TabL
                 for (int i = 0; i < len; i++)
                 {
                     int k = keys[i];
-                    Mapping v = _mapSceneIdx[k];
+                    TabMapping v = _mapSceneIdx[k];
                     if (_mapScene.TryGetValue(k, out TabScene value))
                         _SceneArray[v.index] = value;
                     else
@@ -40,7 +40,7 @@ public static class TabL
         }
     }
 
-    static Dictionary<int, Mapping> _map_test1Idx;
+    static Dictionary<int, TabMapping> _map_test1Idx;
     static Tab_test1[] __test1Array;
     static Dictionary<int, Tab_test1> _map_test1;
     public static Tab_test1[] _test1Array
@@ -56,7 +56,7 @@ public static class TabL
                 for (int i = 0; i < len; i++)
                 {
                     int k = keys[i];
-                    Mapping v = _map_test1Idx[k];
+                    TabMapping v = _map_test1Idx[k];
                     if (_map_test1.TryGetValue(k, out Tab_test1 value))
                         __test1Array[v.index] = value;
                     else
@@ -73,49 +73,48 @@ public static class TabL
         }
     }
 
-
     public static void Init(DBuffer buffer, bool isDebug)
     {
         dbbuff = buffer;
         debug = isDebug;
 
         int len0 = buffer.Readint();
-        _mapSceneIdx = new Dictionary<int, Mapping>(len0);
+        _mapSceneIdx = new Dictionary<int, TabMapping>(len0);
         _mapScene = new Dictionary<int, TabScene>(len0);
         _SceneArray = null;
         for (int i = 0; i < len0; i++)
         {
             int offset = buffer.Readint();
-            Mapping map = new Mapping();
+            TabMapping map = new TabMapping();
             map.point = buffer.Position;
             map.index = i;
             _mapSceneIdx.Add(buffer.Readint(), map);
             buffer.Seek(map.point + offset);
         }
-        if (isDebug) _ = SceneArray;
-
         int len1 = buffer.Readint();
-        _map_test1Idx = new Dictionary<int, Mapping>(len1);
+        _map_test1Idx = new Dictionary<int, TabMapping>(len1);
         _map_test1 = new Dictionary<int, Tab_test1>(len1);
         __test1Array = null;
         for (int i = 0; i < len1; i++)
         {
             int offset = buffer.Readint();
-            Mapping map = new Mapping();
+            TabMapping map = new TabMapping();
             map.point = buffer.Position;
             map.index = i;
             _map_test1Idx.Add(buffer.Readint(), map);
             buffer.Seek(map.point + offset);
         }
-        if (isDebug) _ = _test1Array;
-
+        if (isDebug)
+        {
+            _ = SceneArray;
+            _ = _test1Array;
+        }
     }
-
     public static TabScene GetScene(int key)
     {
         if (_mapScene.TryGetValue(key, out var value))
             return value;
-        if (_mapSceneIdx != null && _mapSceneIdx.TryGetValue(key, out Mapping map))
+        if (_mapSceneIdx != null && _mapSceneIdx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
             TabScene tmp = new TabScene(dbbuff);
@@ -125,12 +124,11 @@ public static class TabL
         Loger.Error("TabScene表没有key: " + key);
         return null;
     }
-
     public static Tab_test1 Get_test1(int key)
     {
         if (_map_test1.TryGetValue(key, out var value))
             return value;
-        if (_map_test1Idx != null && _map_test1Idx.TryGetValue(key, out Mapping map))
+        if (_map_test1Idx != null && _map_test1Idx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
             Tab_test1 tmp = new Tab_test1(dbbuff);
@@ -140,22 +138,14 @@ public static class TabL
         Loger.Error("Tab_test1表没有key: " + key);
         return null;
     }
-
-
-    class Mapping
-    {
-        public int point;
-        public int index;
-    }
 }
-
 public partial class TabScene
 {
     DBuffer dbuff;
 
     int _nameIdx;
     string _nameTmp;
-    public string getname()
+    string getname()
     {
         if (_nameTmp == null)
         {
@@ -171,20 +161,20 @@ public partial class TabScene
         this.id = buffer.Readint();
         this._nameIdx = buffer.Position;
         buffer.Seek(buffer.Readint() + buffer.Position);
+        this.type = buffer.Readint();
         if (isDebug)
         {
             _ = this.name;
         }
     }
 }
-
 public partial class Tab_test1
 {
     DBuffer dbuff;
 
     int _value2Idx;
     int[] _value2Tmp;
-    public int[] getvalue2()
+    int[] getvalue2()
     {
         if (_value2Tmp == null)
         {
@@ -196,7 +186,7 @@ public partial class Tab_test1
 
     int _desIdx;
     string _desTmp;
-    public string getdes()
+    string getdes()
     {
         if (_desTmp == null)
         {
@@ -208,7 +198,7 @@ public partial class Tab_test1
 
     int _des2Idx;
     string[] _des2Tmp;
-    public string[] getdes2()
+    string[] getdes2()
     {
         if (_des2Tmp == null)
         {
@@ -220,7 +210,7 @@ public partial class Tab_test1
 
     int _v2t2Idx;
     Vector2Int[] _v2t2Tmp;
-    public Vector2Int[] getv2t2()
+    Vector2Int[] getv2t2()
     {
         if (_v2t2Tmp == null)
         {
@@ -232,7 +222,7 @@ public partial class Tab_test1
 
     int _f2Idx;
     float[] _f2Tmp;
-    public float[] getf2()
+    float[] getf2()
     {
         if (_f2Tmp == null)
         {
@@ -244,7 +234,7 @@ public partial class Tab_test1
 
     int _b2Idx;
     bool[] _b2Tmp;
-    public bool[] getb2()
+    bool[] getb2()
     {
         if (_b2Tmp == null)
         {
@@ -258,26 +248,16 @@ public partial class Tab_test1
     {
         dbuff = buffer;
         this.id = buffer.Readint();
-        int next1 = buffer.Readint() + buffer.Position;
-        this._value2Idx = buffer.Position;
-        buffer.Seek(next1);
+        buffer.Seek(buffer.Readint() + (this._value2Idx = buffer.Position));
         this._desIdx = buffer.Position;
         buffer.Seek(buffer.Readint() + buffer.Position);
-        int next3 = buffer.Readint() + buffer.Position;
-        this._des2Idx = buffer.Position;
-        buffer.Seek(next3);
+        buffer.Seek(buffer.Readint() + (this._des2Idx = buffer.Position));
         this.v2t = buffer.ReadVector2Int();
-        int next5 = buffer.Readint() + buffer.Position;
-        this._v2t2Idx = buffer.Position;
-        buffer.Seek(next5);
+        buffer.Seek(buffer.Readint() + (this._v2t2Idx = buffer.Position));
         this.f1 = buffer.Readfloat();
-        int next7 = buffer.Readint() + buffer.Position;
-        this._f2Idx = buffer.Position;
-        buffer.Seek(next7);
+        buffer.Seek(buffer.Readint() + (this._f2Idx = buffer.Position));
         this.b1 = buffer.Readbool();
-        int next9 = buffer.Readint() + buffer.Position;
-        this._b2Idx = buffer.Position;
-        buffer.Seek(next9);
+        buffer.Seek(buffer.Readint() + (this._b2Idx = buffer.Position));
         if (isDebug)
         {
             _ = this.value2;

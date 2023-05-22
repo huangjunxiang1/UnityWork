@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -16,6 +17,8 @@ public class DBuffer : IDisposable
     {
         this.stream = stream;
     }
+    public DBuffer(byte[] bytes) : this(new MemoryStream(bytes, 0, bytes.Length, true, true)) { }
+    public DBuffer(byte[] bytes, int index, int length) : this(new MemoryStream(bytes, index, length, true, true)) { }
 
     Stream stream;
 
@@ -27,6 +30,13 @@ public class DBuffer : IDisposable
             if (point > int.MaxValue)
                 throw new Exception("长度超出限制");
             return (int)point;
+        }
+    }
+    public int Length
+    {
+        get
+        {
+            return (int)stream.Length;
         }
     }
     public Stream Stream { get { return stream; } }
@@ -56,6 +66,21 @@ public class DBuffer : IDisposable
                  | stream.ReadByte() << 24;
         }
     }
+    public uint Readuint()
+    {
+        if (Compress)
+        {
+            uint v = readVarint32();
+            return v;
+        }
+        else
+        {
+            return (uint)(stream.ReadByte()
+                 | stream.ReadByte() << 8
+                 | stream.ReadByte() << 16
+                 | stream.ReadByte() << 24);
+        }
+    }
     public long Readlong()
     {
         if (Compress)
@@ -68,6 +93,20 @@ public class DBuffer : IDisposable
             long v = 0;
             for (int i = 0; i < sizeof(long); i++)
                 v |= (long)stream.ReadByte() << (8 * i);
+            return v;
+        }
+    }
+    public ulong Readulong()
+    {
+        if (Compress)
+        {
+            return readVarint64();
+        }
+        else
+        {
+            ulong v = 0;
+            for (int i = 0; i < sizeof(long); i++)
+                v |= (ulong)stream.ReadByte() << (8 * i);
             return v;
         }
     }
@@ -86,6 +125,7 @@ public class DBuffer : IDisposable
         int len = Readint();
         if (len == 0) return string.Empty;
 
+        checkArrayLengthLimit(len);
         byte[] buffer = ArrayPool<byte>.Shared.Rent(len);
         try
         {
@@ -127,39 +167,52 @@ public class DBuffer : IDisposable
     public bool[] Readbools()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         bool[] arr = new bool[len];
-        if (len > 0)
-        {
-            int c1 = (len - 1) / 8 + 1;
-            for (int i = 0; i < c1; i++)
-            {
-                int c2 = i < c1 - 1 ? 8 : ((len - 1) % 8 + 1);
-                byte bv = Readbyte();
-                for (int j = 0; j < c2; j++)
-                    arr[i * 8 + j] = (bv & (byte)(1 << j)) == 1;
-            }
-        }
+        for (int i = 0; i < len; i++)
+            arr[i] = Readbool();
         return arr;
     }
     public int[] Readints()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         int[] arr = new int[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readint();
         return arr;
     }
+    public uint[] Readuints()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        uint[] arr = new uint[len];
+        for (int i = 0; i < len; i++)
+            arr[i] = Readuint();
+        return arr;
+    }
     public long[] Readlongs()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         long[] arr = new long[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readlong();
         return arr;
     }
+    public ulong[] Readulongs()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        ulong[] arr = new ulong[len];
+        for (int i = 0; i < len; i++)
+            arr[i] = Readulong();
+        return arr;
+    }
     public float[] Readfloats()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         float[] arr = new float[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readfloat();
@@ -168,6 +221,7 @@ public class DBuffer : IDisposable
     public string[] Readstrings()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         string[] arr = new string[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readstring();
@@ -176,6 +230,7 @@ public class DBuffer : IDisposable
     public byte[] Readbytes()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         byte[] arr = new byte[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readbyte();
@@ -185,6 +240,7 @@ public class DBuffer : IDisposable
     public Vector2[] ReadVector2s()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         Vector2[] arr = new Vector2[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadVector2();
@@ -193,6 +249,7 @@ public class DBuffer : IDisposable
     public Vector2Int[] ReadVector2Ints()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         Vector2Int[] arr = new Vector2Int[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadVector2Int();
@@ -201,6 +258,7 @@ public class DBuffer : IDisposable
     public Vector3[] ReadVector3s()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         Vector3[] arr = new Vector3[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadVector3();
@@ -209,6 +267,7 @@ public class DBuffer : IDisposable
     public Vector3Int[] ReadVector3Ints()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         Vector3Int[] arr = new Vector3Int[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadVector3Int();
@@ -217,6 +276,7 @@ public class DBuffer : IDisposable
     public Color[] ReadColors()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         Color[] arr = new Color[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadColor();
@@ -225,6 +285,7 @@ public class DBuffer : IDisposable
     public Color32[] ReadColor32s()
     {
         int len = Readint();
+        checkArrayLengthLimit(len);
         Color32[] arr = new Color32[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadColor32();
@@ -251,11 +312,43 @@ public class DBuffer : IDisposable
             stream.WriteByte((byte)(v >> 24));
         }
     }
+    public void Write(uint v)
+    {
+        if (Compress)
+        {
+            writeVarint32(v);
+        }
+        else
+        {
+            stream.WriteByte((byte)v);
+            stream.WriteByte((byte)(v >> 8));
+            stream.WriteByte((byte)(v >> 16));
+            stream.WriteByte((byte)(v >> 24));
+        }
+    }
     public void Write(long v)
     {
         if (Compress)
         {
             writeVarint64((ulong)v);
+        }
+        else
+        {
+            stream.WriteByte((byte)v);
+            stream.WriteByte((byte)(v >> 8));
+            stream.WriteByte((byte)(v >> 16));
+            stream.WriteByte((byte)(v >> 24));
+            stream.WriteByte((byte)(v >> 32));
+            stream.WriteByte((byte)(v >> 40));
+            stream.WriteByte((byte)(v >> 48));
+            stream.WriteByte((byte)(v >> 56));
+        }
+    }
+    public void Write(ulong v)
+    {
+        if (Compress)
+        {
+            writeVarint64(v);
         }
         else
         {
@@ -287,6 +380,7 @@ public class DBuffer : IDisposable
         }
 
         int len = Encoding.UTF8.GetByteCount(v);
+        checkArrayLengthLimit(len);
         Write(len);
 
         byte[] buffer = ArrayPool<byte>.Shared.Rent(len);
@@ -350,6 +444,7 @@ public class DBuffer : IDisposable
     }
     public void Write(byte[] v, int index, int length)
     {
+        checkArrayLengthLimit(length);
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
@@ -365,24 +460,10 @@ public class DBuffer : IDisposable
     }
     public void Write(bool[] v, int index, int length)
     {
-        if (length == 0)
-        {
-            Write(0);
-            return;
-        }
+        checkArrayLengthLimit(length);
         Write(length);
-        int c1 = (length - 1) / 8 + 1;
-        for (int i = 0; i < c1; i++)
-        {
-            byte bv = 0;
-            int c2 = i < c1 - 1 ? 8 : ((length - 1) % 8 + 1);
-            for (int j = 0; j < c2; j++)
-            {
-                if (v[index + i * 8 + j])
-                    bv |= (byte)(1 << j);
-            }
-            Write(bv);
-        }
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
     }
     public void Write(int[] v)
     {
@@ -395,6 +476,23 @@ public class DBuffer : IDisposable
     }
     public void Write(int[] v, int index, int length)
     {
+        checkArrayLengthLimit(length);
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(uint[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(uint[] v, int index, int length)
+    {
+        checkArrayLengthLimit(length);
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
@@ -410,6 +508,23 @@ public class DBuffer : IDisposable
     }
     public void Write(long[] v, int index, int length)
     {
+        checkArrayLengthLimit(length);
+        Write(length);
+        for (int i = 0; i < length; i++)
+            Write(v[index + i]);
+    }
+    public void Write(ulong[] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        Write(v, 0, v.Length);
+    }
+    public void Write(ulong[] v, int index, int length)
+    {
+        checkArrayLengthLimit(length);
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
@@ -425,6 +540,7 @@ public class DBuffer : IDisposable
     }
     public void Write(float[] v, int index, int length)
     {
+        checkArrayLengthLimit(length);
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
@@ -440,6 +556,7 @@ public class DBuffer : IDisposable
     }
     public void Write(string[] v, int index, int length)
     {
+        checkArrayLengthLimit(length);
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
@@ -628,7 +745,12 @@ public class DBuffer : IDisposable
         }
         return ret | (((ulong)stream.ReadByte()) << (7 * 9));
     }
-
+    [Conditional("DebugEnable")]
+    void checkArrayLengthLimit(int len)
+    {
+        if (len > ushort.MaxValue)
+            throw new Exception($"长度超过{ushort.MaxValue}的限制 当前长度={len}");
+    }
 
     [StructLayout(LayoutKind.Explicit)]
     protected struct FixPoint

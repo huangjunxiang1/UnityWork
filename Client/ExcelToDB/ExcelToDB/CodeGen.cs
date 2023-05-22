@@ -1,12 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Numerics;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using OfficeOpenXml;
 
+class DClass
+{
+    public string name;
+
+    public List<DField> fs = new List<DField>();
+    public List<DField> ecs = new List<DField>();
+    public List<DFieldValue[]> fv = new List<DFieldValue[]>();
+}
+class DField
+{
+    public DClass dc;
+    public int index;//excel表下标
+    public int arrayIndex;//DClass的fv的数组下标
+
+    public string name;
+    public string des;
+
+    public FType f1;
+    public FType2 f2;
+    public string typeStr;
+    public string typeStrECS;
+    public string realType;
+}
+class DFieldValue
+{
+    public long v64;
+    public float vf;
+    public object vo;
+
+    public int xi;
+    public int yi;
+    public int zi;
+
+    public float xf;
+    public float yf;
+    public float zf;
+}
+enum FType
+{
+    fbool,//fbool
+    fint,//int
+    fuint,//uint
+    flong,//long
+    fulong,//ulong
+
+    ffloat,//float
+    fstring,//string
+
+    fv2i,//int2
+    fv3i,//int3
+    fv2f,//float2
+    fv3f,//float3
+}
+enum FType2
+{
+    Value,
+    Array,
+}
 class CodeGen
 {
     public string name;
@@ -14,227 +75,467 @@ class CodeGen
     public string excelPath;
     public string codePath;
     public string dataPath;
-
-    public bool mappingIsClass = false;
+    public bool genMapping = false;
+    public bool genEcs = false;
 
     public void Gen()
     {
-        List<string> mains = Common.getFiles(excelPath);
-        StringBuilder TabM_Cs = new StringBuilder(10000);
-        StringBuilder TabM_Cs2 = new StringBuilder(10000);
-        StringBuilder TabM_Cs4 = new StringBuilder(10000);
-        StringBuilder TabM_Cs5 = new StringBuilder(10000);
-        StringBuilder csDefine = new StringBuilder(10000);
-
-        temp2 mainCS = new temp2();
-        DBuffer buffer = new DBuffer(new MemoryStream(1024));
-        DBuffer OneData = new DBuffer(new MemoryStream(1024));
-        DBuffer arrayTemp = new DBuffer(new MemoryStream(1024));
-        buffer.Compress = false;
-        buffer.Write(Program.mark);
-        buffer.Compress = Program.compress;
-        buffer.Write(buffer.Compress);//是否压缩
-        OneData.Compress = Program.compress;
-        arrayTemp.Compress = Program.compress;
-
         {
-            TabM_Cs.AppendLine("using System.Collections.Generic;");
-            TabM_Cs.AppendLine("using UnityEngine;");
-            TabM_Cs.AppendLine("using System.Linq;");
-            TabM_Cs.AppendLine("");
-            TabM_Cs.AppendLine($"public static class {name}");
-            TabM_Cs.AppendLine("{");
-            TabM_Cs.AppendLine("    static DBuffer dbbuff;");
-            TabM_Cs.AppendLine("    static bool debug;");
-            TabM_Cs.AppendLine("");
+            List<string> mains = Common.getFiles(excelPath);
 
-            TabM_Cs4.AppendLine("    public static void Init(DBuffer buffer, bool isDebug)");
-            TabM_Cs4.AppendLine("    {");
-            TabM_Cs4.AppendLine("        dbbuff = buffer;");
-            TabM_Cs4.AppendLine("        debug = isDebug;");
-            TabM_Cs4.AppendLine("");
+            StringBuilder rw = new StringBuilder();
+            StringBuilder df = new StringBuilder();
+            StringBuilder erw = new StringBuilder();
+            StringBuilder edf = new StringBuilder();
 
-            csDefine.AppendLine("using System.Collections.Generic;");
-            csDefine.AppendLine("using UnityEngine;");
-            csDefine.AppendLine("using System.Linq;");
-        }
-
-        for (int i = 0; i < mains.Count; i++)
-        {
-            FileInfo fi = new FileInfo(mains[i]);
-            ExcelPackage pkg = new ExcelPackage(fi);
-            List<int> mainIdx = new List<int>();
-            Common.GetHead(mainIdx, pkg, out temp1 t);
-            Console.WriteLine("开始解析->" + fi.Name);
-            string name = fi.Name.Split('.')[0];
-            string csName = "Tab" + name;
-
-            TabM_Cs2.AppendLine($"    static Dictionary<{t.keyType}, Mapping> _map{name}Idx;");
-            TabM_Cs2.AppendLine($"    static {csName}[] _{name}Array;");
-            TabM_Cs2.AppendLine($"    static Dictionary<{t.keyType}, {csName}> _map{name};");
-            TabM_Cs2.AppendLine($"    public static {csName}[] {name}Array");
-            TabM_Cs2.AppendLine("    {");
-            TabM_Cs2.AppendLine($"        get");
-            TabM_Cs2.AppendLine("        {");
-            TabM_Cs2.AppendLine($"            if (_{name}Array == null)");
-            TabM_Cs2.AppendLine("            {");
-            TabM_Cs2.AppendLine("                bool isDebug = debug;");
-            TabM_Cs2.AppendLine($"                {t.keyType}[] keys = _map{name}Idx.Keys.ToArray();");
-            TabM_Cs2.AppendLine($"                int len = keys.Length;");
-            TabM_Cs2.AppendLine($"                _{name}Array = new {csName}[_map{name}Idx.Count];");
-            TabM_Cs2.AppendLine($"                for (int i = 0; i < len; i++)");
-            TabM_Cs2.AppendLine("                {");
-            TabM_Cs2.AppendLine($"                    {t.keyType} k = keys[i];");
-            TabM_Cs2.AppendLine($"                    Mapping v = _map{name}Idx[k];");
-            TabM_Cs2.AppendLine($"                    if (_map{name}.TryGetValue(k, out {csName} value))");
-            TabM_Cs2.AppendLine($"                        _{name}Array[v.index] = value;");
-            TabM_Cs2.AppendLine("                    else");
-            TabM_Cs2.AppendLine("                    {");
-            TabM_Cs2.AppendLine("                        dbbuff.Seek(v.point);");
-            TabM_Cs2.AppendLine($"                        {csName} tmp = new {csName}(dbbuff, isDebug);");
-            TabM_Cs2.AppendLine($"                        _map{name}[k] = tmp;");
-            TabM_Cs2.AppendLine($"                        _{name}Array[v.index] = tmp;");
-            TabM_Cs2.AppendLine("                    }");
-            TabM_Cs2.AppendLine("                }");
-            TabM_Cs2.AppendLine($"                _map{name}Idx = null;");
-            TabM_Cs2.AppendLine("            }");
-            TabM_Cs2.AppendLine($"            return _{name}Array;");
-            TabM_Cs2.AppendLine("        }");
-            TabM_Cs2.AppendLine("    }");
-            TabM_Cs2.AppendLine();
-
-            TabM_Cs4.AppendLine($"        int len{i} = buffer.Readint();");
-            TabM_Cs4.AppendLine($"        _map{name}Idx = new Dictionary<int, Mapping>(len{i});");
-            TabM_Cs4.AppendLine($"        _map{name} = new Dictionary<int, {csName}>(len{i});");
-            TabM_Cs4.AppendLine($"        _{name}Array = null;");
-            TabM_Cs4.AppendLine($"        for (int i = 0; i < len{i}; i++)");
-            TabM_Cs4.AppendLine("        {");
-            TabM_Cs4.AppendLine($"            int offset = buffer.Readint();");
-            TabM_Cs4.AppendLine($"            Mapping map = new Mapping();");
-            TabM_Cs4.AppendLine($"            map.point = buffer.Position;");
-            TabM_Cs4.AppendLine($"            map.index = i;");
-            TabM_Cs4.AppendLine($"            _map{name}Idx.Add(buffer.Readint(), map);");
-            TabM_Cs4.AppendLine($"            buffer.Seek(map.point + offset);");
-            TabM_Cs4.AppendLine("        }");
-            TabM_Cs4.AppendLine($"        if (isDebug) _ = {name}Array;");
-            TabM_Cs4.AppendLine();
-
-            TabM_Cs5.AppendLine($"    public static {csName} Get{name}({t.keyType} key)");
-            TabM_Cs5.AppendLine("    {");
-            TabM_Cs5.AppendLine($"        if (_map{name}.TryGetValue(key, out var value))");
-            TabM_Cs5.AppendLine($"            return value;");
-            TabM_Cs5.AppendLine($"        if (_map{name}Idx != null && _map{name}Idx.TryGetValue(key, out Mapping map))");
-            TabM_Cs5.AppendLine("        {");
-            TabM_Cs5.AppendLine($"            dbbuff.Seek(map.point);");
-            TabM_Cs5.AppendLine($"            {csName} tmp = new {csName}(dbbuff);");
-            TabM_Cs5.AppendLine($"            _map{name}[key] = tmp;");
-            TabM_Cs5.AppendLine($"            return tmp;");
-            TabM_Cs5.AppendLine("        }");
-            TabM_Cs5.AppendLine($"        Loger.Error(\"{csName}表没有key: \" + key);");
-            TabM_Cs5.AppendLine($"        return null;");
-            TabM_Cs5.AppendLine("    }");
-            TabM_Cs5.AppendLine();
-
-            StringBuilder csContent = new StringBuilder(10000);
-            csContent.AppendLine("");
-            csContent.AppendLine("public partial class " + csName);
-            csContent.AppendLine("{");
-            csContent.AppendLine("    DBuffer dbuff;");
-
-            csDefine.AppendLine("");
-            csDefine.AppendLine("public partial class " + csName);
-            csDefine.AppendLine("{");
-
-            for (int j = 0; j < mainIdx.Count; j++)
+            List<DClass> cs = new();
+            for (int i = 0; i < mains.Count; i++)
             {
-                int idx = mainIdx[j];
-                string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
-                sType = Common.getType(sType);
-                string sName = pkg.Workbook.Worksheets[0].Cells[3, idx].Text;
-                Common.appendDefineCode(pkg.Workbook.Worksheets[0].Cells[1, idx].Text, sType, sName, csContent);
-                Common.appendDefineCode2(pkg.Workbook.Worksheets[0].Cells[1, idx].Text, sType, sName, csDefine);
-            }
-            csContent.AppendLine();
-            csContent.AppendLine($"    public {csName}(DBuffer buffer, bool isDebug = false)");
-            csContent.AppendLine("    {");
-            csContent.AppendLine("        dbuff = buffer;");
-            for (int j = 0; j < mainIdx.Count; j++)
-            {
-                int idx = mainIdx[j];
-                string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
-                string sName = pkg.Workbook.Worksheets[0].Cells[3, idx].Text;
-                Common.appendReadCode(sType, j, sName, csContent);
-            }
-            csContent.AppendLine($"        if (isDebug)");
-            csContent.AppendLine($"        {{");
-            for (int j = 0; j < mainIdx.Count; j++)
-            {
-                int idx = mainIdx[j];
-                string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
-                string sName = pkg.Workbook.Worksheets[0].Cells[3, idx].Text;
-                if (sType == "string" || sType.Contains("[]"))
-                    csContent.AppendLine($"            _ = this.{sName};");
-            }
-            csContent.AppendLine($"        }}");
-            csContent.AppendLine("    }");
-            csContent.AppendLine("}");
+                FileInfo fi = new FileInfo(mains[i]);
+                Console.WriteLine("开始解析->" + fi.Name);
 
-            csDefine.AppendLine("}");
+                DClass c = new DClass();
+                cs.Add(c);
+                c.name = fi.Name.Split('.')[0];
 
-            mainCS.className.Add(csName);
-            mainCS.classContent.Add(csContent.ToString());
+                ExcelPackage pkg = new ExcelPackage(fi);
 
-            List<int> lines = new List<int>();
-            var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
-            int len = array.GetLength(0);
-            for (int j = 3; j < len; j++)
-            {
-                if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[j + 1, 1].Text))
-                    lines.Add(j + 1);
-            }
-
-            buffer.Write(lines.Count);
-            for (int m = 0; m < lines.Count; m++)
-            {
-                OneData.Seek(0);
-                for (int j = 0; j < mainIdx.Count; j++)
+                var sheet = pkg.Workbook.Worksheets[0];
+                var keyType = sheet.Cells[2, 1].Text;
+                var keyName = sheet.Cells[3, 1].Text;
+                if (string.IsNullOrEmpty(keyType) || string.IsNullOrEmpty(keyName))
                 {
-                    int idx = mainIdx[j];
-                    string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
-                    string text = pkg.Workbook.Worksheets[0].Cells[lines[m], idx].Text;
-
-                    Common.WriteValue(OneData, arrayTemp, sType, text, fi, lines[m], idx);
+                    Console.WriteLine(pkg.File.Name + "表没有key索引");
+                    Console.ReadLine();
+                    return;
                 }
-                buffer.Write(OneData);
+                var array = (object[,])sheet.Cells.Value;
+                int len = array.GetLength(1);
+                int arrayIdx = 0;
+                for (int j = 1; j <= len; j++)
+                {
+                    bool nor = j == 1;
+                    bool ecs = j == 1;
+                    if (j > 1)
+                    {
+                        string s = sheet.Cells[4, j].Text.ToLower();
+                        nor = s.Contains('c');
+                        ecs = s.Contains('e');
+                        if (!nor && !ecs)
+                            continue;
+                    }
+
+                    DField f = new DField();
+
+                    f.dc = c;
+                    f.index = j;
+                    f.arrayIndex = arrayIdx++;
+
+                    f.name = sheet.Cells[3, j].Text;
+                    f.des = sheet.Cells[1, j].Text;
+
+                    f.f1 = Common.GetFtype1(sheet.Cells[2, j].Text);
+                    f.f2 = Common.GetFtype2(sheet.Cells[2, j].Text);
+                    f.typeStr = Common.GetFTypeStr(sheet.Cells[2, j].Text);
+                    f.typeStrECS = Common.GetFTypeStrECS(sheet.Cells[2, j].Text);
+                    f.realType = Common.GetFRealType(sheet.Cells[2, j].Text);
+
+                    if (nor)
+                        c.fs.Add(f);
+                    if (ecs)
+                        c.ecs.Add(f);
+                }
+                int dataLen = array.GetLength(0);
+                for (int j = 5; j <= dataLen; j++)
+                {
+                    if (string.IsNullOrEmpty(sheet.Cells[j, 1].Text))
+                        continue;
+                    DFieldValue[] fvs = new DFieldValue[c.fs.Count];
+                    c.fv.Add(fvs);
+                    for (int k = 0; k < c.fs.Count; k++)
+                    {
+                        var f = c.fs[k];
+                        var s = sheet.Cells[j, f.index].Text;
+                        if (!Common.GetFv(f, s, out var fv))
+                        {
+                            Console.WriteLine($"解析出错 {f.dc.name}  {j}-{(char)('A' + f.index - 1)} 类型:{f.typeStr} 字符:{s}");
+                            return;
+                        }
+                        fvs[k] = fv;
+                    }
+                }
             }
 
+            Console.WriteLine("写入数据");
+
+            rw.AppendLine($"using System.Collections.Generic;");
+            rw.AppendLine($"using UnityEngine;");
+            rw.AppendLine($"using System.Linq;");
+            rw.AppendLine($"");
+            rw.AppendLine($"public static class {name}");
+            rw.AppendLine($"{{");
+            rw.AppendLine($"    static DBuffer dbbuff;");
+            rw.AppendLine($"    static bool debug;");
+            rw.AppendLine($"");
+            for (int i = 0; i < cs.Count; i++)
+            {
+                var c = cs[i];
+                rw.AppendLine($"    static Dictionary<{c.fs[0].typeStr}, TabMapping> _map{c.name}Idx;");
+                rw.AppendLine($"    static Tab{c.name}[] _{c.name}Array;");
+                rw.AppendLine($"    static Dictionary<{c.fs[0].typeStr}, Tab{c.name}> _map{c.name};");
+                rw.AppendLine($"    public static Tab{c.name}[] {c.name}Array");
+                rw.AppendLine($"    {{");
+                rw.AppendLine($"        get");
+                rw.AppendLine($"        {{");
+                rw.AppendLine($"            if (_{c.name}Array == null)");
+                rw.AppendLine($"            {{");
+                rw.AppendLine($"                bool isDebug = debug;");
+                rw.AppendLine($"                {c.fs[0].typeStr}[] keys = _map{c.name}Idx.Keys.ToArray();");
+                rw.AppendLine($"                int len = keys.Length;");
+                rw.AppendLine($"                _{c.name}Array = new Tab{c.name}[_map{c.name}Idx.Count];");
+                rw.AppendLine($"                for (int i = 0; i < len; i++)");
+                rw.AppendLine($"                {{");
+                rw.AppendLine($"                    {c.fs[0].typeStr} k = keys[i];");
+                rw.AppendLine($"                    TabMapping v = _map{c.name}Idx[k];");
+                rw.AppendLine($"                    if (_map{c.name}.TryGetValue(k, out Tab{c.name} value))");
+                rw.AppendLine($"                        _{c.name}Array[v.index] = value;");
+                rw.AppendLine($"                    else");
+                rw.AppendLine($"                    {{");
+                rw.AppendLine($"                        dbbuff.Seek(v.point);");
+                rw.AppendLine($"                        Tab{c.name} tmp = new Tab{c.name}(dbbuff, isDebug);");
+                rw.AppendLine($"                        _map{c.name}[k] = tmp;");
+                rw.AppendLine($"                        _{c.name}Array[v.index] = tmp;");
+                rw.AppendLine($"                    }}");
+                rw.AppendLine($"                }}");
+                rw.AppendLine($"                _map{c.name}Idx = null;");
+                rw.AppendLine($"            }}");
+                rw.AppendLine($"            return _{c.name}Array;");
+                rw.AppendLine($"        }}");
+                rw.AppendLine($"    }}");
+                rw.AppendLine($"");
+            }
+            rw.AppendLine($"    public static void Init(DBuffer buffer, bool isDebug)");
+            rw.AppendLine($"    {{");
+            rw.AppendLine($"        dbbuff = buffer;");
+            rw.AppendLine($"        debug = isDebug;");
+            rw.AppendLine($"");
+            for (int i = 0; i < cs.Count; i++)
+            {
+                var c = cs[i];
+                rw.AppendLine(@$"        int len{i} = buffer.Readint();
+        _map{c.name}Idx = new Dictionary<{c.fs[0].typeStr}, TabMapping>(len{i});
+        _map{c.name} = new Dictionary<{c.fs[0].typeStr}, Tab{c.name}>(len{i});
+        _{c.name}Array = null;
+        for (int i = 0; i < len{i}; i++)
+        {{
+            int offset = buffer.Readint();
+            TabMapping map = new TabMapping();
+            map.point = buffer.Position;
+            map.index = i;
+            _map{c.name}Idx.Add(buffer.Read{c.fs[0].typeStr}(), map);
+            buffer.Seek(map.point + offset);
+        }}");
+            }
+            rw.AppendLine($"        if (isDebug)");
+            rw.AppendLine($"        {{");
+            for (int i = 0; i < cs.Count; i++)
+                rw.AppendLine($"            _ = {cs[i].name}Array;");
+            rw.AppendLine($"        }}");
+            rw.AppendLine($"    }}");
+            for (int i = 0; i < cs.Count; i++)
+            {
+                var c = cs[i];
+                rw.AppendLine($"    public static Tab{c.name} Get{c.name}({c.fs[0].typeStr} key)");
+                rw.AppendLine($"    {{");
+                rw.AppendLine($"        if (_map{c.name}.TryGetValue(key, out var value))");
+                rw.AppendLine($"            return value;");
+                rw.AppendLine($"        if (_map{c.name}Idx != null && _map{c.name}Idx.TryGetValue(key, out TabMapping map))");
+                rw.AppendLine($"        {{");
+                rw.AppendLine($"            dbbuff.Seek(map.point);");
+                rw.AppendLine($"            Tab{c.name} tmp = new Tab{c.name}(dbbuff);");
+                rw.AppendLine($"            _map{c.name}[key] = tmp;");
+                rw.AppendLine($"            return tmp;");
+                rw.AppendLine($"        }}");
+                rw.AppendLine($"        Loger.Error(\"Tab{c.name}表没有key: \" + key);");
+                rw.AppendLine($"        return null;");
+                rw.AppendLine($"    }}");
+            }
+            rw.AppendLine($"}}");
+            for (int i = 0; i < cs.Count; i++)
+            {
+                var c = cs[i];
+                rw.AppendLine($"public partial class Tab{c.name}");
+                rw.AppendLine($"{{");
+                rw.AppendLine($"    DBuffer dbuff;");
+
+                for (int j = 0; j < c.fs.Count; j++)
+                {
+                    var f = c.fs[j];
+                    if (f.f2 == FType2.Array || f.f1 == FType.fstring)
+                    {
+                        rw.AppendLine($"");
+                        rw.AppendLine($"    int _{f.name}Idx;");
+                        rw.AppendLine($"    {f.typeStr} _{f.name}Tmp;");
+                        rw.AppendLine($"    {f.typeStr} get{f.name}()");
+                        rw.AppendLine($"    {{");
+                        rw.AppendLine($"        if (_{f.name}Tmp == null)");
+                        rw.AppendLine($"        {{");
+                        rw.AppendLine($"            dbuff.Seek(_{f.name}Idx);");
+                        rw.AppendLine($"            _{f.name}Tmp = dbuff.Read{f.typeStr.Replace("[]", "s")}();");
+                        rw.AppendLine($"        }}");
+                        rw.AppendLine($"        return _{f.name}Tmp;");
+                        rw.AppendLine($"    }}");
+                    }
+                }
+                rw.AppendLine($"");
+                rw.AppendLine($"    public Tab{c.name}(DBuffer buffer, bool isDebug = false)");
+                rw.AppendLine($"    {{");
+                rw.AppendLine($"        dbuff = buffer;");
+                for (int j = 0; j < c.fs.Count; j++)
+                {
+                    var f = c.fs[j];
+                    if (f.f2 == FType2.Array)
+                        rw.AppendLine($"        buffer.Seek(buffer.Readint() + (this._{f.name}Idx = buffer.Position));");
+                    else if (f.f1 == FType.fstring)
+                    {
+                        rw.AppendLine($"        this._{f.name}Idx = buffer.Position;");
+                        rw.AppendLine($"        buffer.Seek(buffer.Readint() + buffer.Position);");
+                    }
+                    else
+                        rw.AppendLine($"        this.{f.name} = buffer.Read{f.typeStr}();");
+                }
+                rw.AppendLine($"        if (isDebug)");
+                rw.AppendLine($"        {{");
+                for (int j = 0; j < c.fs.Count; j++)
+                {
+                    var f = c.fs[j];
+                    if (f.f2 == FType2.Array || f.f1 == FType.fstring)
+                        rw.AppendLine($"            _ = this.{f.name};");
+                }
+                rw.AppendLine($"        }}");
+                rw.AppendLine($"    }}");
+                rw.AppendLine($"}}");
+            }
+            if (genMapping)
+            {
+                rw.AppendLine($@"public class TabMapping
+{{
+    public int point;
+    public int index;
+}}");
+            }
+
+            df.AppendLine($"using UnityEngine;");
+            for (int i = 0; i < cs.Count; i++)
+            {
+                var c = cs[i];
+                df.AppendLine($"");
+                df.AppendLine($"public partial class Tab{c.name}");
+                df.AppendLine($"{{");
+                for (int j = 0; j < c.fs.Count; j++)
+                {
+                    var f = c.fs[j];
+                    df.AppendLine($"    /// <summary>");
+                    df.AppendLine($"    /// {f.des}");
+                    df.AppendLine($"    /// </summary>");
+                    if (f.f2 == FType2.Array || f.f1 == FType.fstring)
+                        df.AppendLine($"    public {f.typeStr} {f.name} => get{f.name}();");
+                    else
+                        df.AppendLine($"    public {f.typeStr} {f.name} {{ get; }}");
+                }
+                df.AppendLine($"}}");
+            }
+
+            DBuffer buffer = new DBuffer(new MemoryStream(10000000));
+            buffer.Compress = false;
+            buffer.Write(Program.mark);
+            buffer.Compress = Program.compress;
+            buffer.Write(buffer.Compress);//是否压缩
+            DBuffer tmpC = new DBuffer(new MemoryStream(new byte[100000], 0, 100000, true, true));
+            DBuffer arrTmp = new DBuffer(new MemoryStream(new byte[10000], 0, 10000, true, true));
+            for (int i = 0; i < cs.Count; i++)
+            {
+                var c = cs[i];
+                buffer.Write(c.fv.Count);
+
+                for (int j = 0; j < c.fv.Count; j++)
+                {
+                    tmpC.Seek(0);
+                    var vs = c.fv[j];
+                    for (int k = 0; k < vs.Length; k++)
+                    {
+                        var v = vs[k];
+                        Common.WriteFv(c.fs[k], v, tmpC, arrTmp);
+                    }
+                    buffer.Write(tmpC);
+                }
+            }
+
+            File.WriteAllBytes(dataPath + ".bytes", buffer.ToBytes());
+            File.WriteAllText(codePath + ".cs", rw.ToString());
+            File.WriteAllText(codePath + "Define.cs", df.ToString());
+
+            //ecs
+            if (genEcs)
+            {
+                erw.AppendLine($"using Unity.Collections;");
+                erw.AppendLine($"using Unity.Mathematics;");
+                erw.AppendLine($"using Unity.Collections.LowLevel.Unsafe;");
+                erw.AppendLine($"using Unity.Entities;");
+                erw.AppendLine($"");
+                erw.AppendLine($"public unsafe struct {name}_ST : IComponentData");
+                erw.AppendLine($"{{");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                        erw.AppendLine($"    public readonly NativeArray<BlobAssetReference<{c.name}_ST>> {c.name}Array;");
+                }
+                erw.AppendLine($"");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                        erw.AppendLine($"    readonly NativeHashMap<{c.fs[0].typeStrECS}, BlobAssetReference<{c.name}_ST>> {c.name}Map;");
+                }
+                erw.AppendLine($"    public void Init(DBuffer buffer)");
+                erw.AppendLine($"    {{");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                    {
+                        erw.AppendLine($"        int len{i} = buffer.Readint();");
+                        erw.AppendLine($"        fixed (NativeArray<BlobAssetReference<{c.name}_ST>>* ptr = &{c.name}Array) *ptr = new NativeArray<BlobAssetReference<{c.name}_ST>>(len{i}, Allocator.Persistent);");
+                        erw.AppendLine($"        fixed (NativeHashMap<{c.fs[0].typeStrECS}, BlobAssetReference<{c.name}_ST>>* ptr = &{c.name}Map) *ptr = new NativeHashMap<{c.fs[0].typeStrECS}, BlobAssetReference<{c.name}_ST>>(len{i}, AllocatorManager.Persistent);");
+                        erw.AppendLine($"        for (int i = 0; i < len{i}; i++)");
+                        erw.AppendLine($"        {{");
+                        erw.AppendLine($"            var blobBuilder = new BlobBuilder(Allocator.Temp);");
+                        erw.AppendLine($"            ref var t = ref blobBuilder.ConstructRoot<{c.name}_ST>();");
+                        for (int j = 0; j < c.ecs.Count; j++)
+                        {
+                            var f = c.ecs[j];
+                            if (f.f2 == FType2.Array)
+                            {
+                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
+                                {
+                                    erw.AppendLine($"            int len{j} = buffer.Readint();");
+                                    erw.AppendLine($"            var tmp{j} = blobBuilder.Allocate(ref t.{f.name}, len{j});");
+                                    erw.AppendLine($"            for (int j = 0; j < len{j}; j++) tmp{j}[j] = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}());");
+                                }
+                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
+                                {
+                                    erw.AppendLine($"            int len{j} = buffer.Readint();");
+                                    erw.AppendLine($"            var tmp{j} = blobBuilder.Allocate(ref t.{f.name}, len{j});");
+                                    erw.AppendLine($"            for (int j = 0; j < len{j}; j++) tmp{j}[j] = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}());");
+                                }
+                                else
+                                {
+                                    erw.AppendLine($"            int len{j} = buffer.Readint();");
+                                    erw.AppendLine($"            var tmp{j} = blobBuilder.Allocate(ref t.{f.name}, len{j});");
+                                    erw.AppendLine($"            for (int j = 0; j < len{j}; j++) tmp{j}[j] = buffer.Read{f.realType}();");
+                                }
+                            }
+                            else if (f.f2 == FType2.Value)
+                            {
+                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
+                                    erw.AppendLine($"            t.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}());");
+                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
+                                    erw.AppendLine($"            t.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}());");
+                                else
+                                    erw.AppendLine($"            t.{f.name} = buffer.Read{f.typeStr}();");
+                            }
+                        }
+                        erw.AppendLine($"            BlobAssetReference<{c.name}_ST> bar = blobBuilder.CreateBlobAssetReference<{c.name}_ST>(Allocator.Persistent);");
+                        erw.AppendLine($"            UnsafeUtility.WriteArrayElement({c.name}Array.GetUnsafePtr(), i, bar);");
+                        erw.AppendLine($"            {c.name}Map.Add(t.{c.fs[0].name}, bar);");
+                        erw.AppendLine($"            blobBuilder.Dispose();");
+                        erw.AppendLine($"        }}");
+                    }
+                }
+                erw.AppendLine($"    }}");
+                erw.AppendLine($"    public void Dispose()");
+                erw.AppendLine($"    {{");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                    {
+                        erw.AppendLine($"        for (int i = 0; i < {c.name}Array.Length; i++) {c.name}Array[i].Dispose();");
+                        erw.AppendLine($"        {c.name}Array.Dispose();");
+                        erw.AppendLine($"        {c.name}Map.Dispose();");
+                    }
+                }
+                erw.AppendLine($"    }}");
+                erw.AppendLine($"");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                        erw.AppendLine($"    [return: ReadOnly] public ref {c.name}_ST Get{c.name}({c.fs[0].typeStrECS} key) => ref {c.name}Map[key].Value;");
+                }
+                erw.AppendLine($"}}");
+
+
+                edf.AppendLine($"using Unity.Collections;");
+                edf.AppendLine($"using Unity.Mathematics;");
+                edf.AppendLine($"using Unity.Entities;");
+                edf.AppendLine($"");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                    {
+                        edf.AppendLine($"public struct {c.name}_ST");
+                        edf.AppendLine($"{{");
+                        for (int j = 0; j < c.ecs.Count; j++)
+                        {
+                            var f = c.ecs[j];
+                            edf.AppendLine($@"    /// <summary>
+    /// {f.des}
+    /// </summary>");
+                            edf.AppendLine($"    [ReadOnly]");
+                            if (f.f2 == FType2.Array)
+                                edf.AppendLine($"    public BlobArray<{f.typeStrECS}> {f.name};");
+                            else
+                                edf.AppendLine($"    public {f.typeStrECS} {f.name};");
+                        }
+                        edf.AppendLine($"}}");
+                    }
+                }
+
+                DBuffer bufferEcs = new DBuffer(new MemoryStream(10000000));
+                bufferEcs.Compress = false;
+                bufferEcs.Write(Program.mark);
+                bufferEcs.Compress = Program.compress;
+                bufferEcs.Write(buffer.Compress);//是否压缩
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                    {
+                        bufferEcs.Write(c.fv.Count);
+
+                        for (int j = 0; j < c.fv.Count; j++)
+                        {
+                            var vs = c.fv[j];
+                            for (int k = 0; k < c.ecs.Count; k++)
+                            {
+                                var f = c.ecs[k];
+                                var v = vs[f.arrayIndex];
+                                Common.WriteFv(f, v, bufferEcs, null);
+                            }
+                        }
+                    }
+                }
+
+                File.WriteAllBytes(dataPath + "_ST.bytes", bufferEcs.ToBytes());
+                File.WriteAllText(codePath + "_ST.cs", erw.ToString());
+                File.WriteAllText(codePath + "_STDefine.cs", edf.ToString());
+            }
+
+            Console.WriteLine("写入完成");
+            Console.WriteLine("");
         }
-        mainCS.buff = buffer.ToBytes();
-        TabM_Cs4.AppendLine("    }");
-
-        {
-            TabM_Cs.AppendLine(TabM_Cs2.ToString());
-            TabM_Cs.AppendLine(TabM_Cs4.ToString());
-            TabM_Cs.AppendLine(TabM_Cs5.ToString());
-
-            if (mappingIsClass)
-                TabM_Cs.AppendLine("    class Mapping");
-            else
-                TabM_Cs.AppendLine("    struct Mapping");
-            TabM_Cs.AppendLine("    {");
-            TabM_Cs.AppendLine("        public int point;");
-            TabM_Cs.AppendLine("        public int index;");
-            TabM_Cs.AppendLine("    }");
-
-            TabM_Cs.AppendLine("}");
-        }
-
-        mainCS.TabCS = TabM_Cs.ToString();
-
-        File.WriteAllText(codePath + ".cs", mainCS.TabCS.ToString());
-        for (int i = 0; i < mainCS.className.Count; i++)
-            File.AppendAllText(codePath + ".cs", mainCS.classContent[i]);
-        File.WriteAllText(codePath + "Define.cs", csDefine.ToString());
-        File.WriteAllBytes(dataPath, mainCS.buff);
     }
 }

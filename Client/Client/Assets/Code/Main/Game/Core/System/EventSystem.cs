@@ -8,13 +8,13 @@ namespace Game
     public class EventSystem
     {
         bool _rigistedStaticMethodEvt = false;
-        readonly Dictionary<int, List<MsgData>> _msgMap = new(97);
+        readonly Dictionary<uint, List<MsgData>> _msgMap = new(97);
         readonly Dictionary<int, List<EvtData>> _evtMap = new(97);
-        readonly Dictionary<long, Dictionary<int, List<MsgData>>> _msgKeyMap = new(97);
+        readonly Dictionary<long, Dictionary<uint, List<MsgData>>> _msgKeyMap = new(97);
         readonly Dictionary<long, Dictionary<int, List<EvtData>>> _evtKeyMap = new(97);
-        readonly Dictionary<int, int> _msgCalling = new(5);
+        readonly Dictionary<uint, int> _msgCalling = new(5);
         readonly Dictionary<int, int> _evtCalling = new(5);
-        readonly Dictionary<int, int> _msgKeyCalling = new(5);
+        readonly Dictionary<uint, int> _msgKeyCalling = new(5);
         readonly Dictionary<int, int> _evtKeyCalling = new(5);
 
         readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
@@ -62,7 +62,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(IMessage))
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.IPBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -75,7 +75,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(IMessage))
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.IPBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -171,7 +171,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(IMessage))
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.IPBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -184,7 +184,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(IMessage))
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.IPBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -282,7 +282,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(IMessage))
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.IPBMessage))
                                 e.action1 = p =>
                                 {
                                     _ilRuntimePs[0] = p;
@@ -300,8 +300,8 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.action0 = (Action)method.CreateDelegate(typeof(Action));
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(IMessage))
-                                e.action1 = (Action<IMessage>)method.CreateDelegate(typeof(Action<IMessage>));
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.IPBMessage))
+                                e.action1 = (Action<PB.IPBMessage>)method.CreateDelegate(typeof(Action<PB.IPBMessage>));
                             else
                             {
                                 Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
@@ -413,7 +413,7 @@ namespace Game
                     if (m.pCnt == 0)
                         e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
                     else if (m.pCnt == 1)
-                        e.action1 = (Action<IMessage>)m.info.CreateDelegate(typeof(Action<IMessage>), target);
+                        e.action1 = (Action<PB.IPBMessage>)m.info.CreateDelegate(typeof(Action<PB.IPBMessage>), target);
 
                     if (!_msgCalling.TryGetValue(m.opCode, out var idx))
                         evts.Add(e);
@@ -481,7 +481,7 @@ namespace Game
 
                 if (m.type == 0)
                 {
-                    if (!_msgKeyMap.TryGetValue(key, out Dictionary<int, List<MsgData>> map))
+                    if (!_msgKeyMap.TryGetValue(key, out var map))
                     {
                         map = new();
                         _msgKeyMap[key] = map;
@@ -500,7 +500,7 @@ namespace Game
                     if (m.pCnt == 0)
                         e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
                     else if (m.pCnt == 1)
-                        e.action1 = (Action<IMessage>)m.info.CreateDelegate(typeof(Action<IMessage>), target);
+                        e.action1 = (Action<PB.IPBMessage>)m.info.CreateDelegate(typeof(Action<PB.IPBMessage>), target);
 
                     if (!_msgKeyCalling.TryGetValue(m.opCode, out var idx))
                         evts.Add(e);
@@ -676,20 +676,20 @@ namespace Game
         /// <summary>
         /// 推送接受到的网络消息
         /// </summary>
-        /// <param name="opCode"></param>
+        /// <param name="cmd"></param>
         /// <param name="message"></param>
-        public bool RunMsg(int opCode, IMessage message = null)
+        public bool RunMsg(uint cmd, PB.IPBMessage message = null)
         {
-            if (!_msgMap.TryGetValue(opCode, out var evts))
+            if (!_msgMap.TryGetValue(cmd, out var evts))
                 return false;
 
-            if (_msgCalling.ContainsKey(opCode))
+            if (_msgCalling.ContainsKey(cmd))
             {
                 Loger.Error("消息执行队列循环 msg=" + message);
                 return true;
             }
-            int idx = _msgCalling[opCode] = 0;
-            for (; idx < evts.Count; idx = ++_msgCalling[opCode])
+            int idx = _msgCalling[cmd] = 0;
+            for (; idx < evts.Count; idx = ++_msgCalling[cmd])
             {
                 MsgData e = evts[idx];
                 try
@@ -702,25 +702,25 @@ namespace Game
                     Loger.Error("消息执行出错 error:" + ex.ToString());
                 }
             }
-            _msgCalling.Remove(opCode);
+            _msgCalling.Remove(cmd);
 
             return true;
         }
-        public bool RunMsgWithKey(int opCode, long key, IMessage message = null)
+        public bool RunMsgWithKey(uint cmd, long key, PB.IPBMessage message = null)
         {
             if (!_msgKeyMap.TryGetValue(key, out var map))
                 return false;
 
-            if (!map.TryGetValue(opCode, out var evts))
+            if (!map.TryGetValue(cmd, out var evts))
                 return false;
 
-            if (_msgKeyCalling.ContainsKey(opCode))
+            if (_msgKeyCalling.ContainsKey(cmd))
             {
                 Loger.Error("消息执行队列循环 msg=" + message);
                 return true;
             }
-            int idx = _msgKeyCalling[opCode] = 0;
-            for (; idx < evts.Count; idx = ++_msgKeyCalling[opCode])
+            int idx = _msgKeyCalling[cmd] = 0;
+            for (; idx < evts.Count; idx = ++_msgKeyCalling[cmd])
             {
                 MsgData e = evts[idx];
                 try
@@ -733,7 +733,7 @@ namespace Game
                     Loger.Error("消息执行出错 error:" + ex.ToString());
                 }
             }
-            _msgKeyCalling.Remove(opCode);
+            _msgKeyCalling.Remove(cmd);
 
             return true;
         }
@@ -842,7 +842,7 @@ namespace Game
             public bool isP0;//无参回调
             public int sortOrder;
             public Action action0;
-            public Action<IMessage> action1;
+            public Action<PB.IPBMessage> action1;
             public object target;
             public long Key;
         }

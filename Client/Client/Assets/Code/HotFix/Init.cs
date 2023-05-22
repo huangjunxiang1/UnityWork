@@ -7,6 +7,7 @@ using FairyGUI;
 using System.Threading.Tasks;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 public class Init
 {
@@ -30,6 +31,23 @@ public class Init
         GameL.Setting.Languege = SystemLanguage.Chinese;
         GameL.Setting.UIModel = UIModel.FGUI;
 
+        await LoadConfig();
+        await GameL.UI.OpenAsync<FUIGlobal>();
+        await GameL.Scene.InLoginScene();
+    }
+
+    [Event((int)EventIDM.QuitGame)]
+    static void Quit()
+    {
+        if (Application.isEditor)
+        {
+            GameL.Close();
+            GameM.Close();
+        }
+        ECSSingle.GetSingle<TabM_ST>().Dispose();
+    }
+    static async TaskAwaiter LoadConfig()
+    {
         DBuffer buffM = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM.bytes")).bytes));
         buffM.Compress = false;
         if (buffM.Readint() != 20220702)
@@ -38,6 +56,18 @@ public class Init
         {
             buffM.Compress = buffM.Readbool();
             TabM.Init(buffM, ConstDefM.Debug);
+        }
+
+        DBuffer buffM_ST = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM_ST.bytes")).bytes));
+        buffM_ST.Compress = false;
+        if (buffM_ST.Readint() != 20220702)
+            Loger.Error("不是TabM数据");
+        else
+        {
+            buffM_ST.Compress = buffM_ST.Readbool();
+            var st = ECSSingle.GetSingle<TabM_ST>();
+            st.Init(buffM_ST);
+            ECSSingle.SetSingle(st);
         }
 
         DBuffer buffL = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabL.bytes")).bytes));
@@ -68,22 +98,6 @@ public class Init
         {
             buff_en.Compress = buff_en.Readbool();
             LanguageS.Load((int)SystemLanguage.English, buff_en, ConstDefM.Debug);
-        }
-
-        //初始化各个系统
-        GameM.Event.RunEvent((int)EventIDM.Init);
-
-        await GameL.UI.OpenAsync<FUIGlobal>();
-        await GameL.Scene.InLoginScene();
-    }
-
-    [Event((int)EventIDM.QuitGame)]
-    static void Quit()
-    {
-        if (Application.isEditor)
-        {
-            GameL.Close();
-            GameM.Close();
         }
     }
 }

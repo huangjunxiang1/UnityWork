@@ -8,6 +8,491 @@ using System.Threading.Tasks;
 
 static class Common
 {
+    static char[] arraySplit = new char[] { '[', ']', ',' };
+    static char[] VectorSplit = new char[] { '(', ')', ',' };
+    static char[] VectorArraySplit = new char[] { '[', ']', '(', ')', ',' };
+
+    public static FType GetFtype1(string s)
+    {
+        if (s.Contains("bool")) return FType.fbool;
+        if (s.Contains("int")) return FType.fint;
+        if (s.Contains("uint")) return FType.fuint;
+        if (s.Contains("long")) return FType.flong;
+        if (s.Contains("ulong")) return FType.fulong;
+        if (s.Contains("float")) return FType.ffloat;
+        if (s.Contains("str")) return FType.fstring;
+        if (s.Contains("v2i")) return FType.fv2i;
+        if (s.Contains("v3i")) return FType.fv3i;
+        if (s.Contains("v2f")) return FType.fv2f;
+        if (s.Contains("v3f")) return FType.fv3f;
+
+        throw new Exception("未识别类型=" + s);
+    }
+    public static FType2 GetFtype2(string s)
+    {
+        if (s.Contains("[]")) return FType2.Array;
+        return FType2.Value;
+    }
+    public static string GetFTypeStr(string s)
+    {
+        return s.Replace("str", "string")
+            .Replace("v2i", "Vector2Int")
+            .Replace("v3i", "Vector3Int")
+            .Replace("v2f", "Vector2")
+            .Replace("v3f", "Vector3");
+    }
+    public static string GetFTypeStrECS(string s)
+    {
+        return s.Replace("str", "string")
+            .Replace("v2i", "int2")
+            .Replace("v3i", "int3")
+            .Replace("v2f", "float2")
+            .Replace("v3f", "float3")
+            .Replace("[]", "");
+    }
+    public static string GetFRealType(string s)
+    {
+        return s.Replace("str", "string")
+            .Replace("v2i", "int")
+            .Replace("v3i", "int")
+            .Replace("v2f", "float")
+            .Replace("v3f", "float")
+            .Replace("[]", "");
+    }
+    public static bool GetFv(DField f, string s, out DFieldValue fv)
+    {
+        fv = new DFieldValue();
+
+        if (string.IsNullOrEmpty(s))
+            return true;
+
+        if (f.f1 == FType.fbool && f.f2 == FType2.Value)
+        {
+            if (!int.TryParse(s, out var v) || (v != 0 && v != 1))
+                return false;
+            fv.v64 = v;
+            return true;
+        }
+        if (f.f1 == FType.fbool && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+            bool[] temp = new bool[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!int.TryParse(arr[i], out var v) || (v != 0 && v != 1))
+                    return false;
+                temp[i] = v == 1;
+            }
+            fv.vo = temp;
+            return true;
+        }
+
+        if (f.f1 == FType.fint && f.f2 == FType2.Value)
+        {
+            if (!int.TryParse(s, out var v))
+                return false;
+            fv.v64 = v;
+            return true;
+        }
+        if (f.f1 == FType.fint && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+            int[] temp = new int[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!int.TryParse(arr[i], out var v))
+                    return false;
+                temp[i] = v;
+            }
+            fv.vo = temp;
+            return true;
+        }
+
+        if (f.f1 == FType.fuint && f.f2 == FType2.Value)
+        {
+            if (!uint.TryParse(s, out var v))
+                return false;
+            fv.v64 = v;
+            return true;
+        }
+        if (f.f1 == FType.fuint && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+            uint[] temp = new uint[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!uint.TryParse(arr[i], out var v))
+                    return false;
+                temp[i] = v;
+            }
+            fv.vo = temp;
+            return true;
+        }
+
+        if (f.f1 == FType.flong && f.f2 == FType2.Value)
+        {
+            if (!long.TryParse(s, out var v))
+                return false;
+            fv.v64 = v;
+            return true;
+        }
+        if (f.f1 == FType.flong && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+            long[] temp = new long[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!long.TryParse(arr[i], out var v))
+                    return false;
+                temp[i] = v;
+            }
+            fv.vo = temp;
+            return true;
+        }
+
+        if (f.f1 == FType.fulong && f.f2 == FType2.Value)
+        {
+            if (!ulong.TryParse(s, out var v))
+                return false;
+            fv.v64 = (long)v;
+            return true;
+        }
+        if (f.f1 == FType.fulong && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+            ulong[] temp = new ulong[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!ulong.TryParse(arr[i], out var v))
+                    return false;
+                temp[i] = v;
+            }
+            fv.vo = temp;
+            return true;
+        }
+
+        if (f.f1 == FType.ffloat && f.f2 == FType2.Value)
+        {
+            if (!float.TryParse(s, out var v))
+                return false;
+            fv.vf = v;
+            return true;
+        }
+        if (f.f1 == FType.ffloat && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+            float[] temp = new float[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!float.TryParse(arr[i], out var v))
+                    return false;
+                temp[i] = v;
+            }
+            fv.vo = temp;
+            return true;
+        }
+
+        if (f.f1 == FType.fstring && f.f2 == FType2.Value)
+        {
+            fv.vo = s;
+            return true;
+        }
+        if (f.f1 == FType.fstring && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+            fv.vo = arr;
+            return true;
+        }
+
+        if (f.f1 == FType.fv2i && f.f2 == FType2.Value)
+        {
+            string[] arr = s.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
+            if (arr.Length != 2 || !int.TryParse(arr[0], out var v1) || !int.TryParse(arr[1], out var v2))
+                return false;
+            fv.xi = v1;
+            fv.yi = v2;
+            return true;
+        }
+        if (f.f1 == FType.fv2i && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
+
+            if (arr.Length % 2 != 0)
+                return false;
+
+            int[] fs = new int[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!int.TryParse(arr[i], out var v))
+                    return false;
+                fs[i] = v;
+            }
+            fv.vo = fs;
+            return true;
+        }
+
+        if (f.f1 == FType.fv3i && f.f2 == FType2.Value)
+        {
+            string[] arr = s.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
+            if (arr.Length != 3 || !int.TryParse(arr[0], out var v1) || !int.TryParse(arr[1], out var v2) || !int.TryParse(arr[2], out var v3))
+                return false;
+            fv.xi = v1;
+            fv.yi = v2;
+            fv.zi = v3;
+            return true;
+        }
+        if (f.f1 == FType.fv3i && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
+
+            if (arr.Length % 3 != 0)
+                return false;
+
+            int[] fs = new int[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!int.TryParse(arr[i], out var v))
+                    return false;
+                fs[i] = v;
+            }
+            fv.vo = fs;
+            return true;
+        }
+
+        if (f.f1 == FType.fv2f && f.f2 == FType2.Value)
+        {
+            string[] arr = s.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
+            if (arr.Length != 2 || !float.TryParse(arr[0], out var v1) || !float.TryParse(arr[1], out var v2))
+                return false;
+            fv.xf = v1;
+            fv.yf = v2;
+            return true;
+        }
+        if (f.f1 == FType.fv2f && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
+
+            if (arr.Length % 2 != 0)
+                return false;
+
+            float[] fs = new float[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!float.TryParse(arr[i], out var v))
+                    return false;
+                fs[i] = v;
+            }
+            fv.vo = fs;
+            return true;
+        }
+
+        if (f.f1 == FType.fv3f && f.f2 == FType2.Value)
+        {
+            string[] arr = s.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
+            if (arr.Length != 3 || !float.TryParse(arr[0], out var v1) || !float.TryParse(arr[1], out var v2) || !float.TryParse(arr[2], out var v3))
+                return false;
+            fv.xf = v1;
+            fv.yf = v2;
+            fv.zf = v3;
+            return true;
+        }
+        if (f.f1 == FType.fv3f && f.f2 == FType2.Array)
+        {
+            string[] arr = s.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
+
+            if (arr.Length % 3 != 0)
+                return false;
+
+            float[] fs = new float[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (!float.TryParse(arr[i], out var v))
+                    return false;
+                fs[i] = v;
+            }
+            fv.vo = fs;
+            return true;
+        }
+
+        throw new Exception("未识别类型=" + f.typeStr);
+    }
+    public static void WriteFv(DField f, DFieldValue fv, DBuffer buffer, DBuffer arrTemp)
+    {
+        if (f.f2 == FType2.Value)
+        {
+            switch (f.f1)
+            {
+                case FType.fbool:
+                    buffer.Write(fv.v64 == 1);
+                    break;
+                case FType.fint:
+                    buffer.Write((int)fv.v64);
+                    break;
+                case FType.fuint:
+                    buffer.Write((uint)fv.v64);
+                    break;
+                case FType.flong:
+                    buffer.Write((long)fv.v64);
+                    break;
+                case FType.fulong:
+                    buffer.Write((ulong)fv.v64);
+                    break;
+                case FType.ffloat:
+                    buffer.Write(fv.vf);
+                    break;
+                case FType.fstring:
+                    buffer.Write((string)fv.vo);
+                    break;
+                case FType.fv2i:
+                    buffer.Write(fv.xi);
+                    buffer.Write(fv.yi);
+                    break;
+                case FType.fv3i:
+                    buffer.Write(fv.xi);
+                    buffer.Write(fv.yi);
+                    buffer.Write(fv.zi);
+                    break;
+                case FType.fv2f:
+                    buffer.Write(fv.xf);
+                    buffer.Write(fv.yf);
+                    break;
+                case FType.fv3f:
+                    buffer.Write(fv.xf);
+                    buffer.Write(fv.yf);
+                    buffer.Write(fv.zf);
+                    break;
+                default:
+                    throw new($"写入值错误  类型：{f.f1} {f.f2}");
+            }
+        }
+        else if (f.f2 == FType2.Array)
+        {
+            if (arrTemp != null)
+            {
+                arrTemp.Seek(0);
+                switch (f.f1)
+                {
+                    case FType.fbool:
+                        arrTemp.Write((bool[])fv.vo);
+                        break;
+                    case FType.fint:
+                        arrTemp.Write((int[])fv.vo);
+                        break;
+                    case FType.fuint:
+                        arrTemp.Write((uint[])fv.vo);
+                        break;
+                    case FType.flong:
+                        arrTemp.Write((long[])fv.vo);
+                        break;
+                    case FType.fulong:
+                        arrTemp.Write((ulong[])fv.vo);
+                        break;
+                    case FType.ffloat:
+                        arrTemp.Write((float[])fv.vo);
+                        break;
+                    case FType.fstring:
+                        arrTemp.Write((string[])fv.vo);
+                        break;
+                    case FType.fv2i:
+                        {
+                            int[] arr = (int[])fv.vo;
+                            arrTemp.Write(arr.Length / 2);
+                            for (int i = 0; i < arr.Length; i++)
+                                arrTemp.Write(arr[i]);
+                        }
+                        break;
+                    case FType.fv3i:
+                        {
+                            int[] arr = (int[])fv.vo;
+                            arrTemp.Write(arr.Length / 3);
+                            for (int i = 0; i < arr.Length; i++)
+                                arrTemp.Write(arr[i]);
+                        }
+                        break;
+                    case FType.fv2f:
+                        {
+                            float[] arr = (float[])fv.vo;
+                            arrTemp.Write(arr.Length / 2);
+                            for (int i = 0; i < arr.Length; i++)
+                                arrTemp.Write(arr[i]);
+                        }
+                        break;
+                    case FType.fv3f:
+                        {
+                            float[] arr = (float[])fv.vo;
+                            arrTemp.Write(arr.Length / 3);
+                            for (int i = 0; i < arr.Length; i++)
+                                arrTemp.Write(arr[i]);
+                        }
+                        break;
+                    default:
+                        throw new($"写入值错误  类型：{f.f1} {f.f2}");
+                }
+                buffer.Write(arrTemp);
+            }
+            else
+            {
+                switch (f.f1)
+                {
+                    case FType.fbool:
+                        buffer.Write((bool[])fv.vo);
+                        break;
+                    case FType.fint:
+                        buffer.Write((int[])fv.vo);
+                        break;
+                    case FType.fuint:
+                        buffer.Write((uint[])fv.vo);
+                        break;
+                    case FType.flong:
+                        buffer.Write((long[])fv.vo);
+                        break;
+                    case FType.fulong:
+                        buffer.Write((ulong[])fv.vo);
+                        break;
+                    case FType.ffloat:
+                        buffer.Write((float[])fv.vo);
+                        break;
+                    case FType.fv2i:
+                        {
+                            int[] arr = (int[])fv.vo;
+                            buffer.Write(arr.Length / 2);
+                            for (int i = 0; i < arr.Length; i++)
+                                buffer.Write(arr[i]);
+                        }
+                        break;
+                    case FType.fv3i:
+                        {
+                            int[] arr = (int[])fv.vo;
+                            buffer.Write(arr.Length / 3);
+                            for (int i = 0; i < arr.Length; i++)
+                                buffer.Write(arr[i]);
+                        }
+                        break;
+                    case FType.fv2f:
+                        {
+                            float[] arr = (float[])fv.vo;
+                            buffer.Write(arr.Length / 2);
+                            for (int i = 0; i < arr.Length; i++)
+                                buffer.Write(arr[i]);
+                        }
+                        break;
+                    case FType.fv3f:
+                        {
+                            float[] arr = (float[])fv.vo;
+                            buffer.Write(arr.Length / 3);
+                            for (int i = 0; i < arr.Length; i++)
+                                buffer.Write(arr[i]);
+                        }
+                        break;
+                    default:
+                        throw new($"不支持的ECS类型：{f.f1} {f.f2}");
+                }
+            }
+        }
+        else
+            throw new($"写入值错误  类型：{f.f1} {f.f2}");
+    }
+
 
     public static string getType(string sType)
     {
@@ -22,77 +507,11 @@ static class Common
 
         else if (sType == "v3i") sType = "Vector3Int";
         else if (sType == "v3i[]") sType = "Vector3Int[]";
+
+        else if (sType == "str") sType = "string";
+        else if (sType == "str[]") sType = "string[]";
+
         return sType;
-    }
-
-    public static void appendDefineCode(string des, string type, string name, StringBuilder code)
-    {
-        if (type == "string")
-        {
-            code.AppendLine("");
-            code.AppendLine($"    int _{name}Idx;");
-            code.AppendLine($"    {type} _{name}Tmp;");
-            code.AppendLine($"    public {type} get{name}()");
-            code.AppendLine(@"    {");
-            code.AppendLine($"        if (_{name}Tmp == null)");
-            code.AppendLine($"        {{");
-            code.AppendLine($"            dbuff.Seek(_{name}Idx);");
-            code.AppendLine($"            _{name}Tmp = dbuff.Readstring();");
-            code.AppendLine($"        }}");
-            code.AppendLine($"        return _{name}Tmp;");
-            code.AppendLine(@"    }");
-        }
-        else if (type.Contains("[]"))
-        {
-            string realType = type.Replace("[]", null);
-            code.AppendLine("");
-            code.AppendLine($"    int _{name}Idx;");
-            code.AppendLine($"    {type} _{name}Tmp;");
-            code.AppendLine($"    public {type} get{name}()");
-            code.AppendLine(@"    {");
-            code.AppendLine($"        if (_{name}Tmp == null)");
-            code.AppendLine($"        {{");
-            code.AppendLine($"            dbuff.Seek(_{name}Idx);");
-            code.AppendLine($"            _{name}Tmp = dbuff.Read{realType}s();");
-            code.AppendLine($"        }}");
-            code.AppendLine($"        return _{name}Tmp;");
-            code.AppendLine(@"    }");
-        }
-    }
-    public static void appendDefineCode2(string des, string type, string name, StringBuilder code)
-    {
-        if (type == "string" || type.Contains("[]"))
-        {
-            code.AppendLine("    /// <summary>");
-            code.AppendLine("    /// " + des);
-            code.AppendLine("    /// </summary>");
-            code.AppendLine($"    public {type} {name} => get{name}();");
-        }
-        else
-        {
-            code.AppendLine("    /// <summary>");
-            code.AppendLine("    /// " + des);
-            code.AppendLine("    /// </summary>");
-            code.AppendLine("    public " + type + " " + name + " { get; }");
-        }
-    }
-
-    public static void appendReadCode(string sType, int j, string sName, StringBuilder csContent)
-    {
-        sType = getType(sType);
-        if (sType == "string")
-        {
-            csContent.AppendLine($"        this._{sName}Idx = buffer.Position;");
-            csContent.AppendLine($"        buffer.Seek(buffer.Readint() + buffer.Position);");
-        }
-        else if (sType.Contains("[]"))
-        {
-            csContent.AppendLine($"        int next{j} = buffer.Readint() + buffer.Position;");
-            csContent.AppendLine($"        this._{sName}Idx = buffer.Position;");
-            csContent.AppendLine($"        buffer.Seek(next{j});");
-        }
-        else
-            csContent.AppendLine($"        this.{sName} = buffer.Read{sType}();");
     }
 
     public static void WriteValue(DBuffer buffer, DBuffer arrayTemp, string sType, string text, FileInfo fi, int lineIdx, int idx)
@@ -116,7 +535,7 @@ static class Common
         }
         else if (sType == "bool[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             bool[] temp = new bool[arr.Length];
             if (arrayTemp != null)
@@ -168,7 +587,7 @@ static class Common
         }
         else if (sType == "byte[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arrayTemp != null)
             {
@@ -219,7 +638,7 @@ static class Common
         }
         else if (sType == "int[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arrayTemp != null)
             {
@@ -253,6 +672,57 @@ static class Common
             }
         }
 
+        else if (sType == "uint")
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                buffer.Write(0u);
+                return;
+            }
+            if (!uint.TryParse(text, out var v))
+            {
+                Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
+                Console.ReadLine();
+                return;
+            }
+            buffer.Write(v);
+        }
+        else if (sType == "uint[]")
+        {
+            string[] arr = text.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
+
+            if (arrayTemp != null)
+            {
+                arrayTemp.Seek(0);
+                arrayTemp.Write(arr.Length);
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    if (!uint.TryParse(arr[i], out var v))
+                    {
+                        Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
+                        Console.ReadLine();
+                        return;
+                    }
+                    arrayTemp.Write(v);
+                }
+                buffer.Write(arrayTemp);
+            }
+            else
+            {
+                buffer.Write(arr.Length);
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    if (!uint.TryParse(arr[i], out var v))
+                    {
+                        Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
+                        Console.ReadLine();
+                        return;
+                    }
+                    buffer.Write(v);
+                }
+            }
+        }
+
         else if (sType == "long")
         {
             if (string.IsNullOrEmpty(text))
@@ -270,7 +740,7 @@ static class Common
         }
         else if (sType == "long[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arrayTemp != null)
             {
@@ -310,7 +780,7 @@ static class Common
         }
         else if (sType == "string[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arrayTemp != null)
             {
@@ -336,7 +806,7 @@ static class Common
                 buffer.Write(0);
                 return;
             }
-            string[] s = text.Split(new char[] { '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] s = text.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
             if (s.Length != 2 || !float.TryParse(s[0], out var v1) || !float.TryParse(s[1], out var v2))
             {
                 Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
@@ -348,7 +818,7 @@ static class Common
         }
         else if (sType == "Vector2[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arr.Length % 2 != 0)
             {
@@ -399,7 +869,7 @@ static class Common
                 buffer.Write(0);
                 return;
             }
-            string[] s = text.Split(new char[] { '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] s = text.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
             if (s.Length != 2 || !int.TryParse(s[0], out var v1) || !int.TryParse(s[1], out var v2))
             {
                 Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
@@ -411,7 +881,7 @@ static class Common
         }
         else if (sType == "Vector2Int[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arr.Length % 2 != 0)
             {
@@ -462,7 +932,7 @@ static class Common
                 buffer.Write(0);
                 return;
             }
-            string[] s = text.Split(new char[] { '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] s = text.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
             if (s.Length != 3 || !float.TryParse(s[0], out var v1) || !float.TryParse(s[1], out var v2) || !float.TryParse(s[2], out var v3))
             {
                 Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
@@ -475,7 +945,7 @@ static class Common
         }
         else if (sType == "Vector3[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arr.Length % 3 != 0)
             {
@@ -528,7 +998,7 @@ static class Common
                 buffer.Write(0);
                 return;
             }
-            string[] s = text.Split(new char[] { '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] s = text.Split(VectorSplit, StringSplitOptions.RemoveEmptyEntries);
             if (s.Length != 3 || !int.TryParse(s[0], out var v1) || !int.TryParse(s[1], out var v2) || !int.TryParse(s[2], out var v3))
             {
                 Console.WriteLine("解析出错 " + fi.Name + "  行:" + lineIdx + "  列:" + idx + "  类型:" + sType + "  值:" + text);
@@ -541,7 +1011,7 @@ static class Common
         }
         else if (sType == "Vector3Int[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(VectorArraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arr.Length % 3 != 0)
             {
@@ -603,7 +1073,7 @@ static class Common
         }
         else if (sType == "float[]")
         {
-            string[] arr = text.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] arr = text.Split(arraySplit, StringSplitOptions.RemoveEmptyEntries);
 
             if (arrayTemp != null)
             {
@@ -678,6 +1148,12 @@ static class Common
                 continue;
             if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[3, i].Text))
                 continue;
+            if (i > 1)
+            {
+                string s = pkg.Workbook.Worksheets[0].Cells[4, i].Text.ToLower();
+                if (string.IsNullOrEmpty(s) || !s.Contains('c'))
+                    continue;
+            }
             coIdx.Add(i);
         }
     }
@@ -687,13 +1163,6 @@ class temp1
 {
     public string keyType;
     public string keyName;
-}
-class temp2
-{
-    public string TabCS;
-    public List<string> className = new List<string>();
-    public List<string> classContent = new List<string>();
-    public byte[] buff;
 }
 class temp3
 {

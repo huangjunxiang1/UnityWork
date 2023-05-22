@@ -17,6 +17,7 @@ namespace PB
 
         Stream stream;
 
+        public Stream Stream { get { return stream; } }
         public int Position { get => (int)stream.Position; private set => this.Seek(value); }
 
         public void WriteTag(int tag) { Writeint32(tag); }

@@ -10,7 +10,6 @@ namespace Game
     {
         Min = 0,
 
-        Init,//app初始化
         NetError,//网络链接出错
         QuitGame,//退出游戏
 
