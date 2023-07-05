@@ -29,6 +29,10 @@ namespace PB
         {
             Writeint64(v);
         }
+        public void Writeuint32(uint v)
+        {
+            Writeint64(v);
+        }
         public void Writesint32(int v)
         {
             v = (v >> 31) ^ (v << 1);
@@ -154,6 +158,17 @@ namespace PB
             WriteBuff(tag, writer);
             PBBuffPool.Return(writer);
         }
+        public void Writeuint32s(int tag, List<uint> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            PBWriter writer = PBBuffPool.Get();
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+                writer.Writeuint32(v[i]);
+            WriteBuff(tag, writer);
+            PBBuffPool.Return(writer);
+        }
         public void Writesint32s(int tag, List<int> v)
         {
             if (v == null || v.Count == 0)
@@ -261,7 +276,7 @@ namespace PB
             for (int i = 0; i < len; i++)
                 Writestring(tag, v[i]);
         }
-        public void Writemessage(int tag, IPBMessage message)
+        public void Writemessage(int tag, PBMessage message)
         {
             if (message == null)
                 return;

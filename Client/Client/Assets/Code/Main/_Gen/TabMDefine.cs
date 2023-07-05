@@ -50,4 +50,12 @@ public partial class Tab_test2
     /// xx
     /// </summary>
     public bool[] b2 => getb2();
+    /// <summary>
+    /// hh
+    /// </summary>
+    public int[][] arrs => getarrs();
+    /// <summary>
+    /// hh
+    /// </summary>
+    public string[][] arr2s => getarr2s();
 }

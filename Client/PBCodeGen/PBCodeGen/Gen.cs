@@ -29,40 +29,91 @@ internal class Gen
             File.Delete(item);
         }
 
+        string[] classNameSplitStr = new string[] { " ", "{" };
+        string[] cmdSplitStr = new string[] { "=", "@" };
+
         rw.AppendLine("using System.Collections.Generic;");
+        rw.AppendLine("using Main;");
         rw.AppendLine();
 
         HashSet<string> enums = new HashSet<string>();
-        foreach (var item in Directory.GetFiles(resPath))
-        {
-            string[] strs = File.ReadAllLines(item);
-            for (int i = 0; i < strs.Length; i++)
-            {
-                string s = strs[i];
-                string s2 = s.Replace(" ", null);
-                if (s2.StartsWith("enum"))
-                {
-                    string enumName = s.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1];
-                    enums.Add(enumName);
-                }
-            }
-        }
-
+        HashSet<string> classNames = new HashSet<string>();
+        List<string> nameSpeces = new List<string>();
         foreach (var item in Directory.GetFiles(resPath))
         {
             if (!item.EndsWith(".proto"))
                 continue;
+            string[] strs = File.ReadAllLines(item);
+            bool find = false;
+            for (int i = 0; i < strs.Length; i++)
+            {
+                string s = strs[i];
+
+                if (s.StartsWith("package"))
+                {
+                    find = true;
+                    string ss = s.Split(new string[] { " ", ";" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                    nameSpeces.Add(ss);
+                }
+
+                string s2 = s.Replace(" ", null);
+                if (s2.StartsWith("message"))
+                {
+                    string className = s.Split(classNameSplitStr, StringSplitOptions.RemoveEmptyEntries)[1];
+                    classNames.Add(className);
+                }
+                else if (s2.StartsWith("enum"))
+                {
+                    string enumName = s.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1];
+                    enums.Add(enumName);
+                    enums.Add(nameSpeces.LastOrDefault() + "." + enumName);
+                }
+            }
+            if (!find)
+            {
+                FileInfo fi = new FileInfo(item);
+                string fiName = fi.Name.Replace(fi.Extension, null);
+                nameSpeces.Add(fiName);
+            }
+        }
+        Dictionary<string, string> ret = new Dictionary<string, string>();
+        foreach (var item in classNames)
+        {
+            if (item.StartsWith("C2S"))
+            {
+                if (item.Contains("Req"))
+                {
+                    string name = item.Replace("C2S", "S2C").Replace("Req", "Resp");
+                    if (classNames.Contains(name))
+                        ret[item] = name;
+                }
+                else
+                {
+                    string name = item.Replace("C2S", "S2C");
+                    if (classNames.Contains(name))
+                        ret[item] = name;
+                }
+            }
+        }
+
+        int index = 0;
+        foreach (var item in Directory.GetFiles(resPath))
+        {
+            if (!item.EndsWith(".proto"))
+                continue;
+            string nameSpece = nameSpeces[index++];
             FileInfo fi = new FileInfo(item);
             string fiName = fi.Name.Replace(fi.Extension, null);
             Console.WriteLine("生成->" + fiName);
 
             df.Clear();
             df.AppendLine("using System.Collections.Generic;");
+            df.AppendLine("using Main;");
             df.AppendLine();
-            df.AppendLine($"namespace PB.{fiName}");
+            df.AppendLine($"namespace {nameSpece}");
             df.AppendLine("{");
 
-            rw.AppendLine($"namespace PB.{fiName}");
+            rw.AppendLine($"namespace {nameSpece}");
             rw.AppendLine("{");
 
             {
@@ -78,31 +129,60 @@ internal class Gen
                     }
                     if (s2.StartsWith("message"))
                     {
-                        string className = s.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1];
+                        string className = s.Split(classNameSplitStr, StringSplitOptions.RemoveEmptyEntries)[1];
 
-                        if (i > 0)
+                        if (i > 1)
                         {
-                            string ss = strs[i - 1];
-                            string ss2 = ss.Replace(" ", null);
-                            if (ss2.StartsWith("//"))
+                            if (strs[i - 1].Replace(" ", null).StartsWith("//"))
                             {
-                                df.AppendLine($"    /// <summary>");
-                                df.AppendLine($"    /// " + ss.Split("//", options: StringSplitOptions.RemoveEmptyEntries).LastOrDefault());
-                                df.AppendLine($"    /// </summary>");
+                                if (strs[i - 1].Contains("MsgID"))
+                                {
+                                    if (i > 2)
+                                    {
+                                        string ss = strs[i - 2];
+                                        string ss2 = ss.Replace(" ", null);
+                                        if (ss2.StartsWith("//"))
+                                        {
+                                            df.AppendLine($"    /// <summary>");
+                                            df.AppendLine($"    /// " + ss.Split("//", options: StringSplitOptions.RemoveEmptyEntries).LastOrDefault());
+                                            df.AppendLine($"    /// </summary>");
+                                        }
+                                    }
+
+                                    string[] cmdStr = strs[i - 1].Split(cmdSplitStr, options: StringSplitOptions.RemoveEmptyEntries);
+                                    int mainCmd = int.Parse(cmdStr[1]);
+                                    int subCmd = int.Parse(cmdStr[2]);
+                                    if (ret.TryGetValue(className, out var resp))
+                                        df.AppendLine($"    [Message({mainCmd}, {subCmd}, typeof({resp}))]");
+                                    else
+                                        df.AppendLine($"    [Message({mainCmd}, {subCmd})]");
+                                }
+                                else
+                                {
+                                    string ss = strs[i - 1];
+                                    string ss2 = ss.Replace(" ", null);
+                                    if (ss2.StartsWith("//"))
+                                    {
+                                        df.AppendLine($"    /// <summary>");
+                                        df.AppendLine($"    /// " + ss.Split("//", options: StringSplitOptions.RemoveEmptyEntries).LastOrDefault());
+                                        df.AppendLine($"    /// </summary>");
+                                    }
+                                }
                             }
                         }
+                       
                         df.AppendLine($"    public partial class {className}");
-
-                        rw.AppendLine($"    public partial class {className} : IPBMessage");
                         df.AppendLine("    {");
+
+                        rw.AppendLine($"    public partial class {className} : PB.PBMessage");
                         rw.AppendLine("    {");
 
                         StringBuilder wStr = new StringBuilder(10000);
                         StringBuilder rStr = new StringBuilder(10000);
-                        wStr.AppendLine("        public void Write(PBWriter writer)");
+                        wStr.AppendLine("        public override void Write(PB.PBWriter writer)");
                         wStr.AppendLine("        {");
 
-                        rStr.AppendLine("        public void Read(PBReader reader)");
+                        rStr.AppendLine("        public override void Read(PB.PBReader reader)");
                         rStr.AppendLine("        {");
                         rStr.AppendLine("            int tag;");
                         rStr.AppendLine("            while ((tag = reader.ReadTag()) != 0)");
@@ -112,7 +192,15 @@ internal class Gen
 
                         int idx1 = i + 1;
                         int idx2 = i + 2;
-                        for (int j = i + 2; j < strs.Length; j++)
+                        for (int j = i; j < strs.Length; j++)
+                        {
+                            if (strs[j].Contains("{"))
+                            {
+                                idx1 = j;
+                                break;
+                            }
+                        }
+                        for (int j = i; j < strs.Length; j++)
                         {
                             if (strs[j].Contains("}"))
                             {
@@ -221,7 +309,7 @@ internal class Gen
                                 int vtag = (2 << 3) | vmark;
                                 wStr.AppendLine($"            if (this.{fieldName} != null)");
                                 wStr.AppendLine("            {");
-                                wStr.AppendLine($"                PBWriter tmp = PBBuffPool.Get();");
+                                wStr.AppendLine($"                PB.PBWriter tmp = PB.PBBuffPool.Get();");
                                 wStr.AppendLine($"                foreach (var item in this.{fieldName})");
                                 wStr.AppendLine($"                {{");
                                 wStr.AppendLine($"                    tmp.Seek(0);");
@@ -260,7 +348,7 @@ internal class Gen
 
                                 wStr.AppendLine($"                    writer.WriteBuff({tag}, tmp);");
                                 wStr.AppendLine($"                }}");
-                                wStr.AppendLine($"                PBBuffPool.Return(tmp);");
+                                wStr.AppendLine($"                PB.PBBuffPool.Return(tmp);");
                                 wStr.AppendLine("            }");
                             }
                             else if (isBytes)
@@ -492,7 +580,15 @@ internal class Gen
 
                         int idx1 = i + 1;
                         int idx2 = i + 2;
-                        for (int j = i + 2; j < strs.Length; j++)
+                        for (int j = i; j < strs.Length; j++)
+                        {
+                            if (strs[j].Contains("{"))
+                            {
+                                idx1 = j;
+                                break;
+                            }
+                        }
+                        for (int j = i; j < strs.Length; j++)
                         {
                             if (strs[j].Contains("}"))
                             {
@@ -540,7 +636,7 @@ internal class Gen
             df.AppendLine("}");
             rw.AppendLine("}");
 
-            File.WriteAllText(outDefinePath + $"/{fiName}.cs",df.ToString());
+            File.WriteAllText(outDefinePath + $"/{fiName}.cs", df.ToString());
         }
         File.WriteAllText(outRWPath + $"/RW.cs", rw.ToString());
     }
@@ -548,6 +644,7 @@ internal class Gen
     string getType(string type)
     {
         if (type == "int32" || type == "sint32" || type == "sfixed32") return "int";
+        if (type == "uint32") return "uint";
         if (type == "int64" || type == "sint64" || type == "sfixed64") return "long";
         if (type == "fixed32") return "uint";
         if (type == "fixed64") return "ulong";
@@ -560,6 +657,7 @@ internal class Gen
         if (isLst)
             return 2;
         if (type == "int32"
+            || type == "uint32"
             || type == "sint32"
             || type == "sint64"
             || type == "int64"
@@ -587,6 +685,7 @@ internal class Gen
             throw new Exception("无法解析map类型=" + s);
 
         if (ss[0] != "int32"
+            && ss[0] != "uint32"
             && ss[0] != "int64"
             && ss[0] != "sint32"
             && ss[0] != "sint64"
@@ -607,6 +706,7 @@ internal class Gen
     {
         if (type == "bool"
             || type == "int32"
+            || type == "uint32"
             || type == "sint32"
             || type == "int64"
             || type == "sint64"

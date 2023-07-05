@@ -1,8 +1,8 @@
 using Unity.Collections;
 using Unity.Mathematics;
-using Unity.Entities;
+using Unity.Collections.LowLevel.Unsafe;
 
-public struct _test2_ST
+public partial struct _test2_ST
 {
     /// <summary>
     /// id
@@ -13,7 +13,7 @@ public struct _test2_ST
     /// xxxx
     /// </summary>
     [ReadOnly]
-    public BlobArray<int> value2;
+    public UnsafeList<int> value2;
     /// <summary>
     /// xxx
     /// </summary>
@@ -23,7 +23,7 @@ public struct _test2_ST
     /// xxx
     /// </summary>
     [ReadOnly]
-    public BlobArray<long> longValue2;
+    public UnsafeList<long> longValue2;
     /// <summary>
     /// xxxx
     /// </summary>
@@ -33,7 +33,7 @@ public struct _test2_ST
     /// xxxx
     /// </summary>
     [ReadOnly]
-    public BlobArray<int2> v2t2;
+    public UnsafeList<int2> v2t2;
     /// <summary>
     /// xxxx
     /// </summary>
@@ -43,7 +43,7 @@ public struct _test2_ST
     /// xxxx
     /// </summary>
     [ReadOnly]
-    public BlobArray<float> f2;
+    public UnsafeList<float> f2;
     /// <summary>
     /// x'x
     /// </summary>
@@ -53,5 +53,5 @@ public struct _test2_ST
     /// xx
     /// </summary>
     [ReadOnly]
-    public BlobArray<bool> b2;
+    public UnsafeList<bool> b2;
 }

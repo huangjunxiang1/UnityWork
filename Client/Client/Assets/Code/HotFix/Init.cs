@@ -23,6 +23,7 @@ public class Init
         FairyGUI.UIConfig.defaultFont = "Impact";
         DG.Tweening.DOTween.Init();
         System.Threading.SynchronizationContext.SetSynchronizationContext(ThreadSynchronizationContext.Instance);
+        ECSSingle.Init();   
 
         GameM.Init();
         GameL.Init();
@@ -44,7 +45,7 @@ public class Init
             GameL.Close();
             GameM.Close();
         }
-        ECSSingle.GetSingle<TabM_ST>().Dispose();
+        ECSSingle.Dispose();
     }
     static async TaskAwaiter LoadConfig()
     {
@@ -65,9 +66,7 @@ public class Init
         else
         {
             buffM_ST.Compress = buffM_ST.Readbool();
-            var st = ECSSingle.GetSingle<TabM_ST>();
-            st.Init(buffM_ST);
-            ECSSingle.SetSingle(st);
+            ECSSingle.LoadTabs(buffM_ST);
         }
 
         DBuffer buffL = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabL.bytes")).bytes));

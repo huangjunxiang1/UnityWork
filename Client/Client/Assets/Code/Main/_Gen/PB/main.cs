@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Main;
 
-namespace PB.main
+namespace main
 {
     /// <summary>
     /// 枚举定义注释

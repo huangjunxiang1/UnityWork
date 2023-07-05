@@ -166,6 +166,30 @@ public partial class Tab_test2
         return _b2Tmp;
     }
 
+    int _arrsIdx;
+    int[][] _arrsTmp;
+    int[][] getarrs()
+    {
+        if (_arrsTmp == null)
+        {
+            dbuff.Seek(_arrsIdx);
+            _arrsTmp = dbuff.Readintss();
+        }
+        return _arrsTmp;
+    }
+
+    int _arr2sIdx;
+    string[][] _arr2sTmp;
+    string[][] getarr2s()
+    {
+        if (_arr2sTmp == null)
+        {
+            dbuff.Seek(_arr2sIdx);
+            _arr2sTmp = dbuff.Readstringss();
+        }
+        return _arr2sTmp;
+    }
+
     public Tab_test2(DBuffer buffer, bool isDebug = false)
     {
         dbuff = buffer;
@@ -182,6 +206,8 @@ public partial class Tab_test2
         buffer.Seek(buffer.Readint() + (this._f2Idx = buffer.Position));
         this.b1 = buffer.Readbool();
         buffer.Seek(buffer.Readint() + (this._b2Idx = buffer.Position));
+        buffer.Seek(buffer.Readint() + (this._arrsIdx = buffer.Position));
+        buffer.Seek(buffer.Readint() + (this._arr2sIdx = buffer.Position));
         if (isDebug)
         {
             _ = this.value2;
@@ -191,6 +217,8 @@ public partial class Tab_test2
             _ = this.v2t2;
             _ = this.f2;
             _ = this.b2;
+            _ = this.arrs;
+            _ = this.arr2s;
         }
     }
 }

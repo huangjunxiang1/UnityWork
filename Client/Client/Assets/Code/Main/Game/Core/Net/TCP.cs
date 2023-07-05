@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -74,24 +75,65 @@ namespace Main
 
         protected override async TaskAwaiter SendBuffer()
         {
+            PBWriter writer = new PBWriter(new MemoryStream(new byte[1024], 0, 1024, true, true));
             while (states != NetStates.None)
             {
-                while (queues.TryDequeue(out var d))
+                while (queues.TryDequeue(out var message))
                 {
                     try
                     {
-                        await client.GetStream().WriteAsync(d.bs, d.index, d.length);
+                        if (message.rpc > 0)
+                            writer.Seek(12);
+                        else
+                            writer.Seek(8);
+
+                        try
+                        {
+                            message.Write(writer);
+                        }
+                        catch (Exception e)
+                        {
+                            Loger.Error("序列化出错 ex=" + e);
+                            continue;
+                        }
+
+                        int len = writer.Position;
+                        if (len > ushort.MaxValue)
+                        {
+                            Loger.Error($"数据过大 len={len}");
+                            continue;
+                        }
+
+                        var bs = (writer.Stream as MemoryStream).GetBuffer();
+                        uint cmd = Types.GetCMDCode(message.GetType());
+                        bs[0] = (byte)(len - 2);
+                        bs[1] = (byte)((len - 2) >> 8);
+                        bs[3] = (byte)(message.rpc > 0 ? 1 : 0);
+                        bs[4] = (byte)cmd;
+                        bs[5] = (byte)(cmd >> 8);
+                        bs[6] = (byte)(cmd >> 16);
+                        bs[7] = (byte)(cmd >> 24);
+                        if (message.rpc > 0)
+                        {
+                            bs[8] = (byte)message.rpc;
+                            bs[9] = (byte)(message.rpc >> 8);
+                            bs[10] = (byte)(message.rpc >> 16);
+                            bs[11] = (byte)(message.rpc >> 24);
+                        }
+                        byte checkCode = 0;
+                        for (int i = 3; i < len; i++)
+                            checkCode += bs[i];
+                        bs[2] = (byte)(~checkCode + 1);
+
+                        await client.GetStream().WriteAsync(bs, 0, len);
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception e)
+                    { 
                         //被动断开链接
                         if (states != NetStates.None)
                             this.DisConnect();
-                        Loger.Error("发送消息错误 ex=" + ex);
-                    }
-                    finally
-                    {
-                        ArrayPool<byte>.Shared.Return(d.bs);
+                        Loger.Error("发送消息错误 ex=" + e);
+                        return;
                     }
                 }
                 Thread.Sleep(1);
@@ -101,6 +143,7 @@ namespace Main
         protected override async TaskAwaiter ReceiveBuffer()
         {
             var bs = ArrayPool<byte>.Shared.Rent(ushort.MaxValue);
+            PBReader reader = new PBReader(new MemoryStream(bs, 0, bs.Length), 0, bs.Length);
             while (states != NetStates.None)
             {
                 try
@@ -139,7 +182,7 @@ namespace Main
 
                     if (checkCode != 0)
                     {
-                        Error(NetError.DataError, new Exception($"数据校验不正确 cmd:main={(ushort)cmd} sub={cmd >> 16}"));
+                        Error(NetError.DataError, new Exception($"数据校验不正确 cmd:[{(ushort)cmd},{cmd >> 16}]"));
                         break;
                     }
 
@@ -157,11 +200,13 @@ namespace Main
                     {
                         Type t = Types.GetCMDType(cmd);
                         int index = msgType == 0 ? 8 : 12;
-                        PBReader reader = new PBReader(new MemoryStream(bs, index, len - index), 0, len - index);
-                        var msg = (PB.IPBMessage)Activator.CreateInstance(t);
+                        reader.SetLimit(index, len);
+                        reader.Seek(index);
+                        var msg = (PB.PBMessage)Activator.CreateInstance(t);
+                        msg.rpc = rpcid;
                         msg.Read(reader);
 
-                        onReceive(rpcid, msg);
+                        onReceive(msg);
                     }
                     catch (Exception ex)
                     {

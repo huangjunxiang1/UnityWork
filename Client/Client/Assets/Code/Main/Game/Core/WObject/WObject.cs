@@ -26,7 +26,10 @@ namespace Game
                 this.Name = $"{this.GetType().Name}_id={cid}";
 #endif
                 if (this is not World)
+                {
                     this.goRoot.transform.SetParent(GameM.World.goRoot.transform);
+                    GameM.World.AddChild(this);
+                }
             }
         }
 
@@ -138,7 +141,7 @@ namespace Game
                         return;
 
                     res.transform.parent = this.goRoot.transform;
-                    res.transform.rotation = Quaternion.identity;
+                    res.transform.localRotation = Quaternion.identity;
                     res.transform.localPosition = default;
 
                     if (this.goRes)

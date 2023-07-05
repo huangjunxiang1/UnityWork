@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Main;
 
-namespace PB.main
+namespace main
 {
-    public partial class TestPBmain : IPBMessage
+    public partial class TestPBmain : PB.PBMessage
     {
-        public void Write(PBWriter writer)
+        public override void Write(PB.PBWriter writer)
         {
             if (this.test)
             {
@@ -40,7 +41,7 @@ namespace PB.main
             writer.Writemessage(66, this.test8);
             if (this.test9 != null)
             {
-                PBWriter tmp = PBBuffPool.Get();
+                PB.PBWriter tmp = PB.PBBuffPool.Get();
                 foreach (var item in this.test9)
                 {
                     tmp.Seek(0);
@@ -48,11 +49,11 @@ namespace PB.main
                     tmp.Writemessage(18, item.Value);
                     writer.WriteBuff(74, tmp);
                 }
-                PBBuffPool.Return(tmp);
+                PB.PBBuffPool.Return(tmp);
             }
             if (this.test10 != null)
             {
-                PBWriter tmp = PBBuffPool.Get();
+                PB.PBWriter tmp = PB.PBBuffPool.Get();
                 foreach (var item in this.test10)
                 {
                     tmp.Seek(0);
@@ -62,11 +63,11 @@ namespace PB.main
                     tmp.Writebool(item.Value);
                     writer.WriteBuff(82, tmp);
                 }
-                PBBuffPool.Return(tmp);
+                PB.PBBuffPool.Return(tmp);
             }
             if (this.test11 != null)
             {
-                PBWriter tmp = PBBuffPool.Get();
+                PB.PBWriter tmp = PB.PBBuffPool.Get();
                 foreach (var item in this.test11)
                 {
                     tmp.Seek(0);
@@ -76,7 +77,7 @@ namespace PB.main
                     tmp.Writesint64(item.Value);
                     writer.WriteBuff(90, tmp);
                 }
-                PBBuffPool.Return(tmp);
+                PB.PBBuffPool.Return(tmp);
             }
             writer.Writebytes(98, this.test12);
             if (this.test14 != 0)
@@ -106,7 +107,7 @@ namespace PB.main
             }
             if (this.test19 != null)
             {
-                PBWriter tmp = PBBuffPool.Get();
+                PB.PBWriter tmp = PB.PBBuffPool.Get();
                 foreach (var item in this.test19)
                 {
                     tmp.Seek(0);
@@ -116,11 +117,11 @@ namespace PB.main
                     tmp.Writedouble(item.Value);
                     writer.WriteBuff(154, tmp);
                 }
-                PBBuffPool.Return(tmp);
+                PB.PBBuffPool.Return(tmp);
             }
             if (this.test20 != null)
             {
-                PBWriter tmp = PBBuffPool.Get();
+                PB.PBWriter tmp = PB.PBBuffPool.Get();
                 foreach (var item in this.test20)
                 {
                     tmp.Seek(0);
@@ -129,7 +130,7 @@ namespace PB.main
                     tmp.Writestring(18, item.Value);
                     writer.WriteBuff(162, tmp);
                 }
-                PBBuffPool.Return(tmp);
+                PB.PBBuffPool.Return(tmp);
             }
             writer.Writebools(170, this.test21);
             writer.Writeint32s(178, this.test22);
@@ -150,7 +151,7 @@ namespace PB.main
             writer.Writesfixed64s(258, this.test32);
             writer.Writedoubles(266, this.test33);
         }
-        public void Read(PBReader reader)
+        public override void Read(PB.PBReader reader)
         {
             int tag;
             while ((tag = reader.ReadTag()) != 0)
@@ -405,9 +406,9 @@ namespace PB.main
             }
         }
     }
-    public partial class TestPB2 : IPBMessage
+    public partial class TestPB2 : PB.PBMessage
     {
-        public void Write(PBWriter writer)
+        public override void Write(PB.PBWriter writer)
         {
             if (this.test2 != 0)
             {
@@ -416,7 +417,7 @@ namespace PB.main
             }
             writer.Writeint32s(178, this.test22);
         }
-        public void Read(PBReader reader)
+        public override void Read(PB.PBReader reader)
         {
             int tag;
             while ((tag = reader.ReadTag()) != 0)

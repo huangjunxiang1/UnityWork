@@ -28,6 +28,7 @@ public class Engine : MonoBehaviour
         AppSetting.Debug = Debug;
         /*AppSetting.ServiceType = ServiceType;*/
 
+        _ = ThreadSynchronizationContext.Instance;
         EnterGame();
     }
 

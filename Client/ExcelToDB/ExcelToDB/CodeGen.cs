@@ -67,6 +67,29 @@ enum FType2
 {
     Value,
     Array,
+    Array2,//2维数组
+}
+public struct V2int
+{
+    public int x;
+    public int y;
+}
+public struct V2float
+{
+    public float x;
+    public float y;
+}
+public struct V3int
+{
+    public int x;
+    public int y;
+    public int z;
+}
+public struct V3float
+{
+    public float x;
+    public float y;
+    public float z;
 }
 class CodeGen
 {
@@ -132,7 +155,7 @@ class CodeGen
                     f.arrayIndex = arrayIdx++;
 
                     f.name = sheet.Cells[3, j].Text;
-                    f.des = sheet.Cells[1, j].Text;
+                    f.des = sheet.Cells[1, j].Text.Replace("\n", "\n    /// ");
 
                     f.f1 = Common.GetFtype1(sheet.Cells[2, j].Text);
                     f.f2 = Common.GetFtype2(sheet.Cells[2, j].Text);
@@ -271,7 +294,7 @@ class CodeGen
                 for (int j = 0; j < c.fs.Count; j++)
                 {
                     var f = c.fs[j];
-                    if (f.f2 == FType2.Array || f.f1 == FType.fstring)
+                    if (f.f2 == FType2.Array || f.f2 == FType2.Array2 || f.f1 == FType.fstring)
                     {
                         rw.AppendLine($"");
                         rw.AppendLine($"    int _{f.name}Idx;");
@@ -294,7 +317,7 @@ class CodeGen
                 for (int j = 0; j < c.fs.Count; j++)
                 {
                     var f = c.fs[j];
-                    if (f.f2 == FType2.Array)
+                    if (f.f2 == FType2.Array || f.f2 == FType2.Array2)
                         rw.AppendLine($"        buffer.Seek(buffer.Readint() + (this._{f.name}Idx = buffer.Position));");
                     else if (f.f1 == FType.fstring)
                     {
@@ -309,7 +332,7 @@ class CodeGen
                 for (int j = 0; j < c.fs.Count; j++)
                 {
                     var f = c.fs[j];
-                    if (f.f2 == FType2.Array || f.f1 == FType.fstring)
+                    if (f.f2 == FType2.Array || f.f2 == FType2.Array2 || f.f1 == FType.fstring)
                         rw.AppendLine($"            _ = this.{f.name};");
                 }
                 rw.AppendLine($"        }}");
@@ -338,7 +361,7 @@ class CodeGen
                     df.AppendLine($"    /// <summary>");
                     df.AppendLine($"    /// {f.des}");
                     df.AppendLine($"    /// </summary>");
-                    if (f.f2 == FType2.Array || f.f1 == FType.fstring)
+                    if (f.f2 == FType2.Array || f.f2 == FType2.Array2 || f.f1 == FType.fstring)
                         df.AppendLine($"    public {f.typeStr} {f.name} => get{f.name}();");
                     else
                         df.AppendLine($"    public {f.typeStr} {f.name} {{ get; }}");
@@ -383,20 +406,20 @@ class CodeGen
                 erw.AppendLine($"using Unity.Collections.LowLevel.Unsafe;");
                 erw.AppendLine($"using Unity.Entities;");
                 erw.AppendLine($"");
-                erw.AppendLine($"public unsafe struct {name}_ST : IComponentData");
+                erw.AppendLine($"public unsafe struct {name}_ST");
                 erw.AppendLine($"{{");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
                     if (c.ecs.Count > 1)
-                        erw.AppendLine($"    public readonly NativeArray<BlobAssetReference<{c.name}_ST>> {c.name}Array;");
+                        erw.AppendLine($"    public readonly NativeArray<{c.name}_ST> {c.name}Array;");
                 }
                 erw.AppendLine($"");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
                     if (c.ecs.Count > 1)
-                        erw.AppendLine($"    readonly NativeHashMap<{c.fs[0].typeStrECS}, BlobAssetReference<{c.name}_ST>> {c.name}Map;");
+                        erw.AppendLine($"    readonly NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST> {c.name}Map;");
                 }
                 erw.AppendLine($"    public void Init(DBuffer buffer)");
                 erw.AppendLine($"    {{");
@@ -406,50 +429,13 @@ class CodeGen
                     if (c.ecs.Count > 1)
                     {
                         erw.AppendLine($"        int len{i} = buffer.Readint();");
-                        erw.AppendLine($"        fixed (NativeArray<BlobAssetReference<{c.name}_ST>>* ptr = &{c.name}Array) *ptr = new NativeArray<BlobAssetReference<{c.name}_ST>>(len{i}, Allocator.Persistent);");
-                        erw.AppendLine($"        fixed (NativeHashMap<{c.fs[0].typeStrECS}, BlobAssetReference<{c.name}_ST>>* ptr = &{c.name}Map) *ptr = new NativeHashMap<{c.fs[0].typeStrECS}, BlobAssetReference<{c.name}_ST>>(len{i}, AllocatorManager.Persistent);");
+                        erw.AppendLine($"        fixed (NativeArray<{c.name}_ST>* ptr = &{c.name}Array) *ptr = new NativeArray<{c.name}_ST>(len{i}, Allocator.Persistent);");
+                        erw.AppendLine($"        fixed (NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST>* ptr = &{c.name}Map) *ptr = new NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST>(len{i}, AllocatorManager.Persistent);");
                         erw.AppendLine($"        for (int i = 0; i < len{i}; i++)");
                         erw.AppendLine($"        {{");
-                        erw.AppendLine($"            var blobBuilder = new BlobBuilder(Allocator.Temp);");
-                        erw.AppendLine($"            ref var t = ref blobBuilder.ConstructRoot<{c.name}_ST>();");
-                        for (int j = 0; j < c.ecs.Count; j++)
-                        {
-                            var f = c.ecs[j];
-                            if (f.f2 == FType2.Array)
-                            {
-                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
-                                {
-                                    erw.AppendLine($"            int len{j} = buffer.Readint();");
-                                    erw.AppendLine($"            var tmp{j} = blobBuilder.Allocate(ref t.{f.name}, len{j});");
-                                    erw.AppendLine($"            for (int j = 0; j < len{j}; j++) tmp{j}[j] = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}());");
-                                }
-                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
-                                {
-                                    erw.AppendLine($"            int len{j} = buffer.Readint();");
-                                    erw.AppendLine($"            var tmp{j} = blobBuilder.Allocate(ref t.{f.name}, len{j});");
-                                    erw.AppendLine($"            for (int j = 0; j < len{j}; j++) tmp{j}[j] = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}());");
-                                }
-                                else
-                                {
-                                    erw.AppendLine($"            int len{j} = buffer.Readint();");
-                                    erw.AppendLine($"            var tmp{j} = blobBuilder.Allocate(ref t.{f.name}, len{j});");
-                                    erw.AppendLine($"            for (int j = 0; j < len{j}; j++) tmp{j}[j] = buffer.Read{f.realType}();");
-                                }
-                            }
-                            else if (f.f2 == FType2.Value)
-                            {
-                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
-                                    erw.AppendLine($"            t.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}());");
-                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
-                                    erw.AppendLine($"            t.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}());");
-                                else
-                                    erw.AppendLine($"            t.{f.name} = buffer.Read{f.typeStr}();");
-                            }
-                        }
-                        erw.AppendLine($"            BlobAssetReference<{c.name}_ST> bar = blobBuilder.CreateBlobAssetReference<{c.name}_ST>(Allocator.Persistent);");
-                        erw.AppendLine($"            UnsafeUtility.WriteArrayElement({c.name}Array.GetUnsafePtr(), i, bar);");
-                        erw.AppendLine($"            {c.name}Map.Add(t.{c.fs[0].name}, bar);");
-                        erw.AppendLine($"            blobBuilder.Dispose();");
+                        erw.AppendLine($"            {c.name}_ST st = new {c.name}_ST(buffer);");
+                        erw.AppendLine($"            UnsafeUtility.WriteArrayElement({c.name}Array.GetUnsafePtr(), i, st);");
+                        erw.AppendLine($"            {c.name}Map.Add(st.{c.fs[0].name}, st);");
                         erw.AppendLine($"        }}");
                     }
                 }
@@ -461,7 +447,16 @@ class CodeGen
                     var c = cs[i];
                     if (c.ecs.Count > 1)
                     {
-                        erw.AppendLine($"        for (int i = 0; i < {c.name}Array.Length; i++) {c.name}Array[i].Dispose();");
+                        erw.AppendLine($"        for (int i = 0; i < {c.name}Array.Length; i++)");
+                        erw.AppendLine($"        {{");
+                        for (int j = 0; j < c.ecs.Count; j++)
+                        {
+                            if (c.ecs[j].f2== FType2.Array)
+                            {
+                                erw.AppendLine($"            {c.name}Array[i].{c.ecs[j].name}.Dispose();");
+                            }
+                        }
+                        erw.AppendLine($"        }}");
                         erw.AppendLine($"        {c.name}Array.Dispose();");
                         erw.AppendLine($"        {c.name}Map.Dispose();");
                     }
@@ -472,21 +467,61 @@ class CodeGen
                 {
                     var c = cs[i];
                     if (c.ecs.Count > 1)
-                        erw.AppendLine($"    [return: ReadOnly] public ref {c.name}_ST Get{c.name}({c.fs[0].typeStrECS} key) => ref {c.name}Map[key].Value;");
+                        erw.AppendLine($"    [return: ReadOnly] public {c.name}_ST Get{c.name}({c.fs[0].typeStrECS} key) => {c.name}Map[key];");
                 }
                 erw.AppendLine($"}}");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.ecs.Count > 1)
+                    {
+                        erw.AppendLine($"public partial struct {c.name}_ST");
+                        erw.AppendLine($"{{");
+                        erw.AppendLine($"    public {c.name}_ST(DBuffer buffer)");
+                        erw.AppendLine($"    {{");
+
+                        for (int j = 0; j < c.ecs.Count; j++)
+                        {
+                            var f = c.ecs[j];
+                            if (f.f2 == FType2.Value)
+                            {
+                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
+                                    erw.AppendLine($"        this.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}());");
+                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
+                                    erw.AppendLine($"        this.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}());");
+                                else
+                                    erw.AppendLine($"        this.{f.name} = buffer.Read{f.realType}();");
+                            }
+                            else if (f.f2 == FType2.Array)
+                            {
+                                erw.AppendLine($"        int len{j} = buffer.Readint();");
+                                erw.AppendLine($"        this.{f.name} = new UnsafeList<{f.typeStrECS}>(len{j}, AllocatorManager.Persistent);");
+
+                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
+                                    erw.AppendLine($"        for (int i = 0; i < len{j}; i++) this.{f.name}.Add(new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}()));");
+                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
+                                    erw.AppendLine($"        for (int i = 0; i < len{j}; i++) this.{f.name}.Add(new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}()));");
+                                else
+                                    erw.AppendLine($"        for (int i = 0; i < len{j}; i++) this.{f.name}.Add(buffer.Read{f.realType}());");
+                            }
+                        }
+
+                        erw.AppendLine($"    }}");
+                        erw.AppendLine($"}}");
+                    }
+                }
 
 
                 edf.AppendLine($"using Unity.Collections;");
                 edf.AppendLine($"using Unity.Mathematics;");
-                edf.AppendLine($"using Unity.Entities;");
+                edf.AppendLine($"using Unity.Collections.LowLevel.Unsafe;");
                 edf.AppendLine($"");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
                     if (c.ecs.Count > 1)
                     {
-                        edf.AppendLine($"public struct {c.name}_ST");
+                        edf.AppendLine($"public partial struct {c.name}_ST");
                         edf.AppendLine($"{{");
                         for (int j = 0; j < c.ecs.Count; j++)
                         {
@@ -496,7 +531,7 @@ class CodeGen
     /// </summary>");
                             edf.AppendLine($"    [ReadOnly]");
                             if (f.f2 == FType2.Array)
-                                edf.AppendLine($"    public BlobArray<{f.typeStrECS}> {f.name};");
+                                edf.AppendLine($"    public UnsafeList<{f.typeStrECS}> {f.name};");
                             else
                                 edf.AppendLine($"    public {f.typeStrECS} {f.name};");
                         }

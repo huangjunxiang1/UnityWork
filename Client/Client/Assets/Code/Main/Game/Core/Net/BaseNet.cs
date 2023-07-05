@@ -38,20 +38,19 @@ namespace Main
             IP = ip;
         }
 
-        protected ConcurrentQueue<Datas> queues = new ConcurrentQueue<Datas>();
+        protected ConcurrentQueue<PBMessage> queues = new ConcurrentQueue<PBMessage>();
 
         public IPEndPoint IP { get; set; }
         public NetStates states { get; protected set; }
-        public Action<uint, PB.IPBMessage> onReceive;
+        public Action<PB.PBMessage> onReceive;
         public Action<int> onError;
         public abstract ServerType serverType { get; }
 
         public abstract TaskAwaiter<bool> Connect();
         public abstract void DisConnect();
-        public void Send(byte[] bs, int index, int length)
+        public void Send(PB.PBMessage message)
         {
-            var d = new Datas { bs = bs, index = index, length = length };
-            queues.Enqueue(d);
+            queues.Enqueue(message);
         }
         public abstract void Error(NetError error,Exception ex);
         public void Work()
@@ -66,13 +65,6 @@ namespace Main
         {
             SendBuffer();
             ReceiveBuffer();
-        }
-
-        protected struct Datas
-        {
-            public byte[] bs;
-            public int index;
-            public int length;
         }
     }
 }

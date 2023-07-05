@@ -95,6 +95,29 @@ class TabDataTest
                 throw new System.Exception("数据出错");
             if (TabM._test2Array[1].b2[2] != false)
                 throw new System.Exception("数据出错");
+
+            if (TabM._test2Array[0].arrs[0][0] != 5)
+                throw new System.Exception("数据出错");
+            if (TabM._test2Array[0].arrs[0][1] != 9)
+                throw new System.Exception("数据出错");
+            if (TabM._test2Array[0].arrs[1][0] != 6)
+                throw new System.Exception("数据出错");
+            if (TabM._test2Array[0].arrs[1][1] != 8)
+                throw new System.Exception("数据出错");
+
+            if (TabM._test2Array[0].arr2s[0][0] != "ss")
+                throw new System.Exception("数据出错");
+            if (TabM._test2Array[0].arr2s[0][1] != "gg")
+                throw new System.Exception("数据出错");
+            if (TabM._test2Array[0].arr2s[1][0] != "df")
+                throw new System.Exception("数据出错");
+            if (TabM._test2Array[0].arr2s[1][1] != "hh")
+                throw new System.Exception("数据出错");
+
+            if (TabM._test2Array[1].arrs.Length != 0)
+                throw new System.Exception("数据出错");
+            if (TabM._test2Array[1].arr2s.Length != 0)
+                throw new System.Exception("数据出错");
         }
 
         buffL.Compress = false;
@@ -179,11 +202,11 @@ class TabDataTest
             if (st.Get_test2(key).b2[1] != false)
                 throw new System.Exception("数据出错");
 
-            if (st._test2Array[1].Value.b2[0] != true)
+            if (st._test2Array[1].b2[0] != true)
                 throw new System.Exception("数据出错");
-            if (st._test2Array[1].Value.b2[1] != false)
+            if (st._test2Array[1].b2[1] != false)
                 throw new System.Exception("数据出错");
-            if (st._test2Array[1].Value.b2[2] != false)
+            if (st._test2Array[1].b2[2] != false)
                 throw new System.Exception("数据出错");
         }
     }

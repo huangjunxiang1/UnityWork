@@ -43,6 +43,10 @@ namespace PB
         {
             return (int)Readint64();
         }
+        public uint Readuint32()
+        {
+            return (uint)Readint64();
+        }
         public int Readsint32()
         {
             int v = Readint32();
@@ -114,7 +118,7 @@ namespace PB
             }
             return Encoding.UTF8.GetString(buffer, 0, len);
         }
-        public void Readmessage(IPBMessage message)
+        public void Readmessage(PBMessage message)
         {
             int min = this.min;
             int max = this.max;
@@ -144,6 +148,14 @@ namespace PB
             int next = Position + len;
             while (Position < next)
                 lst.Add(Readint32());
+            this.Seek(next);
+        }
+        public void Readuint32s(List<uint> lst)
+        {
+            int len = Readint32();
+            int next = Position + len;
+            while (Position < next)
+                lst.Add(Readuint32());
             this.Seek(next);
         }
         public void Readsint32s(List<int> lst)

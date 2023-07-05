@@ -173,6 +173,20 @@ public class DBuffer : IDisposable
             arr[i] = Readbool();
         return arr;
     }
+    public bool[][] Readboolss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        bool[][] arr = new bool[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new bool[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = Readbool();
+        }
+        return arr;
+    }
     public int[] Readints()
     {
         int len = Readint();
@@ -180,6 +194,20 @@ public class DBuffer : IDisposable
         int[] arr = new int[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readint();
+        return arr;
+    }
+    public int[][] Readintss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        int[][] arr = new int[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new int[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = Readint();
+        }
         return arr;
     }
     public uint[] Readuints()
@@ -191,6 +219,20 @@ public class DBuffer : IDisposable
             arr[i] = Readuint();
         return arr;
     }
+    public uint[][] Readuintss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        uint[][] arr = new uint[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new uint[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = Readuint();
+        }
+        return arr;
+    }
     public long[] Readlongs()
     {
         int len = Readint();
@@ -198,6 +240,20 @@ public class DBuffer : IDisposable
         long[] arr = new long[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readlong();
+        return arr;
+    }
+    public long[][] Readlongss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        long[][] arr = new long[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new long[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = Readlong();
+        }
         return arr;
     }
     public ulong[] Readulongs()
@@ -209,6 +265,20 @@ public class DBuffer : IDisposable
             arr[i] = Readulong();
         return arr;
     }
+    public ulong[][] Readulongss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        ulong[][] arr = new ulong[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new ulong[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = Readulong();
+        }
+        return arr;
+    }
     public float[] Readfloats()
     {
         int len = Readint();
@@ -218,6 +288,20 @@ public class DBuffer : IDisposable
             arr[i] = Readfloat();
         return arr;
     }
+    public float[][] Readfloatss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        float[][] arr = new float[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new float[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = Readfloat();
+        }
+        return arr;
+    }
     public string[] Readstrings()
     {
         int len = Readint();
@@ -225,6 +309,20 @@ public class DBuffer : IDisposable
         string[] arr = new string[len];
         for (int i = 0; i < len; i++)
             arr[i] = Readstring();
+        return arr;
+    }
+    public string[][] Readstringss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        string[][] arr = new string[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new string[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = Readstring();
+        }
         return arr;
     }
     public byte[] Readbytes()
@@ -246,6 +344,20 @@ public class DBuffer : IDisposable
             arr[i] = ReadVector2();
         return arr;
     }
+    public Vector2[][] ReadVector2ss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        Vector2[][] arr = new Vector2[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new Vector2[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = ReadVector2();
+        }
+        return arr;
+    }
     public Vector2Int[] ReadVector2Ints()
     {
         int len = Readint();
@@ -253,6 +365,20 @@ public class DBuffer : IDisposable
         Vector2Int[] arr = new Vector2Int[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadVector2Int();
+        return arr;
+    }
+    public Vector2Int[][] ReadVector2Intss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        Vector2Int[][] arr = new Vector2Int[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new Vector2Int[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = ReadVector2Int();
+        }
         return arr;
     }
     public Vector3[] ReadVector3s()
@@ -264,6 +390,20 @@ public class DBuffer : IDisposable
             arr[i] = ReadVector3();
         return arr;
     }
+    public Vector3[][] ReadVector3ss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        Vector3[][] arr = new Vector3[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new Vector3[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = ReadVector3();
+        }
+        return arr;
+    }
     public Vector3Int[] ReadVector3Ints()
     {
         int len = Readint();
@@ -271,6 +411,20 @@ public class DBuffer : IDisposable
         Vector3Int[] arr = new Vector3Int[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadVector3Int();
+        return arr;
+    }
+    public Vector3Int[][] ReadVector3Intss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        Vector3Int[][] arr = new Vector3Int[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new Vector3Int[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = ReadVector3Int();
+        }
         return arr;
     }
     public Color[] ReadColors()
@@ -282,6 +436,20 @@ public class DBuffer : IDisposable
             arr[i] = ReadColor();
         return arr;
     }
+    public Color[][] ReadColorss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        Color[][] arr = new Color[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new Color[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = ReadColor();
+        }
+        return arr;
+    }
     public Color32[] ReadColor32s()
     {
         int len = Readint();
@@ -289,6 +457,20 @@ public class DBuffer : IDisposable
         Color32[] arr = new Color32[len];
         for (int i = 0; i < len; i++)
             arr[i] = ReadColor32();
+        return arr;
+    }
+    public Color32[][] ReadColor32ss()
+    {
+        int len = Readint();
+        checkArrayLengthLimit(len);
+        Color32[][] arr = new Color32[len][];
+        for (int i = 0; i < len; i++)
+        {
+            int len2 = Readint();
+            arr[i] = new Color32[len2];
+            for (int j = 0; j < len2; j++)
+                arr[i][j] = ReadColor32();
+        }
         return arr;
     }
 #endif
@@ -465,6 +647,19 @@ public class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(bool[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
+    }
     public void Write(int[] v)
     {
         if (v == null)
@@ -480,6 +675,19 @@ public class DBuffer : IDisposable
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
+    }
+    public void Write(int[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
     }
     public void Write(uint[] v)
     {
@@ -497,6 +705,19 @@ public class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(uint[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
+    }
     public void Write(long[] v)
     {
         if (v == null)
@@ -512,6 +733,19 @@ public class DBuffer : IDisposable
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
+    }
+    public void Write(long[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
     }
     public void Write(ulong[] v)
     {
@@ -529,6 +763,19 @@ public class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(ulong[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
+    }
     public void Write(float[] v)
     {
         if (v == null)
@@ -545,6 +792,19 @@ public class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(float[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
+    }
     public void Write(string[] v)
     {
         if (v == null)
@@ -560,6 +820,19 @@ public class DBuffer : IDisposable
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
+    }
+    public void Write(string[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
     }
     public void Write(DBuffer buff)
     {
@@ -595,6 +868,19 @@ public class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(Vector2[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
+    }
     public void Write(Vector2Int[] v)
     {
         if (v == null)
@@ -609,6 +895,19 @@ public class DBuffer : IDisposable
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
+    }
+    public void Write(Vector2Int[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
     }
     public void Write(Vector3[] v)
     {
@@ -625,6 +924,19 @@ public class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(Vector3[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+           Write(v[i]);
+    }
     public void Write(Vector3Int[] v)
     {
         if (v == null)
@@ -639,6 +951,19 @@ public class DBuffer : IDisposable
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
+    }
+    public void Write(Vector3Int[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
     }
     public void Write(Color[] v)
     {
@@ -655,6 +980,19 @@ public class DBuffer : IDisposable
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
     }
+    public void Write(Color[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
+    }
     public void Write(Color32[] v)
     {
         if (v == null)
@@ -669,6 +1007,19 @@ public class DBuffer : IDisposable
         Write(length);
         for (int i = 0; i < length; i++)
             Write(v[index + i]);
+    }
+    public void Write(Color32[][] v)
+    {
+        if (v == null)
+        {
+            Write(0);
+            return;
+        }
+        int len = v.Length;
+        checkArrayLengthLimit(len);
+        Write(len);
+        for (int i = 0; i < len; i++)
+            Write(v[i]);
     }
 #endif
 

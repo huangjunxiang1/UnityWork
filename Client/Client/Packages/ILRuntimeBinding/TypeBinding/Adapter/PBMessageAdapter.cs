@@ -9,13 +9,13 @@ using ILRuntime.CLR.Method;
 using System.Runtime.CompilerServices;
 using PB;
 
-public class IPBMessageAdapter : CrossBindingAdaptor
+public class PBMessageAdapter : CrossBindingAdaptor
 {
     public override Type BaseCLRType
     {
         get
         {
-            return typeof(PB.IPBMessage);
+            return typeof(PB.PBMessage);
         }
     }
 
@@ -32,7 +32,7 @@ public class IPBMessageAdapter : CrossBindingAdaptor
         return new Adaptor(appdomain, instance);
     }
     //为了完整实现MonoBehaviour的所有特性，这个Adapter还得扩展，这里只抛砖引玉，只实现了最常用的Awake, Start和Update
-    public class Adaptor : PB.IPBMessage, CrossBindingAdaptorType
+    public class Adaptor : PB.PBMessage, CrossBindingAdaptorType
     {
         ILTypeInstance instance;
         ILRuntime.Runtime.Enviorment.AppDomain appdomain;
@@ -54,7 +54,7 @@ public class IPBMessageAdapter : CrossBindingAdaptor
 
         IMethod mWriteMethod;
         bool mWriteGot;
-        public void Write(PBWriter writer)
+        public override void Write(PBWriter writer)
         {
             if (!mWriteGot)
             {
@@ -69,7 +69,7 @@ public class IPBMessageAdapter : CrossBindingAdaptor
 
         IMethod mReadMethod;
         bool mReadGot;
-        public void Read(PBReader reader)
+        public override void Read(PBReader reader)
         {
             if (!mReadGot)
             {

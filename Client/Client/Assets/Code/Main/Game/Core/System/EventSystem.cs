@@ -62,7 +62,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.IPBMessage))
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.PBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -75,7 +75,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.IPBMessage))
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.PBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -171,7 +171,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.IPBMessage))
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.PBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -184,7 +184,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.IPBMessage))
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.PBMessage))
                                 e.pCnt = 1;
                             else
                             {
@@ -282,7 +282,7 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.IPBMessage))
+                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.PBMessage))
                                 e.action1 = p =>
                                 {
                                     _ilRuntimePs[0] = p;
@@ -300,8 +300,8 @@ namespace Game
                         {
                             if (ps.Length == 0)
                                 e.action0 = (Action)method.CreateDelegate(typeof(Action));
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.IPBMessage))
-                                e.action1 = (Action<PB.IPBMessage>)method.CreateDelegate(typeof(Action<PB.IPBMessage>));
+                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.PBMessage))
+                                e.action1 = (Action<PB.PBMessage>)method.CreateDelegate(typeof(Action<PB.PBMessage>));
                             else
                             {
                                 Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
@@ -413,7 +413,7 @@ namespace Game
                     if (m.pCnt == 0)
                         e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
                     else if (m.pCnt == 1)
-                        e.action1 = (Action<PB.IPBMessage>)m.info.CreateDelegate(typeof(Action<PB.IPBMessage>), target);
+                        e.action1 = (Action<PB.PBMessage>)m.info.CreateDelegate(typeof(Action<PB.PBMessage>), target);
 
                     if (!_msgCalling.TryGetValue(m.opCode, out var idx))
                         evts.Add(e);
@@ -500,7 +500,7 @@ namespace Game
                     if (m.pCnt == 0)
                         e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
                     else if (m.pCnt == 1)
-                        e.action1 = (Action<PB.IPBMessage>)m.info.CreateDelegate(typeof(Action<PB.IPBMessage>), target);
+                        e.action1 = (Action<PB.PBMessage>)m.info.CreateDelegate(typeof(Action<PB.PBMessage>), target);
 
                     if (!_msgKeyCalling.TryGetValue(m.opCode, out var idx))
                         evts.Add(e);
@@ -678,7 +678,7 @@ namespace Game
         /// </summary>
         /// <param name="cmd"></param>
         /// <param name="message"></param>
-        public bool RunMsg(uint cmd, PB.IPBMessage message = null)
+        public bool RunMsg(uint cmd, PB.PBMessage message = null)
         {
             if (!_msgMap.TryGetValue(cmd, out var evts))
                 return false;
@@ -706,7 +706,7 @@ namespace Game
 
             return true;
         }
-        public bool RunMsgWithKey(uint cmd, long key, PB.IPBMessage message = null)
+        public bool RunMsgWithKey(uint cmd, long key, PB.PBMessage message = null)
         {
             if (!_msgKeyMap.TryGetValue(key, out var map))
                 return false;
@@ -842,7 +842,7 @@ namespace Game
             public bool isP0;//无参回调
             public int sortOrder;
             public Action action0;
-            public Action<PB.IPBMessage> action1;
+            public Action<PB.PBMessage> action1;
             public object target;
             public long Key;
         }

@@ -47,7 +47,7 @@ public static class Types
         for (int i = 0; i < len; i++)
         {
             Type type = AllTypes[i];
-            if (!typeof(PB.IPBMessage).IsAssignableFrom(type))
+            if (!typeof(PB.PBMessage).IsAssignableFrom(type))
                 continue;
             var mas = type.GetCustomAttributes(typeof(MessageAttribute), false);
             if (mas == null || mas.Length <= 0)

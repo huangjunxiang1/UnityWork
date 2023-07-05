@@ -190,6 +190,7 @@ public class Tool
     static void CreateFUICode()
     {
         UIPackage.RemoveAllPackages();
+        FontManager.Clear();
         FairyGUI.UIConfig.defaultFont = "Impact";
         var pkg = UIPackage.AddPackage($"{AssetLoad.Directory}/UI/FUI/ComPkg/ComPkg");
         StringBuilder code = new StringBuilder(100000);

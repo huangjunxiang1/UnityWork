@@ -37,51 +37,44 @@ namespace Game
 
         Engine engine;
         BaseNet net;
-        readonly Dictionary<Type, Queue<TaskAwaiter<PB.IPBMessage>>> _requestTask = new();
-        Queue<TaskAwaiter<PB.IPBMessage>> _swap = new();
-        ConcurrentQueue<Data> msgs = new();
+        readonly Dictionary<Type, Queue<TaskAwaiter<PB.PBMessage>>> _requestTask = new();
+        Queue<TaskAwaiter<PB.PBMessage>> _swap = new();
+        ConcurrentQueue<PBMessage> msgs = new();
 
         void _onError(int error)
         {
             Loger.Error("Net Error Code:" + error);
             GameM.Event.RunEvent((int)EventIDM.NetError, error);
         }
-        void _onResponse(uint actorId, PB.IPBMessage message)
+        void _onResponse(PB.PBMessage message)
         {
             var type = message.GetType();
             uint cmd = Types.GetCMDCode(type);
 
-            if (actorId > 0)
+#if DebugEnable
+            if (cmd != 1 << 16)
+                PrintField.Print($"<Color=#00FF00>收到消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
+#endif
+            if (message.rpc > 0)
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
-                bool has = GameM.Event.RunMsgWithKey(cmd, actorId, message);
-
-#if DebugEnable
-                if (cmd != 1 << 16)
-                    PrintField.Print($"收到消息 cmd: main={(ushort)cmd} sub={cmd >> 16}  content:{0}", message);
-#endif
+                bool has = GameM.Event.RunMsgWithKey(cmd, message.rpc, message);
             }
             else
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
                 bool has = GameM.Event.RunMsg(cmd, message);
 #if DebugEnable
-                if (!has && (message != null && !_requestTask.ContainsKey(type)))
-                    Loger.Error($"没有注册的消息返回 cmd: main={(ushort)cmd} sub={cmd >> 16}  msg:{type.FullName}");
-                if (cmd != 1 << 16)
-                    PrintField.Print($"收到消息 cmd: main={(ushort)cmd} sub={cmd >> 16}  content:{0}", message);
+                if (!has && !_requestTask.ContainsKey(type))
+                    Loger.Error($"没有注册的消息返回 cmd:[{(ushort)cmd},{cmd >> 16}]  msg:{type.FullName}");
 #endif
-
-                if (message != null)
+                if (_requestTask.TryGetValue(type, out var queue))
                 {
-                    if (_requestTask.TryGetValue(type, out var queue))
-                    {
-                        //防止TrySetResult执行过程中 有另外的异步发送同时执行
-                        _requestTask[type] = _swap;
-                        while (queue.Count > 0)
-                            queue.Dequeue().TrySetResult(message);
-                        _swap = queue;
-                    }
+                    //防止TrySetResult执行过程中 有另外的异步发送同时执行
+                    _requestTask[type] = _swap;
+                    while (queue.Count > 0)
+                        queue.Dequeue().TrySetResult(message);
+                    _swap = queue;
                 }
             }
         }
@@ -104,9 +97,9 @@ namespace Game
                     Loger.Error($"未识别的链接类型->{type}");
                     return false;
             }
-            net.onReceive += (rpc, msg) =>
+            net.onReceive += msg =>
             {
-                msgs.Enqueue(new Data { rpc = rpc, message = msg });
+                msgs.Enqueue(msg);
             };
             net.onError += _onError;
             var b = await net.Connect();
@@ -119,76 +112,15 @@ namespace Game
         /// 非返回的消息发送
         /// </summary>
         /// <param name="message"></param>
-        public void Send(IPBMessage message)
+        public void Send(PBMessage message)
         {
-            Send(0, message);
-        }
-        public void Send(uint actorId, IPBMessage message)
-        {
-            PBWriter writer = PBBuffPool.Get();
-            try
-            {
-                message.Write(writer);
-
-                int len = writer.Position;
-                int headerLen;
-                if (actorId > 0)
-                    headerLen = 12;
-                else
-                    headerLen = 8;
-                int clen = len + headerLen;
-
-                if (clen > ushort.MaxValue)
-                {
-                    Loger.Error($"数据过大 len={clen}");
-                    return;
-                }
-
-                var bs = ArrayPool<byte>.Shared.Rent(ushort.MaxValue);
-                try
-                {
-                    writer.Seek(0);
-                    writer.Stream.Read(bs, headerLen, len);
-
-                    uint cmd = Types.GetCMDCode(message.GetType());
-                    bs[0] = (byte)(clen - 2);
-                    bs[1] = (byte)((clen - 2) >> 8);
-                    bs[3] = (byte)(actorId > 0 ? 1 : 0);
-                    bs[4] = (byte)cmd;
-                    bs[5] = (byte)(cmd >> 8);
-                    bs[6] = (byte)(cmd >> 16);
-                    bs[7] = (byte)(cmd >> 24);
-                    if (actorId > 0)
-                    {
-                        bs[8] = (byte)actorId;
-                        bs[9] = (byte)(actorId >> 8);
-                        bs[10] = (byte)(actorId >> 16);
-                        bs[11] = (byte)(actorId >> 24);
-                    }
-                    byte checkCode = 0;
-                    for (int i = 3; i < clen; i++)
-                        checkCode += bs[i];
-                    bs[2] = (byte)(~checkCode + 1);
-
-                    net.Send(bs, 0, clen);
-
-                    if (cmd != 1 << 16)
-                        PrintField.Print($"发送消息 cmd: main={(ushort)cmd} sub={cmd >> 16}  content:{0}", message);
-                }
-                catch (Exception)
-                {
-                    ArrayPool<byte>.Shared.Return(bs);
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                Loger.Error(e);
-            }
-            finally
-            {
-                PBBuffPool.Return(writer);
-            }
+#if DebugEnable
+            uint cmd = Types.GetCMDCode(message.GetType());
+            //心跳包
+            if (cmd != 1000 << 16)
+                PrintField.Print($"<Color=#FF0000>发送消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
+#endif
+            net.Send(message);
         }
 
         /// <summary>
@@ -196,11 +128,7 @@ namespace Game
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public TaskAwaiter<PB.IPBMessage> SendAsync(IPBMessage request)
-        {
-            return SendAsync(0, request);
-        }
-        public TaskAwaiter<PB.IPBMessage> SendAsync(uint actorId, IPBMessage request)
+        public TaskAwaiter<PB.PBMessage> SendAsync(PBMessage request)
         {
             Type t;
 #if ILRuntime
@@ -216,22 +144,18 @@ namespace Game
                 Loger.Error("没有responseType类型 req=" + t);
                 return null;
             }
-            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<PB.IPBMessage>> queue))
+            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<PB.PBMessage>> queue))
             {
-                queue = new Queue<TaskAwaiter<PB.IPBMessage>>();
+                queue = new Queue<TaskAwaiter<PB.PBMessage>>();
                 _requestTask[rsp] = queue;
             }
-            TaskAwaiter<PB.IPBMessage> task = new();
+            TaskAwaiter<PB.PBMessage> task = new();
             queue.Enqueue(task);
-            Send(actorId, request);
+            Send(request);
             return task;
         }
 
-        public TaskAwaiter<PB.IPBMessage> SendAsync(IPBMessage request, TaskManager taskManager)
-        {
-            return SendAsync(0, request, taskManager);
-        }
-        public TaskAwaiter<PB.IPBMessage> SendAsync(uint actorId, IPBMessage request, TaskManager taskManager)
+        public TaskAwaiter<PB.PBMessage> SendAsync(PBMessage request, TaskManager taskManager)
         {
             Type t;
 #if ILRuntime
@@ -247,14 +171,14 @@ namespace Game
                 Loger.Error("没有responseType类型 req=" + t);
                 return null;
             }
-            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<PB.IPBMessage>> queue))
+            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<PB.PBMessage>> queue))
             {
-                queue = new Queue<TaskAwaiter<PB.IPBMessage>>();
+                queue = new Queue<TaskAwaiter<PB.PBMessage>>();
                 _requestTask[rsp] = queue;
             }
-            TaskAwaiter<PB.IPBMessage> task = taskManager.Create<PB.IPBMessage>();
+            TaskAwaiter<PB.PBMessage> task = taskManager.Create<PB.PBMessage>();
             queue.Enqueue(task);
-            Send(actorId, request);
+            Send(request);
             return task;
         }
 
@@ -279,17 +203,11 @@ namespace Game
             var tick = DateTime.Now.Ticks;
             while (msgs.TryDequeue(out var item))
             {
-                _onResponse(item.rpc, item.message);
+                _onResponse(item);
                 //逻辑处理大于10 ms 放到下一帧处理
                 if (DateTime.Now.Ticks - tick > 100000)
                     break;
             }
-        }
-
-        struct Data
-        {
-            public uint rpc;
-            public PB.IPBMessage message;
         }
     }
 }

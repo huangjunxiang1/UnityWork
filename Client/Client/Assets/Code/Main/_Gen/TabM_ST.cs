@@ -3,52 +3,62 @@ using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 
-public unsafe struct TabM_ST : IComponentData
+public unsafe struct TabM_ST
 {
-    public readonly NativeArray<BlobAssetReference<_test2_ST>> _test2Array;
+    public readonly NativeArray<_test2_ST> _test2Array;
 
-    readonly NativeHashMap<int, BlobAssetReference<_test2_ST>> _test2Map;
+    readonly NativeHashMap<int, _test2_ST> _test2Map;
     public void Init(DBuffer buffer)
     {
         int len0 = buffer.Readint();
-        fixed (NativeArray<BlobAssetReference<_test2_ST>>* ptr = &_test2Array) *ptr = new NativeArray<BlobAssetReference<_test2_ST>>(len0, Allocator.Persistent);
-        fixed (NativeHashMap<int, BlobAssetReference<_test2_ST>>* ptr = &_test2Map) *ptr = new NativeHashMap<int, BlobAssetReference<_test2_ST>>(len0, AllocatorManager.Persistent);
+        fixed (NativeArray<_test2_ST>* ptr = &_test2Array) *ptr = new NativeArray<_test2_ST>(len0, Allocator.Persistent);
+        fixed (NativeHashMap<int, _test2_ST>* ptr = &_test2Map) *ptr = new NativeHashMap<int, _test2_ST>(len0, AllocatorManager.Persistent);
         for (int i = 0; i < len0; i++)
         {
-            var blobBuilder = new BlobBuilder(Allocator.Temp);
-            ref var t = ref blobBuilder.ConstructRoot<_test2_ST>();
-            t.id = buffer.Readint();
-            int len1 = buffer.Readint();
-            var tmp1 = blobBuilder.Allocate(ref t.value2, len1);
-            for (int j = 0; j < len1; j++) tmp1[j] = buffer.Readint();
-            t.longValue = buffer.Readlong();
-            int len3 = buffer.Readint();
-            var tmp3 = blobBuilder.Allocate(ref t.longValue2, len3);
-            for (int j = 0; j < len3; j++) tmp3[j] = buffer.Readlong();
-            t.v2t = new int2(buffer.Readint(), buffer.Readint());
-            int len5 = buffer.Readint();
-            var tmp5 = blobBuilder.Allocate(ref t.v2t2, len5);
-            for (int j = 0; j < len5; j++) tmp5[j] = new int2(buffer.Readint(), buffer.Readint());
-            t.f1 = buffer.Readfloat();
-            int len7 = buffer.Readint();
-            var tmp7 = blobBuilder.Allocate(ref t.f2, len7);
-            for (int j = 0; j < len7; j++) tmp7[j] = buffer.Readfloat();
-            t.b1 = buffer.Readbool();
-            int len9 = buffer.Readint();
-            var tmp9 = blobBuilder.Allocate(ref t.b2, len9);
-            for (int j = 0; j < len9; j++) tmp9[j] = buffer.Readbool();
-            BlobAssetReference<_test2_ST> bar = blobBuilder.CreateBlobAssetReference<_test2_ST>(Allocator.Persistent);
-            UnsafeUtility.WriteArrayElement(_test2Array.GetUnsafePtr(), i, bar);
-            _test2Map.Add(t.id, bar);
-            blobBuilder.Dispose();
+            _test2_ST st = new _test2_ST(buffer);
+            UnsafeUtility.WriteArrayElement(_test2Array.GetUnsafePtr(), i, st);
+            _test2Map.Add(st.id, st);
         }
     }
     public void Dispose()
     {
-        for (int i = 0; i < _test2Array.Length; i++) _test2Array[i].Dispose();
+        for (int i = 0; i < _test2Array.Length; i++)
+        {
+            _test2Array[i].value2.Dispose();
+            _test2Array[i].longValue2.Dispose();
+            _test2Array[i].v2t2.Dispose();
+            _test2Array[i].f2.Dispose();
+            _test2Array[i].b2.Dispose();
+        }
         _test2Array.Dispose();
         _test2Map.Dispose();
     }
 
-    [return: ReadOnly] public ref _test2_ST Get_test2(int key) => ref _test2Map[key].Value;
+    [return: ReadOnly] public _test2_ST Get_test2(int key) => _test2Map[key];
+}
+public partial struct _test2_ST
+{
+    public _test2_ST(DBuffer buffer)
+    {
+        this.id = buffer.Readint();
+        int len1 = buffer.Readint();
+        this.value2 = new UnsafeList<int>(len1, AllocatorManager.Persistent);
+        for (int i = 0; i < len1; i++) this.value2.Add(buffer.Readint());
+        this.longValue = buffer.Readlong();
+        int len3 = buffer.Readint();
+        this.longValue2 = new UnsafeList<long>(len3, AllocatorManager.Persistent);
+        for (int i = 0; i < len3; i++) this.longValue2.Add(buffer.Readlong());
+        this.v2t = new int2(buffer.Readint(), buffer.Readint());
+        int len5 = buffer.Readint();
+        this.v2t2 = new UnsafeList<int2>(len5, AllocatorManager.Persistent);
+        for (int i = 0; i < len5; i++) this.v2t2.Add(new int2(buffer.Readint(), buffer.Readint()));
+        this.f1 = buffer.Readfloat();
+        int len7 = buffer.Readint();
+        this.f2 = new UnsafeList<float>(len7, AllocatorManager.Persistent);
+        for (int i = 0; i < len7; i++) this.f2.Add(buffer.Readfloat());
+        this.b1 = buffer.Readbool();
+        int len9 = buffer.Readint();
+        this.b2 = new UnsafeList<bool>(len9, AllocatorManager.Persistent);
+        for (int i = 0; i < len9; i++) this.b2.Add(buffer.Readbool());
+    }
 }

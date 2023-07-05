@@ -17,7 +17,7 @@ unsafe static class TypeBinding
         appdomain.RegisterCrossBindingAdaptor(new CoroutineAdapter());
         appdomain.RegisterCrossBindingAdaptor(new IAsyncStateMachineAdapter());
         appdomain.RegisterCrossBindingAdaptor(new ScriptableObjectAdapter());
-        appdomain.RegisterCrossBindingAdaptor(new IPBMessageAdapter());
+        appdomain.RegisterCrossBindingAdaptor(new PBMessageAdapter());
 
         appdomain.RegisterValueTypeBinder(typeof(Quaternion), new QuaternionBinder());
         appdomain.RegisterValueTypeBinder(typeof(Vector2), new Vector2Binder());

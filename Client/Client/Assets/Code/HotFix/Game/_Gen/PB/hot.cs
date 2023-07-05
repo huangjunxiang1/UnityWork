@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Main;
 
-namespace PB.hot
+namespace hot
 {
     public partial class TestPBhot
     {

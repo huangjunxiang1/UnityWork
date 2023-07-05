@@ -68,9 +68,5 @@ namespace Main
         {
             this.queue.Enqueue(action);
         }
-        public void Dispose()
-        {
-            Loger.PostToMainThread = null;
-        }
     }
 }

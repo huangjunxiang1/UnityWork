@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Main;
 
-namespace PB.hot
+namespace hot
 {
-    public partial class TestPBhot : IPBMessage
+    public partial class TestPBhot : PB.PBMessage
     {
-        public void Write(PBWriter writer)
+        public override void Write(PB.PBWriter writer)
         {
             if (this.test != 0)
             {
@@ -33,7 +34,7 @@ namespace PB.hot
                 writer.Writeint64(this.test7);
             }
         }
-        public void Read(PBReader reader)
+        public override void Read(PB.PBReader reader)
         {
             int tag;
             while ((tag = reader.ReadTag()) != 0)
