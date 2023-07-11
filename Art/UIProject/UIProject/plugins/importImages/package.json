@@ -1,0 +1,11 @@
+{
+  "name": "importImages",
+  "displayName": "导入美术资源",
+  "description": "同步美术目录到包里面",
+  "version": "1.0",
+  "author": {
+    "name": "jyonl"
+  },
+  "icon": "",
+  "main": "main.lua"
+}
