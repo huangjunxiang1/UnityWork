@@ -29,6 +29,7 @@ enum COM_Client_Status
 }
 
 //类定义注释
+//MsgID=1@2
 message TestPBmain
 {
   bool test =1;//字段注释

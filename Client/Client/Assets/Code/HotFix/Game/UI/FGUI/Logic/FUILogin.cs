@@ -35,10 +35,10 @@ partial class FUILogin
         demoIdx = _demo.selectedIndex;
     }
 
-    [Event((int)EventIDM.NetError)]
-    void connectRet(EventerContent e)
+    [Event]
+    void connectRet(EC_NetError e)
     {
-        int error = e.Value;
+        int error = e.code;
 
     }
 

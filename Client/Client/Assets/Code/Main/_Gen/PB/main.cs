@@ -22,6 +22,7 @@ namespace main
     /// <summary>
     /// 类定义注释
     /// </summary>
+    [Message(1, 2)]
     public partial class TestPBmain
     {
         /// <summary>

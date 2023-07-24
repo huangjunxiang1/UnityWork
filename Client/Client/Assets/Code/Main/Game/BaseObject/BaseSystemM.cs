@@ -11,11 +11,11 @@ namespace Game
     abstract class BaseSystemM : ObjectM
     {
         static List<BaseSystemM> sys = new List<BaseSystemM>();
-        [Event((int)EventIDM.InScene)]
-        static void _inScene(EventerContent e)
+        [Event]
+        static void _inScene(EC_InScene e)
         {
-            int sceneID = e.Value;
-            int sceneType = (int)e.Data;
+            int sceneID = e.sceneId;
+            int sceneType = (int)e.sceneType;
             var types = Types.GetAllAssignableTypes(typeof(BaseSystemM));
             int len = types.Length;
             for (int i = 0; i < len; i++)
@@ -39,11 +39,11 @@ namespace Game
                 }
             }
         }
-        [Event((int)EventIDM.OutScene)]
-        static void _outScene(EventerContent e)
+        [Event]
+        static void _outScene(EC_OutScene e)
         {
-            int sceneID = e.Value;
-            int sceneType = (int)e.Data;
+            int sceneID = e.sceneId;
+            int sceneType = (int)e.sceneType;
             int len = sys.Count;
             for (int i = 0; i < len; i++)
             {

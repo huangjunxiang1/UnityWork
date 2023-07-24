@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Reflection;
 using Main;
 
@@ -8,20 +10,34 @@ namespace Game
     public class EventSystem
     {
         bool _rigistedStaticMethodEvt = false;
-        readonly Dictionary<uint, List<MsgData>> _msgMap = new(97);
-        readonly Dictionary<int, List<EvtData>> _evtMap = new(97);
-        readonly Dictionary<long, Dictionary<uint, List<MsgData>>> _msgKeyMap = new(97);
-        readonly Dictionary<long, Dictionary<int, List<EvtData>>> _evtKeyMap = new(97);
-        readonly Dictionary<uint, int> _msgCalling = new(5);
-        readonly Dictionary<int, int> _evtCalling = new(5);
-        readonly Dictionary<uint, int> _msgKeyCalling = new(5);
-        readonly Dictionary<int, int> _evtKeyCalling = new(5);
+        readonly Dictionary<Type, List<EvtData>> _evtMap = new(97);
+        readonly Dictionary<long, Dictionary<Type, List<EvtData>>> _rpcEvtMap = new(97);
+        readonly Dictionary<Type, int> _evtCalling = new(5);
+        readonly Dictionary<Type, int> _rpcEvtCalling = new(5);
 
         readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
-        readonly static Dictionary<Type, MethodData[]> _listenerWithKeyMethodCache = new(97);
+        readonly static Dictionary<Type, MethodData[]> _rpcListenerMethodCache = new(97);
         readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
         readonly static object[] _ilRuntimePs = new object[1];
 
+        static bool _checkEventMethod(MethodInfo method, out bool isMessage, out Type key)
+        {
+            var ps = method.GetParameters();
+            isMessage = false;
+            key = null;
+            if (ps.Length != 1)
+            {
+                Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
+                return false;
+            }
+            key = ps[0].ParameterType;
+#if ILRuntime
+            if (key is ILRuntime.Reflection.ILRuntimeWrapperType warp)
+                key = warp.RealType;
+#endif
+            isMessage = typeof(PB.PBMessage).IsAssignableFrom(key);
+            return true;
+        }
         /// <summary>
         /// 获取对应事件函数
         /// </summary>
@@ -41,94 +57,21 @@ namespace Game
                 for (int i = 0; i < _methodInfos.Count; i++)
                 {
                     var method = _methodInfos[i];
-                    var ps = method.GetParameters();
-                    var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
-                    if (mas.Length > 0 && method.IsVirtual)
+
+                    var ea = method.GetCustomAttributes(typeof(EventAttribute), false).FirstOrDefault() as EventAttribute;
+                    if (ea != null)
                     {
-                        Loger.Error("监听消息不使用virtual来实现");
-                        continue;
-                    }
-                    for (int k = 0; k < mas.Length; k++)
-                    {
-                        MsgAttribute a = (MsgAttribute)mas[k];
+                        if (method.IsVirtual)
+                        {
+                            Loger.Error("监听消息不使用virtual来实现");
+                            continue;
+                        }
+
                         MethodData e = new();
+                        if (!_checkEventMethod(method, out e.isMessasge, out e.key))
+                            continue;
                         e.info = method;
-                        e.type = 0;
-                        e.opCode = a.OpCode;
-                        e.sortOrder = a.SortOrder;
-
-#if ILRuntime
-                        if (t is ILRuntime.Reflection.ILRuntimeType)
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.PBMessage))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.PBMessage))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-
-                        evts.Add(e);
-                    }
-
-                    var eas = method.GetCustomAttributes(typeof(EventAttribute), false);
-                    if (eas.Length > 0 && method.IsVirtual)
-                    {
-                        Loger.Error("监听消息不使用virtual来实现");
-                        continue;
-                    }
-                    for (int k = 0; k < eas.Length; k++)
-                    {
-                        EventAttribute a = (EventAttribute)eas[k];
-                        MethodData e = new();
-                        e.info = method;
-                        e.type = 1;
-                        e.eventID = a.EventID;
-                        e.sortOrder = a.SortOrder;
-
-#if ILRuntime
-                        if (t is ILRuntime.Reflection.ILRuntimeType)
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(EventerContent))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-
+                        e.sortOrder = ea.SortOrder;
                         evts.Add(e);
                     }
                 }
@@ -136,9 +79,9 @@ namespace Game
             }
             return result;
         }
-        static MethodData[] _getListenerWithKeyMethods(Type t)
+        static MethodData[] _getRPCListenerMethods(Type t)
         {
-            if (!_listenerWithKeyMethodCache.TryGetValue(t, out MethodData[] result))
+            if (!_rpcListenerMethodCache.TryGetValue(t, out MethodData[] result))
             {
                 _methodInfos.Clear();
                 Type tt = t;
@@ -150,98 +93,24 @@ namespace Game
                 for (int i = 0; i < _methodInfos.Count; i++)
                 {
                     var method = _methodInfos[i];
-                    var ps = method.GetParameters();
-                    var mas = method.GetCustomAttributes(typeof(MsgWithKeyAttribute), false);
-                    if (mas.Length > 0 && method.IsVirtual)
+                    var ea = method.GetCustomAttributes(typeof(RPCEventAttribute), false).FirstOrDefault() as RPCEventAttribute;
+                    if (ea != null)
                     {
-                        Loger.Error("监听消息不使用virtual来实现");
-                        continue;
-                    }
-                    for (int k = 0; k < mas.Length; k++)
-                    {
-                        MsgWithKeyAttribute a = (MsgWithKeyAttribute)mas[k];
+                        if (method.IsVirtual)
+                        {
+                            Loger.Error("监听消息不使用virtual来实现");
+                            continue;
+                        }
+
                         MethodData e = new();
+                        if (!_checkEventMethod(method, out e.isMessasge, out e.key))
+                            continue;
                         e.info = method;
-                        e.type = 0;
-                        e.opCode = a.OpCode;
-                        e.sortOrder = a.SortOrder;
-
-#if ILRuntime
-                        if (t is ILRuntime.Reflection.ILRuntimeType)
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.PBMessage))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.PBMessage))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-
-                        evts.Add(e);
-                    }
-
-                    var eas = method.GetCustomAttributes(typeof(EventWithKeyAttribute), false);
-                    if (eas.Length > 0 && method.IsVirtual)
-                    {
-                        Loger.Error("监听消息不使用virtual来实现");
-                        continue;
-                    }
-                    for (int k = 0; k < eas.Length; k++)
-                    {
-                        EventWithKeyAttribute a = (EventWithKeyAttribute)eas[k];
-                        MethodData e = new();
-                        e.info = method;
-                        e.type = 1;
-                        e.eventID = a.EventID;
-                        e.sortOrder = a.SortOrder;
-
-#if ILRuntime
-                        if (t is ILRuntime.Reflection.ILRuntimeType)
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (ps.Length == 0)
-                                e.pCnt = 0;
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(EventerContent))
-                                e.pCnt = 1;
-                            else
-                            {
-                                Loger.Error("无法解析的参数类型 class:" + t.FullName + " method:" + method.Name);
-                                continue;
-                            }
-                        }
-
+                        e.sortOrder = ea.SortOrder;
                         evts.Add(e);
                     }
                 }
-                result = _listenerWithKeyMethodCache[t] = evts.ToArray();
+                result = _rpcListenerMethodCache[t] = evts.ToArray();
             }
             return result;
         }
@@ -262,114 +131,28 @@ namespace Game
                 for (int j = 0; j < len; j++)
                 {
                     var method = methods[j];
-                    var mas = method.GetCustomAttributes(typeof(MsgAttribute), false);
-                    for (int k = 0; k < mas.Length; k++)
+
+                    var ea = method.GetCustomAttributes(typeof(EventAttribute), false).FirstOrDefault() as EventAttribute;
+                    if (ea != null)
                     {
-                        var a = (MsgAttribute)mas[k];
-                        if (!_msgMap.TryGetValue(a.OpCode, out var evts))
-                        {
-                            evts = new List<MsgData>();
-                            _msgMap[a.OpCode] = evts;
-                        }
+                        EvtData e = new();
+                        if (!_checkEventMethod(method, out e.isMessage, out e.Key))
+                            continue;
 
-                        var ps = method.GetParameters();
-                        MsgData e = new();
-                        e.sortOrder = a.SortOrder;
-                        e.isP0 = ps.Length == 0;
-
-#if ILRuntime
-                        if (type is ILRuntime.Reflection.ILRuntimeType)
-                        {
-                            if (ps.Length == 0)
-                                e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(PB.PBMessage))
-                                e.action1 = p =>
-                                {
-                                    _ilRuntimePs[0] = p;
-                                    ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, _ilRuntimePs, default);
-                                    _ilRuntimePs[0] = null;
-                                };
-                            else
-                            {
-                                Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
-                                continue;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (ps.Length == 0)
-                                e.action0 = (Action)method.CreateDelegate(typeof(Action));
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(PB.PBMessage))
-                                e.action1 = (Action<PB.PBMessage>)method.CreateDelegate(typeof(Action<PB.PBMessage>));
-                            else
-                            {
-                                Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
-                                continue;
-                            }
-                        }
-
-                        if (evts.Count == 0 || a.SortOrder >= evts[evts.Count - 1].sortOrder)
-                            evts.Add(e);
-                        else
-                        {
-                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder) + 1;
-                            evts.Insert(inserIdx, e);
-                        }
-                    }
-
-                    var eas = method.GetCustomAttributes(typeof(EventAttribute), false);
-                    for (int k = 0; k < eas.Length; k++)
-                    {
-                        var a = (EventAttribute)eas[k];
-                        if (!_evtMap.TryGetValue(a.EventID, out var evts))
+                        if (!_evtMap.TryGetValue(e.Key, out var evts))
                         {
                             evts = new List<EvtData>();
-                            _evtMap[a.EventID] = evts;
+                            _evtMap[e.Key] = evts;
                         }
 
-                        var ps = method.GetParameters();
-                        EvtData e = new();
-                        e.sortOrder = a.SortOrder;
-                        e.isP0 = ps.Length == 0;
+                        e.method = method;
+                        e.sortOrder = ea.SortOrder;
 
-#if ILRuntime
-                        if (type is ILRuntime.Reflection.ILRuntimeType)
-                        {
-                            if (ps.Length == 0)
-                                e.action0 = () => ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, default, default);
-                            else if (ps.Length == 1 && ((ILRuntime.Reflection.ILRuntimeWrapperType)ps[0].ParameterType).RealType == typeof(EventerContent))
-                                e.action1 = p =>
-                                {
-                                    _ilRuntimePs[0] = p;
-                                    ((ILRuntime.Reflection.ILRuntimeMethodInfo)method).Invoke(null, default, default, _ilRuntimePs, default);
-                                    _ilRuntimePs[0] = null;
-                                };
-                            else
-                            {
-                                Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
-                                continue;
-                            }
-                        }
-                        else
-#endif
-                        {
-                            if (ps.Length == 0)
-                                e.action0 = (Action)method.CreateDelegate(typeof(Action));
-                            else if (ps.Length == 1 && ps[0].ParameterType == typeof(EventerContent))
-                                e.action1 = (Action<EventerContent>)method.CreateDelegate(typeof(Action<EventerContent>));
-                            else
-                            {
-                                Loger.Error("参数类型不正确  class:" + type.FullName + "  method:" + method.Name);
-                                continue;
-                            }
-                        }
-
-                        if (evts.Count == 0 || a.SortOrder >= evts[evts.Count - 1].sortOrder)
+                        if (evts.Count == 0 || ea.SortOrder >= evts[evts.Count - 1].sortOrder)
                             evts.Add(e);
                         else
                         {
-                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < a.SortOrder) + 1;
+                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < ea.SortOrder) + 1;
                             evts.Insert(inserIdx, e);
                         }
                     }
@@ -391,166 +174,85 @@ namespace Game
                 ms = _getListenerMethods(ilWarp.ILInstance.Type.ReflectionType);
             else
 #endif
-            ms = _getListenerMethods(target.GetType());
+                ms = _getListenerMethods(target.GetType());
 
             for (int i = 0; i < ms.Length; i++)
             {
                 MethodData m = ms[i];
 
-                if (m.type == 0)
+                if (!_evtMap.TryGetValue(m.key, out var evts))
                 {
-                    if (!_msgMap.TryGetValue(m.opCode, out var evts))
-                    {
-                        evts = new List<MsgData>();
-                        _msgMap[m.opCode] = evts;
-                    }
-
-                    MsgData e = new();
-                    e.sortOrder = m.sortOrder;
-                    e.isP0 = m.pCnt == 0;
-                    e.target = target;
-
-                    if (m.pCnt == 0)
-                        e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
-                    else if (m.pCnt == 1)
-                        e.action1 = (Action<PB.PBMessage>)m.info.CreateDelegate(typeof(Action<PB.PBMessage>), target);
-
-                    if (!_msgCalling.TryGetValue(m.opCode, out var idx))
-                        evts.Add(e);
-                    else
-                    {
-                        if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
-                            evts.Add(e);
-                        else
-                        {
-                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
-                            if (inserIdx <= idx) _msgCalling[m.opCode]++;
-                            evts.Insert(inserIdx, e);
-                        }
-                    }
+                    evts = new List<EvtData>();
+                    _evtMap[m.key] = evts;
                 }
-                else if (m.type == 1)
+
+                EvtData e = new();
+                e.Key = m.key;
+                e.isMessage = m.isMessasge;
+                e.method = m.info;
+                e.sortOrder = m.sortOrder;
+                e.target = target;
+
+                if (!_evtCalling.TryGetValue(m.key, out var idx))
+                    evts.Add(e);
+                else
                 {
-                    if (!_evtMap.TryGetValue(m.eventID, out var evts))
-                    {
-                        evts = new List<EvtData>();
-                        _evtMap[m.eventID] = evts;
-                    }
-
-                    EvtData e = new();
-                    e.sortOrder = m.sortOrder;
-                    e.isP0 = m.pCnt == 0;
-                    e.target = target;
-
-                    if (m.pCnt == 0)
-                        e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
-                    else if (m.pCnt == 1)
-                        e.action1 = (Action<EventerContent>)m.info.CreateDelegate(typeof(Action<EventerContent>), target);
-
-                    if (!_evtCalling.TryGetValue(m.eventID, out var idx))
+                    if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
                         evts.Add(e);
                     else
                     {
-                        if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
-                            evts.Add(e);
-                        else
-                        {
-                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
-                            if (inserIdx <= idx) _evtCalling[m.eventID]++;
-                            evts.Insert(inserIdx, e);
-                        }
+                        int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
+                        if (inserIdx <= idx) _evtCalling[m.key]++;
+                        evts.Insert(inserIdx, e);
                     }
                 }
             }
         }
-        public void RigisteKeyListener(long key, object target)
+        public void RigisteRPCListener(long rpc, object target)
         {
             MethodData[] ms;
 #if ILRuntime
             if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                ms = _getListenerWithKeyMethods(ilInstance.Type.ReflectionType);
+                ms = _getRPCListenerMethods(ilInstance.Type.ReflectionType);
             else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                ms = _getListenerWithKeyMethods(ilWarp.ILInstance.Type.ReflectionType);
+                ms = _getRPCListenerMethods(ilWarp.ILInstance.Type.ReflectionType);
             else
 #endif
-            ms = _getListenerWithKeyMethods(target.GetType());
+                ms = _getRPCListenerMethods(target.GetType());
 
             for (int i = 0; i < ms.Length; i++)
             {
                 MethodData m = ms[i];
 
-                if (m.type == 0)
+                if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 {
-                    if (!_msgKeyMap.TryGetValue(key, out var map))
-                    {
-                        map = new();
-                        _msgKeyMap[key] = map;
-                    }
-                    if (!map.TryGetValue(m.opCode, out List<MsgData> evts))
-                    {
-                        evts = new();
-                        map[m.opCode] = evts;
-                    }
-
-                    MsgData e = new();
-                    e.sortOrder = m.sortOrder;
-                    e.isP0 = m.pCnt == 0;
-                    e.target = target;
-
-                    if (m.pCnt == 0)
-                        e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
-                    else if (m.pCnt == 1)
-                        e.action1 = (Action<PB.PBMessage>)m.info.CreateDelegate(typeof(Action<PB.PBMessage>), target);
-
-                    if (!_msgKeyCalling.TryGetValue(m.opCode, out var idx))
-                        evts.Add(e);
-                    else
-                    {
-                        if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
-                            evts.Add(e);
-                        else
-                        {
-                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
-                            if (inserIdx <= idx) _msgKeyCalling[m.opCode]++;
-                            evts.Insert(inserIdx, e);
-                        }
-                    }
+                    map = new();
+                    _rpcEvtMap[rpc] = map;
                 }
-                else if (m.type == 1)
+                if (!map.TryGetValue(m.key, out var evts))
                 {
-                    if (!_evtKeyMap.TryGetValue(key, out Dictionary<int, List<EvtData>> map))
-                    {
-                        map = new();
-                        _evtKeyMap[key] = map;
-                    }
-                    if (!map.TryGetValue(m.eventID, out List<EvtData> evts))
-                    {
-                        evts = new();
-                        map[m.eventID] = evts;
-                    }
+                    evts = new();
+                    map[m.key] = evts;
+                }
 
-                    EvtData e = new();
-                    e.sortOrder = m.sortOrder;
-                    e.isP0 = m.pCnt == 0;
-                    e.target = target;
+                EvtData e = new();
+                e.Key = m.key;
+                e.isMessage = m.isMessasge;
+                e.method = m.info;
+                e.sortOrder = m.sortOrder;
+                e.target = target;
 
-                    if (m.pCnt == 0)
-                        e.action0 = (Action)m.info.CreateDelegate(typeof(Action), target);
-                    else if (m.pCnt == 1)
-                        e.action1 = (Action<EventerContent>)m.info.CreateDelegate(typeof(Action<EventerContent>), target);
-
-                    if (!_evtKeyCalling.TryGetValue(m.eventID, out var idx))
+                if (!_rpcEvtCalling.TryGetValue(m.key, out var idx))
+                    evts.Add(e);
+                else
+                {
+                    if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
                         evts.Add(e);
                     else
                     {
-                        if (evts.Count == 0 || m.sortOrder >= evts[evts.Count - 1].sortOrder)
-                            evts.Add(e);
-                        else
-                        {
-                            int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
-                            if (inserIdx <= idx) _evtKeyCalling[m.eventID]++;
-                            evts.Insert(inserIdx, e);
-                        }
+                        int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
+                        if (inserIdx <= idx) _rpcEvtCalling[m.key]++;
+                        evts.Insert(inserIdx, e);
                     }
                 }
             }
@@ -570,53 +272,32 @@ namespace Game
                 t = ilWarp.ILInstance.Type.ReflectionType;
             else
 #endif
-            t = target.GetType();
+                t = target.GetType();
 
             if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
                 for (int i = 0; i < ms.Length; i++)
                 {
                     MethodData m = ms[i];
-                    if (m.type == 0)
+                    var lst = _evtMap[m.key];
+                    if (_evtCalling.TryGetValue(m.key, out int exIdx))
                     {
-                        var lst = _msgMap[m.opCode];
-                        if (_msgCalling.TryGetValue(m.opCode, out int exIdx))
+                        for (int j = lst.Count - 1; j >= 0; j--)
                         {
-                            for (int j = lst.Count - 1; j >= 0; j--)
+                            if (lst[j].target == target)
                             {
-                                if (lst[j].target == target)
-                                {
-                                    lst.RemoveAt(j);
-                                    if (exIdx <= j)
-                                        _msgCalling[m.opCode] = --exIdx;
-                                }
+                                lst.RemoveAt(j);
+                                if (exIdx <= j)
+                                    _evtCalling[m.key] = --exIdx;
                             }
                         }
-                        else
-                            lst.RemoveAll(t => t.target == target);
                     }
-                    else if (m.type == 1)
-                    {
-                        var lst = _evtMap[m.eventID];
-                        if (_evtCalling.TryGetValue(m.eventID, out int exIdx))
-                        {
-                            for (int j = lst.Count - 1; j >= 0; j--)
-                            {
-                                if (lst[j].target == target)
-                                {
-                                    lst.RemoveAt(j);
-                                    if (exIdx <= j)
-                                        _evtCalling[m.eventID] = --exIdx;
-                                }
-                            }
-                        }
-                        else
-                            lst.RemoveAll(t => t.target == target);
-                    }
+                    else
+                        lst.RemoveAll(t => t.target == target);
                 }
             }
         }
-        public void RemoveKeyListener(long key, object target)
+        public void RemoveRPCListener(long rpc, object target)
         {
             Type t;
 #if ILRuntime
@@ -626,244 +307,114 @@ namespace Game
                 t = ilWarp.ILInstance.Type.ReflectionType;
             else
 #endif
-            t = target.GetType();
+                t = target.GetType();
 
-            if (_listenerWithKeyMethodCache.TryGetValue(t, out MethodData[] ms))
+            if (_rpcListenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
                 for (int i = 0; i < ms.Length; i++)
                 {
                     MethodData m = ms[i];
-                    if (m.type == 0)
+                    var lst = _rpcEvtMap[rpc][m.key];
+                    if (_rpcEvtCalling.TryGetValue(m.key, out int exIdx))
                     {
-                        var lst = _msgKeyMap[key][m.opCode];
-                        if (_msgKeyCalling.TryGetValue(m.opCode, out int exIdx))
+                        for (int j = lst.Count - 1; j >= 0; j--)
                         {
-                            for (int j = lst.Count - 1; j >= 0; j--)
+                            if (lst[j].target == target)
                             {
-                                if (lst[j].target == target)
-                                {
-                                    lst.RemoveAt(j);
-                                    if (exIdx <= j)
-                                        _msgKeyCalling[m.opCode] = --exIdx;
-                                }
+                                lst.RemoveAt(j);
+                                if (exIdx <= j)
+                                    _rpcEvtCalling[m.key] = --exIdx;
                             }
                         }
-                        else
-                            lst.RemoveAll(t => t.target == target);
                     }
-                    else if (m.type == 1)
-                    {
-                        var lst = _evtKeyMap[key][m.eventID];
-                        if (_evtKeyCalling.TryGetValue(m.eventID, out int exIdx))
-                        {
-                            for (int j = lst.Count - 1; j >= 0; j--)
-                            {
-                                if (lst[j].target == target)
-                                {
-                                    lst.RemoveAt(j);
-                                    if (exIdx <= j)
-                                        _evtKeyCalling[m.eventID] = --exIdx;
-                                }
-                            }
-                        }
-                        else
-                            lst.RemoveAll(t => t.target == target);
-                    }
+                    else
+                        lst.RemoveAll(t => t.target == target);
                 }
             }
         }
 
-        /// <summary>
-        /// 推送接受到的网络消息
-        /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="message"></param>
-        public bool RunMsg(uint cmd, PB.PBMessage message = null)
+        public void RunEvent(object data)
         {
-            if (!_msgMap.TryGetValue(cmd, out var evts))
-                return false;
-
-            if (_msgCalling.ContainsKey(cmd))
+            var key = data.GetType();
+            if (_evtMap.TryGetValue(key, out var evts))
             {
-                Loger.Error("消息执行队列循环 msg=" + message);
-                return true;
-            }
-            int idx = _msgCalling[cmd] = 0;
-            for (; idx < evts.Count; idx = ++_msgCalling[cmd])
-            {
-                MsgData e = evts[idx];
-                try
+                if (_evtCalling.ContainsKey(key))
                 {
-                    if (e.isP0) e.action0();
-                    else e.action1(message);
-                }
-                catch (Exception ex)
-                {
-                    Loger.Error("消息执行出错 error:" + ex.ToString());
-                }
-            }
-            _msgCalling.Remove(cmd);
-
-            return true;
-        }
-        public bool RunMsgWithKey(uint cmd, long key, PB.PBMessage message = null)
-        {
-            if (!_msgKeyMap.TryGetValue(key, out var map))
-                return false;
-
-            if (!map.TryGetValue(cmd, out var evts))
-                return false;
-
-            if (_msgKeyCalling.ContainsKey(cmd))
-            {
-                Loger.Error("消息执行队列循环 msg=" + message);
-                return true;
-            }
-            int idx = _msgKeyCalling[cmd] = 0;
-            for (; idx < evts.Count; idx = ++_msgKeyCalling[cmd])
-            {
-                MsgData e = evts[idx];
-                try
-                {
-                    if (e.isP0) e.action0();
-                    else e.action1(message);
-                }
-                catch (Exception ex)
-                {
-                    Loger.Error("消息执行出错 error:" + ex.ToString());
-                }
-            }
-            _msgKeyCalling.Remove(cmd);
-
-            return true;
-        }
-
-        /// <summary>
-        /// 推送事件
-        /// </summary>
-        /// <param name="eventID"></param>
-        /// <param name="data"></param>
-        public void RunEvent(int eventID)
-        {
-            RunEvent(eventID, 0, null);
-        }
-        public void RunEvent(int eventID, object data)
-        {
-            RunEvent(eventID, 0, data);
-        }
-        public void RunEvent(int eventID, int value)
-        {
-            RunEvent(eventID, value, null);
-        }
-        public void RunEvent(int eventID, int value, object data)
-        {
-            if (_evtMap.TryGetValue(eventID, out var evts))
-            {
-                if (_evtCalling.ContainsKey(eventID))
-                {
-                    Loger.Error("事件执行队列循环 id=" + eventID);
+                    Loger.Error("事件执行队列循环 id=" + key);
                     return;
                 }
-                int idx = _evtCalling[eventID] = 0;
-                for (; idx < evts.Count; idx = ++_evtCalling[eventID])
+                int i = _evtCalling[key] = 0;
+                for (; i < evts.Count; i = ++_evtCalling[key])
                 {
-                    EvtData e = evts[idx];
+                    EvtData e = evts[i];
                     try
                     {
-                        if (e.isP0) e.action0();
-                        else e.action1(new EventerContent(e.target, value, data));
+                        _ilRuntimePs[0] = data;
+                        e.method.Invoke(e.target, default, default, _ilRuntimePs, default);
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
                 }
-                _evtCalling.Remove(eventID);
+                _evtCalling.Remove(key);
             }
         }
 
-        /// <summary>
-        /// 推送key事件
-        /// </summary>
-        /// <param name="eventID"></param>
-        /// <param name="key"></param>
-        public void RunEventWithKey(int eventID, long key)
+        public void RunRPCEvent(long rpc, object data)
         {
-            RunEventWithKey(eventID, key, 0, null);
-        }
-        public void RunEventWithKey(int eventID, long key, object data)
-        {
-            RunEventWithKey(eventID, key, 0, data);
-        }
-        public void RunEventWithKey(int eventID, long key, int value)
-        {
-            RunEventWithKey(eventID, key, value, null);
-        }
-        public void RunEventWithKey(int eventID, long key, int value, object data)
-        {
-            if (!_evtKeyMap.TryGetValue(key, out var map))
+            var key = data.GetType();
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 return;
-            if (!map.TryGetValue(eventID, out var evts))
+            if (!map.TryGetValue(key, out var evts))
                 return;
 
-            if (_evtKeyCalling.ContainsKey(eventID))
+            if (_rpcEvtCalling.ContainsKey(key))
             {
-                Loger.Error("事件执行队列循环 id=" + eventID);
+                Loger.Error("事件执行队列循环 id=" + key);
                 return;
             }
-            int idx = _evtKeyCalling[eventID] = 0;
-            for (; idx < evts.Count; idx = ++_evtKeyCalling[eventID])
+            int i = _rpcEvtCalling[key] = 0;
+            for (; i < evts.Count; i = ++_rpcEvtCalling[key])
             {
-                EvtData e = evts[idx];
+                EvtData e = evts[i];
                 try
                 {
-                    if (e.isP0) e.action0();
-                    else e.action1(new EventerContent(e.target, value, data));
+                    _ilRuntimePs[0] = data;
+                    e.method.Invoke(e.target, default, default, _ilRuntimePs, default);
                 }
                 catch (Exception ex)
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
             }
-            _evtKeyCalling.Remove(eventID);
+            _rpcEvtCalling.Remove(key);
         }
 
         public void Clear()
         {
             _rigistedStaticMethodEvt = false;
-            _msgMap.Clear();
             _evtMap.Clear();
-            _msgKeyMap.Clear();
-            _evtKeyMap.Clear();
+            _rpcEvtMap.Clear();
         }
 
-        class MsgData
-        {
-            public bool isP0;//无参回调
-            public int sortOrder;
-            public Action action0;
-            public Action<PB.PBMessage> action1;
-            public object target;
-            public long Key;
-        }
         class EvtData
         {
-            public bool isP0;//无参回调
+            public Type Key;
+            public bool isMessage;//true 消息  false事件
+
+            public MethodInfo method;
             public int sortOrder;
-            public Action action0;
-            public Action<EventerContent> action1;
+
             public object target;
-            public long Key;
         }
         class MethodData
         {
-            public MethodInfo info;
-            public byte type;//0 消息  1事件
-            public int pCnt;//0无参 1一个参数
-            public int sortOrder;
+            public Type key;
+            public bool isMessasge;//true 消息  false事件
 
-            public ushort opCode;//消息ID
-            public int eventID;//事件ID
+            public MethodInfo info;
+            public int sortOrder;
         }
     }
 }

@@ -15,11 +15,11 @@ namespace Game
     {
         public int SceneID { get; private set; }
 
-        [Event((int)EventIDM.QuitGame)]
-        void QuitGame()
+        [Event]
+        void QuitGame(EC_QuitGame e)
         {
             if (Application.isEditor)
-                GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID, TabL.GetScene(SceneID).type);
+                GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
             GameM.Net.DisConnect();
         }
 
@@ -32,7 +32,7 @@ namespace Game
             GameL.UI.CloseAll();
             GameM.World.DisposeAllChildren();
 
-            GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID, TabL.GetScene(SceneID).type);
+            GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
             SceneID = 1;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(SceneID).name).AsTask();
@@ -41,7 +41,7 @@ namespace Game
             await GameL.UI.OpenAsync<FUILogin>();
             ui.max = 1;
 
-            GameM.Event.RunEvent((int)EventIDM.InScene, SceneID, TabL.GetScene(SceneID).type);
+            GameM.Event.RunEvent(new EC_InScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
         }
         public async TaskAwaiter InScene(int sceneId)
         {
@@ -52,7 +52,7 @@ namespace Game
             GameL.UI.CloseAll();
             GameM.World.DisposeAllChildren();
 
-            GameM.Event.RunEvent((int)EventIDM.OutScene, SceneID, TabL.GetScene(SceneID).type);
+            GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
             SceneID = sceneId;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(sceneId).name).AsTask();
@@ -60,7 +60,7 @@ namespace Game
 
             ui.max = 1;
 
-            GameM.Event.RunEvent((int)EventIDM.InScene, sceneId, TabL.GetScene(sceneId).type);
+            GameM.Event.RunEvent(new EC_InScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
             BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
             GameObject cm = new GameObject("CMTarget");
             cm.transform.position = new Vector3(0, 0, 0);

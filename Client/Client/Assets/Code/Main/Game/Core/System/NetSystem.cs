@@ -44,7 +44,7 @@ namespace Game
         void _onError(int error)
         {
             Loger.Error("Net Error Code:" + error);
-            GameM.Event.RunEvent((int)EventIDM.NetError, error);
+            GameM.Event.RunEvent(new EC_NetError { code = error });
         }
         void _onResponse(PB.PBMessage message)
         {
@@ -58,16 +58,13 @@ namespace Game
             if (message.rpc > 0)
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
-                bool has = GameM.Event.RunMsgWithKey(cmd, message.rpc, message);
+                GameM.Event.RunRPCEvent(message.rpc, message);
             }
             else
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
-                bool has = GameM.Event.RunMsg(cmd, message);
-#if DebugEnable
-                if (!has && !_requestTask.ContainsKey(type))
-                    Loger.Error($"没有注册的消息返回 cmd:[{(ushort)cmd},{cmd >> 16}]  msg:{type.FullName}");
-#endif
+                GameM.Event.RunEvent(message);
+
                 if (_requestTask.TryGetValue(type, out var queue))
                 {
                     //防止TrySetResult执行过程中 有另外的异步发送同时执行

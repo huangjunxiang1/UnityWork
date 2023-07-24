@@ -66,8 +66,8 @@ partial class FUIFighting3
         }
     }
 
-    [Event((int)EventIDM.QuitGame)]
-    void quit()
+    [Event]
+    void quit(EC_QuitGame e)
     {
         if (road.IsCreated)
             road.Dispose();

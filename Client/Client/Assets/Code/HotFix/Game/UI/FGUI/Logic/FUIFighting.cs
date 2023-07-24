@@ -55,8 +55,8 @@ partial class FUIFighting
         }
     }
 
-    [Event((int)EventIDM.QuitGame)]
-    void quit()
+    [Event]
+    void quit(EC_QuitGame e)
     {
         if (es.IsCreated)
             es.Dispose();

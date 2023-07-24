@@ -104,7 +104,7 @@ namespace Game
             if (_listenerEnable)
                 GameM.Event.RemoveListener(this);
             if (_keyListenerEnable)
-                GameM.Event.RemoveKeyListener(_eventKey, this);
+                GameM.Event.RemoveRPCListener(_eventKey, this);
             _taskManager?.Dispose();
         }
 
@@ -122,7 +122,7 @@ namespace Game
             }
             _eventKey = key;
             _keyListenerEnable = true;
-            GameM.Event.RigisteKeyListener(key, this);
+            GameM.Event.RigisteRPCListener(key, this);
         }
     }
 }

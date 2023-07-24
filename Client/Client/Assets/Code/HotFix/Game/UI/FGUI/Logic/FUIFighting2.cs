@@ -77,8 +77,8 @@ partial class FUIFighting2
         AI_XunLuoSys.start = false;
     }
 
-    [Event((int)EventIDM.QuitGame)]
-    void quit()
+    [Event]
+    void quit(EC_QuitGame e)
     {
         if (es.IsCreated)
             es.Dispose();

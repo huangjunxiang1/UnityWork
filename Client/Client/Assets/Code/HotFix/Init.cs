@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using main;
 
 public class Init
 {
@@ -37,8 +38,8 @@ public class Init
         await GameL.Scene.InLoginScene();
     }
 
-    [Event((int)EventIDM.QuitGame)]
-    static void Quit()
+    [Event]
+    static void Quit(EC_QuitGame e)
     {
         if (Application.isEditor)
         {

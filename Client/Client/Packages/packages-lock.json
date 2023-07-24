@@ -142,7 +142,7 @@
       "dependencies": {}
     },
     "com.unity.ide.rider": {
-      "version": "3.0.22",
+      "version": "3.0.24",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -173,7 +173,7 @@
       "dependencies": {}
     },
     "com.unity.inputsystem": {
-      "version": "1.6.1",
+      "version": "1.6.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {
