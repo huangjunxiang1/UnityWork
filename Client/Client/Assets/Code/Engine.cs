@@ -7,14 +7,9 @@ using Main;
 using Game;
 using System.Threading.Tasks;
 using System.Reflection;
-using Unity.Jobs;
-using Unity.Collections;
-using System.IO;
-using System.Text;
 
 public class Engine : MonoBehaviour
 {
-
     public CodeRuntime Runtime;
     public bool Debug;
     /* public ServiceType ServiceType;*/
@@ -111,6 +106,6 @@ public class Engine : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        GameM.Event?.RunEvent((int)EventIDM.QuitGame);
+        GameM.Event?.RunEvent(new EC_QuitGame());
     }
 }

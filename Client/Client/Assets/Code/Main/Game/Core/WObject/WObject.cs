@@ -168,7 +168,7 @@ namespace Game
                 return;
             _url = url;
             int ver = ++_resVersion;
-            GameObject res = await AssetLoad.LoadGameObjectAsync(_url, TaskManager, releaseMode);
+            GameObject res = await AssetLoad.LoadGameObjectAsync(_url, releaseMode);
             if (ver != _resVersion)
             {
                 AssetLoad.Release(res);

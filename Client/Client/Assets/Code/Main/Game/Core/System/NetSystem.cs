@@ -152,33 +152,6 @@ namespace Game
             return task;
         }
 
-        public TaskAwaiter<PB.PBMessage> SendAsync(PBMessage request, TaskManager taskManager)
-        {
-            Type t;
-#if ILRuntime
-            if (request is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilRequest)
-                t = ilRequest.ILInstance.Type.ReflectionType;
-            else
-#endif
-            t = request.GetType();
-
-            var rsp = Types.GetResponseType(t);
-            if (rsp == null)
-            {
-                Loger.Error("没有responseType类型 req=" + t);
-                return null;
-            }
-            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<PB.PBMessage>> queue))
-            {
-                queue = new Queue<TaskAwaiter<PB.PBMessage>>();
-                _requestTask[rsp] = queue;
-            }
-            TaskAwaiter<PB.PBMessage> task = taskManager.Create<PB.PBMessage>();
-            queue.Enqueue(task);
-            Send(request);
-            return task;
-        }
-
         /// <summary>
         /// 断开当前链接
         /// </summary>

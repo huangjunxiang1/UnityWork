@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace Main
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class DisableAutoRegisteredEvent : Attribute
+    public class DisableAutoRegisteredEventAttribute : Attribute
     {
 
     }
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class DisableAutoRegisteredKeyEvent : Attribute
+    public class DisableAutoRegisteredRPCEventAttribute : Attribute
     {
 
     }

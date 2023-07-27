@@ -15,16 +15,15 @@ namespace Game
         {
             this.gid = IDGenerate.GenerateID();
             this.cid = cid;
-            if (!Types.HasDefineAttribute(this.GetType(), typeof(DisableAutoRegisteredEvent)))
+            if (!Types.HasDefineAttribute(this.GetType(), typeof(DisableAutoRegisteredEventAttribute)))
                 this.ListenerEnable = true;
             if (cid != 0)
             {
-                if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredKeyEvent), true))
-                    this.RigisteKeyListener(cid);
+                if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredRPCEventAttribute), true))
+                    this.RigisteRPCListener(cid);
             }
         }
 
-        TaskManager _taskManager;
         bool _listenerEnable = false;
         bool _keyListenerEnable = false;
         long _eventKey;
@@ -75,21 +74,6 @@ namespace Game
         }
 
         /// <summary>
-        /// 任务管理器
-        /// </summary>
-        public TaskManager TaskManager
-        {
-            get
-            {
-                if (this.Disposed)
-                    return null;
-                if (_taskManager == null)
-                    _taskManager = new TaskManager();
-                return _taskManager;
-            }
-        }
-
-        /// <summary>
         /// 释放
         /// </summary>
         public virtual void Dispose()
@@ -105,10 +89,10 @@ namespace Game
                 GameM.Event.RemoveListener(this);
             if (_keyListenerEnable)
                 GameM.Event.RemoveRPCListener(_eventKey, this);
-            _taskManager?.Dispose();
+            TaskAwaiter.RemoveAllAsync(this);
         }
        
-        protected void RigisteKeyListener(long key)
+        protected void RigisteRPCListener(long key)
         {
             if (key == 0)
             {

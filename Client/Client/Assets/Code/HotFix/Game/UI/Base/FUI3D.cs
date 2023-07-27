@@ -52,7 +52,7 @@ abstract class FUI3D : FUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        this.goRoot = await AssetLoad.LoadGameObjectAsync(url, TaskManager);
+        this.goRoot = await AssetLoad.LoadGameObjectAsync(url);
         this.goRoot.transform.SetParent(GameM.World.goRoot.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 

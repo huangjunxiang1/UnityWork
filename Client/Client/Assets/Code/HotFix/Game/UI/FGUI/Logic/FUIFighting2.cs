@@ -24,12 +24,11 @@ partial class FUIFighting2
     {
         base.OnEnter(data);
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskManager);
+        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab");
 
         if (this.Disposed)
         {
-            em.DestroyEntity(one);
-            return;
+           
         }
 
         es = new NativeArray<Entity>(esSize.x * esSize.y, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);

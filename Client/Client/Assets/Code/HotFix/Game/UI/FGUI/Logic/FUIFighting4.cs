@@ -31,13 +31,13 @@ partial class FUIFighting4
     ComputeBuffer targetP = new ComputeBuffer(playerCount, sizeof(int) * 2);
     protected override async TaskAwaiter OnTask(params object[] data)
     {
-        mat = await AssetLoad.LoadAsync<Material>(@"3D\Model\ECS\ECSLit2.mat", TaskManager);
-        var go = await AssetLoad.LoadGameObjectAsync(@"3D\Model\ECS\Cube.prefab", TaskManager);
+        mat = await AssetLoad.LoadAsync<Material>(@"3D\Model\ECS\ECSLit2.mat");
+        var go = await AssetLoad.LoadGameObjectAsync(@"3D\Model\ECS\Cube.prefab");
         mesh = go.GetComponent<MeshFilter>().mesh;
         AssetLoad.Release(go);
-        cs = await AssetLoad.LoadAsync<ComputeShader>(@"Shader/PathFinding.compute", TaskManager);
+        cs = await AssetLoad.LoadAsync<ComputeShader>(@"Shader/PathFinding.compute");
 
-        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab", TaskManager);
+        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab");
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
         em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(0, 0, 1, 1) });

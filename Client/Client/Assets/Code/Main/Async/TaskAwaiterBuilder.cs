@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 using UnityEngine;
 
 [DebuggerNonUserCode]
@@ -28,11 +29,20 @@ public sealed class TaskAwaiterBuilder
     }
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
+        if (awaiter is TaskAwaiter task)
+            task.AddAsyncRoute(_awaiter);
+        else
+            Loger.Error($"异步类型错误 awaiter={awaiter.GetType()}");
         awaiter.OnCompleted(stateMachine.MoveNext);
     }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
     {
-        awaiter.OnCompleted(stateMachine.MoveNext);
+        if (awaiter is TaskAwaiter task)
+            task.AddAsyncRoute(_awaiter);
+        else
+            Loger.Error($"异步类型错误 awaiter={awaiter.GetType()}");
+
+        awaiter.UnsafeOnCompleted(stateMachine.MoveNext);
     }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {

@@ -36,7 +36,7 @@ namespace Game
             SceneID = 1;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(SceneID).name).AsTask();
-            await Task.Delay(100);//场景加载时 会有一帧延迟才能find场景的GameObject
+            await TaskAwaiter.Delay(100);//场景加载时 会有一帧延迟才能find场景的GameObject
 
             await GameL.UI.OpenAsync<FUILogin>();
             ui.max = 1;
@@ -56,7 +56,7 @@ namespace Game
             SceneID = sceneId;
 
             await SceneManager.LoadSceneAsync(TabL.GetScene(sceneId).name).AsTask();
-            await Task.Delay(100);
+            await TaskAwaiter.Delay(100);
 
             ui.max = 1;
 

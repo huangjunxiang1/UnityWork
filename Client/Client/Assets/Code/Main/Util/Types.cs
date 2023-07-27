@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.InputSystem;
@@ -20,6 +22,9 @@ public static class Types
     static Dictionary<Type, int> attributeMask = new();
     static Dictionary<Type, object[]> typeAttributeMap = new();
     static Dictionary<Type, Type[]> assignableTypesMap = new();
+    static Dictionary<Type, FieldInfo> StateMachineFieldMap = new();
+    static Dictionary<Type, HashSet<Type>> methodAsyncAttributeCache = new();
+    static Type HotRootType;
 
     public static void InitTypes(Type[] mtypes, Type[] htypes)
     {
@@ -153,5 +158,68 @@ public static class Types
             assignableTypesMap[t] = arr = lst.ToArray();
         }
         return arr;
+    }
+
+    public static FieldInfo GetStateMachineThisField(Type t)
+    {
+        if (!StateMachineFieldMap.TryGetValue(t, out var value))
+        {
+            var fs = t.GetFields();
+            foreach (var item in fs)
+            {
+                if (item.Name.EndsWith("this"))
+                {
+                    StateMachineFieldMap[t] = value = item;
+                    break;
+                }
+            }
+        }
+        return value;
+    }
+    public static Type GetHotRootType()
+    {
+        if (HotRootType == null)
+        {
+            for (int i = 0; i < HotTypes.Length; i++)
+            {
+                if (HotTypes[i].FullName == "Game.ObjectL")
+                {
+                    HotRootType = HotTypes[i];
+                    break;
+                }
+            }
+        }
+        return HotRootType;
+    }
+    public static bool GetMethodAsyncDontCancel(Type self, Type stateMachineType)
+    {
+        if (!methodAsyncAttributeCache.TryGetValue(self, out var hs))
+        {
+            List<MethodInfo> ms = new List<MethodInfo>() { };
+            ms.AddRange(self.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+            while (self.BaseType != null)
+            {
+                self = self.BaseType;
+                var t = self.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+                for (int i = 0; i < t.Length; i++)
+                {
+                    if (t[i].IsPrivate)
+                        ms.Add(t[i]);
+                }
+            }
+            methodAsyncAttributeCache[self] = hs = new HashSet<Type>();
+            for (int i = 0; i < ms.Count; i++)
+            {
+                if (ms[i].GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null)
+                {
+                    if (ms[i].GetCustomAttribute(typeof(AsyncDontCancelAttribute)) != null)
+                    {
+                        hs.Add(stateMachineType);
+                        return true;
+                    }
+                }
+            }
+        }
+        return hs.Contains(stateMachineType);
     }
 }

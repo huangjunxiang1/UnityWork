@@ -5,6 +5,7 @@ using Game;
 using FairyGUI;
 using Main;
 using System.Threading.Tasks;
+using System;
 
 partial class FUILogin
 {
@@ -53,6 +54,7 @@ partial class FUILogin
             this.Dispose();
         }
     }
+    [AsyncDontCancel]
     async void login()
     {
         await GameL.Scene.InScene(10001);
@@ -64,9 +66,8 @@ partial class FUILogin
             await GameL.UI.OpenAsync<FUIFighting3>();
         else if (_demo.selectedIndex == 3)
             await GameL.UI.OpenAsync<FUIFighting4>();
-        return;
 
-        //链接服务器演示
+        /*//链接服务器演示
         if (_gameTypeCB.selectedIndex == 0)
         {
             await GameM.Net.Connect(ServerType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressInner));
@@ -74,6 +75,6 @@ partial class FUILogin
         else if (_gameTypeCB.selectedIndex == 1)
         {
             await GameM.Net.Connect(ServerType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressOuter));
-        }
+        }*/
     }
 }

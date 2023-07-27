@@ -27,11 +27,12 @@ abstract class UUIBase : UIBase
         set { this.UI.gameObject.SetActive(value); }
     }
 
-    public sealed override void Hide(bool playAnimation = true, Action callBack = null)
+    public sealed override async void Hide(bool playAnimation = true, Action callBack = null)
     {
         if (isHiding)
         {
-            hideTask.AddEvent(callBack);
+            await hideTask;
+            callBack?.Invoke();
             return;
         }
 
@@ -131,11 +132,12 @@ abstract class UUIBase : UIBase
         this.isShow = false;
         return TaskAwaiter.Completed;
     }
-    public sealed override void Show(bool playAnimation = true, Action callBack = null)
+    public sealed override async void Show(bool playAnimation = true, Action callBack = null)
     {
         if (isShowing)
         {
-            showTask.AddEvent(callBack);
+            await showTask;
+            callBack?.Invoke();
             return;
         }
 

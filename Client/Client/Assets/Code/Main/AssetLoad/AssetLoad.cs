@@ -65,28 +65,6 @@ namespace Main
             r.mode = releaseMode;
             return g;
         }
-        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskManager manager, ReleaseMode releaseMode = ReleaseMode.Destroy)
-        {
-            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, manager);
-            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-            r.url = url;
-            r.isFromLoad = true;
-            r.mode = releaseMode;
-            return g;
-        }
-        public static async TaskAwaiter<Entity> LoadEntityAsync(string url, TaskManager manager)
-        {
-            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, manager);
-            var mgr = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-            Entity e = mgr.CreateEntity();
-            Renderer r = g.GetComponent<Renderer>();
-            MeshFilter mf = g.GetComponent<MeshFilter>();
-            RenderMeshUtility.AddComponents(e, mgr, new RenderMeshDescription(r), new RenderMeshArray(new[] { r.sharedMaterial }, new[] { mf.sharedMesh }), MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
-
-            mgr.AddComponentData(e, new LocalToWorld() { Value = float4x4.TRS(float3.zero, g.transform.rotation, g.transform.lossyScale) });
-            prefabLoader.Release(g);
-            return e;
-        }
 
         public static T Load<T>(string url) where T : UnityEngine.Object
         {
@@ -123,18 +101,6 @@ namespace Main
             }
 #endif
             return (T)await primitiveLoader.LoadAsync(url, task);
-        }
-        public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskManager manager) where T : UnityEngine.Object
-        {
-            Type t = typeof(T);
-#if DebugEnable
-            if (t == typeof(GameObject))
-            {
-                Loger.Error("GameObject 不使用这个函数加载");
-                return default;
-            }
-#endif
-            return (T)await primitiveLoader.LoadAsync(url, manager);
         }
 
         public static void Release(UnityEngine.Object target)

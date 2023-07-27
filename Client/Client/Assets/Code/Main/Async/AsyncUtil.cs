@@ -47,7 +47,7 @@ public static class AsyncUtil
             return TaskAwaiter.Completed;
 
         TaskAwaiter task = new();
-        tween.OnComplete(task.TrySetResult);
+        tween.OnComplete(() => task.TrySetResult());
         return task;
     }
     public static TaskAwaiter AsTask(this Tween tween)
@@ -56,7 +56,7 @@ public static class AsyncUtil
             return TaskAwaiter.Completed;
 
         TaskAwaiter task = new();
-        tween.OnComplete(task.TrySetResult);
+        tween.OnComplete(() => task.TrySetResult());
         return task;
     }
 

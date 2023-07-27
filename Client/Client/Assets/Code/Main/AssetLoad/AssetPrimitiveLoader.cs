@@ -44,11 +44,8 @@ namespace Main
 
              await wait.Task;
 
-            //如果状态是没完成 但是被释放了 说明异步被中途取消
-            if (!task.IsCompleted && !task.IsDisposed)
-                task.TrySetResult(wait.Result);
-            else
-                this.Release(wait.Result);
+            if (!task.TrySetResult(wait.Result))
+                Release(wait.Result);
         }
     }
 }

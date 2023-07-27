@@ -20,10 +20,9 @@ namespace Game
         readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
         readonly static object[] _ilRuntimePs = new object[1];
 
-        static bool _checkEventMethod(MethodInfo method, out bool isMessage, out Type key)
+        static bool _checkEventMethod(MethodInfo method, out Type key)
         {
             var ps = method.GetParameters();
-            isMessage = false;
             key = null;
             if (ps.Length != 1)
             {
@@ -35,7 +34,10 @@ namespace Game
             if (key is ILRuntime.Reflection.ILRuntimeWrapperType warp)
                 key = warp.RealType;
 #endif
-            isMessage = typeof(PB.PBMessage).IsAssignableFrom(key);
+#if DebugEnable
+            if (key.IsPrimitive)
+                Loger.Error("不要使用系统值类型作为事件参数类型");
+#endif
             return true;
         }
         /// <summary>
@@ -51,7 +53,14 @@ namespace Game
                 Type tt = t;
                 _methodInfos.AddRange(tt.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
                 while ((tt = tt.BaseType) != null)
-                    _methodInfos.AddRange(tt.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance));
+                {
+                    var ms = tt.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+                    for (int i = 0; i < ms.Length; i++)
+                    {
+                        if (ms[i].IsPrivate)
+                            _methodInfos.Add(ms[i]);
+                    }
+                }
 
                 List<MethodData> evts = new();
                 for (int i = 0; i < _methodInfos.Count; i++)
@@ -68,7 +77,7 @@ namespace Game
                         }
 
                         MethodData e = new();
-                        if (!_checkEventMethod(method, out e.isMessasge, out e.key))
+                        if (!_checkEventMethod(method, out e.key))
                             continue;
                         e.info = method;
                         e.sortOrder = ea.SortOrder;
@@ -87,7 +96,14 @@ namespace Game
                 Type tt = t;
                 _methodInfos.AddRange(tt.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
                 while ((tt = tt.BaseType) != null)
-                    _methodInfos.AddRange(tt.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance));
+                {
+                    var ms = tt.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+                    for (int i = 0; i < ms.Length; i++)
+                    {
+                        if (ms[i].IsPrivate)
+                            _methodInfos.Add(ms[i]);
+                    }
+                }
 
                 List<MethodData> evts = new();
                 for (int i = 0; i < _methodInfos.Count; i++)
@@ -103,7 +119,7 @@ namespace Game
                         }
 
                         MethodData e = new();
-                        if (!_checkEventMethod(method, out e.isMessasge, out e.key))
+                        if (!_checkEventMethod(method, out e.key))
                             continue;
                         e.info = method;
                         e.sortOrder = ea.SortOrder;
@@ -136,7 +152,7 @@ namespace Game
                     if (ea != null)
                     {
                         EvtData e = new();
-                        if (!_checkEventMethod(method, out e.isMessage, out e.Key))
+                        if (!_checkEventMethod(method, out e.Key))
                             continue;
 
                         if (!_evtMap.TryGetValue(e.Key, out var evts))
@@ -174,7 +190,7 @@ namespace Game
                 ms = _getListenerMethods(ilWarp.ILInstance.Type.ReflectionType);
             else
 #endif
-                ms = _getListenerMethods(target.GetType());
+            ms = _getListenerMethods(target.GetType());
 
             for (int i = 0; i < ms.Length; i++)
             {
@@ -188,7 +204,6 @@ namespace Game
 
                 EvtData e = new();
                 e.Key = m.key;
-                e.isMessage = m.isMessasge;
                 e.method = m.info;
                 e.sortOrder = m.sortOrder;
                 e.target = target;
@@ -218,7 +233,7 @@ namespace Game
                 ms = _getRPCListenerMethods(ilWarp.ILInstance.Type.ReflectionType);
             else
 #endif
-                ms = _getRPCListenerMethods(target.GetType());
+            ms = _getRPCListenerMethods(target.GetType());
 
             for (int i = 0; i < ms.Length; i++)
             {
@@ -237,7 +252,6 @@ namespace Game
 
                 EvtData e = new();
                 e.Key = m.key;
-                e.isMessage = m.isMessasge;
                 e.method = m.info;
                 e.sortOrder = m.sortOrder;
                 e.target = target;
@@ -272,7 +286,7 @@ namespace Game
                 t = ilWarp.ILInstance.Type.ReflectionType;
             else
 #endif
-                t = target.GetType();
+            t = target.GetType();
 
             if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
@@ -307,7 +321,7 @@ namespace Game
                 t = ilWarp.ILInstance.Type.ReflectionType;
             else
 #endif
-                t = target.GetType();
+            t = target.GetType();
 
             if (_rpcListenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
@@ -401,7 +415,6 @@ namespace Game
         class EvtData
         {
             public Type Key;
-            public bool isMessage;//true 消息  false事件
 
             public MethodInfo method;
             public int sortOrder;
@@ -411,7 +424,6 @@ namespace Game
         class MethodData
         {
             public Type key;
-            public bool isMessasge;//true 消息  false事件
 
             public MethodInfo info;
             public int sortOrder;

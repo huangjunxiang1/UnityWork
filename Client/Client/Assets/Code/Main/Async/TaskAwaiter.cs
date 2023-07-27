@@ -1,17 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
-using Main;
-using System.Diagnostics;
-using System.Security;
+using System.Reflection;
+using Game;
 
-[DebuggerNonUserCode]
 [AsyncMethodBuilder(typeof(TaskAwaiterBuilder))]
 public class TaskAwaiter : ICriticalNotifyCompletion
 {
+    static TaskAwaiter()
+    {
+        var asm = AppDomain.CurrentDomain.GetAssemblies();
+        for (int i = 0; i < asm.Length; i++)
+        {
+            if (asm[i].FullName.StartsWith("mscorlib"))
+            {
+                runner = asm[i].GetType("System.Runtime.CompilerServices.AsyncMethodBuilderCore+MoveNextRunner");
+                break;
+            }
+        }
+        field = runner.GetField("m_stateMachine", BindingFlags.NonPublic | BindingFlags.Instance);
+    }
+
+    static Type runner;
+    static FieldInfo field;
+    static Dictionary<object, HashSet<TaskAwaiter>> objAsync = new Dictionary<object, HashSet<TaskAwaiter>>();
+
     public TaskAwaiter()
     {
 
@@ -28,17 +43,57 @@ public class TaskAwaiter : ICriticalNotifyCompletion
 
     Action _event;
     bool _isCanOp = true;
+    bool _isDisposed = false;
+    List<TaskAwaiter> _route;//异步链的路线
+    List<object> _routeTargets;
 
     public object Tag { get; }
     public Task WarpTask { get; }
 
-    public bool IsDisposed { get; private set; }
+    public bool IsDisposed
+    {
+        get
+        {
+            if (_isDisposed) return true;
+            if (_route != null)
+            {
+                for (int i = 0; i < _route.Count; i++)
+                {
+                    if (!_route[i].IsDisposed)
+                        return false;
+                }
+            }
+            return false;
+        }
+    }
     /// <summary>
     /// 是否已完成
     /// </summary>
     public bool IsCompleted { get; private set; }
 
     public static TaskAwaiter Completed { get; } = new TaskAwaiter() { IsCompleted = true, _isCanOp = false };
+
+    public static void RigisterAsync(object o, TaskAwaiter task)
+    {
+        if (!objAsync.TryGetValue(o, out var value))
+            objAsync[o] = value = new();
+        if (!value.Contains(task))
+            value.Add(task);
+    }
+    public static void RemoveAllAsync(object o)
+    {
+        if (objAsync.TryGetValue(o, out var value))
+        {
+            objAsync.Remove(o);
+            foreach (var item in value)
+                item.TryCancel();
+        }
+    }
+    public static void RemoveAsync(object o, TaskAwaiter task)
+    {
+        if (objAsync.TryGetValue(o, out var value))
+            value.Remove(task);
+    }
 
     public TaskAwaiter GetAwaiter()
     {
@@ -57,24 +112,52 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         if (!_isCanOp) return;
         if (this.IsDisposed || this.IsCompleted) return;
 
-        this.IsDisposed = true;
+        this._isDisposed = true;
+
+        if (this._routeTargets != null)
+        {
+            for (int i = 0; i < _routeTargets.Count; i++)
+                RemoveAsync(_routeTargets[i], this);
+            _routeTargets.Clear();
+            ObjectPool.Return(_routeTargets);
+        }
+        if (_route != null)
+        {
+            _route.Clear();
+            ObjectPool.Return(_route);
+            _route = null;
+        }
         this._event = null;
     }
 
     /// <summary>
     /// 执行下一步
     /// </summary>
-    public void TrySetResult()
+    public bool TrySetResult()
     {
-        if (!_isCanOp) return;
-        if (this.IsDisposed || this.IsCompleted) return;
-
-        this.IsDisposed = true;
+        if (!_isCanOp) return false;
+        if (this.IsDisposed || this.IsCompleted) return false;
+       
+        this._isDisposed = true;
         this.IsCompleted = true;
 
+        if (this._routeTargets != null)
+        {
+            for (int i = 0; i < _routeTargets.Count; i++)
+                RemoveAsync(_routeTargets[i], this);
+            _routeTargets.Clear();
+            ObjectPool.Return(_routeTargets);
+        }
+        if (_route != null)
+        {
+            _route.Clear();
+            ObjectPool.Return(_route);
+            _route = null;
+        }
         Action act = this._event;
         this._event = null;
         act?.Invoke();
+        return true;
     }
 
     /// <summary>
@@ -87,22 +170,30 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         if (!_isCanOp) return;
         if (this.IsDisposed || this.IsCompleted) return;
 
-        this.IsDisposed = true;
+        this._isDisposed = true;
 
+        if (this._routeTargets != null)
+        {
+            for (int i = 0; i < _routeTargets.Count; i++)
+                RemoveAsync(_routeTargets[i], this);
+            _routeTargets.Clear();
+            ObjectPool.Return(_routeTargets);
+        }
+        if (_route != null)
+        {
+            _route.Clear();
+            ObjectPool.Return(_route);
+            _route = null;
+        }
         Action act = this._event;
         this._event = null;
         act?.Invoke();
     }
 
-    /// <summary>
-    /// 重置回调
-    /// </summary>
-    public void Clear()
+    public void AddAsyncRoute(TaskAwaiter route)
     {
-        if (!_isCanOp) return;
-        if (this.IsDisposed || this.IsCompleted) return;
-
-        this._event = null;
+        _route ??= ObjectPool.Get<List<TaskAwaiter>>();
+        _route.Add(route);
     }
 
     public void AddEvent(Action evt)
@@ -120,10 +211,38 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     void INotifyCompletion.OnCompleted(Action callBack)
     {
         this._event += callBack;
+        _asyncTargetAnalysis(callBack.Target);
     }
     void ICriticalNotifyCompletion.UnsafeOnCompleted(Action callBack)
     {
         this._event += callBack;
+        _asyncTargetAnalysis(callBack.Target);
+    }
+
+    void _asyncTargetAnalysis(object target)
+    {
+        if (target.GetType() == runner)
+        {
+            var v = field.GetValue(target);
+            var f = Types.GetStateMachineThisField(v.GetType());
+            var o = f.GetValue(v);
+            Type t = o.GetType();
+#if ILRuntime
+            if (o is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
+                t = ilInstance.Type.ReflectionType;
+            else if (o is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
+                t = ilWarp.ILInstance.Type.ReflectionType;
+#endif
+            if (typeof(ObjectM).IsAssignableFrom(t) || Types.GetHotRootType().IsAssignableFrom(t))
+            {
+                if (!Types.GetMethodAsyncDontCancel(t, v.GetType()))
+                {
+                    _routeTargets ??= ObjectPool.Get<List<object>>();
+                    _routeTargets.Add(o);
+                    RigisterAsync(o, this);
+                }
+            }
+        }
     }
 
 

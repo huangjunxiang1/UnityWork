@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Game;
 using Main;
 
-[DisableAutoRegisteredEvent]
-[DisableAutoRegisteredKeyEvent]
+[DisableAutoRegisteredEventAttribute]
+[DisableAutoRegisteredRPCEventAttribute]
 abstract class UIBase : TreeL<UIBase>
 {
     Eventer _onDispose;

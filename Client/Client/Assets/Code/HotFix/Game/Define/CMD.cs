@@ -11,8 +11,3 @@ static class CMDL
 	public const ushort C2G_LoginGate = 20020;
 	public const ushort G2C_LoginGate = 20021;
 }
-
-enum EventIDL
-{
-	Min = 10000,
-}

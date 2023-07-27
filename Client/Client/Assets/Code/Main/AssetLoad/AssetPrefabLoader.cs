@@ -88,7 +88,7 @@ namespace Main
         {
             Addressables.ReleaseInstance((GameObject)target);
         }
-        public void ReleaseToPool(GameObject target,string url)
+        public void ReleaseToPool(GameObject target, string url)
         {
 #if DebugEnable
             if (string.IsNullOrEmpty(url))
@@ -113,10 +113,7 @@ namespace Main
 
             await wait.Task;
 
-            //如果状态是没完成 但是被释放了 说明异步被中途取消
-            if (!task.IsCompleted && !task.IsDisposed)
-                task.TrySetResult(wait.Result);
-            else
+            if (!task.TrySetResult(wait.Result))
                 Release(wait.Result);
         }
     }
