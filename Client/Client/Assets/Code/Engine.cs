@@ -7,23 +7,22 @@ using Main;
 using Game;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Threading;
 
 public class Engine : MonoBehaviour
 {
     public CodeRuntime Runtime;
     public bool Debug;
-    /* public ServiceType ServiceType;*/
 
     // Start is called before the first frame update
     void Start()
     {
+        _ = ThreadSynchronizationContext.Instance;
         DontDestroyOnLoad(this.gameObject);
 
         AppSetting.Runtime = Runtime;
         AppSetting.Debug = Debug;
-        /*AppSetting.ServiceType = ServiceType;*/
 
-        _ = ThreadSynchronizationContext.Instance;
         EnterGame();
     }
 
