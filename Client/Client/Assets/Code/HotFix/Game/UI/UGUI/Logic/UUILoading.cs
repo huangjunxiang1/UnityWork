@@ -21,13 +21,9 @@ partial class UUILoading
     {
         max = Convert.ToSingle(data[0]);
         refView();
-        Timer.Add(0, -1, timer);
-    }
-    protected override void OnExit()
-    {
-        Timer.Remove(timer);
     }
 
+    [Timer(0, -1)]
     void timer()
     {
         if (cur < max)

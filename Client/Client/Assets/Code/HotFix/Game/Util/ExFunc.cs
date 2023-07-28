@@ -57,10 +57,7 @@ public static class ExFunc
                 res = parent.GetChild(0).gameObject;
 
             for (int i = childCnt; i < count; i++)
-            {
-                GameObject g = UnityEngine.Object.Instantiate(res, parent);
-                AssetLoad.SetEmptyTextureIfIsNotFromLoad(g);
-            }
+                UnityEngine.Object.Instantiate(res, parent);
 
             for (int i = childCnt; i > count; i--)
             {

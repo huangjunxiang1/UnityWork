@@ -16,7 +16,7 @@ public class TaskLocker : IDisposable
     object key;
     long key2;
     TaskAwaiter next;
-    CancellationTokenSource cts = new();
+    CancellationTokenSource cts;
 
     public bool IsDisposed { get; private set; }
 
@@ -25,6 +25,7 @@ public class TaskLocker : IDisposable
         if (locker == null || locker.IsDisposed)
         {
             locker = new TaskLocker();
+            locker.timeout(timeout);
             return TaskAwaiter.Completed;
         }
         TaskAwaiter task = locker.next = new TaskAwaiter();
@@ -72,6 +73,24 @@ public class TaskLocker : IDisposable
             await task;
             return locker;
         }
+    }
+    public static void UnLock(object key)
+    {
+        if (!locks.TryGetValue(key, out var locker))
+        {
+            Loger.Error($"没有对应的锁 key={key}");
+            return;
+        }
+        locker.Dispose();
+    }
+    public static void UnLock(long key)
+    {
+        if (!locks2.TryGetValue(key, out var locker))
+        {
+            Loger.Error($"没有对应的锁 key={key}");
+            return;
+        }
+        locker.Dispose();
     }
 
     public void Dispose()

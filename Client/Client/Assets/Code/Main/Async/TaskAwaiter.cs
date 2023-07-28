@@ -62,6 +62,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
                     if (!_route[i].IsDisposed)
                         return false;
                 }
+                return true;
             }
             return false;
         }
@@ -76,7 +77,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     public static void RigisterAsync(object o, TaskAwaiter task)
     {
         if (!objAsync.TryGetValue(o, out var value))
-            objAsync[o] = value = new();
+            objAsync[o] = value = ObjectPool.Get<HashSet<TaskAwaiter>>();
         if (!value.Contains(task))
             value.Add(task);
     }
@@ -87,6 +88,8 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             objAsync.Remove(o);
             foreach (var item in value)
                 item.TryCancel();
+            value.Clear();
+            ObjectPool.Return(value);
         }
     }
     public static void RemoveAsync(object o, TaskAwaiter task)
@@ -353,6 +356,79 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         for (int i = 0; i < tasks.Length; i++)
             wait(tasks[i]);
 
+        return waiter;
+    }
+    public static TaskAwaiter<K> AnyAfterCancel<K>(IEnumerable<TaskAwaiter<K>> itor)
+    {
+        TaskAwaiter<K> waiter = new();
+        if (itor == null) waiter.TrySetResult(default);
+        else
+        {
+            TaskAwaiter<K>[] tasks = itor.ToArray();
+
+            async void wait(TaskAwaiter<K> task)
+            {
+                await task;
+                waiter.TrySetResult(task.GetResult());
+                for (int i = 0; i < tasks.Length; i++)
+                    tasks[i].TryCancel();
+            }
+
+            for (int i = 0; i < tasks.Length; i++)
+                wait(tasks[i]);
+        }
+        return waiter;
+    }
+    public static TaskAwaiter<K> AnyAfterCancel<K>(params TaskAwaiter<K>[] tasks)
+    {
+        TaskAwaiter<K> waiter = new();
+
+        async void wait(TaskAwaiter<K> task)
+        {
+            await task;
+            waiter.TrySetResult(task.GetResult());
+            for (int i = 0; i < tasks.Length; i++)
+                tasks[i].TryCancel();
+        }
+
+        for (int i = 0; i < tasks.Length; i++)
+            wait(tasks[i]);
+
+        return waiter;
+    }
+    public static TaskAwaiter AnyAfterCancel(IEnumerable<TaskAwaiter> itor)
+    {
+        if (itor == null)
+            return TaskAwaiter.Completed;
+
+        TaskAwaiter waiter = new();
+        TaskAwaiter[] tasks = itor.ToArray();
+
+        async void wait(TaskAwaiter task)
+        {
+            await task;
+            waiter.TrySetResult();
+            for (int i = 0; i < tasks.Length; i++)
+                tasks[i].TryCancel();
+        }
+
+        for (int i = 0; i < tasks.Length; i++)
+            wait(tasks[i]);
+        return waiter;
+    }
+    public static TaskAwaiter AnyAfterCancel(params TaskAwaiter[] tasks)
+    {
+        TaskAwaiter waiter = new();
+        async void wait(TaskAwaiter task)
+        {
+            await task;
+            waiter.TrySetResult();
+            for (int i = 0; i < tasks.Length; i++)
+                tasks[i].TryCancel();
+        }
+
+        for (int i = 0; i < tasks.Length; i++)
+            wait(tasks[i]);
         return waiter;
     }
 }

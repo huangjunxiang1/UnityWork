@@ -1,16 +1,9 @@
 ﻿using PB;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine.Accessibility;
-using UnityEngine.InputSystem.XR.Haptics;
 
 namespace Main
 {
@@ -46,7 +39,7 @@ namespace Main
         public Action<int> onError;
         public abstract ServerType serverType { get; }
 
-        public abstract TaskAwaiter<bool> Connect();
+        public abstract Task<bool> Connect();
         public abstract void DisConnect();
         public void Send(PB.PBMessage message)
         {
@@ -58,8 +51,8 @@ namespace Main
             new Thread(_work) { IsBackground = true }.Start();
         }
 
-        protected abstract TaskAwaiter SendBuffer();
-        protected abstract TaskAwaiter ReceiveBuffer();
+        protected abstract void SendBuffer();
+        protected abstract void ReceiveBuffer();
 
         void _work()
         {

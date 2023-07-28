@@ -23,6 +23,8 @@ public class Init
         Application.targetFrameRate = -1;
         FairyGUI.UIConfig.defaultFont = "Impact";
         DG.Tweening.DOTween.Init();
+
+        Timer.RigisterStaticTimer();
         System.Threading.SynchronizationContext.SetSynchronizationContext(ThreadSynchronizationContext.Instance);
         ECSSingle.Init();   
 

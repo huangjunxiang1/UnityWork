@@ -34,7 +34,7 @@ namespace Main
 
         public override ServerType serverType => ServerType.TCP;
 
-        public override async TaskAwaiter<bool> Connect()
+        public override async Task<bool> Connect()
         {
             if (client.Connected)
                 return true;
@@ -73,7 +73,7 @@ namespace Main
             ThreadSynchronizationContext.Instance.Post(() => onError?.Invoke((int)error));
         }
 
-        protected override async TaskAwaiter SendBuffer()
+        protected override async void SendBuffer()
         {
             PBWriter writer = new PBWriter(new MemoryStream(new byte[1024], 0, 1024, true, true));
             while (states != NetStates.None)
@@ -140,7 +140,7 @@ namespace Main
             }
         }
 
-        protected override async TaskAwaiter ReceiveBuffer()
+        protected override async void ReceiveBuffer()
         {
             var bs = ArrayPool<byte>.Shared.Rent(ushort.MaxValue);
             PBReader reader = new PBReader(new MemoryStream(bs, 0, bs.Length), 0, bs.Length);

@@ -22,6 +22,7 @@ namespace Game
                 if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredRPCEventAttribute), true))
                     this.RigisteRPCListener(cid);
             }
+            Timer.AutoRigisterTimer(this);
         }
 
         bool _listenerEnable = false;
@@ -89,6 +90,7 @@ namespace Game
                 GameM.Event.RemoveListener(this);
             if (_keyListenerEnable)
                 GameM.Event.RemoveRPCListener(_eventKey, this);
+            Timer.AutoRemoveTimer(this);
             TaskAwaiter.RemoveAllAsync(this);
         }
 

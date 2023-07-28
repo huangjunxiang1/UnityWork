@@ -24,6 +24,7 @@ public static class Types
     static Dictionary<Type, Type[]> assignableTypesMap = new();
     static Dictionary<Type, FieldInfo> StateMachineFieldMap = new();
     static Dictionary<Type, HashSet<Type>> methodAsyncAttributeCache = new();
+    static Dictionary<Type, Dictionary<Type, MethodAndAttribute[]>> methodAttributeCache = new();
     static Type HotRootType;
 
     public static void InitTypes(Type[] mtypes, Type[] htypes)
@@ -222,4 +223,53 @@ public static class Types
         }
         return hs.Contains(stateMachineType);
     }
+
+    public static MethodAndAttribute[] GetInstanceMethodsWithAttribute<T>(Type self)
+    {
+        if (!methodAttributeCache.TryGetValue(self, out var map))
+            methodAttributeCache[self] = map = new();
+
+        if (!map.TryGetValue(typeof(T), out var arr))
+        {
+            List<MethodInfo> ms = new List<MethodInfo>() { };
+            ms.AddRange(self.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+            while (self.BaseType != null)
+            {
+                self = self.BaseType;
+                var t = self.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+                for (int i = 0; i < t.Length; i++)
+                {
+                    if (t[i].IsPrivate)
+                        ms.Add(t[i]);
+                }
+            }
+            var lst = ObjectPool.Get<List<MethodAndAttribute>>();
+            for (int i = 0; i < ms.Count; i++)
+            {
+                var att = ms[i].GetCustomAttribute(typeof(T));
+                if (att != null)
+                    lst.Add(new MethodAndAttribute(ms[i], att));
+            }
+            map[typeof(T)] = arr = lst.ToArray();
+            lst.Clear();
+            ObjectPool.Return(lst);
+        }
+        return arr;
+    }
+
+    public static T As<T>(this object o) where T : class
+    {
+        return o as T;
+    }
+}
+
+public class MethodAndAttribute
+{
+    public MethodAndAttribute(MethodInfo method, object attribute)
+    {
+        this.method = method;
+        this.attribute = attribute;
+    }
+    public MethodInfo method;
+    public object attribute;
 }
