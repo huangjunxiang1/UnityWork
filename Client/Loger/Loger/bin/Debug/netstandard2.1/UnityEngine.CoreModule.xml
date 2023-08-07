@@ -5405,7 +5405,7 @@ The default value is Camera.MonoOrStereoscopicEye.Left, so Camera.MonoOrStereosc
       </summary>
       <param name="name">Name of kernel function.</param>
       <returns>
-        <para>The Kernel index, or logs a "FindKernel failed" error message if the kernel is not found.</para>
+        <para>The Kernel index. If the kernel is not found, Unity logs a "FindKernel failed" error message and raises an ArgumentException.</para>
       </returns>
     </member>
     <member name="M:UnityEngine.ComputeShader.GetKernelThreadGroupSizes(System.Int32,System.UInt32&amp;,System.UInt32&amp;,System.UInt32&amp;)">
@@ -6542,18 +6542,13 @@ The default value is Camera.MonoOrStereoscopicEye.Left, so Camera.MonoOrStereosc
         <para>Determines whether the hardware pointer is visible or not.</para>
       </summary>
     </member>
-    <member name="M:UnityEngine.Cursor.SetCursor">
-      <summary>
-        <para>Sets the mouse cursor to the given texture.</para>
-      </summary>
-    </member>
     <member name="M:UnityEngine.Cursor.SetCursor(UnityEngine.Texture2D,UnityEngine.Vector2,UnityEngine.CursorMode)">
       <summary>
-        <para>Specify a custom cursor that you wish to use as a cursor.</para>
+        <para>Sets a custom cursor to use as your cursor.</para>
       </summary>
-      <param name="texture">The texture to use for the cursor. To use a texture, you must first import it with `Read/Write`enabled. Alternatively, you can use the default cursor import setting. If you created your cursor texture from code, it must be in RGBA32 format, have alphaIsTransparency enabled, and have no mip chain. To use the default cursor, set the texture to `Null`.</param>
-      <param name="hotspot">The offset from the top left of the texture to use as the target point (must be within the bounds of the cursor).</param>
-      <param name="cursorMode">Allow this cursor to render as a hardware cursor on supported platforms, or force software cursor.</param>
+      <param name="texture">The texture to use for the cursor. To use a texture, import it with `Read/Write` enabled. Alternatively, you can use the default cursor import setting. If you created your cursor texture from code, it must be in RGBA32 format, have alphaIsTransparency enabled, and have no mip chain. To use the default cursor, set the texture to `Null`.</param>
+      <param name="hotspot">The offset from the top left of the texture to use as the target point. This must be in the bounds of the cursor.</param>
+      <param name="cursorMode">Whether to render this cursor as a hardware cursor on supported platforms, or force software cursor.</param>
     </member>
     <member name="T:UnityEngine.CursorLockMode">
       <summary>
@@ -6873,9 +6868,14 @@ The default value is Camera.MonoOrStereoscopicEye.Left, so Camera.MonoOrStereosc
         <para>Class containing methods to ease debugging while developing a game.</para>
       </summary>
     </member>
+    <member name="P:UnityEngine.Debug.developerConsoleEnabled">
+      <summary>
+        <para>Allows you to enable or disable the developer console.</para>
+      </summary>
+    </member>
     <member name="P:UnityEngine.Debug.developerConsoleVisible">
       <summary>
-        <para>Reports whether the development console is visible. The development console automatically appears when an error has been logged. For example:</para>
+        <para>Controls whether the development console is visible.</para>
       </summary>
     </member>
     <member name="P:UnityEngine.Debug.isDebugBuild">
@@ -8350,7 +8350,7 @@ The invalid memory access is performed on each platform as follows:</para>
     </member>
     <member name="P:UnityEngine.Display.renderingWidth">
       <summary>
-        <para>Horizontal resolution that the display is rendering at.</para>
+        <para>Horizontal resolution that the display is rendering at in the viewport.</para>
       </summary>
     </member>
     <member name="P:UnityEngine.Display.requiresBlitToBackbuffer">
@@ -13276,7 +13276,7 @@ When a ray-triangle intersection test succeeds for a sub-meshes that is marked a
     </member>
     <member name="M:UnityEngine.Gizmos.DrawCube(UnityEngine.Vector3,UnityEngine.Vector3)">
       <summary>
-        <para>Draw a solid box with center and size.</para>
+        <para>Draw a solid box at center with size.</para>
       </summary>
       <param name="center"></param>
       <param name="size"></param>
@@ -15736,7 +15736,7 @@ For indexed rendering, use Graphics.RenderPrimitivesIndexed. Draws procedural ge
     </member>
     <member name="T:UnityEngine.HideInInspector">
       <summary>
-        <para>Flags a variable to not appear in the inspector.</para>
+        <para>Flags a variable to not appear in the Inspector.</para>
       </summary>
     </member>
     <member name="T:UnityEngine.HostData">
@@ -22032,18 +22032,18 @@ For indexed rendering, use Graphics.RenderPrimitivesIndexed. Draws procedural ge
     </member>
     <member name="M:UnityEngine.Material.SetTextureOffset(System.String,UnityEngine.Vector2)">
       <summary>
-        <para>Sets the placement offset of texture propertyName.</para>
+        <para>Sets the placement offset of a given texture. The name parameter is defined in the shader. This method creates a new Material instance.</para>
       </summary>
       <param name="nameID">Property name ID, use Shader.PropertyToID to get it.</param>
-      <param name="name">Property name, for example: "_MainTex".</param>
+      <param name="name">The name of the texture property as defined in the shader. For example: "_MainTex".</param>
       <param name="value">Texture placement offset.</param>
     </member>
     <member name="M:UnityEngine.Material.SetTextureOffset(System.Int32,UnityEngine.Vector2)">
       <summary>
-        <para>Sets the placement offset of texture propertyName.</para>
+        <para>Sets the placement offset of a given texture. The name parameter is defined in the shader. This method creates a new Material instance.</para>
       </summary>
       <param name="nameID">Property name ID, use Shader.PropertyToID to get it.</param>
-      <param name="name">Property name, for example: "_MainTex".</param>
+      <param name="name">The name of the texture property as defined in the shader. For example: "_MainTex".</param>
       <param name="value">Texture placement offset.</param>
     </member>
     <member name="M:UnityEngine.Material.SetTextureScale(System.String,UnityEngine.Vector2)">
@@ -32725,6 +32725,11 @@ See Also: ReflectionProbeTimeSlicingMode.</para>
         <para>Checks whether the request has been processed.</para>
       </summary>
     </member>
+    <member name="P:UnityEngine.Rendering.AsyncGPUReadbackRequest.forcePlayerLoopUpdate">
+      <summary>
+        <para>In the Editor, defines whether the Player loop is updated while the GPU request is in flight.</para>
+      </summary>
+    </member>
     <member name="P:UnityEngine.Rendering.AsyncGPUReadbackRequest.hasError">
       <summary>
         <para>This property is true if the request has encountered an error.</para>
@@ -37844,7 +37849,7 @@ Where possible, set this value to false for better performance.
     </member>
     <member name="T:UnityEngine.Rendering.CullMode">
       <summary>
-        <para>Backface culling mode.</para>
+        <para>Determines which faces Unity culls.</para>
       </summary>
     </member>
     <member name="F:UnityEngine.Rendering.CullMode.Back">
@@ -38912,8 +38917,15 @@ Usage example: provide a buffer address for the property.</para>
     </member>
     <member name="T:UnityEngine.Rendering.PassIdentifier">
       <summary>
-        <para>Represents an opaque identifier of a specific Pass in a Shader.</para>
+        <para>Represents an identifier of a specific Pass in a Shader.</para>
       </summary>
+    </member>
+    <member name="M:UnityEngine.Rendering.PassIdentifier.#ctor(System.UInt32,System.UInt32)">
+      <summary>
+        <para>Constructs a new PassIdentifier with the given subshaderIndex and passIndex.</para>
+      </summary>
+      <param name="subshaderIndex">The index of the SubShader the Pass belongs to.</param>
+      <param name="passIndex">The index of the Pass in the SubShader.</param>
     </member>
     <member name="?:UnityEngine.Rendering.PassIdentifier.op_Equal(UnityEngine.Rendering.PassIdentifier,UnityEngine.Rendering.PassIdentifier)">
       <summary>
@@ -40005,6 +40017,11 @@ Updating a probe's cubemap is a costly operation. Unity needs to render the enti
         <para>Delegate that you can use to invoke custom code at the end of RenderPipeline.Render.</para>
       </summary>
       <param name="value"></param>
+    </member>
+    <member name="P:UnityEngine.Rendering.RenderPipelineManager.pipelineSwitchCompleted">
+      <summary>
+        <para>Indicate when Render Pipeline switch is in progress.</para>
+      </summary>
     </member>
     <member name="T:UnityEngine.Rendering.RenderQueue">
       <summary>
@@ -45885,7 +45902,7 @@ Note: This flag does not unload assets which can be referenced by other scenes.<
     </member>
     <member name="M:UnityEngine.Shader.Find(System.String)">
       <summary>
-        <para>Finds a shader with the given name.</para>
+        <para>Finds a shader with the given name. Returns null if the shader is not found.</para>
       </summary>
       <param name="name"></param>
     </member>

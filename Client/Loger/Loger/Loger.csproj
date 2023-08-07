@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\..\App\Unity\2022.2.15f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\unity\2022.3.2f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 

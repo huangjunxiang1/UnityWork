@@ -13,7 +13,7 @@ public static class Loger
     [DebuggerHidden]
     public static void Log(object o)
     {
-        if (MainThreadID == Thread.CurrentThread.ManagedThreadId)
+        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
             UnityEngine.Debug.Log(o);
         else
             PostToMainThread?.Invoke(() => UnityEngine.Debug.Log(o));
@@ -23,7 +23,7 @@ public static class Loger
     [DebuggerHidden]
     public static void Warning(object o)
     {
-        if (MainThreadID == Thread.CurrentThread.ManagedThreadId)
+        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
             UnityEngine.Debug.LogWarning(o);
         else
             PostToMainThread?.Invoke(() => UnityEngine.Debug.LogWarning(o));
@@ -33,7 +33,7 @@ public static class Loger
     [DebuggerHidden]
     public static void Error(object o)
     {
-        if (MainThreadID == Thread.CurrentThread.ManagedThreadId)
+        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
             UnityEngine.Debug.LogError(o);
         else
             PostToMainThread?.Invoke(() => UnityEngine.Debug.LogError(o));
@@ -53,7 +53,7 @@ public static class Loger
             str.AppendLine(method.Name);
         }
 
-        if (MainThreadID == Thread.CurrentThread.ManagedThreadId)
+        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
             UnityEngine.Debug.Log(str);
         else
             PostToMainThread?.Invoke(() => UnityEngine.Debug.Log(str));

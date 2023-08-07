@@ -1,10 +1,20 @@
 {
   "dependencies": {
-    "com.esotericsoftware.spine.spine-unity": {
-      "version": "file:Spine",
+    "com.esotericsoftware.spine.spine-csharp": {
+      "version": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-csharp/src#4.1",
       "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "2c79b368fb5be841d81851754a93d83e44953a6b"
+    },
+    "com.esotericsoftware.spine.spine-unity": {
+      "version": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-unity/Assets/Spine#4.1",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.esotericsoftware.spine.spine-csharp": "4.1.0"
+      },
+      "hash": "2c79b368fb5be841d81851754a93d83e44953a6b"
     },
     "com.ourpalm.ilruntime": {
       "version": "2.0.2",
@@ -74,7 +84,7 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.collab-proxy": {
-      "version": "2.0.5",
+      "version": "2.0.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -151,7 +161,7 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.18",
+      "version": "2.0.20",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -246,7 +256,7 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.polybrush": {
-      "version": "1.1.4",
+      "version": "1.1.5",
       "depth": 0,
       "source": "registry",
       "dependencies": {
