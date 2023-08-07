@@ -23,12 +23,14 @@ public class Init
         Application.targetFrameRate = -1;
         FairyGUI.UIConfig.defaultFont = "Impact";
         DG.Tweening.DOTween.Init();
+
+        Timer.RigisterStaticTimer();
         System.Threading.SynchronizationContext.SetSynchronizationContext(ThreadSynchronizationContext.Instance);
         ECSSingle.Init();   
 
         GameM.Init();
         GameL.Init();
-        await GameL.UI.Init();
+        //await GameL.UI.Init();
 
         GameL.Setting.Languege = SystemLanguage.Chinese;
         GameL.Setting.UIModel = UIModel.FGUI;

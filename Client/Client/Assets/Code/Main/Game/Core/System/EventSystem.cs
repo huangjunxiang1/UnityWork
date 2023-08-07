@@ -49,7 +49,6 @@ namespace Game
         {
             if (!_listenerMethodCache.TryGetValue(t, out MethodData[] result))
             {
-                _methodInfos.Clear();
                 Type tt = t;
                 _methodInfos.AddRange(tt.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
                 while ((tt = tt.BaseType) != null)
@@ -84,6 +83,7 @@ namespace Game
                         evts.Add(e);
                     }
                 }
+                _methodInfos.Clear();
                 result = _listenerMethodCache[t] = evts.ToArray();
             }
             return result;
@@ -92,7 +92,6 @@ namespace Game
         {
             if (!_rpcListenerMethodCache.TryGetValue(t, out MethodData[] result))
             {
-                _methodInfos.Clear();
                 Type tt = t;
                 _methodInfos.AddRange(tt.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
                 while ((tt = tt.BaseType) != null)
@@ -126,6 +125,7 @@ namespace Game
                         evts.Add(e);
                     }
                 }
+                _methodInfos.Clear();
                 result = _rpcListenerMethodCache[t] = evts.ToArray();
             }
             return result;

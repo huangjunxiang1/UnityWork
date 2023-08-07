@@ -16,6 +16,7 @@ unsafe static class TypeBinding
     {
         appdomain.RegisterCrossBindingAdaptor(new CoroutineAdapter());
         appdomain.RegisterCrossBindingAdaptor(new IAsyncStateMachineAdapter());
+        appdomain.RegisterCrossBindingAdaptor(new IAsyncDisposedAdapter());
         appdomain.RegisterCrossBindingAdaptor(new ScriptableObjectAdapter());
         appdomain.RegisterCrossBindingAdaptor(new PBMessageAdapter());
 

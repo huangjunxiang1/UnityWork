@@ -14,7 +14,7 @@ public static class Types
     public static Type[] HotTypes { get; private set; }//热更工程类型
     public static Type[] AllTypes { get; private set; }//所有类型
 
-    readonly static Dictionary<Type, uint> _cmdCode = new();
+    readonly static Dictionary<Type, uint> _typeCmd = new();
     readonly static Dictionary<uint, Type> _cmdType = new();
     readonly static Dictionary<Type, Type> _requestResponse = new();
 
@@ -22,9 +22,10 @@ public static class Types
     static Dictionary<Type, int> attributeMask = new();
     static Dictionary<Type, object[]> typeAttributeMap = new();
     static Dictionary<Type, Type[]> assignableTypesMap = new();
-    static Dictionary<Type, FieldInfo> StateMachineFieldMap = new();
-    static Dictionary<Type, HashSet<Type>> methodAsyncAttributeCache = new();
-    static Type HotRootType;
+    static Dictionary<Type, FieldInfo> StateMachineThisFieldMap = new();
+    static Dictionary<Type, FieldInfo> StateMachineBuilderFieldMap = new();
+    static Dictionary<Type, bool> _asyncNeedCancel = new();
+    static Dictionary<Type, Dictionary<Type, MethodAndAttribute[]>> methodAttributeCache = new();
 
     public static void InitTypes(Type[] mtypes, Type[] htypes)
     {
@@ -52,24 +53,32 @@ public static class Types
         for (int i = 0; i < len; i++)
         {
             Type type = AllTypes[i];
-            if (!typeof(PB.PBMessage).IsAssignableFrom(type))
-                continue;
-            var mas = type.GetCustomAttributes(typeof(MessageAttribute), false);
-            if (mas == null || mas.Length <= 0)
-                continue;
-            var att = (MessageAttribute)mas[0];
-            uint cmd = att.cmd;
-            _cmdCode.Add(type, cmd);
-            _cmdType.Add(cmd, type);
-            if (att.ResponseType != null)
-                _requestResponse[type] = att.ResponseType;
+            if (typeof(PB.PBMessage).IsAssignableFrom(type))
+            {
+                var m = type.GetCustomAttribute<MessageAttribute>();
+                if (m != null)
+                {
+                    uint cmd = m.cmd;
+                    _typeCmd.Add(type, cmd);
+                    _cmdType.Add(cmd, type);
+                    if (m.ResponseType != null)
+                        _requestResponse[type] = m.ResponseType;
+                }
+            }
+            var ms = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            for (int j = 0; j < ms.Length; j++)
+            {
+                var a = ms[j].GetCustomAttribute<AsyncStateMachineAttribute>();
+                if (a != null)
+                    _asyncNeedCancel[a.StateMachineType] = ms[j].GetCustomAttribute<AsynAutoCancelIfCallerDisposedAttribute>() != null;
+            }
         }
     }
 
 
     public static uint GetCMDCode(Type type)
     {
-        if (!_cmdCode.TryGetValue(type, out var code))
+        if (!_typeCmd.TryGetValue(type, out var code))
             Loger.Error("消息没有cmdCode type:" + type.FullName);
         return code;
     }
@@ -162,38 +171,29 @@ public static class Types
 
     public static FieldInfo GetStateMachineThisField(Type t)
     {
-        if (!StateMachineFieldMap.TryGetValue(t, out var value))
-        {
-            var fs = t.GetFields();
-            foreach (var item in fs)
-            {
-                if (item.Name.EndsWith("this"))
-                {
-                    StateMachineFieldMap[t] = value = item;
-                    break;
-                }
-            }
-        }
+        if (!StateMachineThisFieldMap.TryGetValue(t, out var value))
+            StateMachineThisFieldMap[t] = value = t.GetField("<>4__this", BindingFlags.Public | BindingFlags.Instance);
+
         return value;
     }
-    public static Type GetHotRootType()
+    public static FieldInfo GetStateMachineBuilderField(Type t)
     {
-        if (HotRootType == null)
-        {
-            for (int i = 0; i < HotTypes.Length; i++)
-            {
-                if (HotTypes[i].FullName == "Game.ObjectL")
-                {
-                    HotRootType = HotTypes[i];
-                    break;
-                }
-            }
-        }
-        return HotRootType;
+        if (!StateMachineBuilderFieldMap.TryGetValue(t, out var value))
+            StateMachineBuilderFieldMap[t] = value = t.GetField("<>t__builder", BindingFlags.Public | BindingFlags.Instance);
+
+        return value;
     }
-    public static bool GetMethodAsyncDontCancel(Type self, Type stateMachineType)
+    public static bool AsyncInvokeIsNeedAutoCancel(Type stateMachineType)
     {
-        if (!methodAsyncAttributeCache.TryGetValue(self, out var hs))
+        return _asyncNeedCancel.TryGetValue(stateMachineType, out bool v) && v;
+    }
+
+    public static MethodAndAttribute[] GetInstanceMethodsWithAttribute<T>(Type self)
+    {
+        if (!methodAttributeCache.TryGetValue(self, out var map))
+            methodAttributeCache[self] = map = new();
+
+        if (!map.TryGetValue(typeof(T), out var arr))
         {
             List<MethodInfo> ms = new List<MethodInfo>() { };
             ms.AddRange(self.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
@@ -207,19 +207,33 @@ public static class Types
                         ms.Add(t[i]);
                 }
             }
-            methodAsyncAttributeCache[self] = hs = new HashSet<Type>();
+            var lst = ObjectPool.Get<List<MethodAndAttribute>>();
             for (int i = 0; i < ms.Count; i++)
             {
-                if (ms[i].GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null)
-                {
-                    if (ms[i].GetCustomAttribute(typeof(AsyncDontCancelAttribute)) != null)
-                    {
-                        hs.Add(stateMachineType);
-                        return true;
-                    }
-                }
+                var att = ms[i].GetCustomAttribute(typeof(T));
+                if (att != null)
+                    lst.Add(new MethodAndAttribute(ms[i], att));
             }
+            map[typeof(T)] = arr = lst.ToArray();
+            lst.Clear();
+            ObjectPool.Return(lst);
         }
-        return hs.Contains(stateMachineType);
+        return arr;
     }
+
+    public static T As<T>(this object o) where T : class
+    {
+        return o as T;
+    }
+}
+
+public class MethodAndAttribute
+{
+    public MethodAndAttribute(MethodInfo method, object attribute)
+    {
+        this.method = method;
+        this.attribute = attribute;
+    }
+    public MethodInfo method;
+    public object attribute;
 }

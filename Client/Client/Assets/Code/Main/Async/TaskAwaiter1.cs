@@ -18,10 +18,9 @@ public sealed class TaskAwaiter<T> : TaskAwaiter
     {
 
     }
-    public TaskAwaiter(Task<T> warpTask)
+    public TaskAwaiter(Task<T> warpTask) : base(warpTask)
     {
-        this.WarpTask = warpTask;
-        waitTask(this, warpTask);
+
     }
 
     T _result;
@@ -46,9 +45,9 @@ public sealed class TaskAwaiter<T> : TaskAwaiter
         this._result = result;
         return base.TrySetResult();
     }
-
-    static async void waitTask<K>(TaskAwaiter<K> taskAwaiter, Task<K> task)
+    public new TaskAwaiter<T> MakeAutoCancel(bool autoCancel = true)
     {
-        taskAwaiter.TrySetResult(await task);
+        base.MakeAutoCancel(autoCancel);
+        return this;
     }
 }

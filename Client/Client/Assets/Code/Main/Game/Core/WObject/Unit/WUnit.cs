@@ -18,12 +18,11 @@ namespace Game
         public Animator Animator { get; private set; }
         public float Speed { get; set; } = 1;
 
-        public override void SetRes(GameObject res)
+        public override void SetRes(GameObject res, bool release = true)
         {
-            base.SetRes(res);
-            this.Animator = res.GetComponent<Animator>();
+            base.SetRes(res, release);
+            this.Animator = res?.GetComponent<Animator>();
         }
-
         public override void Dispose()
         {
             base.Dispose();

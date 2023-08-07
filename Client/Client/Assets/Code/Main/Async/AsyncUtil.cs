@@ -18,7 +18,7 @@ public static class AsyncUtil
     {
         if (op.isDone)
             return TaskAwaiter.Completed;
-        
+
         TaskAwaiter task = new();
         op.completed += e => task.TrySetResult();
         return task;
@@ -39,7 +39,7 @@ public static class AsyncUtil
             }
         }
         Timer.Add(0.1f, -1, update);
-        return task;
+        return task.MakeAutoCancel();
     }
     public static TaskAwaiter AsTask(this GTweener tween)
     {

@@ -17,13 +17,9 @@ partial class FUILoading
         refView();
         _loadingBar.value = 0;
         _loadingBar.max = 1;
-        Timer.Add(0, -1, timer);
     }
 
-    protected override void OnExit()
-    {
-        Timer.Remove(timer);
-    }
+    [Timer(0, -1)]
     void timer()
     {
         if (cur < max)

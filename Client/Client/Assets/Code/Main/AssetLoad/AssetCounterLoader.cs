@@ -67,18 +67,6 @@ namespace Main
             return task;
         }
 
-        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> customTask)
-        {
-            if (counter.TryGetValue(path, out Temp value))
-            {
-                value.count++;
-                customTask.TrySetResult(value.target);
-            }
-            else
-                getTaskAndWait(path, customTask);
-            return customTask;
-        }
-
         public override void Release(UnityEngine.Object target)
         {
             if (!pathMap.TryGetValue(target, out string path))

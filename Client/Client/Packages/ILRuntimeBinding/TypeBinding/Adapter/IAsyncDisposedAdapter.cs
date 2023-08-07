@@ -6,16 +6,15 @@ using System.Collections;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
 using ILRuntime.CLR.Method;
-using System.Runtime.CompilerServices;
-using PB;
 
-public class PBMessageAdapter : CrossBindingAdaptor
+
+public class IAsyncDisposedAdapter : CrossBindingAdaptor
 {
     public override Type BaseCLRType
     {
         get
         {
-            return typeof(PB.PBMessage);
+            return typeof(IAsyncDisposed);
         }
     }
 
@@ -31,8 +30,7 @@ public class PBMessageAdapter : CrossBindingAdaptor
     {
         return new Adaptor(appdomain, instance);
     }
-    //为了完整实现MonoBehaviour的所有特性，这个Adapter还得扩展，这里只抛砖引玉，只实现了最常用的Awake, Start和Update
-    public class Adaptor : PB.PBMessage, CrossBindingAdaptorType
+    internal class Adaptor : IAsyncDisposed, CrossBindingAdaptorType
     {
         ILTypeInstance instance;
         ILRuntime.Runtime.Enviorment.AppDomain appdomain;
@@ -48,41 +46,32 @@ public class PBMessageAdapter : CrossBindingAdaptor
             this.instance = instance;
         }
 
-        public ILTypeInstance ILInstance { get { return instance; } set { instance = value; } }
+        public ILTypeInstance ILInstance { get { return instance; } }
 
-        public ILRuntime.Runtime.Enviorment.AppDomain AppDomain { get { return appdomain; } set { appdomain = value; } }
-
-
-        IMethod mWriteMethod;
-        bool mWriteGot;
-        public override void Write(PBWriter writer)
+        IMethod mMethod;
+        bool mMethodGot;
+        public bool Disposed
         {
-            if (!mWriteGot)
+            get
             {
-                mWriteMethod = instance.Type.GetMethod("Write", 1);
-                mWriteGot = true;
-            }
-            if (mWriteMethod != null)
-            {
-                appdomain.Invoke(mWriteMethod, instance, writer);
+                if (!mMethodGot)
+                {
+                    mMethod = instance.Type.GetMethod("get_Disposed", 0);
+                    mMethod ??= instance.Type.GetMethod("IAsyncDisposed.get_Disposed", 0);
+                    mMethodGot = true;
+                }
+
+                if (mMethod != null)
+                {
+                    var res = (bool)appdomain.Invoke(mMethod, instance, null);
+                    return res;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
-
-        IMethod mReadMethod;
-        bool mReadGot;
-        public override void Read(PBReader reader)
-        {
-            if (!mReadGot)
-            {
-                mReadMethod = instance.Type.GetMethod("Read", 1);
-                mReadGot = true;
-            }
-            if (mReadMethod != null)
-            {
-                appdomain.Invoke(mReadMethod, instance, reader);
-            }
-        }
-
 
         public override string ToString()
         {
@@ -95,6 +84,5 @@ public class PBMessageAdapter : CrossBindingAdaptor
             else
                 return instance.Type.FullName;
         }
-
     }
 }

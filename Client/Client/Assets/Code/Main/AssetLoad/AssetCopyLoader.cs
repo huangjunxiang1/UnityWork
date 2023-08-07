@@ -26,15 +26,9 @@ namespace Main
 
         public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
         {
-            TaskAwaiter<UnityEngine.Object> task = new TaskAwaiter<UnityEngine.Object>(path);
+            TaskAwaiter<UnityEngine.Object> task = new(path);
             getTaskAndWait(path, task);
             return task;
-        }
-
-        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> csutomTask)
-        {
-            getTaskAndWait(path, csutomTask);
-            return csutomTask;
         }
 
         public override void Release(UnityEngine.Object target)

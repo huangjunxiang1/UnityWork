@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Game
 {
-    public abstract class ObjectM : IDisposable
+    public abstract class ObjectM : IDisposable, IAsyncDisposed
     {
         public ObjectM() : this(0) { }
         public ObjectM(long cid)
@@ -22,6 +22,8 @@ namespace Game
                 if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredRPCEventAttribute), true))
                     this.RigisteRPCListener(cid);
             }
+            if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredTimerAttribute), true))
+                Timer.AutoRigisterTimer(this);
         }
 
         bool _listenerEnable = false;
@@ -89,7 +91,7 @@ namespace Game
                 GameM.Event.RemoveListener(this);
             if (_keyListenerEnable)
                 GameM.Event.RemoveRPCListener(_eventKey, this);
-            TaskAwaiter.RemoveAllAsync(this);
+            Timer.AutoRemoveTimer(this);
         }
 
         protected void RigisteRPCListener(long key)

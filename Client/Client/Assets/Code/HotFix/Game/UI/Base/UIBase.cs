@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using Game;
 using Main;
 
-[DisableAutoRegisteredEventAttribute]
-[DisableAutoRegisteredRPCEventAttribute]
+[DisableAutoRegisteredEvent]
+[DisableAutoRegisteredRPCEvent]
+[DisableAutoRegisteredTimer]
 abstract class UIBase : TreeL<UIBase>
 {
     Eventer _onDispose;
@@ -50,6 +51,7 @@ abstract class UIBase : TreeL<UIBase>
     {
         this.uiConfig = config;
         this.ListenerEnable = true;
+        Timer.AutoRigisterTimer(this);
         onCompleted = completed;
         return TaskAwaiter.Completed;
     }

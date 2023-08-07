@@ -37,7 +37,6 @@ namespace Game
         Eventer _onDispose;
         string _url;
         int _resVersion;
-        Vector3 _pos;
 
         /// <summary>
         /// 逻辑节点 WObjectLoadStyle.Resource模式 Root==Res
@@ -70,7 +69,7 @@ namespace Game
         /// </summary>
         public Vector3 Position
         {
-            get { return _pos; }
+            get { return this.goRoot.transform.position; }
             set
             {
                 if (ObjectStyle == WObjectLoadStyle.Static)
@@ -78,7 +77,6 @@ namespace Game
                     Loger.Error("静态物体不能设置坐标");
                     return;
                 }
-                _pos = value;
                 if (this.goRoot)
                     this.goRoot.transform.position = value;
             }
@@ -100,7 +98,7 @@ namespace Game
         /// 设置加载的资源模型
         /// </summary>
         /// <param name="res"></param>
-        public virtual void SetRes(GameObject res)
+        public virtual void SetRes(GameObject res, bool release = true)
         {
             ++_resVersion;
             switch (ObjectStyle)
@@ -113,7 +111,6 @@ namespace Game
                     }
                     this.goRoot = res;
                     this.goRes = res;
-                    _pos = this.goRoot.transform.position;
                     break;
                 case WObjectLoadStyle.Resource:
                     if (res == this.goRes)
@@ -121,16 +118,23 @@ namespace Game
 
                     if (this.goRes)
                     {
-                        res.transform.parent = this.goRes.transform.parent;
-                        res.transform.rotation = this.goRes.transform.rotation;
-                        res.transform.position = this.goRes.transform.position;
-                        AssetLoad.Release(this.goRes);
+                        if (res)
+                        {
+                            res.transform.parent = this.goRes.transform.parent;
+                            res.transform.SetPositionAndRotation(this.goRes.transform.position, this.goRes.transform.rotation);
+                        }
+                        if (release)
+                            AssetLoad.Release(this.goRes);
+                        else
+                            this.goRes.transform.parent = GameM.World.goRoot.transform;
                     }
                     else
                     {
-                        res.transform.SetParent(GameM.World.goRoot.transform);
-                        res.transform.rotation = Quaternion.identity;
-                        res.transform.position = _pos;
+                        if (res)
+                        {
+                            res.transform.SetParent(GameM.World.goRoot.transform);
+                            res.transform.SetPositionAndRotation(default, Quaternion.identity);
+                        }
                     }
 
                     this.goRoot = res;
@@ -140,12 +144,19 @@ namespace Game
                     if (res == this.goRes)
                         return;
 
-                    res.transform.parent = this.goRoot.transform;
-                    res.transform.localRotation = Quaternion.identity;
-                    res.transform.localPosition = default;
+                    if (res)
+                    {
+                        res.transform.parent = this.goRoot.transform;
+                        res.transform.SetLocalPositionAndRotation(default, Quaternion.identity);
+                    }
 
                     if (this.goRes)
-                        AssetLoad.Release(this.goRes);
+                    {
+                        if (release)
+                            AssetLoad.Release(this.goRes);
+                        else
+                            this.goRes.transform.parent = GameM.World.goRoot.transform;
+                    }
                     this.goRes = res;
                     break;
                 default:
@@ -201,7 +212,7 @@ namespace Game
                     break;
             }
 
-            if (_onDispose != null) _onDispose.Call();
+            _onDispose?.Call();
         }
     }
 }

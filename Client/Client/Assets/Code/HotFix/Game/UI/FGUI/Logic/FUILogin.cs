@@ -54,7 +54,7 @@ partial class FUILogin
             this.Dispose();
         }
     }
-    [AsyncDontCancel]
+   
     async void login()
     {
         await GameL.Scene.InScene(10001);

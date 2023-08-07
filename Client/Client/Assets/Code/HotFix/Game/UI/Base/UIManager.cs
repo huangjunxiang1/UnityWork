@@ -165,6 +165,7 @@ namespace Game
                         }
                     }
                     ui.ListenerEnable = true;
+                    Timer.AutoRigisterTimer(ui);
                     ui.Show();
                     UIHelper.EnableUIInput(true);
 
@@ -218,6 +219,7 @@ namespace Game
                         return;
 
                     ui.ListenerEnable = true;
+                    Timer.AutoRigisterTimer(ui);
                     ui.Show();
                     UIHelper.EnableUIInput(true);
 
@@ -257,6 +259,7 @@ namespace Game
                     return;
 
                 ui.ListenerEnable = true;
+                Timer.AutoRigisterTimer(ui);
 
                 task.TrySetResult(ui);
             }

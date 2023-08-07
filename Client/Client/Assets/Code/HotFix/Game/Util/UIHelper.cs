@@ -182,8 +182,8 @@ static class UIHelper
         }
       
         uuiTexLoadTask.Remove(ri);
-        ri.texture = tex;
         AssetLoad.AddTextureRef(ri.gameObject, tex);
+        ri.texture = tex;
         task.TrySetResult();
     }
 

@@ -28,12 +28,6 @@ namespace Main
             return task;
         }
 
-        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> customTask)
-        {
-            getTaskAndWait(path, customTask);
-            return customTask;
-        }
-
         public override void Release(UnityEngine.Object target)
         {
             Addressables.Release(target);

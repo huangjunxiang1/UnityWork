@@ -1,51 +1,41 @@
-﻿using System;
+﻿using Game;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Schema;
-using UnityEngine;
 
 [DebuggerNonUserCode]
-public sealed class TaskAwaiterBuilder
+public sealed class TaskAwaiterBuilder : AsyncBaseBuilder
 {
-    TaskAwaiter _awaiter;
     public static TaskAwaiterBuilder Create()
     {
-        TaskAwaiterBuilder builder = new() { _awaiter = new TaskAwaiter() };
-        return builder;
+        return new();
     }
-    public TaskAwaiter Task => _awaiter;
+    public TaskAwaiter Task => Awaiter;
 
     public void SetException(Exception ex)
     {
-        this._awaiter.SetException(ex);
+        this.Task.SetException(ex);
     }
     public void SetResult()
     {
-        this._awaiter.TrySetResult();
+        this.Task.TrySetResult();
     }
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
-        if (awaiter is TaskAwaiter task)
-            task.AddAsyncRoute(_awaiter);
-        else
-            Loger.Error($"异步类型错误 awaiter={awaiter.GetType()}");
         awaiter.OnCompleted(stateMachine.MoveNext);
     }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
     {
-        if (awaiter is TaskAwaiter task)
-            task.AddAsyncRoute(_awaiter);
-        else
-            Loger.Error($"异步类型错误 awaiter={awaiter.GetType()}");
-
         awaiter.UnsafeOnCompleted(stateMachine.MoveNext);
     }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
+        this.Awaiter = new();
+        this.Awaiter.MakeAutoCancel(Types.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
+        this.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine) as IAsyncDisposed;
+        this.Awaiter.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine);
         stateMachine.MoveNext();
     }
     public void SetStateMachine(IAsyncStateMachine stateMachine)

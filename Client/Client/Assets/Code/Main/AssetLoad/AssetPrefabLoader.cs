@@ -64,25 +64,6 @@ namespace Main
             getTaskAndWait(path, task);
             return task;
         }
-        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path, TaskAwaiter<UnityEngine.Object> customTask)
-        {
-            if (_pool.TryGetValue(path, out var pool))
-            {
-                int cnt = pool.Count;
-                if (cnt > 0)
-                {
-                    var go = pool[cnt - 1];
-                    if (cnt == 1)
-                        _pool.Remove(path);
-                    else
-                        pool.RemoveAt(cnt - 1);
-                    customTask.TrySetResult(go);
-                    return customTask;
-                }
-            }
-            getTaskAndWait(path, customTask);
-            return customTask;
-        }
 
         public override void Release(UnityEngine.Object target)
         {

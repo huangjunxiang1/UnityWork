@@ -34,6 +34,7 @@ namespace Main
             r.mode = releaseMode;
             return g;
         }
+        [AsynAutoCancelIfCallerDisposed]
         public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
@@ -56,15 +57,6 @@ namespace Main
             prefabLoader.Release(g);
             return e;
         }
-        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, TaskAwaiter<UnityEngine.Object> task, ReleaseMode releaseMode = ReleaseMode.Destroy)
-        {
-            GameObject g = (GameObject)await prefabLoader.LoadAsync(url, task);
-            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-            r.url = url;
-            r.isFromLoad = true;
-            r.mode = releaseMode;
-            return g;
-        }
 
         public static T Load<T>(string url) where T : UnityEngine.Object
         {
@@ -78,6 +70,7 @@ namespace Main
 #endif
             return (T)primitiveLoader.Load(url);
         }
+        [AsynAutoCancelIfCallerDisposed]
         public static async TaskAwaiter<T> LoadAsync<T>(string url) where T : UnityEngine.Object
         {
             Type t = typeof(T);
@@ -89,18 +82,6 @@ namespace Main
             }
 #endif
             return (T)await primitiveLoader.LoadAsync(url);
-        }
-        public static async TaskAwaiter<T> LoadAsync<T>(string url, TaskAwaiter<UnityEngine.Object> task) where T : UnityEngine.Object
-        {
-            Type t = typeof(T);
-#if DebugEnable
-            if (t == typeof(GameObject))
-            {
-                Loger.Error("GameObject 不使用这个函数加载");
-                return default;
-            }
-#endif
-            return (T)await primitiveLoader.LoadAsync(url, task);
         }
 
         public static void Release(UnityEngine.Object target)
@@ -187,22 +168,6 @@ namespace Main
             }
         }
        
-        public static void SetEmptyTextureIfIsNotFromLoad(GameObject target)
-        {
-#if DebugEnable
-            //debug模式重置texture 以方便查问题
-            TextureRef[] rs = target.GetComponentsInChildren<TextureRef>();
-            int len = rs.Length;
-            for (int i = 0; i < len; i++)
-            {
-                TextureRef r = rs[i];
-                UnityEngine.UI.RawImage ri = r.gameObject.GetComponent<UnityEngine.UI.RawImage>();
-                if (!r.texture && ri && ri.texture)
-                    ri.texture = Texture2D.whiteTexture;
-            }
-#endif
-        }
-
         class UrlRef : MonoBehaviour
         {
             public ReleaseMode mode;
@@ -215,6 +180,16 @@ namespace Main
         {
             [NonSerialized]
             public Texture texture;
+
+            private void Awake()
+            {
+                if (!texture)
+                {
+                    UnityEngine.UI.RawImage ri = gameObject.GetComponent<UnityEngine.UI.RawImage>();
+                    if (ri)
+                        ri.texture = Texture2D.whiteTexture;
+                }
+            }
         }
     }
 }

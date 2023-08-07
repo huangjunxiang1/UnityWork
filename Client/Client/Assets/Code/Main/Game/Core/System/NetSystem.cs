@@ -149,7 +149,7 @@ namespace Game
             TaskAwaiter<PB.PBMessage> task = new();
             queue.Enqueue(task);
             Send(request);
-            return task;
+            return task.MakeAutoCancel(true);
         }
 
         /// <summary>
