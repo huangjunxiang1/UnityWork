@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 public abstract class AsyncBaseBuilder
 {
-    public TaskAwaiter Awaiter { get; protected set; }
+    public virtual TaskAwaiter Task { get; protected set; }
     public IAsyncDisposed Target { get; protected set; }
 }

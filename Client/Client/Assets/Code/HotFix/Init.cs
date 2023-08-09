@@ -30,7 +30,7 @@ public class Init
 
         GameM.Init();
         GameL.Init();
-        //await GameL.UI.Init();
+        await GameL.UI.Init();
 
         GameL.Setting.Languege = SystemLanguage.Chinese;
         GameL.Setting.UIModel = UIModel.FGUI;

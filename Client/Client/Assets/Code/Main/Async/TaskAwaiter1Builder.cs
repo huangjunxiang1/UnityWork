@@ -10,19 +10,20 @@ using System.Threading.Tasks;
 [DebuggerNonUserCode]
 public sealed class TaskAwaiterBuilder<T> : AsyncBaseBuilder
 {
+    TaskAwaiter<T> _task;
     public static TaskAwaiterBuilder<T> Create()
     {
         return new();
     }
-    public TaskAwaiter<T> Task => (TaskAwaiter<T>)Awaiter;
+    public new TaskAwaiter<T> Task => _task;
 
     public void SetException(Exception ex)
     {
-        this.Task.SetException(ex);
+        this._task.SetException(ex);
     }
     public void SetResult(T result)
     {
-        this.Task.TrySetResult(result);
+        this._task.TrySetResult(result);
     }
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -34,8 +35,9 @@ public sealed class TaskAwaiterBuilder<T> : AsyncBaseBuilder
     }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
-        this.Awaiter = new();
-        this.Awaiter.MakeAutoCancel(Types.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
+        base.Task = _task;
+        this._task = new TaskAwaiter<T>();
+        this._task.MakeAutoCancel(Types.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
         this.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine) as IAsyncDisposed;
         stateMachine.MoveNext();
     }

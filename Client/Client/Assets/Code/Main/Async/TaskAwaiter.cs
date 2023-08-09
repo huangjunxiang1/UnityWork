@@ -44,7 +44,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
                 {
                     if (Builders[i].Target != null  && !Builders[i].Target.Disposed)
                         return false;
-                    if (Builders[i].Awaiter != null && Builders[i].Awaiter.AutoCancel && !Builders[i].Awaiter.IsDisposed)
+                    if (Builders[i].Task != null && Builders[i].Task.AutoCancel && !Builders[i].Task.IsDisposed)
                         return false;
                 }
                 return true;

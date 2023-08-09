@@ -8,19 +8,20 @@ using System.Runtime.CompilerServices;
 [DebuggerNonUserCode]
 public sealed class TaskAwaiterBuilder : AsyncBaseBuilder
 {
+    TaskAwaiter _task;
     public static TaskAwaiterBuilder Create()
     {
         return new();
     }
-    public TaskAwaiter Task => Awaiter;
+    public override TaskAwaiter Task => _task;
 
     public void SetException(Exception ex)
     {
-        this.Task.SetException(ex);
+        this._task.SetException(ex);
     }
     public void SetResult()
     {
-        this.Task.TrySetResult();
+        this._task.TrySetResult();
     }
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -32,10 +33,10 @@ public sealed class TaskAwaiterBuilder : AsyncBaseBuilder
     }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
-        this.Awaiter = new();
-        this.Awaiter.MakeAutoCancel(Types.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
+        this._task = new();
+        this._task.MakeAutoCancel(Types.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
         this.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine) as IAsyncDisposed;
-        this.Awaiter.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine);
+        this.Task.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine);
         stateMachine.MoveNext();
     }
     public void SetStateMachine(IAsyncStateMachine stateMachine)
