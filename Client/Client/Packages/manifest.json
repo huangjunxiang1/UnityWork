@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.unity.shit": "https://github.com/huangjunxiang1/UnityWork/tree/main.git?path=Client/Client/Packages/Shit",
+    "com.unity.shit": "https://github.com/huangjunxiang1/UnityWork.git?path=Client/Client/Packages/Shit",
     "com.code-philosophy.hybridclr": "https://github.com/focus-creative-games/hybridclr_unity.git",
     "com.esotericsoftware.spine.spine-csharp": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-csharp/src#4.1",
     "com.esotericsoftware.spine.spine-unity": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-unity/Assets/Spine#4.1",

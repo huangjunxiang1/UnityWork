@@ -376,7 +376,7 @@
       }
     },
     "com.unity.shit": {
-      "version": "file:Shit",
+      "version": "file:com.unity.shit@216be469ef",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
