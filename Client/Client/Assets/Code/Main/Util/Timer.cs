@@ -18,7 +18,6 @@ public static class Timer
     static long minUtc;
     static readonly List<TempUtc> _utcTimerLst = new List<TempUtc>();
 
-    static bool _isExcutingTimer;
     static bool _isExcutingUTCTimer;
     static bool _isRemovedTimer;
     static bool _isRemovedUTCTimer;
@@ -116,49 +115,41 @@ public static class Timer
 
     public static void Update()
     {
-        _isExcutingTimer = true;
+        int cnt = _timerLst.Count;
+        for (int i = 0; i < cnt; i++)
         {
-            int cnt = _timerLst.Count;
-            for (int i = 0; i < cnt; i++)
+            Temp t = _timerLst[i];
+            if (t.isDisposed) continue;
+
+            if (!t.isEveryFrame)
+                t.curTime += Time.deltaTime;
+
+            // t.time <=0 则表示每帧执行
+            if (t.isEveryFrame || t.curTime >= t.time)
             {
-                Temp t = _timerLst[i];
-                if (t.isDisposed) continue;
-
-                if (!t.isEveryFrame)
-                    t.curTime += Time.deltaTime;
-
-                // t.time <=0 则表示每帧执行
-                if (t.isEveryFrame || t.curTime >= t.time)
+                if (!t.isEveryFrame) t.curTime -= t.time;
+                if (t.count > 0)
                 {
-                    if (!t.isEveryFrame) t.curTime -= t.time;
-                    if (t.count > 0)
+                    t.curCount++;
+                    if (t.curCount >= t.count)
                     {
-                        t.curCount++;
-                        if (t.curCount >= t.count)
-                        {
-                            t.isDisposed = true;
-                            _isRemovedTimer = true;
-                        }
+                        t.isDisposed = true;
+                        _isRemovedTimer = true;
                     }
-#if !UNITY_EDITOR
-                    try
-                    {
-#endif
-                    t.action();
-#if !UNITY_EDITOR
-                    }
-                    catch (Exception e)
-                    { Loger.Error("timer error:" + e); }
-#endif
                 }
+                try
+                {
+                    t.action();
+                }
+                catch (Exception e)
+                { Loger.Error("timer error:" + e); }
             }
         }
-        _isExcutingTimer = false;
 
         _isExcutingUTCTimer = true;
         if (minUtc <= ServerTime)
         {
-            int cnt = _utcTimerLst.Count;
+            cnt = _utcTimerLst.Count;
             for (int i = 0; i < cnt; i++)
             {
                 TempUtc t = _utcTimerLst[i];
@@ -167,16 +158,12 @@ public static class Timer
 
                 t.isDisposed = true;
                 _isRemovedUTCTimer = true;
-#if !UNITY_EDITOR
                 try
                 {
-#endif
-                t.action();
-#if !UNITY_EDITOR
+                    t.action();
                 }
                 catch (Exception e)
                 { Loger.Error("utcTimer error:" + e); }
-#endif
             }
         }
         _isExcutingUTCTimer = false;
@@ -190,7 +177,7 @@ public static class Timer
         {
             _utcTimerLst.RemoveAll(t => t.isDisposed);
             minUtc = 0;
-            int cnt = _utcTimerLst.Count;
+            cnt = _utcTimerLst.Count;
             for (int i = 0; i < cnt; i++)
             {
                 if (minUtc == 0) minUtc = _utcTimerLst[i].utc;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using Unity.Entities.UniversalDelegates;
 
 [AsyncMethodBuilder(typeof(TaskAwaiterBuilder))]
 public class TaskAwaiter : ICriticalNotifyCompletion
@@ -42,9 +43,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             {
                 for (int i = 0; i < Builders.Count; i++)
                 {
-                    if (Builders[i].Target != null  && !Builders[i].Target.Disposed)
-                        return false;
-                    if (Builders[i].Task != null && Builders[i].Task.AutoCancel && !Builders[i].Task.IsDisposed)
+                    if (Builders[i].Target == null || !Builders[i].Target.Disposed)
                         return false;
                 }
                 return true;
@@ -167,39 +166,35 @@ public class TaskAwaiter : ICriticalNotifyCompletion
 
     public static TaskAwaiter Delay(int millisecondsDelay)
     {
-        return new TaskAwaiter(Task.Delay(millisecondsDelay)).MakeAutoCancel();
+        return new TaskAwaiter(Task.Delay(millisecondsDelay));
     }
-    [AsynAutoCancelIfCallerDisposed]
-    public static async TaskAwaiter All(IEnumerable<TaskAwaiter> itor)
+    public static async TaskAwaiter All(IEnumerable<TaskAwaiter> itor, bool copy = true)
     {
         if (itor == null)
             await TaskAwaiter.Completed;
-
-        TaskAwaiter[] tasks = itor.ToArray();
-        for (int i = 0; i < tasks.Length; i++)
-            await tasks[i];
+        var ie = itor.GetEnumerator();
+        while (ie.MoveNext())
+            await ie.Current;
     }
-    [AsynAutoCancelIfCallerDisposed]
     public static async TaskAwaiter All(params TaskAwaiter[] tasks)
     {
         for (int i = 0; i < tasks.Length; i++)
             await tasks[i];
     }
-    [AsynAutoCancelIfCallerDisposed]
     public static async TaskAwaiter<K[]> All<K>(IEnumerable<TaskAwaiter<K>> itor)
     {
         if (itor == null)
             return new K[0];
         else
         {
-            TaskAwaiter<K>[] tasks = itor.ToArray();
-            K[] rs = new K[tasks.Length];
-            for (int i = 0; i < tasks.Length; i++)
-                rs[i] = await tasks[i];
+            K[] rs = new K[itor.Count()];
+            var ie = itor.GetEnumerator();
+            int i = 0;
+            while (ie.MoveNext())
+                rs[i++] = await ie.Current;
             return rs;
         }
     }
-    [AsynAutoCancelIfCallerDisposed]
     public static async TaskAwaiter<K[]> All<K>(params TaskAwaiter<K>[] tasks)
     {
         K[] rs = new K[tasks.Length];
@@ -207,24 +202,22 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             rs[i] = await tasks[i];
         return rs;
     }
-   
+
     public static TaskAwaiter Any(IEnumerable<TaskAwaiter> itor)
     {
         if (itor == null)
             return TaskAwaiter.Completed;
 
         TaskAwaiter waiter = new();
-        TaskAwaiter[] tasks = itor.ToArray();
-
         async void wait(TaskAwaiter task)
         {
             await task;
             waiter.TrySetResult();
         }
-
-        for (int i = 0; i < tasks.Length; i++)
-            wait(tasks[i]);
-        return waiter.MakeAutoCancel();
+        var ie = itor.GetEnumerator();
+        while (ie.MoveNext())
+            wait(ie.Current);
+        return waiter;
     }
     public static TaskAwaiter Any(params TaskAwaiter[] tasks)
     {
@@ -237,7 +230,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
 
         for (int i = 0; i < tasks.Length; i++)
             wait(tasks[i]);
-        return waiter.MakeAutoCancel();
+        return waiter;
     }
     public static TaskAwaiter<K> Any<K>(IEnumerable<TaskAwaiter<K>> itor)
     {
@@ -245,18 +238,17 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         if (itor == null) waiter.TrySetResult(default);
         else
         {
-            TaskAwaiter<K>[] tasks = itor.ToArray();
-
             async void wait(TaskAwaiter<K> task)
             {
                 await task;
                 waiter.TrySetResult(task.GetResult());
             }
 
-            for (int i = 0; i < tasks.Length; i++)
-                wait(tasks[i]);
+            var ie = itor.GetEnumerator();
+            while (ie.MoveNext())
+                wait(ie.Current);
         }
-        return waiter.MakeAutoCancel();
+        return waiter;
     }
     public static TaskAwaiter<K> Any<K>(params TaskAwaiter<K>[] tasks)
     {
@@ -271,7 +263,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         for (int i = 0; i < tasks.Length; i++)
             wait(tasks[i]);
 
-        return waiter.MakeAutoCancel();
+        return waiter;
     }
 
     public static TaskAwaiter AnyAfterCancel(IEnumerable<TaskAwaiter> itor)
@@ -280,19 +272,20 @@ public class TaskAwaiter : ICriticalNotifyCompletion
             return TaskAwaiter.Completed;
 
         TaskAwaiter waiter = new();
-        TaskAwaiter[] tasks = itor.ToArray();
 
         async void wait(TaskAwaiter task)
         {
             await task;
             waiter.TrySetResult();
-            for (int i = 0; i < tasks.Length; i++)
-                tasks[i].TryCancel();
-        }
 
-        for (int i = 0; i < tasks.Length; i++)
-            wait(tasks[i]);
-        return waiter.MakeAutoCancel();
+            var ie = itor.GetEnumerator();
+            while (ie.MoveNext())
+                ie.Current.TryCancel();
+        }
+        var ie = itor.GetEnumerator();
+        while (ie.MoveNext())
+            wait(ie.Current);
+        return waiter;
     }
     public static TaskAwaiter AnyAfterCancel(params TaskAwaiter[] tasks)
     {
@@ -307,7 +300,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
 
         for (int i = 0; i < tasks.Length; i++)
             wait(tasks[i]);
-        return waiter.MakeAutoCancel();
+        return waiter;
     }
     public static TaskAwaiter<K> AnyAfterCancel<K>(IEnumerable<TaskAwaiter<K>> itor)
     {
@@ -315,20 +308,20 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         if (itor == null) waiter.TrySetResult(default);
         else
         {
-            TaskAwaiter<K>[] tasks = itor.ToArray();
-
             async void wait(TaskAwaiter<K> task)
-            {   
+            {
                 await task;
                 waiter.TrySetResult(task.GetResult());
-                for (int i = 0; i < tasks.Length; i++)
-                    tasks[i].TryCancel();
-            }
 
-            for (int i = 0; i < tasks.Length; i++)
-                wait(tasks[i]);
+                var ie = itor.GetEnumerator();
+                while (ie.MoveNext())
+                    ie.Current.TryCancel();
+            }
+            var ie = itor.GetEnumerator();
+            while (ie.MoveNext())
+                wait(ie.Current);
         }
-        return waiter.MakeAutoCancel();
+        return waiter;
     }
     public static TaskAwaiter<K> AnyAfterCancel<K>(params TaskAwaiter<K>[] tasks)
     {
@@ -345,6 +338,6 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         for (int i = 0; i < tasks.Length; i++)
             wait(tasks[i]);
 
-        return waiter.MakeAutoCancel();
+        return waiter;
     }
 }

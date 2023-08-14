@@ -52,8 +52,7 @@ namespace Game
             uint cmd = Types.GetCMDCode(type);
 
 #if DebugEnable
-            if (cmd != 1 << 16)
-                PrintField.Print($"<Color=#00FF00>收到消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
+            PrintField.Print($"<Color=#00FF00>收到消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
 #endif
             if (message.rpc > 0)
             {
@@ -113,9 +112,7 @@ namespace Game
         {
 #if DebugEnable
             uint cmd = Types.GetCMDCode(message.GetType());
-            //心跳包
-            if (cmd != 1000 << 16)
-                PrintField.Print($"<Color=#FF0000>发送消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
+            PrintField.Print($"<Color=#FF0000>发送消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
 #endif
             net.Send(message);
         }

@@ -21,25 +21,14 @@ namespace Main
             return wait.Result;
         }
 
-        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
+        public override async TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
         {
-            TaskAwaiter<UnityEngine.Object> task = new(path);
-            getTaskAndWait(path, task);
-            return task;
+            return await Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path).Task;
         }
 
         public override void Release(UnityEngine.Object target)
         {
             Addressables.Release(target);
-        }
-        async void getTaskAndWait(string path, TaskAwaiter<UnityEngine.Object> task)
-        {
-            var wait = Addressables.LoadAssetAsync<UnityEngine.Object>(AssetLoad.Directory + path);
-
-             await wait.Task;
-
-            if (!task.TrySetResult(wait.Result))
-                Release(wait.Result);
         }
     }
 }

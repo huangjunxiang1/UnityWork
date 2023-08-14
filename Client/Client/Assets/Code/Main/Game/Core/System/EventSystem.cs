@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Main;
 
 namespace Game
@@ -13,7 +14,7 @@ namespace Game
         readonly Dictionary<Type, List<EvtData>> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, List<EvtData>>> _rpcEvtMap = new(97);
         readonly Dictionary<Type, int> _evtCalling = new(5);
-        readonly Dictionary<Type, int> _rpcEvtCalling = new(5);
+        readonly Dictionary<long, Dictionary<Type, int>> _evtRpcCalling = new(5);
 
         readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
         readonly static Dictionary<Type, MethodData[]> _rpcListenerMethodCache = new(97);
@@ -256,7 +257,7 @@ namespace Game
                 e.sortOrder = m.sortOrder;
                 e.target = target;
 
-                if (!_rpcEvtCalling.TryGetValue(m.key, out var idx))
+                if (!_evtRpcCalling.TryGetValue(rpc, out var c) || !c.TryGetValue(m.key, out var idx))
                     evts.Add(e);
                 else
                 {
@@ -265,7 +266,7 @@ namespace Game
                     else
                     {
                         int inserIdx = evts.FindLastIndex(t => t.sortOrder < m.sortOrder) + 1;
-                        if (inserIdx <= idx) _rpcEvtCalling[m.key]++;
+                        if (inserIdx <= idx) c[m.key]++;
                         evts.Insert(inserIdx, e);
                     }
                 }
@@ -329,7 +330,7 @@ namespace Game
                 {
                     MethodData m = ms[i];
                     var lst = _rpcEvtMap[rpc][m.key];
-                    if (_rpcEvtCalling.TryGetValue(m.key, out int exIdx))
+                    if (_evtRpcCalling.TryGetValue(rpc, out var c) && c.TryGetValue(m.key, out int exIdx))
                     {
                         for (int j = lst.Count - 1; j >= 0; j--)
                         {
@@ -337,7 +338,7 @@ namespace Game
                             {
                                 lst.RemoveAt(j);
                                 if (exIdx <= j)
-                                    _rpcEvtCalling[m.key] = --exIdx;
+                                    c[m.key] = --exIdx;
                             }
                         }
                     }
@@ -354,7 +355,7 @@ namespace Game
             {
                 if (_evtCalling.ContainsKey(key))
                 {
-                    Loger.Error("事件执行队列循环 id=" + key);
+                    Loger.Error("事件执行队列循环 key=" + key);
                     return;
                 }
                 int i = _evtCalling[key] = 0;
@@ -374,6 +375,38 @@ namespace Game
                 _evtCalling.Remove(key);
             }
         }
+        public async TaskAwaiter RunEventAsync(object data)
+        {
+            var key = data.GetType();
+            if (_evtMap.TryGetValue(key, out var evts))
+            {
+                if (_evtCalling.ContainsKey(key))
+                {
+                    Loger.Error("事件执行队列循环 key=" + key);
+                    return;
+                }
+                List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
+                int i = _evtCalling[key] = 0;
+                for (; i < evts.Count; i = ++_evtCalling[key])
+                {
+                    EvtData e = evts[i];
+                    try
+                    {
+                        _ilRuntimePs[0] = data;
+                        if (e.method.Invoke(e.target, default, default, _ilRuntimePs, default) is TaskAwaiter t)
+                            ts.Add(t);
+                    }
+                    catch (Exception ex)
+                    {
+                        Loger.Error("事件执行出错 error:" + ex.ToString());
+                    }
+                }
+                _evtCalling.Remove(key);
+                await TaskAwaiter.All(ts);
+                ts.Clear();
+                ObjectPool.Return(ts);
+            }
+        }
 
         public void RunRPCEvent(long rpc, object data)
         {
@@ -383,13 +416,15 @@ namespace Game
             if (!map.TryGetValue(key, out var evts))
                 return;
 
-            if (_rpcEvtCalling.ContainsKey(key))
+            if (!_evtRpcCalling.TryGetValue(rpc, out var c))
+                _evtRpcCalling[rpc] = c = new();
+            if (c.ContainsKey(key))
             {
-                Loger.Error("事件执行队列循环 id=" + key);
+                Loger.Error($"事件执行队列循环 rpc={rpc} key={key}");
                 return;
             }
-            int i = _rpcEvtCalling[key] = 0;
-            for (; i < evts.Count; i = ++_rpcEvtCalling[key])
+            int i = c[key] = 0;
+            for (; i < evts.Count; i = ++c[key])
             {
                 EvtData e = evts[i];
                 try
@@ -402,7 +437,43 @@ namespace Game
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
             }
-            _rpcEvtCalling.Remove(key);
+            c.Remove(key);
+        }
+        public async TaskAwaiter RunRPCEventAsync(long rpc, object data)
+        {
+            var key = data.GetType();
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
+                return;
+            if (!map.TryGetValue(key, out var evts))
+                return;
+
+            if (!_evtRpcCalling.TryGetValue(rpc, out var c))
+                _evtRpcCalling[rpc] = c = new();
+            if (c.ContainsKey(key))
+            {
+                Loger.Error($"事件执行队列循环 rpc={rpc} key={key}");
+                return;
+            }
+            int i = c[key] = 0;
+            List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
+            for (; i < evts.Count; i = ++c[key])
+            {
+                EvtData e = evts[i];
+                try
+                {
+                    _ilRuntimePs[0] = data;
+                    if (e.method.Invoke(e.target, default, default, _ilRuntimePs, default) is TaskAwaiter t)
+                        ts.Add(t);
+                }
+                catch (Exception ex)
+                {
+                    Loger.Error("事件执行出错 error:" + ex.ToString());
+                }
+            }
+            c.Remove(key);
+            await TaskAwaiter.All(ts);
+            ts.Clear();
+            ObjectPool.Return(ts);
         }
 
         public void Clear()
@@ -410,6 +481,8 @@ namespace Game
             _rigistedStaticMethodEvt = false;
             _evtMap.Clear();
             _rpcEvtMap.Clear();
+            _evtCalling.Clear();
+            _evtRpcCalling.Clear();
         }
 
         class EvtData

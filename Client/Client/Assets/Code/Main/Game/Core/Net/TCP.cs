@@ -20,44 +20,43 @@ namespace Main
     {
         public TCP(IPEndPoint ip) : base(ip)
         {
-            client = new TcpClient();
-            client.NoDelay = true;
-            client.ReceiveTimeout = 3000;
-            client.ReceiveBufferSize = ushort.MaxValue;
-            client.SendTimeout = 3000;
-            client.SendBufferSize = ushort.MaxValue;
+            _client = new TcpClient();
+            _client.NoDelay = true;
+            _client.ReceiveTimeout = 3000;
+            _client.ReceiveBufferSize = ushort.MaxValue;
+            _client.SendTimeout = 3000;
+            _client.SendBufferSize = ushort.MaxValue;
         }
 
-        TcpClient client;
-        bool isConnecting = false;
-        Task connectTask;
+        bool _sendHeart = false;
+        TcpClient _client;
+        Task _connectTask;
+        byte[] _heart = new byte[8] { 8, 0, 0x03 + 0xE8, 0, 0xE8, 0x03, 0, 0 };
 
         public override ServerType serverType => ServerType.TCP;
 
         public override async Task<bool> Connect()
         {
-            if (client.Connected)
+            if (_client.Connected)
                 return true;
-            if (isConnecting)
+            if (_connectTask != null)
             {
-                await connectTask;
-                return client.Connected;
+                await _connectTask;
+                return _client.Connected;
             }
-            isConnecting = true;
-            await (connectTask = client.ConnectAsync(IP.Address, IP.Port));
-            connectTask = null;
-            isConnecting = false;
-            if (client.Connected)
+            await (_connectTask = _client.ConnectAsync(IP.Address, IP.Port));
+            _connectTask = null;
+            if (_client.Connected)
                 states = NetStates.Connect;
-            return client.Connected;
+            return _client.Connected;
         }
 
         public override void DisConnect()
         {
-            if (!client.Connected)
+            if (!_client.Connected)
                 return;
-            client.Close();
-            client.Dispose();
+            _client.Close();
+            _client.Dispose();
             states = NetStates.None;
         }
 
@@ -66,7 +65,7 @@ namespace Main
             //除了解析出错 其他都是非正常出错
             if (error != NetError.ParseError)
             {
-                client.Dispose();
+                _client.Dispose();
                 states = NetStates.None;
             }
             Loger.Error($"网络错误 error={ex} \n stack={Loger.GetStackTrace()}");
@@ -78,6 +77,22 @@ namespace Main
             PBWriter writer = new PBWriter(new MemoryStream(new byte[1024], 0, 1024, true, true));
             while (states != NetStates.None)
             {
+                if (_sendHeart)
+                {
+                    try
+                    {
+                        await _client.GetStream().WriteAsync(_heart, 0, _heart.Length);
+                    }
+                    catch (Exception e)
+                    {
+                        //被动断开链接
+                        if (states != NetStates.None)
+                            this.DisConnect();
+                        Loger.Error("发送消息错误 ex=" + e);
+                        return;
+                    }
+                    _sendHeart = false;
+                }
                 while (queues.TryDequeue(out var message))
                 {
                     try
@@ -125,7 +140,7 @@ namespace Main
                             checkCode += bs[i];
                         bs[2] = (byte)(~checkCode + 1);
 
-                        await client.GetStream().WriteAsync(bs, 0, len);
+                        await _client.GetStream().WriteAsync(bs, 0, len);
                     }
                     catch (Exception e)
                     { 
@@ -151,7 +166,7 @@ namespace Main
                     int len;
                     try
                     {
-                        await client.GetStream().ReadAsync(bs, 0, 2);
+                        await _client.GetStream().ReadAsync(bs, 0, 2);
                         len = (bs[0] | bs[1] << 8) + 2;
 
                         if (len < 8)
@@ -160,7 +175,7 @@ namespace Main
                             break;
                         }
 
-                        await client.GetStream().ReadAsync(bs, 2, len - 2);
+                        await _client.GetStream().ReadAsync(bs, 2, len - 2);
                     }
                     catch (Exception ex)
                     {
@@ -196,6 +211,12 @@ namespace Main
                             | (uint)bs[11] << 24;
                     }
 
+                    //心跳
+                    if (cmd == 1 << 16)
+                    {
+                        _sendHeart = true;
+                        continue;
+                    }
                     try
                     {
                         Type t = Types.GetCMDType(cmd);

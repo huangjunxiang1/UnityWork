@@ -34,28 +34,47 @@ namespace Main
             r.mode = releaseMode;
             return g;
         }
-        [AsynAutoCancelIfCallerDisposed]
-        public static async TaskAwaiter<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        public static TaskAwaiter<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
-            GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
-            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-            r.url = url;
-            r.isFromLoad = true;
-            r.mode = releaseMode;
-            return g;
+            TaskAwaiter<GameObject> task = new TaskAwaiter<GameObject>();
+            async void run()
+            {
+                GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
+                UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
+                r.url = url;
+                r.isFromLoad = true;
+                r.mode = releaseMode;
+                if (task.IsDisposed)
+                {
+                    ReleaseGameObject(r);
+                    return;
+                }
+                task.TrySetResult(g);
+            }
+            run();
+            return task.MakeAutoCancel();
         }
-        public static async TaskAwaiter<Entity> LoadEntityAsync(string url)
+        public static TaskAwaiter<Entity> LoadEntityAsync(string url)
         {
-            GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
-            var mgr = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-            Entity e = mgr.CreateEntity();
-            Renderer r = g.GetComponent<Renderer>();
-            MeshFilter mf = g.GetComponent<MeshFilter>();
-            RenderMeshUtility.AddComponents(e, mgr, new RenderMeshDescription(r), new RenderMeshArray(new[] { r.sharedMaterial }, new[] { mf.sharedMesh }), MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+            TaskAwaiter<Entity> task = new TaskAwaiter<Entity>();
+            async void run()
+            {
+                GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
+                if (task.IsDisposed)
+                    return;
+                
+                var mgr = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+                Entity e = mgr.CreateEntity();
+                Renderer r = g.GetComponent<Renderer>();
+                MeshFilter mf = g.GetComponent<MeshFilter>();
+                RenderMeshUtility.AddComponents(e, mgr, new RenderMeshDescription(r), new RenderMeshArray(new[] { r.sharedMaterial }, new[] { mf.sharedMesh }), MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
 
-            mgr.AddComponentData(e, new LocalToWorld() { Value = float4x4.TRS(float3.zero, g.transform.rotation, g.transform.lossyScale) });
-            prefabLoader.Release(g);
-            return e;
+                mgr.AddComponentData(e, new LocalToWorld() { Value = float4x4.TRS(float3.zero, g.transform.rotation, g.transform.lossyScale) });
+                prefabLoader.Release(g);
+                task.TrySetResult(e);
+            }
+            run();
+            return task.MakeAutoCancel();
         }
 
         public static T Load<T>(string url) where T : UnityEngine.Object
@@ -70,8 +89,7 @@ namespace Main
 #endif
             return (T)primitiveLoader.Load(url);
         }
-        [AsynAutoCancelIfCallerDisposed]
-        public static async TaskAwaiter<T> LoadAsync<T>(string url) where T : UnityEngine.Object
+        public static TaskAwaiter<T> LoadAsync<T>(string url) where T : UnityEngine.Object
         {
             Type t = typeof(T);
 #if DebugEnable
@@ -81,7 +99,19 @@ namespace Main
                 return default;
             }
 #endif
-            return (T)await primitiveLoader.LoadAsync(url);
+            TaskAwaiter<T> task = new();
+            async void run()
+            {
+                T ret = (T)await primitiveLoader.LoadAsync(url);
+                if (task.IsDisposed)
+                {
+                    primitiveLoader.Release(ret);
+                    return;
+                }
+                task.TrySetResult(ret);
+            }
+            run();
+            return task.MakeAutoCancel();
         }
 
         public static void Release(UnityEngine.Object target)
@@ -96,8 +126,7 @@ namespace Main
 
 #if DebugEnable
                 //debug模式检查一次Release的是不是加载对象
-                UrlRef r = g.GetComponent<UrlRef>();
-                if (r == null)
+                if (!g.TryGetComponent<UrlRef>(out var r))
                 {
                     Loger.Error($"不是从资源加载的对象 target={target}");
                     GameObject.DestroyImmediate(target);
@@ -118,8 +147,7 @@ namespace Main
                 Loger.Error("Asset is null");
                 return;
             }
-            UrlRef r = target.GetComponent<UrlRef>();
-            if (r == null)
+            if (!target.TryGetComponent<UrlRef>(out var r))
             {
                 GameObject.DestroyImmediate(target);
                 return;

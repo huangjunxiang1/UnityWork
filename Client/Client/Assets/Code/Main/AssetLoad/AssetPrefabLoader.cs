@@ -39,14 +39,13 @@ namespace Main
                     return go;
                 }
             }
-            var wait = Addressables.InstantiateAsync(AssetLoad.Directory + path);
+            var wait = Addressables.InstantiateAsync(AssetLoad.Directory + path, parent: _poolRoot.transform);
             wait.WaitForCompletion();
             return wait.Result;
         }
 
-        public override TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
+        public override async TaskAwaiter<UnityEngine.Object> LoadAsync(string path)
         {
-            TaskAwaiter<UnityEngine.Object> task = new();
             if (_pool.TryGetValue(path, out var pool))
             {
                 int cnt = pool.Count;
@@ -57,12 +56,10 @@ namespace Main
                         _pool.Remove(path);
                     else
                         pool.RemoveAt(cnt - 1);
-                    task.TrySetResult(go);
-                    return task;
+                    return go;
                 }
             }
-            getTaskAndWait(path, task);
-            return task;
+            return await Addressables.InstantiateAsync(AssetLoad.Directory + path, parent: _poolRoot.transform).Task;
         }
 
         public override void Release(UnityEngine.Object target)
@@ -85,17 +82,6 @@ namespace Main
             }
             lst.Add(target);
             target.transform.SetParent(_poolRoot.transform);
-        }
-
-
-        async void getTaskAndWait(string path, TaskAwaiter<UnityEngine.Object> task)
-        {
-            var wait = Addressables.InstantiateAsync(AssetLoad.Directory + path);
-
-            await wait.Task;
-
-            if (!task.TrySetResult(wait.Result))
-                Release(wait.Result);
         }
     }
 }

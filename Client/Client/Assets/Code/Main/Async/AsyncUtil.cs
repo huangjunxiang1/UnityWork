@@ -39,7 +39,7 @@ public static class AsyncUtil
             }
         }
         Timer.Add(0.1f, -1, update);
-        return task.MakeAutoCancel();
+        return task;
     }
     public static TaskAwaiter AsTask(this GTweener tween)
     {
