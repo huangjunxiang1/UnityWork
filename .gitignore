@@ -36,3 +36,4 @@ sysinfo.txt
 *.unitypackage
 Client/Client/bakery_times.log
 Client/Client/UserSettings
+Client/Client/LocalPackages

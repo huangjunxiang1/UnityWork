@@ -1,0 +1,12 @@
+{
+  "name": "com.unity.shit",
+  "displayName": "Shit",
+  "version": "1.0.0",
+  "unity": "2020.1",
+  "unityRelease": "",
+  "dependencies": {},
+  "description": "This is a UnityFrameWork.But it is a shit",
+  "keywords": [],
+  "upmCi": {},
+  "repository": {}
+}

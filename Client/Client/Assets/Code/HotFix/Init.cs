@@ -1,14 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Game;
 using Main;
-using FairyGUI;
-using System.Threading.Tasks;
-using System;
 using System.IO;
-using System.Runtime.CompilerServices;
-using main;
 
 public class Init
 {
@@ -26,7 +18,7 @@ public class Init
 
         Timer.RigisterStaticTimer();
         System.Threading.SynchronizationContext.SetSynchronizationContext(ThreadSynchronizationContext.Instance);
-        ECSSingle.Init();   
+        Game.ECSSingle.Init();   
 
         GameM.Init();
         GameL.Init();
@@ -48,7 +40,7 @@ public class Init
             GameL.Close();
             GameM.Close();
         }
-        ECSSingle.Dispose();
+        Game.ECSSingle.Dispose();
     }
     static async TaskAwaiter LoadConfig()
     {
@@ -69,7 +61,7 @@ public class Init
         else
         {
             buffM_ST.Compress = buffM_ST.Readbool();
-            ECSSingle.LoadTabs(buffM_ST);
+            Game.ECSSingle.LoadTabs(buffM_ST);
         }
 
         DBuffer buffL = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabL.bytes")).bytes));

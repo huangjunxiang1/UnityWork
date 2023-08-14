@@ -20,7 +20,7 @@ partial class FUIFighting
     protected override async void OnEnter(params object[] data)
     {
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab");
+        Entity one = await ECSHelper.LoadEntity(@"3D\Model\ECS\Cube.prefab");
       
         if (this.Disposed)
         {

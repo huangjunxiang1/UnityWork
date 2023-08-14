@@ -27,7 +27,7 @@ partial class FUIFighting3
     {
         base.OnEnter(data);
 
-        Entity one = await AssetLoad.LoadEntityAsync(@"3D\Model\ECS\Cube.prefab");
+        Entity one = await ECSHelper.LoadEntity(@"3D\Model\ECS\Cube.prefab");
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
         em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(0, 0, 1, 1) });

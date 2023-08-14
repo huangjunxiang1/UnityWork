@@ -375,6 +375,12 @@
         "com.unity.searcher": "4.9.2"
       }
     },
+    "com.unity.shit": {
+      "version": "file:Shit",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.test-framework": {
       "version": "1.3.2",
       "depth": 1,
