@@ -21,15 +21,7 @@ abstract class UIBase : TreeL<UIBase>
     /// <summary>
     /// dispose 监听
     /// </summary>
-    public Eventer onDispose
-    {
-        get
-        {
-            if (_onDispose == null)
-                _onDispose = new Eventer(this);
-            return _onDispose;
-        }
-    }
+    public Eventer onDispose => _onDispose ??= new Eventer(this);
     /// <summary>
     /// UI层级
     /// </summary>
@@ -103,7 +95,7 @@ abstract class UIBase : TreeL<UIBase>
         //先执行退出逻辑
         if (this.uiStates >= UIStates.OnTask)
             this.OnExit();
-        if (_onDispose != null) _onDispose.Call();
+        _onDispose?.Call();
     }
 
     protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用

@@ -6,14 +6,14 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 [DebuggerNonUserCode]
-public sealed class TaskAwaiterBuilder : AsyncBaseBuilder
+public sealed class TaskAwaiterBuilder
 {
     TaskAwaiter _task;
     public static TaskAwaiterBuilder Create()
     {
         return new();
     }
-    public override TaskAwaiter Task => _task;
+    public TaskAwaiter Task => _task;
 
     public void SetException(Exception ex)
     {
@@ -35,8 +35,6 @@ public sealed class TaskAwaiterBuilder : AsyncBaseBuilder
     {
         this._task = new();
         this._task.MakeAutoCancel(Types.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
-        this.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine) as IAsyncDisposed;
-        this.Task.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine);
         stateMachine.MoveNext();
     }
     public void SetStateMachine(IAsyncStateMachine stateMachine)

@@ -39,8 +39,6 @@ partial class FUILogin
     [Event]
     void connectRet(EC_NetError e)
     {
-        int error = e.code;
-
     }
 
     async void onUIModel()

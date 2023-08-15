@@ -1,5 +1,8 @@
-﻿using System;
+﻿using FairyGUI;
+using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Main
 {
@@ -7,7 +10,7 @@ namespace Main
     {
         public const string Directory = "Assets/Res/";
 
-        static readonly AssetPrefabLoader prefabLoader = new AssetPrefabLoader();
+        static readonly AssetPrefabLoader prefabLoader = new();
         //static readonly AssetBaseLoader counterLoader = new AssetCounterLoader();
         static readonly AssetBaseLoader primitiveLoader = new AssetPrimitiveLoader();
         //static readonly AssetBaseLoader copyLoader = new AssetCopyLoader();
@@ -23,7 +26,7 @@ namespace Main
         }
         public static TaskAwaiter<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
-            TaskAwaiter<GameObject> task = new TaskAwaiter<GameObject>();
+            TaskAwaiter<GameObject> task = new();
             async void run()
             {
                 GameObject g = (GameObject)await prefabLoader.LoadAsync(url);
@@ -31,14 +34,14 @@ namespace Main
                 r.url = url;
                 r.isFromLoad = true;
                 r.mode = releaseMode;
-                if (task.IsDisposed)
+                if (task.Disposed)
                 {
                     ReleaseGameObject(r);
                     return;
                 }
                 task.TrySetResult(g);
             }
-            run();
+            Timer.Add(0, 1, run);
             return task.MakeAutoCancel();
         }
         public static T Load<T>(string url) where T : UnityEngine.Object
@@ -67,14 +70,14 @@ namespace Main
             async void run()
             {
                 T ret = (T)await primitiveLoader.LoadAsync(url);
-                if (task.IsDisposed)
+                if (task.Disposed)
                 {
                     primitiveLoader.Release(ret);
                     return;
                 }
                 task.TrySetResult(ret);
             }
-            run();
+            Timer.Add(0, 1, run);
             return task.MakeAutoCancel();
         }
 
@@ -159,7 +162,58 @@ namespace Main
                     primitiveLoader.Release(r.texture);
             }
         }
-       
+
+        public static async TaskAwaiter SetTexture(this RawImage ri, string url)
+        {
+            TextureRef tr = ri.gameObject.GetComponent<TextureRef>() ?? ri.gameObject.AddComponent<TextureRef>();
+            string s = tr.url;
+            tr.url = url;
+            if (string.IsNullOrEmpty(url))
+            {
+                if (!string.IsNullOrEmpty(s))
+                    Release(tr.texture);
+                ri.texture = null;
+                return;
+            }
+            var tex = await LoadAsync<Texture>(url);
+            if (!ri)
+            {
+                Release(tex);
+                return;
+            }
+            if (tr.url != url)
+            {
+                Release(tex);
+                return;
+            }
+            AddTextureRef(ri.gameObject, tex);
+            ri.texture = tex;
+        }
+        public static async TaskAwaiter SetTexture(this GLoader loader, string url)
+        {
+            loader.data = url;
+            if (string.IsNullOrEmpty(url))
+            {
+                loader.texture = NTexture.Empty;
+                return;
+            }
+            var tex = await LoadAsync<Texture>(url);
+            if (loader.isDisposed)
+            {
+                Release(tex);
+                return;
+            }
+            if ((string)loader.data != url)
+            {
+                Release(tex);
+                return;
+            }
+            var nt = new NTexture(tex);
+            nt.destroyMethod = DestroyMethod.Custom;
+            nt.onRelease += v => v.Dispose();
+            loader.texture = nt;
+        }
+
         class UrlRef : MonoBehaviour
         {
             public ReleaseMode mode;
@@ -171,6 +225,8 @@ namespace Main
         class TextureRef : MonoBehaviour
         {
             [NonSerialized]
+            public string url;
+            [NonSerialized]
             public Texture texture;
 
             private void Awake()
@@ -179,7 +235,7 @@ namespace Main
                 {
                     UnityEngine.UI.RawImage ri = gameObject.GetComponent<UnityEngine.UI.RawImage>();
                     if (ri)
-                        ri.texture = Texture2D.whiteTexture;
+                        ri.texture = null;
                 }
             }
         }

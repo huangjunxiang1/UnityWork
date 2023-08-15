@@ -25,8 +25,7 @@ abstract class BaseCamera
 
     public static void SetCamera(BaseCamera camera)
     {
-        if (Current != null)
-            Current.Dispose();
+        Current?.Dispose();
         Current = camera;
     }
 

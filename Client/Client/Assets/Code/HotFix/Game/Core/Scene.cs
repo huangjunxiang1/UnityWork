@@ -62,7 +62,7 @@ namespace Game
 
             GameM.Event.RunEvent(new EC_InScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
             BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
-            GameObject cm = new GameObject("CMTarget");
+            GameObject cm = new("CMTarget");
             cm.transform.position = new Vector3(0, 0, 0);
             BaseCamera.Current.Init(cm);
             BaseCamera.Current.EnableCamera();

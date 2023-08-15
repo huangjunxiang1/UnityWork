@@ -13,7 +13,7 @@ public static class ObjectPool
         {
             if (value.Count > 0)
             {
-                var o = value[value.Count - 1];
+                var o = value[^1];
                 value.RemoveAt(value.Count - 1);
                 return (T)o;
             }

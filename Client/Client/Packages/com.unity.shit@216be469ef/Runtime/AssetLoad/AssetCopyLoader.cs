@@ -43,7 +43,7 @@ namespace Main
             await wait.Task;
 
             //如果状态是没完成 但是被释放了 说明异步被中途取消
-            if (!task.IsCompleted && !task.IsDisposed)
+            if (!task.IsCompleted && !task.Disposed)
             {
                 UnityEngine.Object ret = UnityEngine.Object.Instantiate(wait.Result);
                 Addressables.Release(wait.Result);

@@ -1,6 +1,7 @@
 using UnityEngine;
 using Main;
 using System.IO;
+using Game;
 
 public class Init
 {
@@ -17,7 +18,6 @@ public class Init
         DG.Tweening.DOTween.Init();
 
         Timer.RigisterStaticTimer();
-        System.Threading.SynchronizationContext.SetSynchronizationContext(ThreadSynchronizationContext.Instance);
         Game.ECSSingle.Init();   
 
         GameM.Init();
@@ -81,7 +81,7 @@ public class Init
         else
         {
             buff_cn.Compress = buff_cn.Readbool();
-            LanguageS.Load((int)SystemLanguage.Chinese, buff_cn, ConstDefM.Debug);
+            LanguageS_Int.Load((int)SystemLanguage.Chinese, buff_cn, ConstDefM.Debug);
         }
 
         DBuffer buff_en = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/Language_en.bytes")).bytes));
@@ -91,7 +91,7 @@ public class Init
         else
         {
             buff_en.Compress = buff_en.Readbool();
-            LanguageS.Load((int)SystemLanguage.English, buff_en, ConstDefM.Debug);
+            LanguageS_Int.Load((int)SystemLanguage.English, buff_en, ConstDefM.Debug);
         }
     }
 }

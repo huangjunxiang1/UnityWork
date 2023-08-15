@@ -8,14 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 [DebuggerNonUserCode]
-public sealed class TaskAwaiterBuilder<T> : AsyncBaseBuilder
+public sealed class TaskAwaiterBuilder<T> 
 {
     TaskAwaiter<T> _task;
     public static TaskAwaiterBuilder<T> Create()
     {
         return new();
     }
-    public new TaskAwaiter<T> Task => _task;
+    public TaskAwaiter<T> Task => _task;
 
     public void SetException(Exception ex)
     {
@@ -35,10 +35,8 @@ public sealed class TaskAwaiterBuilder<T> : AsyncBaseBuilder
     }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
-        base.Task = _task;
-        this._task = new TaskAwaiter<T>();
+        this._task = new();
         this._task.MakeAutoCancel(Types.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
-        this.Target = Types.GetStateMachineThisField(stateMachine.GetType())?.GetValue(stateMachine) as IAsyncDisposed;
         stateMachine.MoveNext();
     }
     public void SetStateMachine(IAsyncStateMachine stateMachine)

@@ -135,7 +135,7 @@ class TabDataTest
         else
         {
             buff_cn.Compress = buff_cn.Readbool();
-            LanguageS.Load((int)SystemLanguage.Chinese, buff_cn, true);
+            LanguageS_Int.Load((int)SystemLanguage.Chinese, buff_cn, true);
         }
 
         buff_en.Compress = false;
@@ -144,7 +144,7 @@ class TabDataTest
         else
         {
             buff_en.Compress = buff_en.Readbool();
-            LanguageS.Load((int)SystemLanguage.English, buff_en, true);
+            LanguageS_Int.Load((int)SystemLanguage.English, buff_en, true);
         }
     }
     void test_ST(DBuffer buffM)

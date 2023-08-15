@@ -33,8 +33,8 @@ namespace Game
 
         public SystemLanguage Languege
         {
-            get { return LanguageS.LanguageType; }
-            set { LanguageS.LanguageType = value; }
+            get { return LanguageS_Int.LanguageType; }
+            set { LanguageS_Int.LanguageType = value; }
         }
     }
 }

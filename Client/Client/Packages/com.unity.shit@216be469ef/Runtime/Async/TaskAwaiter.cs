@@ -3,49 +3,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using UnityEngine;
+using System.Reflection;
 
 [AsyncMethodBuilder(typeof(TaskAwaiterBuilder))]
 public class TaskAwaiter : ICriticalNotifyCompletion
 {
+    static TaskAwaiter()
+    {
+        runner = typeof(AsyncVoidMethodBuilder).Assembly.GetTypes().First(t => t.FullName == "System.Runtime.CompilerServices.AsyncMethodBuilderCore+MoveNextRunner");
+        runnerField = runner.GetField("m_stateMachine", BindingFlags.NonPublic | BindingFlags.Instance);
+    }
     public TaskAwaiter()
     {
-        this.Builders = ObjectPool.Get<List<AsyncBaseBuilder>>();
     }
     public TaskAwaiter(object tag)
     {
         this.Tag = tag;
-        this.Builders = ObjectPool.Get<List<AsyncBaseBuilder>>();
     }
     public TaskAwaiter(Task warpTask)
     {
         this.WarpTask = warpTask;
-        this.Builders = ObjectPool.Get<List<AsyncBaseBuilder>>();
         waitTask(this, warpTask);
     }
 
+    static Type runner;
+    static FieldInfo runnerField;
     Action _event;
-    bool _isDisposed = false;
+    bool _Disposed = false;
 
     public object Tag { get; }
     public Task WarpTask { get; }
     public bool AutoCancel { get; private set; }
-    public List<AsyncBaseBuilder> Builders { get; }
-    internal object Target { get; set; }
+    public IAsyncCancel Target { get; private set; }
 
-    public bool IsDisposed
+    public bool Disposed
     {
         get
         {
-            if (_isDisposed)
+            if (_Disposed)
                 return true;
             if (this.AutoCancel)
             {
-                for (int i = 0; i < Builders.Count; i++)
-                {
-                    if (Builders[i].Target == null || !Builders[i].Target.Disposed)
-                        return false;
-                }
-                return true;
+                if (Target != null)
+                    return Target.Disposed;
+                return false;
             }
             return false;
         }
@@ -72,11 +74,9 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     /// </summary>
     public void TryCancel()
     {
-        if (this.IsCompleted || this.IsDisposed) return;
+        if (this.IsCompleted || this.Disposed) return;
 
-        this._isDisposed = true;
-        Builders.Clear();
-        ObjectPool.Return(Builders);
+        this._Disposed = true;
 
         this._event = null;
     }
@@ -86,12 +86,10 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     /// </summary>
     public bool TrySetResult()
     {
-        if (this.IsCompleted || this.IsDisposed) return false;
+        if (this.IsCompleted || this.Disposed) return false;
        
-        this._isDisposed = true;
+        this._Disposed = true;
         this.IsCompleted = true;
-        Builders.Clear();
-        ObjectPool.Return(Builders);
 
         Action act = this._event;
         this._event = null;
@@ -106,11 +104,9 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     public void SetException(Exception e)
     {
         Loger.Error("TaskAwaiter Error " + e);
-        if (this.IsCompleted || this.IsDisposed) return;
+        if (this.IsCompleted || this.Disposed) return;
 
-        this._isDisposed = true;
-        Builders.Clear();
-        ObjectPool.Return(Builders);
+        this._Disposed = true;
 
         Action act = this._event;
         this._event = null;
@@ -128,7 +124,6 @@ public class TaskAwaiter : ICriticalNotifyCompletion
         }
         this._event += evt;
         this.AutoCancel = false;
-        Builders.Clear();
     }
     public TaskAwaiter MakeAutoCancel(bool autoCancel = true)
     {
@@ -138,20 +133,60 @@ public class TaskAwaiter : ICriticalNotifyCompletion
 
     void INotifyCompletion.OnCompleted(Action callBack)
     {
-        if (this.AutoCancel && callBack.Target is IAsyncStateMachine)
+        if (this.AutoCancel)
         {
-            var builder = (AsyncBaseBuilder)Types.GetStateMachineBuilderField(callBack.Target.GetType()).GetValue(callBack.Target);
-            Builders.Add(builder);
+            if (Target == null)
+            {
+                if (callBack.Target is IAsyncStateMachine)
+                {
+                    if (Types.GetStateMachineThisField(callBack.Target.GetType())?.GetValue(callBack.Target) is IAsyncCancel o)
+                        Target = o;
+                    else
+                        this.AutoCancel = false;
+                }
+                else if (callBack.Target.GetType() == runner)
+                {
+                    var v = runnerField.GetValue(callBack.Target);
+                    if (Types.GetStateMachineThisField(v.GetType())?.GetValue(v) is IAsyncCancel o)
+                        Target = o;
+                    else
+                        this.AutoCancel = false;
+                }
+                else
+                    this.AutoCancel = false;
+            }
+            else
+                this.AutoCancel = false;
         }
 
         this._event += callBack;
     }
     void ICriticalNotifyCompletion.UnsafeOnCompleted(Action callBack)
     {
-        if (this.AutoCancel && callBack.Target is IAsyncStateMachine)
+        if (this.AutoCancel)
         {
-            var builder = (AsyncBaseBuilder)Types.GetStateMachineBuilderField(callBack.Target.GetType()).GetValue(callBack.Target);
-            Builders.Add(builder);
+            if (Target == null)
+            {
+                if (callBack.Target is IAsyncStateMachine)
+                {
+                    if (Types.GetStateMachineThisField(callBack.Target.GetType())?.GetValue(callBack.Target) is IAsyncCancel o)
+                        Target = o;
+                    else
+                        this.AutoCancel = false;
+                }
+                else if (callBack.Target.GetType() == runner)
+                {
+                    var v = runnerField.GetValue(callBack.Target);
+                    if (Types.GetStateMachineThisField(v.GetType())?.GetValue(v) is IAsyncCancel o)
+                        Target = o;
+                    else
+                        this.AutoCancel = false;
+                }
+                else
+                    this.AutoCancel = false;
+            }
+            else
+                this.AutoCancel = false;
         }
 
         this._event += callBack;
@@ -167,7 +202,7 @@ public class TaskAwaiter : ICriticalNotifyCompletion
     {
         return new TaskAwaiter(Task.Delay(millisecondsDelay));
     }
-    public static async TaskAwaiter All(IEnumerable<TaskAwaiter> itor, bool copy = true)
+    public static async TaskAwaiter All(IEnumerable<TaskAwaiter> itor)
     {
         if (itor == null)
             await TaskAwaiter.Completed;

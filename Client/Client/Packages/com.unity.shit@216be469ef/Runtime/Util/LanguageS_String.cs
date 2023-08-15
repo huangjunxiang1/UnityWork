@@ -2,11 +2,11 @@
 using UnityEngine;
 using System;
 
-public static class LanguageS
+public static class LanguageS_String
 {
     class Language
     {
-        public Dictionary<int, Mapping> kvs;
+        public Dictionary<string, Mapping> kvs;
         public DBuffer buff;
     }
     struct Mapping
@@ -20,7 +20,7 @@ public static class LanguageS
 
     public static SystemLanguage LanguageType { get; set; } = SystemLanguage.Chinese;
 
-    public static string ToLan(this int key)
+    public static string ToLan(this string key)
     {
         Language lan = languageArray[(int)LanguageType];
 
@@ -52,11 +52,11 @@ public static class LanguageS
         int len = buff.Readint();
         Language lan = languageArray[languageType] = new Language();
         lan.buff = buff;
-        lan.kvs = new Dictionary<int, Mapping>(len);
+        lan.kvs = new(len);
         for (int i = 0; i < len; i++)
         {
             Mapping map = new();
-            int key = buff.Readint();
+            var key = buff.Readstring();
             map.index = buff.Position;
             buff.Seek(buff.Readint() + buff.Position);
             if (isDebug)

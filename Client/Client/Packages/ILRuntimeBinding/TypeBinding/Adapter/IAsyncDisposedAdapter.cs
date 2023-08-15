@@ -14,7 +14,7 @@ public class IAsyncDisposedAdapter : CrossBindingAdaptor
     {
         get
         {
-            return typeof(IAsyncDisposed);
+            return typeof(IAsyncCancel);
         }
     }
 
@@ -30,7 +30,7 @@ public class IAsyncDisposedAdapter : CrossBindingAdaptor
     {
         return new Adaptor(appdomain, instance);
     }
-    internal class Adaptor : IAsyncDisposed, CrossBindingAdaptorType
+    internal class Adaptor : IAsyncCancel, CrossBindingAdaptorType
     {
         ILTypeInstance instance;
         ILRuntime.Runtime.Enviorment.AppDomain appdomain;

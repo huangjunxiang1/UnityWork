@@ -482,9 +482,9 @@ public class Tool
         if (!Application.isPlaying) return;
         TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM.bytes"))), ConstDefM.Debug);
         TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes"))), ConstDefM.Debug);
-        LanguageS.Clear();
-        LanguageS.Load((int)SystemLanguage.Chinese, new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes"))), ConstDefM.Debug);
-        LanguageS.Load((int)SystemLanguage.English, new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes"))), ConstDefM.Debug);
+        LanguageS_Int.Clear();
+        LanguageS_Int.Load((int)SystemLanguage.Chinese, new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes"))), ConstDefM.Debug);
+        LanguageS_Int.Load((int)SystemLanguage.English, new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes"))), ConstDefM.Debug);
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 }

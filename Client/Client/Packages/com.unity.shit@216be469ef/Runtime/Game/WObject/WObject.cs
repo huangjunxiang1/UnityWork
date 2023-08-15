@@ -69,7 +69,12 @@ namespace Game
         /// </summary>
         public Vector3 Position
         {
-            get { return this.goRoot.transform.position; }
+            get
+            {
+                if (this.goRoot)
+                    return this.goRoot.transform.position;
+                return default;
+            }
             set
             {
                 if (ObjectStyle == WObjectLoadStyle.Static)
@@ -85,14 +90,7 @@ namespace Game
         /// <summary>
         /// dispose 监听
         /// </summary>
-        public Eventer OnDispose
-        {
-            get
-            {
-                if (_onDispose == null) _onDispose = new Eventer(this);
-                return _onDispose;
-            }
-        }
+        public Eventer OnDispose => _onDispose ??= new Eventer(this);
 
         /// <summary>
         /// 设置加载的资源模型

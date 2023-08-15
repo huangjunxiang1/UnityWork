@@ -102,7 +102,7 @@ namespace Main
             pathMap[value.target] = path;
 
             //如果状态是没完成 但是被释放了 说明异步被中途取消
-            if (!task.IsCompleted && !task.IsDisposed)
+            if (!task.IsCompleted && !task.Disposed)
             {
                 value.count++;
                 task.TrySetResult(value.target);

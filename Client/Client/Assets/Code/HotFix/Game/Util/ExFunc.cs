@@ -123,7 +123,7 @@ public static class ExFunc
     }
     public static List<T> FindAllOnCL<T>(this IEnumerable<T> ie, Func<T, bool> test)
     {
-        List<T> ret = new List<T>();
+        List<T> ret = new();
         if (ie != null)
         {
             foreach (var item in ie)

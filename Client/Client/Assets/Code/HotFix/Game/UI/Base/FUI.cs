@@ -33,6 +33,7 @@ abstract class FUI : FUIBase
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this.ui = UIPkg.ComPkg.CreateObject(this.url).asCom;
+        this.ui.GetChild("Close")?.onClick.Add(this.Dispose);
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
@@ -56,6 +57,7 @@ abstract class FUI : FUIBase
                 return;
             }
             this.ui = obj.asCom;
+            this.ui.GetChild("Close")?.onClick.Add(this.Dispose);
             this.ui.visible = false;
             this.Binding();
             this.setConfig();

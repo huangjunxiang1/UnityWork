@@ -24,12 +24,12 @@ partial class FUILoading
     {
         if (cur < max)
         {
-            cur += Time.deltaTime / 3;
+            cur += Time.deltaTime / 2;
             cur = Math.Min(cur, max);
             _loadingBar.value = cur;
             if (cur >= 1)
             {
-                Timer.Add(2, 1, this.Dispose);
+                Timer.Add(1, 1, this.Dispose);
             }
         }
     }

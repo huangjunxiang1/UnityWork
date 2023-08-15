@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Game
 {
-    abstract class ObjectL : IAsyncDisposed
+    abstract class ObjectL : IAsyncCancel
     {
         public ObjectL() : this(0) { }
         public ObjectL(long cid)
@@ -26,9 +26,9 @@ namespace Game
                 Timer.AutoRigisterTimer(this);
         }
 
-        bool _listenerEnable = false;
-        bool _keyListenerEnable = false;
-        long _eventKey;
+        bool _eventListenerEnable = false;
+        bool _rpcListenerEnable = false;
+        long _rpcid;
 
         public long value;
         public object data;
@@ -53,22 +53,22 @@ namespace Game
         /// </summary>
         public bool ListenerEnable
         {
-            get => _listenerEnable;
+            get => _eventListenerEnable;
             set
             {
                 if (value)
                 {
-                    if (!_listenerEnable)
+                    if (!_eventListenerEnable)
                     {
-                        _listenerEnable = true;
+                        _eventListenerEnable = true;
                         GameM.Event.RigisteListener(this);
                     }
                 }
                 else
                 {
-                    if (_listenerEnable)
+                    if (_eventListenerEnable)
                     {
-                        _listenerEnable = false;
+                        _eventListenerEnable = false;
                         GameM.Event.RemoveListener(this);
                     }
                 }
@@ -87,28 +87,28 @@ namespace Game
             }
 
             this.Disposed = true;
-            if (_listenerEnable)
+            if (_eventListenerEnable)
                 GameM.Event.RemoveListener(this);
-            if (_keyListenerEnable)
-                GameM.Event.RemoveRPCListener(_eventKey, this);
+            if (_rpcListenerEnable)
+                GameM.Event.RemoveRPCListener(_rpcid, this);
             Timer.AutoRemoveTimer(this);
         }
 
-        protected void RigisteRPCListener(long key)
+        protected void RigisteRPCListener(long rpc)
         {
-            if (key == 0)
+            if (rpc == 0)
             {
                 Loger.Error($"key=0");
                 return;
             }
-            if (_keyListenerEnable)
+            if (_rpcListenerEnable)
             {
-                Loger.Error($"已经注册了key监听 key={_eventKey}");
+                Loger.Error($"已经注册了key监听 key={_rpcid}");
                 return;
             }
-            _eventKey = key;
-            _keyListenerEnable = true;
-            GameM.Event.RigisteRPCListener(key, this);
+            _rpcid = rpc;
+            _rpcListenerEnable = true;
+            GameM.Event.RigisteRPCListener(rpc, this);
         }
     }
 }

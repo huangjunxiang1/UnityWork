@@ -22,9 +22,6 @@ public static class GameM
     }
     public static void Close()
     {
-        Event.Clear();
         Net.Dispose();
-        World.Dispose();
-        World = null;
     }
 }

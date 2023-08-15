@@ -278,8 +278,7 @@ namespace Game
         public void Close<T>() where T : UIBase
         {
             T ui = Get<T>();
-            if (ui != null)
-                ui.Dispose();
+            ui?.Dispose();
         }
 
         /// <summary>

@@ -23,7 +23,6 @@ public static class Types
     static Dictionary<Type, object[]> typeAttributeMap = new();
     static Dictionary<Type, Type[]> assignableTypesMap = new();
     static Dictionary<Type, FieldInfo> StateMachineThisFieldMap = new();
-    static Dictionary<Type, FieldInfo> StateMachineBuilderFieldMap = new();
     static Dictionary<Type, bool> _asyncNeedCancel = new();
     static Dictionary<Type, Dictionary<Type, MethodAndAttribute[]>> methodAttributeCache = new();
 
@@ -173,13 +172,6 @@ public static class Types
     {
         if (!StateMachineThisFieldMap.TryGetValue(t, out var value))
             StateMachineThisFieldMap[t] = value = t.GetField("<>4__this", BindingFlags.Public | BindingFlags.Instance);
-
-        return value;
-    }
-    public static FieldInfo GetStateMachineBuilderField(Type t)
-    {
-        if (!StateMachineBuilderFieldMap.TryGetValue(t, out var value))
-            StateMachineBuilderFieldMap[t] = value = t.GetField("<>t__builder", BindingFlags.Public | BindingFlags.Instance);
 
         return value;
     }

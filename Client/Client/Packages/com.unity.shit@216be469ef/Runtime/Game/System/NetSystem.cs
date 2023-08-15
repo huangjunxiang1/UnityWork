@@ -146,7 +146,7 @@ namespace Game
             TaskAwaiter<PB.PBMessage> task = new();
             queue.Enqueue(task);
             Send(request);
-            return task.MakeAutoCancel(true);
+            return task.MakeAutoCancel();
         }
 
         /// <summary>
