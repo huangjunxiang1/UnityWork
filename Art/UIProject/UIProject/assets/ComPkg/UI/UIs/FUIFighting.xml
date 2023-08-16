@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component size="1334,750" opaque="false">
+  <controller name="c1" pages="0,,1," selected="0"/>
+  <controller name="_c2" pages="0,,1," selected="0"/>
   <displayList>
     <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
       <relation target="" sidePair="right-right,top-top"/>
@@ -8,9 +10,13 @@
       <relation target="" sidePair="left-left,top-top"/>
       <Button title="播放"/>
     </component>
+    <component id="n5_oxwq" name="_n5" src="oxwqn" fileName="UI/Box/test.xml" xy="179,24"/>
   </displayList>
   <transition name="open">
     <item time="0" type="XY" target="n2_n68q" tween="true" startValue="-,-114" endValue="-,50" duration="6"/>
     <item time="0" type="XY" target="n4_omwm" tween="true" startValue="-,-93" endValue="-,57" duration="6"/>
+  </transition>
+  <transition name="_t1">
+    <item time="0" type="XY" target="n4_omwm" value="36,57"/>
   </transition>
 </component>

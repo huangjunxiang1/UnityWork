@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="800,600">
+  <controller name="c1" pages="0,,1," selected="0"/>
+  <controller name="_c2" pages="0,,1," selected="0"/>
+  <displayList/>
+  <transition name="_t0"/>
+  <transition name="t1"/>
+</component>

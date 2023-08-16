@@ -36,13 +36,17 @@ public class Engine : MonoBehaviour
     void EnterGame()
     {
         Type[] a1 = typeof(Types).Assembly.GetTypes();
+        Type[] a2 = typeof(TabM).Assembly.GetTypes();
+        Type[] all = new Type[a1.Length + a2.Length];
+        a1.CopyTo(all, 0);
+        a2.CopyTo(all, a1.Length);
 
         if (AppSetting.Runtime == CodeRuntime.Native)
         {
 #if !ILRuntime && !Assembly
-            Type[] a2 = typeof(Init).Assembly.GetTypes();
+            Type[] a3 = typeof(Init).Assembly.GetTypes();
 
-            Types.InitTypes(a1, a2);
+            Types.InitTypes(all, a3);
 
             Init.Main();
 #else
@@ -70,9 +74,9 @@ public class Engine : MonoBehaviour
                 asm = Assembly.Load(dll);
             }
 
-            Type[] a2 = asm.GetTypes();
+            Type[] a3 = asm.GetTypes();
 
-            Types.InitTypes(a1, a2);
+            Types.InitTypes(all, a3);
 
             asm.GetType("Init").GetMethod("Main").Invoke(null, null);
         }
@@ -95,9 +99,9 @@ public class Engine : MonoBehaviour
             }
             ILRuntimeBinding.Binding(app);
 
-            Type[] a2 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
+            Type[] a3 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
 
-            Types.InitTypes(a1, a2);
+            Types.InitTypes(all, a3);
 
             app.Invoke("Init", "Main", null, null);
         }

@@ -1,5 +1,5 @@
 {
-  "libview.firstColumnWidth": 283,
+  "libview.firstColumnWidth": 213,
   "libview.iconScale": 0,
   "doc.openedDocs": [
     "ui://zvziziwiodqh0",
@@ -9,6 +9,7 @@
     "ui://zvziziwin68q8",
     "ui://zvziziwifcrmg",
     "ui://zvziziwiowdhh",
+    "ui://zvziziwioxwqn",
     "ui://zvziziwiyj39i",
     "ui://zvziziwimxupl",
     "ui://zvziziwiqnthc",
@@ -25,7 +26,7 @@
   "test.device": "Huawei Mate20 Pro",
   "canvasColor": 10066329,
   "auxline2": true,
-  "doc.activeDoc": "ui://zvziziwiqgu22",
+  "doc.activeDoc": "ui://zvziziwioxwqn",
   "libview.twoColumn": false,
   "libview.expandedNodes": [
     "zvziziwi",
@@ -35,9 +36,13 @@
     "zvziziwi",
     "/Common/btn/",
     "zvziziwi",
+    "/Common/toggle/",
+    "zvziziwi",
     "/UI/",
     "zvziziwi",
     "/UI/3DUI/",
+    "zvziziwi",
+    "/UI/Box/",
     "zvziziwi",
     "/UI/UIs/",
     "b4meoqof",

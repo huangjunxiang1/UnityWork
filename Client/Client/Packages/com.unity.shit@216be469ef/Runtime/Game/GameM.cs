@@ -10,7 +10,7 @@ public static class GameM
     public static SettingM Setting { get; private set; }
     public static EventSystem Event { get; private set; }
     public static NetSystem Net { get; private set; }
-    public static World World { get; private set; }
+    public static WorldM World { get; private set; }
 
     public static void Init()
     {
@@ -18,7 +18,7 @@ public static class GameM
         Event = new EventSystem();
         Event.RigisteAllStaticListener();
         Net = new NetSystem();
-        World = new World();
+        World = new WorldM();
     }
     public static void Close()
     {

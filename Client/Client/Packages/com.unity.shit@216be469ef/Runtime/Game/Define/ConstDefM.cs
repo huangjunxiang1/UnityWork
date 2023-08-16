@@ -8,7 +8,7 @@ public enum CodeRuntime
     Assembly,
     ILRuntime,
 }
-public static class ConstDefM
+public static partial class ConstDefM
 {
     public static bool Debug
     {

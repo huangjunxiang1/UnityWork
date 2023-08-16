@@ -31,7 +31,7 @@ namespace Main
         bool _sendHeart = false;
         TcpClient _client;
         Task _connectTask;
-        byte[] _heart = new byte[8] { 8, 0, 0x03 + 0xE8, 0, 0xE8, 0x03, 0, 0 };
+        byte[] _heart = new byte[8] { 8, 0, 0x03 + 0xE8, 0, 0, 0, 0xE8, 0x03 };
 
         public override ServerType serverType => ServerType.TCP;
 
@@ -74,7 +74,7 @@ namespace Main
 
         protected override async void SendBuffer()
         {
-            PBWriter writer = new PBWriter(new MemoryStream(new byte[1024], 0, 1024, true, true));
+            PBWriter writer = new(new MemoryStream(new byte[1024], 0, 1024, true, true));
             while (states != NetStates.None)
             {
                 if (_sendHeart)
@@ -158,7 +158,7 @@ namespace Main
         protected override async void ReceiveBuffer()
         {
             var bs = ArrayPool<byte>.Shared.Rent(ushort.MaxValue);
-            PBReader reader = new PBReader(new MemoryStream(bs, 0, bs.Length), 0, bs.Length);
+            PBReader reader = new(new MemoryStream(bs, 0, bs.Length), 0, bs.Length);
             while (states != NetStates.None)
             {
                 try

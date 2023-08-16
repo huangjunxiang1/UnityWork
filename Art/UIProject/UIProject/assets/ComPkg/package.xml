@@ -21,6 +21,7 @@
     <component id="yj39i" name="FUIFighting4.xml" path="/UI/UIs/" exported="true"/>
     <component id="mxupl" name="tog.xml" path="/Common/toggle/"/>
     <image id="y3k3m" name="bg.jpg" path="/A/"/>
+    <component id="oxwqn" name="test.xml" path="/UI/Box/"/>
   </resources>
   <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2"/>
 </packageDescription>

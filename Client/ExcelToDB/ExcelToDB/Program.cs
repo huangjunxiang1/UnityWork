@@ -49,7 +49,7 @@ class Program
             CodeGen gen = new CodeGen();
             gen.name = "TabL";
             gen.excelPath = parentPath + "/hot";
-            gen.codePath = parentPath + "/../Client/Client/Assets/Code/HotFix/Game/_Gen/TabL";
+            gen.codePath = parentPath + "/../Client/Client/Assets/Code/HotFix/_Gen/TabL";
             gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabL";
             gen.Gen();
         }
