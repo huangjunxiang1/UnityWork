@@ -15,8 +15,8 @@ class TabDataTest
     {
         using DBuffer buffM = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM.bytes")));
         using DBuffer buffL = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes")));
-        using DBuffer buff_cn = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_cn.bytes")));
-        using DBuffer buff_en = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_en.bytes")));
+        using DBuffer buff_cn = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_Chinese.bytes")));
+        using DBuffer buff_en = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_English.bytes")));
         using DBuffer buffM_ST = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM_ST.bytes")));
 
         test(buffM, buffL, buff_cn, buff_en, false);
@@ -135,7 +135,7 @@ class TabDataTest
         else
         {
             buff_cn.Compress = buff_cn.Readbool();
-            LanguageS_Int.Load((int)SystemLanguage.Chinese, buff_cn, true);
+            LanguageS.Load((int)SystemLanguage.Chinese, buff_cn, true);
         }
 
         buff_en.Compress = false;
@@ -144,7 +144,7 @@ class TabDataTest
         else
         {
             buff_en.Compress = buff_en.Readbool();
-            LanguageS_Int.Load((int)SystemLanguage.English, buff_en, true);
+            LanguageS.Load((int)SystemLanguage.English, buff_en, true);
         }
     }
     void test_ST(DBuffer buffM)

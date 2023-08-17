@@ -1722,9 +1722,11 @@ class temp3
 {
     public FileInfo fi;
     public List<int> dataLines;
+    public int keyType;//0=int 1=string
 }
 class Lan
 {
-    public DBuffer buff;
+    public DBuffer buff_int;
+    public DBuffer buff_str;
     public string name;
 }

@@ -35,23 +35,4 @@ static class Handler
         Game.ECSSingle.Dispose();
     }
 
-    async static void EC_LanguageChange(EC_LanguageChange e)
-    {
-        var t = LanguageS_Int.LanguageType;
-        DBuffer buff = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>($"Config/Tabs/Language_{LanguageS_Int.LanguageType}.bytes")).bytes));
-        if (LanguageS_Int.LanguageType != t)
-        {
-            buff.Dispose();
-            return;
-        }
-
-        buff.Compress = false;
-        if (buff.Readint() != 20220702)
-            Loger.Error("不是Language数据");
-        else
-        {
-            buff.Compress = buff.Readbool();
-            LanguageS_Int.Load((int)LanguageS_Int.LanguageType, buff, ConstDefM.Debug);
-        }
-    }
 }

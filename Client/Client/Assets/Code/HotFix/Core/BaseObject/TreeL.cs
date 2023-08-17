@@ -64,8 +64,7 @@ namespace Game
         public override void Dispose()
         {
             this.DisposeAllChildren();
-            if (this.Parent != null)
-                this.Parent.Remove((T)this);
+            this.Parent?.Remove((T)this);
             base.Dispose();
         }
 

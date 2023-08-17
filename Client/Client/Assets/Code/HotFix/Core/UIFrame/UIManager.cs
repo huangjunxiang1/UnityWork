@@ -35,8 +35,8 @@ namespace Game
             UGUIRoot.position = Vector3.zero;
             UGUICamera = GameObject.Find("UGUICamera").GetComponent<Camera>();
 
-            NTexture.CustomDestroyMethod += textureUnLoad;
-            NAudioClip.CustomDestroyMethod += audioUnLoad;
+            NTexture.CustomDestroyMethod += t => AssetLoad.Release(t);
+            NAudioClip.CustomDestroyMethod += t => AssetLoad.Release(t);
         }
 
         readonly List<UIBase> _uiLst = new();
@@ -69,33 +69,14 @@ namespace Game
             switch (item.type)
             {
                 case PackageItemType.Sound:
-                    {
-                        var task = AssetLoad.LoadAsync<AudioClip>($"UI/FUI/{item.owner.name}/{name}{extension}");
-                        await task;
-                        item.owner.SetItemAsset(item, task.GetResult(), DestroyMethod.Custom);
-                    }
-                    break;
                 case PackageItemType.Atlas:
-                    {
-                        var task = AssetLoad.LoadAsync<Texture>($"UI/FUI/{item.owner.name}/{name}{extension}");
-                        await task;
-                        item.owner.SetItemAsset(item, task.GetResult(), DestroyMethod.Custom);
-                    }
+                    item.owner.SetItemAsset(item, await AssetLoad.LoadAsync<UnityEngine.Object>($"UI/FUI/{item.owner.name}/{name}{extension}"), DestroyMethod.Custom);
                     break;
                 default:
                     Loger.Error("未定义加载->" + item.type);
                     break;
             }
         }
-        void textureUnLoad(Texture texture)
-        {
-            AssetLoad.Release(texture);
-        }
-        void audioUnLoad(AudioClip audio)
-        {
-            AssetLoad.Release(audio);
-        }
-
         public T Open<T>(params object[] data) where T : UIBase, new()
         {
             T ui = Get<T>();

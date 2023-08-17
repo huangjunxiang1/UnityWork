@@ -34,12 +34,33 @@ namespace Game
 
         public SystemLanguage Languege
         {
-            get { return LanguageS_Int.LanguageType; }
+            get { return LanguageS.LanguageType; }
             set
             {
-                LanguageS_Int.LanguageType = value;
-                GameM.Event.RunEvent(new EC_LanguageChange());
+                LanguageS.LanguageType = value;
+                loadLocationText();
             }
+        }
+
+        async void loadLocationText()
+        {
+            var t = LanguageS.LanguageType;
+            DBuffer buff = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>($"Config/Tabs/Language_{LanguageS.LanguageType}.bytes")).bytes));
+            if (LanguageS.LanguageType != t)
+            {
+                buff.Dispose();
+                return;
+            }
+
+            buff.Compress = false;
+            if (buff.Readint() != 20220702)
+                Loger.Error("不是Language数据");
+            else
+            {
+                buff.Compress = buff.Readbool();
+                LanguageS.Load((int)LanguageS.LanguageType, buff, ConstDefM.Debug);
+            }
+            GameM.Event.RunEvent(new EC_LanguageChange());
         }
     }
 }
