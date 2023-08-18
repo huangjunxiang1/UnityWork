@@ -4,7 +4,9 @@ using System.Diagnostics;
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.Events;
+#if FairyGUI
 using FairyGUI;
+#endif
 
 [DebuggerNonUserCode]
 public static class AsyncUtil
@@ -36,6 +38,7 @@ public static class AsyncUtil
         Timer.Add(0.1f, -1, update);
         return task;
     }
+#if FairyGUI
     public static TaskAwaiter AsTask(this GTweener tween)
     {
         if (tween.completed)
@@ -45,16 +48,18 @@ public static class AsyncUtil
         tween.OnComplete(() => task.TrySetResult());
         return task;
     }
-    public static TaskAwaiter AsTask(this Tween tween)
+    public static TaskAwaiter PlayAsTask(this Transition t)
     {
-        if (tween.IsComplete())
-            return TaskAwaiter.Completed;
-
         TaskAwaiter task = new();
-        tween.OnComplete(() => task.TrySetResult());
+        t.Play(() => task.TrySetResult());
         return task;
     }
-
+    public static TaskAwaiter PlayReverseAsTask(this Transition t)
+    {
+        TaskAwaiter task = new();
+        t.PlayReverse(() => task.TrySetResult());
+        return task;
+    }
     public static TaskAwaiter AsTask(this EventListener eventListener)
     {
         TaskAwaiter task = new();
@@ -67,6 +72,16 @@ public static class AsyncUtil
         }
         eventListener.Add(trigger);
 
+        return task;
+    }
+#endif
+    public static TaskAwaiter AsTask(this Tween tween)
+    {
+        if (tween.IsComplete())
+            return TaskAwaiter.Completed;
+
+        TaskAwaiter task = new();
+        tween.OnComplete(() => task.TrySetResult());
         return task;
     }
     public static TaskAwaiter AsTask(this UnityEvent unityEvent)

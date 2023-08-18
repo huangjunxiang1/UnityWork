@@ -7,7 +7,6 @@ using System.Text;
 
 class Program
 {
-    public const int mark = 20220702;
     public static bool debug = true;
     public static bool compress = true;
     static void Main(string[] args)
@@ -62,23 +61,15 @@ class Program
             FileInfo fih = new FileInfo(mains[0]);
             ExcelPackage pkgh = new ExcelPackage(fih);
             List<int> mainIdx = new List<int>();
-            Common.GetHead(mainIdx, pkgh, out temp1 t);
-            Dictionary<int, Lan> lan = new Dictionary<int, Lan>();
-            for (int i = 1; i < mainIdx.Count; i++)
+            Common.GetHead(mainIdx, pkgh);
+            Dictionary<int, temp> lan = new Dictionary<int, temp>();
+            for (int i = 0; i < mainIdx.Count; i++)
             {
                 FileInfo fi = new FileInfo(mains[0]);
                 ExcelPackage pkg = new ExcelPackage(fi);
-                Lan tt = lan[mainIdx[i]] = new Lan();
 
-                tt.buff_int = new DBuffer(new MemoryStream(100000));
-                tt.buff_str = new DBuffer(new MemoryStream(100000));
-                tt.buff_int.Compress = false;
-                tt.buff_int.Write(mark);
-                tt.buff_int.Compress = compress;
-                tt.buff_int.Write(tt.buff_int.Compress);//是否压缩
-
-                string name = pkg.Workbook.Worksheets[0].Cells[3, mainIdx[i]].Text;
-                tt.name = name;
+                var t = lan[mainIdx[i]] = new();
+                t.name = pkg.Workbook.Worksheets[0].Cells[3, mainIdx[i]].Text;
             }
             List<temp3> temp3Lst = new List<temp3>();
             foreach (string path in mains)
@@ -98,80 +89,55 @@ class Program
                 temp3 tt = new temp3();
                 tt.fi = fi;
                 tt.dataLines = lines;
-                if (array[1, 0].ToString() == "int")
-                    tt.keyType = 0;
-                else if (array[1, 0].ToString() == "str")
-                    tt.keyType = 1;
-                else
-                {
-                    Console.WriteLine("预料之外的key类型 =" + array[0, 2]);
-                    Console.ReadLine();
-                    return;
-                }
 
                 temp3Lst.Add(tt);
-            }
-            for (int i = 1; i < mainIdx.Count; i++)
-            {
-                int totalCnt_int = 0;
-                int totalCnt_str = 0;
-                foreach (var item in temp3Lst)
-                {
-                    if (item.keyType == 0)
-                        totalCnt_int += item.dataLines.Count;
-                    else if (item.keyType == 1)
-                        totalCnt_str += item.dataLines.Count;
-                }
-                Lan tt = lan[mainIdx[i]];
-                tt.buff_int.Write(totalCnt_int);
-                tt.buff_str.Write(totalCnt_str);
             }
             foreach (var item in temp3Lst)
             {
                 ExcelPackage pkg = new ExcelPackage(item.fi);
                 Console.WriteLine("开始解析->" + item.fi.Name);
-                for (int i = 1; i < mainIdx.Count; i++)
+
+                for (int i = 0; i < item.dataLines.Count; i++)
                 {
-                    Lan tt = lan[mainIdx[i]];
-                    for (int j = 0; j < item.dataLines.Count; j++)
+                    var str = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], 1].Text;
+                    if (int.TryParse(str, out var key))
                     {
-                        if (item.keyType == 0)
+                        for (int j = 0; j < mainIdx.Count; j++)
                         {
-                            int key = int.Parse(pkg.Workbook.Worksheets[0].Cells[item.dataLines[j], 1].Text);
-
-                            int idx = mainIdx[i];
-                            string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
-                            string text = pkg.Workbook.Worksheets[0].Cells[item.dataLines[j], idx].Text;
-
-                            tt.buff_int.Write(key);
-                            Common.WriteValue(tt.buff_int, null, sType, text, item.fi, item.dataLines[j], idx);
+                            int idx = mainIdx[j];
+                            lan[idx].kv.Add(new KV { key = key, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], idx].Text });
                         }
-                        else if (item.keyType == 1)
+                    }
+                    else
+                    {
+                        for (int j = 0; j < mainIdx.Count; j++)
                         {
-                            string key = pkg.Workbook.Worksheets[0].Cells[item.dataLines[j], 1].Text;
-
-                            int idx = mainIdx[i];
-                            string sType = pkg.Workbook.Worksheets[0].Cells[2, idx].Text.ToLower();
-                            string text = pkg.Workbook.Worksheets[0].Cells[item.dataLines[j], idx].Text;
-
-                            tt.buff_str.Write(key);
-                            Common.WriteValue(tt.buff_str, null, sType, text, item.fi, item.dataLines[j], idx);
+                            int idx = mainIdx[j];
+                            lan[idx].kv2.Add(new KV2 { key = str, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], idx].Text });
                         }
                     }
                 }
             }
+            DBuffer buffer = new DBuffer(100000);
             foreach (var item in lan.Values)
             {
-                byte[] bs = new byte[item.buff_int.Position + item.buff_str.Position];
+                buffer.Seek(0);
+                buffer.WriteHeaderInfo();
 
-                int p = item.buff_int.Position;
-                item.buff_int.Seek(0);
-                item.buff_int.Stream.Read(bs, 0, p);
-                int p2 = item.buff_str.Position;
-                item.buff_str.Seek(0);
-                item.buff_str.Stream.Read(bs, p, p2);
+                buffer.Write(item.kv.Count);
+                for (int i = 0; i < item.kv.Count; i++)
+                {
+                    buffer.Write(item.kv[i].key);
+                    buffer.Write(item.kv[i].v);
+                }
+                buffer.Write(item.kv2.Count);
+                for (int i = 0; i < item.kv2.Count; i++)
+                {
+                    buffer.Write(item.kv2[i].key);
+                    buffer.Write(item.kv2[i].v);
+                }
 
-                File.WriteAllBytes(parentPath + $"/../Client/Client/Assets/Res/Config/Tabs/Language_{item.name}.bytes", bs);
+                File.WriteAllBytes(parentPath + $"/../Client/Client/Assets/Res/Config/Tabs/Language_{item.name}.bytes", buffer.ToBytes());
             }
         }
 

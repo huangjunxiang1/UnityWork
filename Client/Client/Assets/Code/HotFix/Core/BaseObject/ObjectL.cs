@@ -23,12 +23,13 @@ namespace Game
                     this.RigisteRPCListener(cid);
             }
             if (!Types.HasDefineAttribute(this.GetType(), typeof(DisableAutoRegisteredTimerAttribute)))
-                Timer.AutoRigisterTimer(this);
+                _timerRigisterd = Timer.AutoRigisterTimer(this);
         }
 
         bool _eventListenerEnable = false;
         bool _rpcListenerEnable = false;
         long _rpcid;
+        bool _timerRigisterd = false;
 
         public long value;
         public object data;
@@ -91,7 +92,8 @@ namespace Game
                 GameM.Event.RemoveListener(this);
             if (_rpcListenerEnable)
                 GameM.Event.RemoveRPCListener(_rpcid, this);
-            Timer.AutoRemoveTimer(this);
+            if (_timerRigisterd)
+                Timer.AutoRemoveTimer(this);
         }
 
         protected void RigisteRPCListener(long rpc)

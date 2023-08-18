@@ -370,10 +370,7 @@ class CodeGen
             }
 
             DBuffer buffer = new DBuffer(new MemoryStream(10000000));
-            buffer.Compress = false;
-            buffer.Write(Program.mark);
-            buffer.Compress = Program.compress;
-            buffer.Write(buffer.Compress);//是否压缩
+            buffer.WriteHeaderInfo();
             DBuffer tmpC = new DBuffer(new MemoryStream(new byte[100000], 0, 100000, true, true));
             DBuffer arrTmp = new DBuffer(new MemoryStream(new byte[10000], 0, 10000, true, true));
             for (int i = 0; i < cs.Count; i++)
@@ -540,10 +537,7 @@ class CodeGen
                 }
 
                 DBuffer bufferEcs = new DBuffer(new MemoryStream(10000000));
-                bufferEcs.Compress = false;
-                bufferEcs.Write(Program.mark);
-                bufferEcs.Compress = Program.compress;
-                bufferEcs.Write(buffer.Compress);//是否压缩
+                bufferEcs.WriteHeaderInfo();
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];

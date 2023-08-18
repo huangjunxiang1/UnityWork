@@ -37,6 +37,8 @@ namespace Game
             get { return LanguageS.LanguageType; }
             set
             {
+                if (LanguageS.LanguageType == value)
+                    return;
                 LanguageS.LanguageType = value;
                 loadLocationText();
             }
@@ -52,14 +54,8 @@ namespace Game
                 return;
             }
 
-            buff.Compress = false;
-            if (buff.Readint() != 20220702)
-                Loger.Error("不是Language数据");
-            else
-            {
-                buff.Compress = buff.Readbool();
+            if (buff.ReadHeaderInfo())
                 LanguageS.Load((int)LanguageS.LanguageType, buff, ConstDefM.Debug);
-            }
             GameM.Event.RunEvent(new EC_LanguageChange());
         }
     }

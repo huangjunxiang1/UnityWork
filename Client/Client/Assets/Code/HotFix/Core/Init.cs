@@ -32,33 +32,15 @@ public class Init
     static async TaskAwaiter LoadConfig()
     {
         DBuffer buffM = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM.bytes")).bytes));
-        buffM.Compress = false;
-        if (buffM.Readint() != 20220702)
-            Loger.Error("不是TabM数据");
-        else
-        {
-            buffM.Compress = buffM.Readbool();
+        if(buffM.ReadHeaderInfo())
             TabM.Init(buffM, ConstDefM.Debug);
-        }
 
         DBuffer buffM_ST = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM_ST.bytes")).bytes));
-        buffM_ST.Compress = false;
-        if (buffM_ST.Readint() != 20220702)
-            Loger.Error("不是TabM数据");
-        else
-        {
-            buffM_ST.Compress = buffM_ST.Readbool();
+        if (buffM_ST.ReadHeaderInfo())
             Game.ECSSingle.LoadTabs(buffM_ST);
-        }
 
         DBuffer buffL = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabL.bytes")).bytes));
-        buffL.Compress = false;
-        if (buffL.Readint() != 20220702)
-            Loger.Error("不是TabL数据");
-        else
-        {
-            buffL.Compress = buffL.Readbool();
+        if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, ConstDefM.Debug);
-        }
     }
 }

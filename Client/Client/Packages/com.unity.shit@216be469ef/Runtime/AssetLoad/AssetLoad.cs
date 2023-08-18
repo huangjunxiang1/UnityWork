@@ -1,4 +1,6 @@
-﻿using FairyGUI;
+﻿#if FairyGUI
+using FairyGUI;
+#endif
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -188,6 +190,7 @@ namespace Main
             AddTextureRef(ri.gameObject, tex);
             ri.texture = tex;
         }
+#if FairyGUI
         public static async TaskAwaiter SetTexture(this GLoader loader, string url)
         {
             loader.data = url;
@@ -212,6 +215,7 @@ namespace Main
             nt.onRelease += v => v.Dispose();
             loader.texture = nt;
         }
+#endif
 
         class UrlRef : MonoBehaviour
         {

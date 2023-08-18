@@ -6,9 +6,6 @@
         "GUID:84651a3751eca9349aac36a66bba901b",
         "GUID:7a1fa966b0ea23f40a6a4dc4dab1e297",
         "GUID:2fbd3b3a606f3f0428d332f56568d6f3",
-        "GUID:4c25c05f410a3a447a75c3b0909152ef",
-        "GUID:68765d262e2128e4ab49c983f3411946",
-        "GUID:72d1fea872bd7a449bf3818f2b0a6708",
         "GUID:ececc46d025df4f498fdf7bec5957489"
     ],
     "includePlatforms": [],
@@ -21,6 +18,12 @@
     ],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.fairygui",
+            "expression": "1.0.0",
+            "define": "FairyGUI"
+        }
+    ],
     "noEngineReferences": false
 }

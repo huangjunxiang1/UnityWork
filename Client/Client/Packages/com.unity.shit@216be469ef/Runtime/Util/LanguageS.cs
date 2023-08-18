@@ -13,13 +13,12 @@ public static class LanguageS
     struct Mapping
     {
         public int index;
-        public bool isReaded;
         public string value;
     }
 
     static readonly Language[] languageArray = new Language[(int)SystemLanguage.Unknown];
 
-    public static SystemLanguage LanguageType { get; set; } = SystemLanguage.Chinese;
+    public static SystemLanguage LanguageType { get; set; } = SystemLanguage.Unknown;
 
     public static string ToLan(this int key)
     {
@@ -37,11 +36,10 @@ public static class LanguageS
             return string.Empty;
         }
 
-        if (!kv.isReaded)
+        if (kv.value == null)
         {
             lan.buff.Seek(kv.index);
             kv.value = lan.buff.Readstring();
-            kv.isReaded = true;
             lan.kvs_int[key] = kv;
         }
 
@@ -63,11 +61,10 @@ public static class LanguageS
             return string.Empty;
         }
 
-        if (!kv.isReaded)
+        if (kv.value == null)
         {
             lan.buff.Seek(kv.index);
             kv.value = lan.buff.Readstring();
-            kv.isReaded = true;
             lan.kvs_str[key] = kv;
         }
 
@@ -77,41 +74,29 @@ public static class LanguageS
     {
         Language lan = languageArray[languageType] = new Language();
         lan.buff = buff;
+
+        int len = buff.Readint();
+        lan.kvs_int = new Dictionary<int, Mapping>(len);
+        for (int i = 0; i < len; i++)
         {
-            int len = buff.Readint();
-            lan.kvs_int = new Dictionary<int, Mapping>(len);
-            for (int i = 0; i < len; i++)
-            {
-                Mapping map = new();
-                int key = buff.Readint();
-                map.index = buff.Position;
-                buff.Seek(buff.Readint() + buff.Position);
-                if (isDebug)
-                {
-                    buff.Seek(map.index);
-                    map.value = buff.Readstring();
-                    map.isReaded = true;
-                }
-                lan.kvs_int.Add(key, map);
-            }
+            Mapping map = new();
+            int key = buff.Readint();
+            map.index = buff.Position;
+            if (isDebug) map.value = buff.Readstring();
+            else buff.Seek(buff.Readint() + buff.Position);
+            lan.kvs_int.Add(key, map);
         }
+
+        len = buff.Readint();
+        lan.kvs_str = new Dictionary<string, Mapping>(len);
+        for (int i = 0; i < len; i++)
         {
-            int len = buff.Readint();
-            lan.kvs_str = new Dictionary<string, Mapping>(len);
-            for (int i = 0; i < len; i++)
-            {
-                Mapping map = new();
-                string key = buff.Readstring();
-                map.index = buff.Position;
-                buff.Seek(buff.Readint() + buff.Position);
-                if (isDebug)
-                {
-                    buff.Seek(map.index);
-                    map.value = buff.Readstring();
-                    map.isReaded = true;
-                }
-                lan.kvs_str.Add(key, map);
-            }
+            Mapping map = new();
+            string key = buff.Readstring();
+            map.index = buff.Position;
+            if (isDebug) map.value = buff.Readstring();
+            else buff.Seek(buff.Readint() + buff.Position);
+            lan.kvs_str.Add(key, map);
         }
     }
     public static void Clear()

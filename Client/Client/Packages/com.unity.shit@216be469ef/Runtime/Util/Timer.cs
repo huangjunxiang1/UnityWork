@@ -220,7 +220,7 @@ public static class Timer
             }
         }
     }
-    public static void AutoRigisterTimer(object target)
+    public static bool AutoRigisterTimer(object target)
     {
         Type t;
 #if ILRuntime
@@ -252,6 +252,7 @@ public static class Timer
             Add(timer.Time, timer.Count, (Action)method.CreateDelegate(typeof(Action), target), target);
 #endif
         }
+        return ts.Length > 0;
     }
     public static void AutoRemoveTimer(object target)
     {

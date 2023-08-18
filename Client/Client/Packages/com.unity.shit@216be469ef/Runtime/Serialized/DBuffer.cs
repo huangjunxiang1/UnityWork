@@ -17,10 +17,13 @@ public class DBuffer : IDisposable
     {
         this.stream = stream;
     }
+    public DBuffer(int length) : this(new byte[length]) { }
     public DBuffer(byte[] bytes) : this(new MemoryStream(bytes, 0, bytes.Length, true, true)) { }
     public DBuffer(byte[] bytes, int index, int length) : this(new MemoryStream(bytes, index, length, true, true)) { }
 
     Stream stream;
+
+    public const int Verify = 20220702;
 
     public int Position
     {
@@ -333,6 +336,21 @@ public class DBuffer : IDisposable
         for (int i = 0; i < len; i++)
             arr[i] = Readbyte();
         return arr;
+    }
+    public bool ReadHeaderInfo()
+    {
+        this.Compress = false;
+        if (this.Readint() != Verify)
+        {
+#if UNITY_2019_4_OR_NEWER
+            Loger.Error("不是DBuffer数据");
+#else
+            Console.WriteLine("不是DBuffer数据");
+#endif
+            return false;
+        }
+        this.Compress = Readbool();
+        return true;
     }
 #if UNITY_2019_4_OR_NEWER
     public Vector2[] ReadVector2s()
@@ -850,6 +868,14 @@ public class DBuffer : IDisposable
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
+    }
+    public void WriteHeaderInfo()
+    {
+        var c = this.Compress;
+        this.Compress = false;
+        this.Write(Verify);
+        this.Compress = c;
+        this.Write(this.Compress);
     }
 
 #if UNITY_2019_4_OR_NEWER

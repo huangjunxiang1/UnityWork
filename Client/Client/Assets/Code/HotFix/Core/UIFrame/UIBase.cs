@@ -87,6 +87,7 @@ abstract class UIBase : TreeL<UIBase>
     {  
         //先从列表移除
         GameL.UI.Remove(this);
+        Timer.AutoRemoveTimer(this);
         base.Dispose();
         //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
         //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI

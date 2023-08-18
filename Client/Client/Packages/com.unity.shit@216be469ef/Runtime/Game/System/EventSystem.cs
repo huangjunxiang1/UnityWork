@@ -157,10 +157,7 @@ namespace Game
                             continue;
 
                         if (!_evtMap.TryGetValue(e.Key, out var evts))
-                        {
-                            evts = new List<EvtData>();
-                            _evtMap[e.Key] = evts;
-                        }
+                            _evtMap[e.Key] = evts = new();
 
                         e.method = method;
                         e.sortOrder = ea.SortOrder;
@@ -198,10 +195,7 @@ namespace Game
                 MethodData m = ms[i];
 
                 if (!_evtMap.TryGetValue(m.key, out var evts))
-                {
-                    evts = new List<EvtData>();
-                    _evtMap[m.key] = evts;
-                }
+                    _evtMap[m.key] = evts = new();
 
                 EvtData e = new();
                 e.Key = m.key;
@@ -241,15 +235,10 @@ namespace Game
                 MethodData m = ms[i];
 
                 if (!_rpcEvtMap.TryGetValue(rpc, out var map))
-                {
-                    map = new();
-                    _rpcEvtMap[rpc] = map;
-                }
+                    _rpcEvtMap[rpc] = map = new();
+
                 if (!map.TryGetValue(m.key, out var evts))
-                {
-                    evts = new();
-                    map[m.key] = evts;
-                }
+                    map[m.key] = evts = new();
 
                 EvtData e = new();
                 e.Key = m.key;
@@ -302,7 +291,7 @@ namespace Game
                             if (lst[j].target == target)
                             {
                                 lst.RemoveAt(j);
-                                if (exIdx <= j)
+                                if (j <= exIdx)
                                     _evtCalling[m.key] = --exIdx;
                             }
                         }
@@ -314,36 +303,39 @@ namespace Game
         }
         public void RemoveRPCListener(long rpc, object target)
         {
-            Type t;
-#if ILRuntime
-            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                t = ilInstance.Type.ReflectionType;
-            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                t = ilWarp.ILInstance.Type.ReflectionType;
-            else
-#endif
-            t = target.GetType();
-
-            if (_rpcListenerMethodCache.TryGetValue(t, out MethodData[] ms))
+            if (_rpcEvtMap.TryGetValue(rpc, out var map))
             {
-                for (int i = 0; i < ms.Length; i++)
+                Type t;
+#if ILRuntime
+                if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
+                    t = ilInstance.Type.ReflectionType;
+                else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
+                    t = ilWarp.ILInstance.Type.ReflectionType;
+                else
+#endif
+                    t = target.GetType();
+
+                if (_rpcListenerMethodCache.TryGetValue(t, out MethodData[] ms))
                 {
-                    MethodData m = ms[i];
-                    var lst = _rpcEvtMap[rpc][m.key];
-                    if (_evtRpcCalling.TryGetValue(rpc, out var c) && c.TryGetValue(m.key, out int exIdx))
+                    for (int i = 0; i < ms.Length; i++)
                     {
-                        for (int j = lst.Count - 1; j >= 0; j--)
+                        MethodData m = ms[i];
+                        var lst = map[m.key];
+                        if (_evtRpcCalling.TryGetValue(rpc, out var c) && c.TryGetValue(m.key, out int exIdx))
                         {
-                            if (lst[j].target == target)
+                            for (int j = lst.Count - 1; j >= 0; j--)
                             {
-                                lst.RemoveAt(j);
-                                if (exIdx <= j)
-                                    c[m.key] = --exIdx;
+                                if (lst[j].target == target)
+                                {
+                                    lst.RemoveAt(j);
+                                    if (j <= exIdx)
+                                        c[m.key] = --exIdx;
+                                }
                             }
                         }
+                        else
+                            lst.RemoveAll(t => t.target == target);
                     }
-                    else
-                        lst.RemoveAll(t => t.target == target);
                 }
             }
         }
@@ -410,9 +402,9 @@ namespace Game
 
         public void RunRPCEvent(long rpc, object data)
         {
-            var key = data.GetType();
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 return;
+            var key = data.GetType();
             if (!map.TryGetValue(key, out var evts))
                 return;
 
@@ -438,12 +430,14 @@ namespace Game
                 }
             }
             c.Remove(key);
+            if (c.Count == 0)
+                _evtRpcCalling.Remove(rpc);
         }
         public async TaskAwaiter RunRPCEventAsync(long rpc, object data)
         {
-            var key = data.GetType();
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 return;
+            var key = data.GetType();
             if (!map.TryGetValue(key, out var evts))
                 return;
 
@@ -471,6 +465,8 @@ namespace Game
                 }
             }
             c.Remove(key);
+            if (c.Count == 0)
+                _evtRpcCalling.Remove(rpc);
             await TaskAwaiter.All(ts);
             ts.Clear();
             ObjectPool.Return(ts);
