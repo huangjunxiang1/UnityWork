@@ -52,9 +52,16 @@ static partial class UIHelper
         return false;
     }
 
-    public static string GetFGUIItemUrl(string name)
+    public static string ToItemUrl(this string name)
     {
-        PackageItem pi = UIPkg.ResPkg.GetItem(name);
+        PackageItem pi = UIPkg.Items.GetItemByName(name);
+        if (pi == null)
+            return null;
+        return $"{UIPackage.URL_PREFIX}{UIPkg.Items.id}{pi.id}";
+    }
+    public static string ToResUrl(this string name)
+    {
+        PackageItem pi = UIPkg.ResPkg.GetItemByName(name);
         if (pi == null)
             return null;
         return $"{UIPackage.URL_PREFIX}{UIPkg.ResPkg.id}{pi.id}";

@@ -36,10 +36,11 @@ namespace Main
                         _pool.Remove(path);
                     else
                         pool.RemoveAt(cnt - 1);
+                    go.transform.parent = GameM.World.goRoot.transform;
                     return go;
                 }
             }
-            var wait = Addressables.InstantiateAsync(AssetLoad.Directory + path, parent: _poolRoot.transform);
+            var wait = Addressables.InstantiateAsync(AssetLoad.Directory + path, parent: GameM.World.goRoot.transform);
             wait.WaitForCompletion();
             return wait.Result;
         }
@@ -56,10 +57,11 @@ namespace Main
                         _pool.Remove(path);
                     else
                         pool.RemoveAt(cnt - 1);
+                    go.transform.parent = GameM.World.goRoot.transform;
                     return go;
                 }
             }
-            return await Addressables.InstantiateAsync(AssetLoad.Directory + path, parent: _poolRoot.transform).Task;
+            return await Addressables.InstantiateAsync(AssetLoad.Directory + path, parent: GameM.World.goRoot.transform).Task;
         }
 
         public override void Release(UnityEngine.Object target)

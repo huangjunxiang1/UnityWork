@@ -11,6 +11,11 @@ using UnityEngine;
 static class Handler
 {
     [Event]
+    static void EC_OutScene(EC_OutScene e)
+    {
+        BaseCamera.Current?.Dispose();
+    }
+    [Event]
     static void EC_InScene(EC_InScene e)
     {
         if (e.sceneId > 10000)

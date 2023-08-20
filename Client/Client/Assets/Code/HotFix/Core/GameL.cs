@@ -17,17 +17,12 @@ static class GameL
     {
         Setting = new SettingL();
         Scene = new Scene();
+        Data = new Data();
         UI = new UIManager();
         World = new WorldL(GameM.World);
     }
     public static void Close()
     {
         
-    }
-    public static void ChangeScene()
-    {
-        //数据丢弃原来的 重新new一个
-        Data?.Dispose();
-        Data = new Data();
     }
 }

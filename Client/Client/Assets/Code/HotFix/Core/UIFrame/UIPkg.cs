@@ -10,4 +10,5 @@ class UIPkg
 {
     public static UIPackage ComPkg { get; set; }
     public static UIPackage ResPkg { get; set; }
+    public static UIPackage Items { get; set; }
 }

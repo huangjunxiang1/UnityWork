@@ -21,13 +21,19 @@ class Program
         else
             compress = true;
 
-        string parentPath;
-        if (debug)
-            parentPath = Environment.CurrentDirectory + "/../../../../../../Excel/";
+        string assetPath;
+        if (args != null && args.Length > 2)
+            assetPath = args[2];
         else
-            parentPath = Environment.CurrentDirectory + "/";
+            assetPath = Environment.CurrentDirectory + "/../../../../../Client/Assets/";
 
-        foreach (var item in Directory.GetFiles(parentPath + "/../Client/Client/Assets/Res/Config/Tabs/"))
+        string excelPath;
+        if (debug)
+            excelPath = Environment.CurrentDirectory + "/../../../../../../Excel/";
+        else
+            excelPath = Environment.CurrentDirectory + "/";
+
+        foreach (var item in Directory.GetFiles(assetPath + "/Res/Config/Tabs/"))
             File.Delete(item);
 
         ExcelPackage.LicenseContext = LicenseContext.Commercial;
@@ -35,9 +41,9 @@ class Program
         {
             CodeGen gen = new CodeGen();
             gen.name = "TabM";
-            gen.excelPath = parentPath + "/main";
-            gen.codePath = parentPath + "/../Client/Client/Assets/Code/Main/_Gen/TabM";
-            gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabM";
+            gen.excelPath = excelPath + "/main";
+            gen.codePath = assetPath + "/Code/Main/_Gen/TabM";
+            gen.dataPath = assetPath + "/Res/Config/Tabs/TabM";
             gen.genMapping = true;
             gen.genEcs = true;
             gen.Gen();
@@ -47,15 +53,15 @@ class Program
         {
             CodeGen gen = new CodeGen();
             gen.name = "TabL";
-            gen.excelPath = parentPath + "/hot";
-            gen.codePath = parentPath + "/../Client/Client/Assets/Code/HotFix/_Gen/TabL";
-            gen.dataPath = parentPath + "/../Client/Client/Assets/Res/Config/Tabs/TabL";
+            gen.excelPath = excelPath + "/hot";
+            gen.codePath = assetPath + "/Code/HotFix/_Gen/TabL";
+            gen.dataPath = assetPath + "/Res/Config/Tabs/TabL";
             gen.Gen();
         }
 
         //Language表 
         {
-            string main = parentPath + "/Language";
+            string main = excelPath + "/Language";
             List<string> mains = Common.getFiles(main);
 
             FileInfo fih = new FileInfo(mains[0]);
@@ -137,7 +143,7 @@ class Program
                     buffer.Write(item.kv2[i].v);
                 }
 
-                File.WriteAllBytes(parentPath + $"/../Client/Client/Assets/Res/Config/Tabs/Language_{item.name}.bytes", buffer.ToBytes());
+                File.WriteAllBytes(assetPath + $"/Res/Config/Tabs/Language_{item.name}.bytes", buffer.ToBytes());
             }
         }
 

@@ -24,7 +24,7 @@ namespace Main
         bool _sendHeart = false;
         TcpClient _client;
         Task _connectTask;
-        byte[] _heart = new byte[8] { 8, 0, 0x03 + 0xE8, 0, 0, 0, 0xE8, 0x03 };
+        byte[] _heart = new byte[8] { 6, 0, 21, 0, 0, 0, 232, 3 };
 
         public override ServerType serverType => ServerType.TCP;
 

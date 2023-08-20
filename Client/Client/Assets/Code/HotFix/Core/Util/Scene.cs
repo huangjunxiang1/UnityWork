@@ -27,7 +27,6 @@ namespace Game
             if (SceneID == 1) return;
 
             if (showLoading) await GameL.UI.OpenAsync<FUILoading>();
-            BaseCamera.Current?.Dispose();
             GameL.UI.CloseAll();
             GameL.World.DisposeAllChildren();
             GameM.World.DisposeAllChildren();
@@ -48,7 +47,6 @@ namespace Game
             if (sceneId <= 1 || SceneID == sceneId) return;
 
             if (showLoading) await GameL.UI.OpenAsync<FUILoading>();
-            GameL.ChangeScene();
             GameL.UI.CloseAll();
             GameL.World.DisposeAllChildren();
             GameM.World.DisposeAllChildren();

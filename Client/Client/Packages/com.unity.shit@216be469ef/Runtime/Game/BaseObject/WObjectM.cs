@@ -166,7 +166,20 @@ namespace Game
         /// 主动加载资源
         /// </summary>
         /// <param name="url"></param>
-        public async TaskAwaiter LoadRes(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        public void LoadRes(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        {
+            if (this.ObjectStyle == WObjectLoadStyle.Static)
+            {
+                Loger.Error("静态类型不能动态加载");
+                return;
+            }
+            if (_url == url)
+                return;
+            _url = url;
+            ++_resVersion;
+            SetRes(AssetLoad.LoadGameObject(_url, releaseMode));
+        }
+        public async TaskAwaiter LoadResAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
             if (this.ObjectStyle == WObjectLoadStyle.Static)
             {

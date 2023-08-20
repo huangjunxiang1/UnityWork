@@ -62,6 +62,7 @@ namespace Game
                 StageCamera.main.gameObject.SetActive(GameL.Setting.UIModel == UIModel.FGUI);
                 UIPkg.ComPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
                 UIPkg.ResPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
+                UIPkg.Items = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);
             }
         }
         async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
