@@ -24,7 +24,7 @@ internal class Gen
         {
             Directory.CreateDirectory(outRWPath);
         }
-        foreach (var item in Directory.GetFiles(outDefinePath))
+        foreach (var item in Directory.GetFiles(outDefinePath,"*.cs"))
         {
             File.Delete(item);
         }

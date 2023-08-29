@@ -335,8 +335,8 @@
       }
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.21.8",
-      "depth": 1,
+      "version": "1.21.9",
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.cn"

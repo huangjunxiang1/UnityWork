@@ -12,7 +12,7 @@ class Enter
         if (debug)
         {
             protoPath = Environment.CurrentDirectory + "/../../../../../../PB/main";
-            outputPath = Environment.CurrentDirectory + "/../../../../../../" + @"Client\Client\Assets\Code\HotFix\Game\_Gen\PB\";
+            outputPath = Environment.CurrentDirectory + "/../../../../../../" + @"Client\Client\Assets\Code\Main\_Gen\PB\";
         }
         else
         {

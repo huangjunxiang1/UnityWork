@@ -33,7 +33,7 @@ class Program
         else
             excelPath = Environment.CurrentDirectory + "/";
 
-        foreach (var item in Directory.GetFiles(assetPath + "/Res/Config/Tabs/"))
+        foreach (var item in Directory.GetFiles(assetPath + "/Res/Config/Tabs/", "*.bytes"))
             File.Delete(item);
 
         ExcelPackage.LicenseContext = LicenseContext.Commercial;

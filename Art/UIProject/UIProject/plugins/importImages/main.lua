@@ -91,8 +91,10 @@ toolMenu:AddItem("导入美术资源", "importImages", function(menuItem)
         
         local items = pkg.items;
         for j=0,items.Count-1 do
-            if(items[j].type~="folder") then
+            if(items[j].type~="folder" and string.sub(items[j].name,1,1)~='@') then
                 items[j].exported =true;
+            else
+                items[j].exported =false;
             end
         end
         
