@@ -214,7 +214,7 @@ namespace Main
                     {
                         Type t = Types.GetCMDType(cmd);
                         int index = msgType == 0 ? 8 : 12;
-                        reader.SetLimit(index, len);
+                        reader.SetMinMax(index, len);
                         reader.Seek(index);
                         var msg = (PB.PBMessage)Activator.CreateInstance(t);
                         msg.rpc = rpcid;

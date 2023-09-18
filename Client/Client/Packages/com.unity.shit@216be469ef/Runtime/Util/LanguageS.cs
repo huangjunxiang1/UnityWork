@@ -45,6 +45,10 @@ public static class LanguageS
 
         return kv.value;
     }
+    public static string ToLan(this int key, params object[] args)
+    {
+        return string.Format(key.ToLan(), args);
+    }
     public static string ToLan(this string key)
     {
         Language lan = languageArray[(int)LanguageType];
@@ -69,6 +73,10 @@ public static class LanguageS
         }
 
         return kv.value;
+    }
+    public static string ToLan(this string key, params object[] args)
+    {
+        return string.Format(key.ToLan(), args);
     }
     public static void Load(int languageType, DBuffer buff, bool isDebug)
     {

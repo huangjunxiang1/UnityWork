@@ -170,171 +170,136 @@ public class DBuffer : IDisposable
     public bool[] Readbools()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<bool>();
         checkArrayLengthLimit(len);
         bool[] arr = new bool[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readbool();
+        for (int i = 0; i < len; i++) arr[i] = Readbool();
         return arr;
     }
     public bool[][] Readboolss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<bool[]>();
         checkArrayLengthLimit(len);
         bool[][] arr = new bool[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new bool[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = Readbool();
-        }
+        for (int i = 0; i < len; i++) arr[i] = Readbools();
         return arr;
     }
     public int[] Readints()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<int>();
         checkArrayLengthLimit(len);
         int[] arr = new int[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readint();
+        for (int i = 0; i < len; i++) arr[i] = Readint();
         return arr;
     }
     public int[][] Readintss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<int[]>();
         checkArrayLengthLimit(len);
         int[][] arr = new int[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new int[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = Readint();
-        }
+        for (int i = 0; i < len; i++) arr[i] = Readints();
         return arr;
     }
     public uint[] Readuints()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<uint>();
         checkArrayLengthLimit(len);
         uint[] arr = new uint[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readuint();
+        for (int i = 0; i < len; i++) arr[i] = Readuint();
         return arr;
     }
     public uint[][] Readuintss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<uint[]>();
         checkArrayLengthLimit(len);
         uint[][] arr = new uint[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new uint[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = Readuint();
-        }
+        for (int i = 0; i < len; i++) arr[i] = Readuints();
         return arr;
     }
     public long[] Readlongs()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<long>();
         checkArrayLengthLimit(len);
         long[] arr = new long[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readlong();
+        for (int i = 0; i < len; i++) arr[i] = Readlong();
         return arr;
     }
     public long[][] Readlongss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<long[]>();
         checkArrayLengthLimit(len);
         long[][] arr = new long[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new long[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = Readlong();
-        }
+        for (int i = 0; i < len; i++) arr[i] = Readlongs();
         return arr;
     }
     public ulong[] Readulongs()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<ulong>();
         checkArrayLengthLimit(len);
         ulong[] arr = new ulong[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readulong();
+        for (int i = 0; i < len; i++) arr[i] = Readulong();
         return arr;
     }
     public ulong[][] Readulongss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<ulong[]>();
         checkArrayLengthLimit(len);
         ulong[][] arr = new ulong[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new ulong[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = Readulong();
-        }
+        for (int i = 0; i < len; i++) arr[i] = Readulongs();
         return arr;
     }
     public float[] Readfloats()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<float>();
         checkArrayLengthLimit(len);
         float[] arr = new float[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readfloat();
+        for (int i = 0; i < len; i++) arr[i] = Readfloat();
         return arr;
     }
     public float[][] Readfloatss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<float[]>();
         checkArrayLengthLimit(len);
         float[][] arr = new float[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new float[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = Readfloat();
-        }
+        for (int i = 0; i < len; i++) arr[i] = Readfloats();
         return arr;
     }
     public string[] Readstrings()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<string>();
         checkArrayLengthLimit(len);
         string[] arr = new string[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readstring();
+        for (int i = 0; i < len; i++) arr[i] = Readstring();
         return arr;
     }
     public string[][] Readstringss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<string[]>();
         checkArrayLengthLimit(len);
         string[][] arr = new string[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new string[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = Readstring();
-        }
+        for (int i = 0; i < len; i++) arr[i] = Readstrings();
         return arr;
     }
     public byte[] Readbytes()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<byte>();
         checkArrayLengthLimit(len);
         byte[] arr = new byte[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = Readbyte();
+        for (int i = 0; i < len; i++) arr[i] = Readbyte();
         return arr;
     }
     public bool ReadHeaderInfo()
@@ -356,139 +321,109 @@ public class DBuffer : IDisposable
     public Vector2[] ReadVector2s()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector2>();
         checkArrayLengthLimit(len);
         Vector2[] arr = new Vector2[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = ReadVector2();
+        for (int i = 0; i < len; i++) arr[i] = ReadVector2();
         return arr;
     }
     public Vector2[][] ReadVector2ss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector2[]>();
         checkArrayLengthLimit(len);
         Vector2[][] arr = new Vector2[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new Vector2[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = ReadVector2();
-        }
+        for (int i = 0; i < len; i++) arr[i] = ReadVector2s();
         return arr;
     }
     public Vector2Int[] ReadVector2Ints()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector2Int>();
         checkArrayLengthLimit(len);
         Vector2Int[] arr = new Vector2Int[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = ReadVector2Int();
+        for (int i = 0; i < len; i++) arr[i] = ReadVector2Int();
         return arr;
     }
     public Vector2Int[][] ReadVector2Intss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector2Int[]>();
         checkArrayLengthLimit(len);
         Vector2Int[][] arr = new Vector2Int[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new Vector2Int[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = ReadVector2Int();
-        }
+        for (int i = 0; i < len; i++) arr[i] = ReadVector2Ints();
         return arr;
     }
     public Vector3[] ReadVector3s()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector3>();
         checkArrayLengthLimit(len);
         Vector3[] arr = new Vector3[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = ReadVector3();
+        for (int i = 0; i < len; i++) arr[i] = ReadVector3();
         return arr;
     }
     public Vector3[][] ReadVector3ss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector3[]>();
         checkArrayLengthLimit(len);
         Vector3[][] arr = new Vector3[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new Vector3[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = ReadVector3();
-        }
+        for (int i = 0; i < len; i++) arr[i] = ReadVector3s();
         return arr;
     }
     public Vector3Int[] ReadVector3Ints()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector3Int>();
         checkArrayLengthLimit(len);
         Vector3Int[] arr = new Vector3Int[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = ReadVector3Int();
+        for (int i = 0; i < len; i++) arr[i] = ReadVector3Int();
         return arr;
     }
     public Vector3Int[][] ReadVector3Intss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Vector3Int[]>();
         checkArrayLengthLimit(len);
         Vector3Int[][] arr = new Vector3Int[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new Vector3Int[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = ReadVector3Int();
-        }
+        for (int i = 0; i < len; i++) arr[i] = ReadVector3Ints();
         return arr;
     }
     public Color[] ReadColors()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Color>();
         checkArrayLengthLimit(len);
         Color[] arr = new Color[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = ReadColor();
+        for (int i = 0; i < len; i++) arr[i] = ReadColor();
         return arr;
     }
     public Color[][] ReadColorss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Color[]>();
         checkArrayLengthLimit(len);
         Color[][] arr = new Color[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new Color[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = ReadColor();
-        }
+        for (int i = 0; i < len; i++) arr[i] = ReadColors();
         return arr;
     }
     public Color32[] ReadColor32s()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Color32>();
         checkArrayLengthLimit(len);
         Color32[] arr = new Color32[len];
-        for (int i = 0; i < len; i++)
-            arr[i] = ReadColor32();
+        for (int i = 0; i < len; i++) arr[i] = ReadColor32();
         return arr;
     }
     public Color32[][] ReadColor32ss()
     {
         int len = Readint();
+        if (len == 0) return Array.Empty<Color32[]>();
         checkArrayLengthLimit(len);
         Color32[][] arr = new Color32[len][];
-        for (int i = 0; i < len; i++)
-        {
-            int len2 = Readint();
-            arr[i] = new Color32[len2];
-            for (int j = 0; j < len2; j++)
-                arr[i][j] = ReadColor32();
-        }
+        for (int i = 0; i < len; i++) arr[i] = ReadColor32s();
         return arr;
     }
 #endif

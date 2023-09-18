@@ -198,7 +198,7 @@ class CodeGen
             rw.AppendLine($"public static class {name}");
             rw.AppendLine($"{{");
             rw.AppendLine($"    static DBuffer dbbuff;");
-            rw.AppendLine($"    static bool debug;");
+            rw.AppendLine($"    static bool loadAll;");
             rw.AppendLine($"");
             for (int i = 0; i < cs.Count; i++)
             {
@@ -212,7 +212,7 @@ class CodeGen
                 rw.AppendLine($"        {{");
                 rw.AppendLine($"            if (_{c.name}Array == null)");
                 rw.AppendLine($"            {{");
-                rw.AppendLine($"                bool isDebug = debug;");
+                rw.AppendLine($"                bool isLoadAll = loadAll;");
                 rw.AppendLine($"                {c.fs[0].typeStr}[] keys = _map{c.name}Idx.Keys.ToArray();");
                 rw.AppendLine($"                int len = keys.Length;");
                 rw.AppendLine($"                _{c.name}Array = new Tab{c.name}[_map{c.name}Idx.Count];");
@@ -225,7 +225,7 @@ class CodeGen
                 rw.AppendLine($"                    else");
                 rw.AppendLine($"                    {{");
                 rw.AppendLine($"                        dbbuff.Seek(v.point);");
-                rw.AppendLine($"                        Tab{c.name} tmp = new Tab{c.name}(dbbuff, isDebug);");
+                rw.AppendLine($"                        Tab{c.name} tmp = new Tab{c.name}(dbbuff, isLoadAll);");
                 rw.AppendLine($"                        _map{c.name}[k] = tmp;");
                 rw.AppendLine($"                        _{c.name}Array[v.index] = tmp;");
                 rw.AppendLine($"                    }}");
@@ -237,10 +237,10 @@ class CodeGen
                 rw.AppendLine($"    }}");
                 rw.AppendLine($"");
             }
-            rw.AppendLine($"    public static void Init(DBuffer buffer, bool isDebug)");
+            rw.AppendLine($"    public static void Init(DBuffer buffer, bool isLoadAll)");
             rw.AppendLine($"    {{");
             rw.AppendLine($"        dbbuff = buffer;");
-            rw.AppendLine($"        debug = isDebug;");
+            rw.AppendLine($"        loadAll = isLoadAll;");
             rw.AppendLine($"");
             for (int i = 0; i < cs.Count; i++)
             {
@@ -259,7 +259,7 @@ class CodeGen
             buffer.Seek(map.point + offset);
         }}");
             }
-            rw.AppendLine($"        if (isDebug)");
+            rw.AppendLine($"        if (loadAll)");
             rw.AppendLine($"        {{");
             for (int i = 0; i < cs.Count; i++)
                 rw.AppendLine($"            _ = {cs[i].name}Array;");
@@ -268,6 +268,7 @@ class CodeGen
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
+                rw.AppendLine($"    public static bool Has{c.name}({c.fs[0].typeStr} key) => (_map{c.name}Idx != null && _map{c.name}Idx.ContainsKey(key)) || _map{c.name}.ContainsKey(key);");
                 rw.AppendLine($"    public static Tab{c.name} Get{c.name}({c.fs[0].typeStr} key)");
                 rw.AppendLine($"    {{");
                 rw.AppendLine($"        if (_map{c.name}.TryGetValue(key, out var value))");
@@ -275,7 +276,7 @@ class CodeGen
                 rw.AppendLine($"        if (_map{c.name}Idx != null && _map{c.name}Idx.TryGetValue(key, out TabMapping map))");
                 rw.AppendLine($"        {{");
                 rw.AppendLine($"            dbbuff.Seek(map.point);");
-                rw.AppendLine($"            Tab{c.name} tmp = new Tab{c.name}(dbbuff);");
+                rw.AppendLine($"            Tab{c.name} tmp = new Tab{c.name}(dbbuff, loadAll);");
                 rw.AppendLine($"            _map{c.name}[key] = tmp;");
                 rw.AppendLine($"            return tmp;");
                 rw.AppendLine($"        }}");
@@ -311,7 +312,7 @@ class CodeGen
                     }
                 }
                 rw.AppendLine($"");
-                rw.AppendLine($"    public Tab{c.name}(DBuffer buffer, bool isDebug = false)");
+                rw.AppendLine($"    public Tab{c.name}(DBuffer buffer, bool loadAll = false)");
                 rw.AppendLine($"    {{");
                 rw.AppendLine($"        dbuff = buffer;");
                 for (int j = 0; j < c.fs.Count; j++)
@@ -327,7 +328,7 @@ class CodeGen
                     else
                         rw.AppendLine($"        this.{f.name} = buffer.Read{f.typeStr}();");
                 }
-                rw.AppendLine($"        if (isDebug)");
+                rw.AppendLine($"        if (loadAll)");
                 rw.AppendLine($"        {{");
                 for (int j = 0; j < c.fs.Count; j++)
                 {

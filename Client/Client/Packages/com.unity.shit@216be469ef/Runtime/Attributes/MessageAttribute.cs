@@ -8,13 +8,13 @@ namespace Main
         public uint cmd { get; }
         public Type ResponseType { get; }
 
-        public MessageAttribute(ushort mainCmd, ushort subCmd)
+        public MessageAttribute(uint cmd)
         {
-            cmd = (uint)(mainCmd | subCmd << 16);
+            this.cmd = cmd;
         }
-        public MessageAttribute(ushort mainCmd, ushort subCmd, Type ResponseType)
+        public MessageAttribute(uint cmd, Type ResponseType)
         {
-            cmd = (uint)(mainCmd | subCmd << 16);
+            this.cmd = cmd;
             this.ResponseType = ResponseType;
         }
     }

@@ -17,10 +17,7 @@ namespace PB
             max = index + length;
             stream = s;
         }
-        public PBReader(Stream s) : this(s, 0, (int)s.Length)
-        {
-            stream = s;
-        }
+        public PBReader(Stream s) : this(s, 0, (int)s.Length) { }
 
         Stream stream;
 
@@ -41,11 +38,11 @@ namespace PB
         }
         public int Readint32()
         {
-            return (int)Readint64();
+            return (int)Readuint64();
         }
         public uint Readuint32()
         {
-            return (uint)Readint64();
+            return (uint)Readuint64();
         }
         public int Readsint32()
         {
@@ -53,6 +50,10 @@ namespace PB
             return (v >> 1) ^ -(v & 1);
         }
         public long Readint64()
+        {
+            return (long)Readuint64();
+        }
+        public ulong Readuint64()
         {
             ulong v = 0;
             for (int i = 0; i < sizeof(ulong) + 2; i++)
@@ -62,7 +63,7 @@ namespace PB
                 if (bv < 128)
                     break;
             }
-            return (long)v;
+            return v;
         }
         public long Readsint64()
         {
@@ -120,12 +121,12 @@ namespace PB
         }
         public void Readmessage(PBMessage message)
         {
-            int min = this.min;
             int max = this.max;
             int len = this.Readint32();
-            this.SetLimit(Position, Position + len);
+            this.SetMax(Position + len);
             message.Read(this);
-            this.SetLimit(min, max);
+            this.SeekLast();
+            this.SetMax(max);
         }
         public byte[] Readbytes()
         {
@@ -137,10 +138,14 @@ namespace PB
         public void Readbools(List<bool> lst)
         {
             int len = Readint32();
+            lst.Capacity = lst.Count + len;
             int next = Position + len;
+            int max = this.max;
+            this.SetMax(next);
             for (int i = 0; i < len; i++)
                 lst.Add(Readbool());
-            this.Seek(next);
+            this.SeekLast();
+            this.SetMax(max);
         }
         public void Readint32s(List<int> lst)
         {
@@ -249,7 +254,6 @@ namespace PB
                 index = max;
             stream.Seek(index, SeekOrigin.Begin);
         }
-
         public void SeekNext(int tag)
         {
             int type = tag & 7;
@@ -264,18 +268,34 @@ namespace PB
             else
                 throw new Exception("未实现类型=" + type);
         }
+        public void SeekLast()
+        {
+            this.Seek(max);
+        }
 
         public void Dispose()
         {
             stream.Dispose();
         }
-        public void SetLimit(int min, int max)
+        public void SetMinMax(int min, int max)
         {
             this.min = min;
             this.max = max;
             if (Position < min)
                 Position = min;
             else if (Position > max)
+                Position = max;
+        }
+        public void SetMin(int min)
+        {
+            this.min = min;
+            if (Position < min)
+                Position = min;
+        }
+        public void SetMax(int max)
+        {
+            this.max = max;
+            if (Position > max)
                 Position = max;
         }
     }

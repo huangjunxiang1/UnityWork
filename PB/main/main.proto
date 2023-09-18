@@ -40,7 +40,7 @@ message TestPBmain
   float test6 =6;
   string test7 =7;
   TestPB2 test8 =8;
-  map<string,TestPB2> test9=9;
+  map<string, TestPB2> test9  = 9; // map<string, TestPB2> test9  = 9;
   map<int64,bool> test10=10;
   map<sint32,sint64> test11=11;
   bytes test12=12;

@@ -5,7 +5,7 @@ using System.Linq;
 public static class TabM
 {
     static DBuffer dbbuff;
-    static bool debug;
+    static bool loadAll;
 
     static Dictionary<int, TabMapping> _map_test2Idx;
     static Tab_test2[] __test2Array;
@@ -16,7 +16,7 @@ public static class TabM
         {
             if (__test2Array == null)
             {
-                bool isDebug = debug;
+                bool isLoadAll = loadAll;
                 int[] keys = _map_test2Idx.Keys.ToArray();
                 int len = keys.Length;
                 __test2Array = new Tab_test2[_map_test2Idx.Count];
@@ -29,7 +29,7 @@ public static class TabM
                     else
                     {
                         dbbuff.Seek(v.point);
-                        Tab_test2 tmp = new Tab_test2(dbbuff, isDebug);
+                        Tab_test2 tmp = new Tab_test2(dbbuff, isLoadAll);
                         _map_test2[k] = tmp;
                         __test2Array[v.index] = tmp;
                     }
@@ -40,10 +40,10 @@ public static class TabM
         }
     }
 
-    public static void Init(DBuffer buffer, bool isDebug)
+    public static void Init(DBuffer buffer, bool isLoadAll)
     {
         dbbuff = buffer;
-        debug = isDebug;
+        loadAll = isLoadAll;
 
         int len0 = buffer.Readint();
         _map_test2Idx = new Dictionary<int, TabMapping>(len0);
@@ -58,11 +58,12 @@ public static class TabM
             _map_test2Idx.Add(buffer.Readint(), map);
             buffer.Seek(map.point + offset);
         }
-        if (isDebug)
+        if (loadAll)
         {
             _ = _test2Array;
         }
     }
+    public static bool Has_test2(int key) => (_map_test2Idx != null && _map_test2Idx.ContainsKey(key)) || _map_test2.ContainsKey(key);
     public static Tab_test2 Get_test2(int key)
     {
         if (_map_test2.TryGetValue(key, out var value))
@@ -70,7 +71,7 @@ public static class TabM
         if (_map_test2Idx != null && _map_test2Idx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
-            Tab_test2 tmp = new Tab_test2(dbbuff);
+            Tab_test2 tmp = new Tab_test2(dbbuff, loadAll);
             _map_test2[key] = tmp;
             return tmp;
         }
@@ -190,7 +191,7 @@ public partial class Tab_test2
         return _arr2sTmp;
     }
 
-    public Tab_test2(DBuffer buffer, bool isDebug = false)
+    public Tab_test2(DBuffer buffer, bool loadAll = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();
@@ -208,7 +209,7 @@ public partial class Tab_test2
         buffer.Seek(buffer.Readint() + (this._b2Idx = buffer.Position));
         buffer.Seek(buffer.Readint() + (this._arrsIdx = buffer.Position));
         buffer.Seek(buffer.Readint() + (this._arr2sIdx = buffer.Position));
-        if (isDebug)
+        if (loadAll)
         {
             _ = this.value2;
             _ = this.longValue2;

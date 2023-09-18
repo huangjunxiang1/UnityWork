@@ -153,9 +153,9 @@ internal class Gen
                                     int mainCmd = int.Parse(cmdStr[1]);
                                     int subCmd = int.Parse(cmdStr[2]);
                                     if (ret.TryGetValue(className, out var resp))
-                                        df.AppendLine($"    [Message({mainCmd}, {subCmd}, typeof({resp}))]");
+                                        df.AppendLine($"    [Message({mainCmd} | {subCmd} << 16, typeof({resp}))]");
                                     else
-                                        df.AppendLine($"    [Message({mainCmd}, {subCmd})]");
+                                        df.AppendLine($"    [Message({mainCmd} | {subCmd} << 16)]");
                                 }
                                 else
                                 {
@@ -224,15 +224,15 @@ internal class Gen
                             var arr = ss.Split("//", StringSplitOptions.RemoveEmptyEntries);
                             string des = arr.Length > 1 ? arr[1] : null;
 
-                            var arr2 = arr[0].Split(new char[] { '=', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (arr2.Length != 3 && arr2.Length != 4)
+                            var arr2 = arr[0].Split(new char[] { '=', ';', ' ', '<', '>', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (arr2.Length < 3 || arr2.Length > 5)
                             {
                                 Console.WriteLine($"无法识别协议定义 {fiName} {className} {ss}");
                                 return;
                             }
 
                             bool isLst = arr2.Length == 4 && arr2[0] == "repeated";
-                            bool isMap = arr2.Length == 3 && arr2[0].Contains("map<");
+                            bool isMap = arr2.Length == 5 && arr2[0] == "map";
                             bool isBytes = arr2.Length == 3 && arr2[0] == "bytes";
                             bool isEnum = arr2.Length == 3 && enums.Contains(arr2[0]);
 
@@ -246,10 +246,12 @@ internal class Gen
                             string kRowType = null;
                             string vRowType = null;
                             if (isMap)
-                                getMapTypes(rowType, out kType, out vType, out kRowType, out vRowType);
+                                getMapTypes(arr2, out kType, out vType, out kRowType, out vRowType);
 
                             string fieldName = arr2[arr2.Length - 2];
-                            int mark = getMark(isLst, rowType);
+                            int mark = 0;
+                            if (isLst || isMap) mark = 2;
+                            else mark = getMark(rowType);
                             int tag = (int.Parse(arr2[arr2.Length - 1]) << 3) | mark;
                             fieldType ft = getFieldTypeEnum(rowType);
 
@@ -303,9 +305,9 @@ internal class Gen
                             }
                             else if (isMap)
                             {
-                                int kmark = getMark(false, kRowType);
+                                int kmark = getMark(kRowType);
                                 int ktag = (1 << 3) | kmark;
-                                int vmark = getMark(false, vRowType);
+                                int vmark = getMark(vRowType);
                                 int vtag = (2 << 3) | vmark;
                                 wStr.AppendLine($"            if (this.{fieldName} != null)");
                                 wStr.AppendLine("            {");
@@ -322,24 +324,14 @@ internal class Gen
                                     wStr.AppendLine($"                    tmp.Write{kRowType}(item.Key);");
                                 }
 
-                                if (vRowType == "int32"
-                                    || vRowType == "int64"
-                                    || vRowType == "sint32"
-                                    || vRowType == "sint64"
-                                    || vRowType == "fixed32"
-                                    || vRowType == "sfixed32"
-                                    || vRowType == "fixed64"
-                                    || vRowType == "sfixed64"
-                                    || vRowType == "double"
-                                    || vRowType == "float"
-                                    || vRowType == "bool")
+                                if (vRowType == "string")
+                                {
+                                    wStr.AppendLine($"                    tmp.Write{vRowType}({vtag}, item.Value);");
+                                }
+                                else if (getFieldTypeEnum(vRowType) == fieldType.Value)
                                 {
                                     wStr.AppendLine($"                    tmp.WriteTag({vtag});");
                                     wStr.AppendLine($"                    tmp.Write{vRowType}(item.Value);");
-                                }
-                                else if (vRowType == "string")
-                                {
-                                    wStr.AppendLine($"                    tmp.Write{vRowType}({vtag}, item.Value);");
                                 }
                                 else
                                 {
@@ -425,95 +417,55 @@ internal class Gen
                                 {
                                     rStr.AppendLine($"                    case {tag}:");
                                     rStr.AppendLine("                        {");
-                                    rStr.AppendLine("                            int point;");
+                                    rStr.AppendLine($"                            int size = reader.Readint32();");
                                     rStr.AppendLine($"                            int max = reader.max;");
-                                    rStr.AppendLine($"                            do");
-                                    rStr.AppendLine($"                            {{");
-                                    rStr.AppendLine($"                                int size = reader.Readint32();");
-                                    rStr.AppendLine($"                                point = reader.Position;");
-                                    rStr.AppendLine($"                                reader.SetLimit(point, point + size);");
-                                    rStr.AppendLine($"                                {rowType} message = new {rowType}();");
-                                    rStr.AppendLine($"                                message.Read(reader);");
-                                    rStr.AppendLine($"                                this.{fieldName}.Add(message);");
-                                    rStr.AppendLine($"                                reader.SetLimit(point += size, max);");
-                                    rStr.AppendLine($"                                reader.Seek(point);");
-                                    rStr.AppendLine($"                            }} while (reader.ReadTag() == {tag});");
-                                    rStr.AppendLine($"                            reader.Seek(point);");
+                                    rStr.AppendLine($"                            reader.SetMax(reader.Position + size);");
+                                    rStr.AppendLine($"                            {rowType} message = new {rowType}();");
+                                    rStr.AppendLine($"                            message.Read(reader);");
+                                    rStr.AppendLine($"                            this.{fieldName}.Add(message);");
+                                    rStr.AppendLine($"                            reader.SeekLast();");
+                                    rStr.AppendLine($"                            reader.SetMax(max);");
                                     rStr.AppendLine("                        }");
                                     rStr.AppendLine($"                        break;");
                                 }
                             }
                             else if (isMap)
                             {
-                                int kmark = getMark(false, kRowType);
+                                int kmark = getMark(kRowType);
                                 int ktag = (1 << 3) | kmark;
-                                int vmark = getMark(false, kRowType);
+                                int vmark = getMark(kRowType);
                                 int vtag = (2 << 3) | vmark;
+
                                 rStr.AppendLine($"                    case {tag}:");
                                 rStr.AppendLine($"                        {{");
-                                rStr.AppendLine($"                            int point;");
-                                rStr.AppendLine($"                            int max = reader.max;");
-                                rStr.AppendLine($"                            do");
-                                rStr.AppendLine($"                            {{");
-                                rStr.AppendLine($"                                int tag2;");
 
+                                rStr.AppendLine($"                            int size = reader.Readint32();");
+                                rStr.AppendLine($"                            int max = reader.max;");
+                                rStr.AppendLine($"                            int tag2;");
                                 if (kType == "string")
-                                    rStr.AppendLine($"                                {kType} k = string.Empty;");
+                                    rStr.AppendLine($"                            {kType} k = string.Empty;");
                                 else
-                                    rStr.AppendLine($"                                {kType} k = 0;");
+                                    rStr.AppendLine($"                            {kType} k = default;");
 
                                 if (vRowType == "string")
-                                    rStr.AppendLine($"                                {vType} v = string.Empty;");
-                                else if (vRowType == "bool")
-                                    rStr.AppendLine($"                                {vType} v = false;");
-                                else if (vRowType == "int32"
-                                    || vRowType == "int64"
-                                    || vRowType == "sint32"
-                                    || vRowType == "sint64"
-                                    || vRowType == "fixed32"
-                                    || vRowType == "sfixed32"
-                                    || vRowType == "fixed64"
-                                    || vRowType == "sfixed64"
-                                    || vRowType == "double"
-                                    || vRowType == "float")
-                                    rStr.AppendLine($"                                {vType} v = 0;");
+                                    rStr.AppendLine($"                            {vType} v = string.Empty;");
+                                else if (getFieldTypeEnum(vRowType) == fieldType.Value)
+                                    rStr.AppendLine($"                            {vType} v = default;");
                                 else
-                                    rStr.AppendLine($"                                {vType} v = new {vType}();");
+                                    rStr.AppendLine($"                            {vType} v = new {vType}();");
 
-                                rStr.AppendLine($"                                int size = reader.Readint32();");
-                                rStr.AppendLine($"                                point = reader.Position;");
-                                rStr.AppendLine($"                                reader.SetLimit(point, point + size);");
-                                rStr.AppendLine($"                                while ((tag2 = reader.ReadTag()) != 0)");
-                                rStr.AppendLine($"                                {{");
-                                rStr.AppendLine($"                                    if (tag2 == {ktag})");
-                                rStr.AppendLine($"                                        k = reader.Read{kRowType}();");
-                                rStr.AppendLine($"                                    else if (tag2 == {vtag})");
-
-                                if (vRowType == "int32"
-                                    || vRowType == "int64"
-                                    || vRowType == "sint32"
-                                    || vRowType == "sint64"
-                                    || vRowType == "fixed32"
-                                    || vRowType == "sfixed32"
-                                    || vRowType == "fixed64"
-                                    || vRowType == "sfixed64"
-                                    || vRowType == "double"
-                                    || vRowType == "float"
-                                    || vRowType == "string"
-                                    || vRowType == "bool")
-                                    rStr.AppendLine($"                                        v = reader.Read{vRowType}();");
+                                rStr.AppendLine($"                            reader.SetMax(reader.Position + size);");
+                                rStr.AppendLine($"                            while ((tag2 = reader.ReadTag()) != 0)");
+                                rStr.AppendLine($"                            {{");
+                                rStr.AppendLine($"                                if (tag2 == {ktag}) k = reader.Read{kRowType}();");
+                                if (getFieldTypeEnum(vRowType) == fieldType.Value)
+                                    rStr.AppendLine($"                                else if (tag2 == {vtag}) v = reader.Read{vRowType}();");
                                 else
-                                    rStr.AppendLine($"                                        reader.Readmessage(v);");
-
-                                rStr.AppendLine($"                                    else");
-                                rStr.AppendLine($"                                        break;");
-                                rStr.AppendLine($"                                }}");
-                                rStr.AppendLine($"                                point += size;");
-                                rStr.AppendLine($"                                reader.SetLimit(point, max);");
-                                rStr.AppendLine($"                                reader.Seek(point);");
-                                rStr.AppendLine($"                                this.{fieldName}[k] = v;");
-                                rStr.AppendLine($"                            }} while (reader.ReadTag() == {tag});");
-                                rStr.AppendLine($"                            reader.Seek(point);");
+                                    rStr.AppendLine($"                                else if (tag2 == {vtag}) reader.Readmessage(v);");
+                                rStr.AppendLine($"                            }}");
+                                rStr.AppendLine($"                            this.{fieldName}[k] = v;");
+                                rStr.AppendLine($"                            reader.SeekLast();");
+                                rStr.AppendLine($"                            reader.SetMax(max);");
                                 rStr.AppendLine($"                        }}");
                                 rStr.AppendLine($"                        break;");
                             }
@@ -645,22 +597,24 @@ internal class Gen
     {
         if (type == "int32" || type == "sint32" || type == "sfixed32") return "int";
         if (type == "uint32") return "uint";
+
         if (type == "int64" || type == "sint64" || type == "sfixed64") return "long";
+        if (type == "uint64") return "ulong";
+
         if (type == "fixed32") return "uint";
         if (type == "fixed64") return "ulong";
         if (type == "double") return "double";
         if (type == "bytes") return "byte[]";
         return type;
     }
-    int getMark(bool isLst,string type)
+    int getMark(string type)
     {
-        if (isLst)
-            return 2;
         if (type == "int32"
             || type == "uint32"
             || type == "sint32"
-            || type == "sint64"
             || type == "int64"
+            || type == "uint64"
+            || type == "sint64"
             || type == "bool")
             return 0;
         else if (type == "fixed64"
@@ -674,32 +628,30 @@ internal class Gen
             || type == "fixed32"
             || type == "sfixed32")
             return 5;
-        return 2;//嵌套类型
+        return 2;
     }
-    void getMapTypes(string s, out string kt, out string vt, out string kkt, out string vvt)
+    void getMapTypes(string[] s, out string kt, out string vt, out string kkt, out string vvt)
     {
-        s = s.Replace("map<", null).Replace(">", null);
-        string[] ss = s.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-        if (ss.Length != 2)
+        if (s.Length != 5)
             throw new Exception("无法解析map类型=" + s);
 
-        if (ss[0] != "int32"
-            && ss[0] != "uint32"
-            && ss[0] != "int64"
-            && ss[0] != "sint32"
-            && ss[0] != "sint64"
-            && ss[0] != "fixed32"
-            && ss[0] != "sfixed32"
-            && ss[0] != "fixed64"
-            && ss[0] != "sfixed64"
-            && ss[0] != "string")
+        if (s[1] != "int32"
+            && s[1] != "uint32"
+            && s[1] != "int64"
+            && s[1] != "uint64"
+            && s[1] != "sint32"
+            && s[1] != "sint64"
+            && s[1] != "fixed32"
+            && s[1] != "sfixed32"
+            && s[1] != "fixed64"
+            && s[1] != "sfixed64"
+            && s[1] != "string")
         {
-            throw new Exception("暂不支持map的key类型=" + ss[0]);
+            throw new Exception("暂不支持map的key类型=" + s[1]);
         }
 
-        kt = getType(kkt = ss[0]);
-        vt = getType(vvt = ss[1]);
+        kt = getType(kkt = s[1]);
+        vt = getType(vvt = s[2]);
     }
 
     fieldType getFieldTypeEnum(string type)
@@ -709,6 +661,7 @@ internal class Gen
             || type == "uint32"
             || type == "sint32"
             || type == "int64"
+            || type == "uint64"
             || type == "sint64"
             || type == "fixed32"
             || type == "sfixed32"

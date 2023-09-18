@@ -22,7 +22,7 @@ namespace main
     /// <summary>
     /// 类定义注释
     /// </summary>
-    [Message(1, 2)]
+    [Message(1 | 2 << 16)]
     public partial class TestPBmain
     {
         /// <summary>
@@ -36,6 +36,9 @@ namespace main
         public float test6 { get; set; }
         public string test7 { get; set; }
         public TestPB2 test8 { get; set; } = new TestPB2();
+        /// <summary>
+        ///  map<string, TestPB2> test9  = 9;
+        /// </summary>
         public Dictionary<string, TestPB2> test9 { get; set; } = new Dictionary<string, TestPB2>();
         public Dictionary<long, bool> test10 { get; set; } = new Dictionary<long, bool>();
         public Dictionary<int, long> test11 { get; set; } = new Dictionary<int, long>();

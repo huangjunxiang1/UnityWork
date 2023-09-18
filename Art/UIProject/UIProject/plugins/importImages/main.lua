@@ -73,9 +73,34 @@ end
 
 
 local toolMenu = App.menu:GetSubMenu("tool");
-toolMenu:AddItem("导入美术资源", "importImages", function(menuItem)
-    local source = CS.FairyEditor.App.project.basePath.."/../../UI/Sprite/";
-    local target = CS.FairyEditor.App.project.basePath.."/assets/";
+local source = CS.FairyEditor.App.project.basePath.."/../../UI/Sprite/";
+local target = CS.FairyEditor.App.project.basePath.."/assets/";
+
+local ds=CS.System.IO.Directory.GetDirectories(source);
+for i=0,ds.Length-1 do
+      local name = CS.System.IO.DirectoryInfo(ds[i]).Name;
+      toolMenu:AddItem("导入美术资源包="..name,"importImages", function(menuItem)
+         local pkg = CS.FairyEditor.App.project:GetPackageByName(name);
+         if(pkg==nil) then
+		 	pkg = CS.FairyEditor.App.project:CreatePackage(name);
+		 end
+         
+         SyncDir(source..name.."/",target..name.."/","/",name);
+         DeleteFile(source..name.."/",target..name.."/","/",name);
+         
+         local items = pkg.items;
+         for j=0,items.Count-1 do
+             if(items[j].type~="folder") then
+                 items[j].exported =true;
+             end
+         end
+         
+         pkg:SetChanged();
+         pkg:Save();
+      end);
+end
+
+toolMenu:AddItem("导入美术资源=所有包", "importImages", function(menuItem)
 
     local ds=CS.System.IO.Directory.GetDirectories(source);
     for i=0,ds.Length-1 do

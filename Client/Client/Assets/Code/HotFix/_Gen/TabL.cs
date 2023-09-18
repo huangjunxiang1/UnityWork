@@ -5,7 +5,7 @@ using System.Linq;
 public static class TabL
 {
     static DBuffer dbbuff;
-    static bool debug;
+    static bool loadAll;
 
     static Dictionary<int, TabMapping> _mapSceneIdx;
     static TabScene[] _SceneArray;
@@ -16,7 +16,7 @@ public static class TabL
         {
             if (_SceneArray == null)
             {
-                bool isDebug = debug;
+                bool isLoadAll = loadAll;
                 int[] keys = _mapSceneIdx.Keys.ToArray();
                 int len = keys.Length;
                 _SceneArray = new TabScene[_mapSceneIdx.Count];
@@ -29,7 +29,7 @@ public static class TabL
                     else
                     {
                         dbbuff.Seek(v.point);
-                        TabScene tmp = new TabScene(dbbuff, isDebug);
+                        TabScene tmp = new TabScene(dbbuff, isLoadAll);
                         _mapScene[k] = tmp;
                         _SceneArray[v.index] = tmp;
                     }
@@ -49,7 +49,7 @@ public static class TabL
         {
             if (__test1Array == null)
             {
-                bool isDebug = debug;
+                bool isLoadAll = loadAll;
                 int[] keys = _map_test1Idx.Keys.ToArray();
                 int len = keys.Length;
                 __test1Array = new Tab_test1[_map_test1Idx.Count];
@@ -62,7 +62,7 @@ public static class TabL
                     else
                     {
                         dbbuff.Seek(v.point);
-                        Tab_test1 tmp = new Tab_test1(dbbuff, isDebug);
+                        Tab_test1 tmp = new Tab_test1(dbbuff, isLoadAll);
                         _map_test1[k] = tmp;
                         __test1Array[v.index] = tmp;
                     }
@@ -73,10 +73,10 @@ public static class TabL
         }
     }
 
-    public static void Init(DBuffer buffer, bool isDebug)
+    public static void Init(DBuffer buffer, bool isLoadAll)
     {
         dbbuff = buffer;
-        debug = isDebug;
+        loadAll = isLoadAll;
 
         int len0 = buffer.Readint();
         _mapSceneIdx = new Dictionary<int, TabMapping>(len0);
@@ -104,12 +104,13 @@ public static class TabL
             _map_test1Idx.Add(buffer.Readint(), map);
             buffer.Seek(map.point + offset);
         }
-        if (isDebug)
+        if (loadAll)
         {
             _ = SceneArray;
             _ = _test1Array;
         }
     }
+    public static bool HasScene(int key) => (_mapSceneIdx != null && _mapSceneIdx.ContainsKey(key)) || _mapScene.ContainsKey(key);
     public static TabScene GetScene(int key)
     {
         if (_mapScene.TryGetValue(key, out var value))
@@ -117,13 +118,14 @@ public static class TabL
         if (_mapSceneIdx != null && _mapSceneIdx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
-            TabScene tmp = new TabScene(dbbuff);
+            TabScene tmp = new TabScene(dbbuff, loadAll);
             _mapScene[key] = tmp;
             return tmp;
         }
         Loger.Error("TabScene表没有key: " + key);
         return null;
     }
+    public static bool Has_test1(int key) => (_map_test1Idx != null && _map_test1Idx.ContainsKey(key)) || _map_test1.ContainsKey(key);
     public static Tab_test1 Get_test1(int key)
     {
         if (_map_test1.TryGetValue(key, out var value))
@@ -131,7 +133,7 @@ public static class TabL
         if (_map_test1Idx != null && _map_test1Idx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
-            Tab_test1 tmp = new Tab_test1(dbbuff);
+            Tab_test1 tmp = new Tab_test1(dbbuff, loadAll);
             _map_test1[key] = tmp;
             return tmp;
         }
@@ -155,14 +157,14 @@ public partial class TabScene
         return _nameTmp;
     }
 
-    public TabScene(DBuffer buffer, bool isDebug = false)
+    public TabScene(DBuffer buffer, bool loadAll = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();
         this._nameIdx = buffer.Position;
         buffer.Seek(buffer.Readint() + buffer.Position);
         this.type = buffer.Readint();
-        if (isDebug)
+        if (loadAll)
         {
             _ = this.name;
         }
@@ -244,7 +246,7 @@ public partial class Tab_test1
         return _b2Tmp;
     }
 
-    public Tab_test1(DBuffer buffer, bool isDebug = false)
+    public Tab_test1(DBuffer buffer, bool loadAll = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();
@@ -258,7 +260,7 @@ public partial class Tab_test1
         buffer.Seek(buffer.Readint() + (this._f2Idx = buffer.Position));
         this.b1 = buffer.Readbool();
         buffer.Seek(buffer.Readint() + (this._b2Idx = buffer.Position));
-        if (isDebug)
+        if (loadAll)
         {
             _ = this.value2;
             _ = this.des;

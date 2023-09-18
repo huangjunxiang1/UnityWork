@@ -184,89 +184,56 @@ namespace main
                         break;
                     case 74:
                         {
-                            int point;
+                            int size = reader.Readint32();
                             int max = reader.max;
-                            do
+                            int tag2;
+                            string k = string.Empty;
+                            TestPB2 v = new TestPB2();
+                            reader.SetMax(reader.Position + size);
+                            while ((tag2 = reader.ReadTag()) != 0)
                             {
-                                int tag2;
-                                string k = string.Empty;
-                                TestPB2 v = new TestPB2();
-                                int size = reader.Readint32();
-                                point = reader.Position;
-                                reader.SetLimit(point, point + size);
-                                while ((tag2 = reader.ReadTag()) != 0)
-                                {
-                                    if (tag2 == 10)
-                                        k = reader.Readstring();
-                                    else if (tag2 == 18)
-                                        reader.Readmessage(v);
-                                    else
-                                        break;
-                                }
-                                point += size;
-                                reader.SetLimit(point, max);
-                                reader.Seek(point);
-                                this.test9[k] = v;
-                            } while (reader.ReadTag() == 74);
-                            reader.Seek(point);
+                                if (tag2 == 10) k = reader.Readstring();
+                                else if (tag2 == 18) reader.Readmessage(v);
+                            }
+                            this.test9[k] = v;
+                            reader.SeekLast();
+                            reader.SetMax(max);
                         }
                         break;
                     case 82:
                         {
-                            int point;
+                            int size = reader.Readint32();
                             int max = reader.max;
-                            do
+                            int tag2;
+                            long k = default;
+                            bool v = default;
+                            reader.SetMax(reader.Position + size);
+                            while ((tag2 = reader.ReadTag()) != 0)
                             {
-                                int tag2;
-                                long k = 0;
-                                bool v = false;
-                                int size = reader.Readint32();
-                                point = reader.Position;
-                                reader.SetLimit(point, point + size);
-                                while ((tag2 = reader.ReadTag()) != 0)
-                                {
-                                    if (tag2 == 8)
-                                        k = reader.Readint64();
-                                    else if (tag2 == 16)
-                                        v = reader.Readbool();
-                                    else
-                                        break;
-                                }
-                                point += size;
-                                reader.SetLimit(point, max);
-                                reader.Seek(point);
-                                this.test10[k] = v;
-                            } while (reader.ReadTag() == 82);
-                            reader.Seek(point);
+                                if (tag2 == 8) k = reader.Readint64();
+                                else if (tag2 == 16) v = reader.Readbool();
+                            }
+                            this.test10[k] = v;
+                            reader.SeekLast();
+                            reader.SetMax(max);
                         }
                         break;
                     case 90:
                         {
-                            int point;
+                            int size = reader.Readint32();
                             int max = reader.max;
-                            do
+                            int tag2;
+                            int k = default;
+                            long v = default;
+                            reader.SetMax(reader.Position + size);
+                            while ((tag2 = reader.ReadTag()) != 0)
                             {
-                                int tag2;
-                                int k = 0;
-                                long v = 0;
-                                int size = reader.Readint32();
-                                point = reader.Position;
-                                reader.SetLimit(point, point + size);
-                                while ((tag2 = reader.ReadTag()) != 0)
-                                {
-                                    if (tag2 == 8)
-                                        k = reader.Readsint32();
-                                    else if (tag2 == 16)
-                                        v = reader.Readsint64();
-                                    else
-                                        break;
-                                }
-                                point += size;
-                                reader.SetLimit(point, max);
-                                reader.Seek(point);
-                                this.test11[k] = v;
-                            } while (reader.ReadTag() == 90);
-                            reader.Seek(point);
+                                if (tag2 == 8) k = reader.Readsint32();
+                                else if (tag2 == 16) v = reader.Readsint64();
+                            }
+                            this.test11[k] = v;
+                            reader.SeekLast();
+                            reader.SetMax(max);
                         }
                         break;
                     case 98:
@@ -289,60 +256,38 @@ namespace main
                         break;
                     case 154:
                         {
-                            int point;
+                            int size = reader.Readint32();
                             int max = reader.max;
-                            do
+                            int tag2;
+                            uint k = default;
+                            double v = default;
+                            reader.SetMax(reader.Position + size);
+                            while ((tag2 = reader.ReadTag()) != 0)
                             {
-                                int tag2;
-                                uint k = 0;
-                                double v = 0;
-                                int size = reader.Readint32();
-                                point = reader.Position;
-                                reader.SetLimit(point, point + size);
-                                while ((tag2 = reader.ReadTag()) != 0)
-                                {
-                                    if (tag2 == 13)
-                                        k = reader.Readfixed32();
-                                    else if (tag2 == 21)
-                                        v = reader.Readdouble();
-                                    else
-                                        break;
-                                }
-                                point += size;
-                                reader.SetLimit(point, max);
-                                reader.Seek(point);
-                                this.test19[k] = v;
-                            } while (reader.ReadTag() == 154);
-                            reader.Seek(point);
+                                if (tag2 == 13) k = reader.Readfixed32();
+                                else if (tag2 == 21) v = reader.Readdouble();
+                            }
+                            this.test19[k] = v;
+                            reader.SeekLast();
+                            reader.SetMax(max);
                         }
                         break;
                     case 162:
                         {
-                            int point;
+                            int size = reader.Readint32();
                             int max = reader.max;
-                            do
+                            int tag2;
+                            long k = default;
+                            string v = string.Empty;
+                            reader.SetMax(reader.Position + size);
+                            while ((tag2 = reader.ReadTag()) != 0)
                             {
-                                int tag2;
-                                long k = 0;
-                                string v = string.Empty;
-                                int size = reader.Readint32();
-                                point = reader.Position;
-                                reader.SetLimit(point, point + size);
-                                while ((tag2 = reader.ReadTag()) != 0)
-                                {
-                                    if (tag2 == 9)
-                                        k = reader.Readsfixed64();
-                                    else if (tag2 == 17)
-                                        v = reader.Readstring();
-                                    else
-                                        break;
-                                }
-                                point += size;
-                                reader.SetLimit(point, max);
-                                reader.Seek(point);
-                                this.test20[k] = v;
-                            } while (reader.ReadTag() == 162);
-                            reader.Seek(point);
+                                if (tag2 == 9) k = reader.Readsfixed64();
+                                else if (tag2 == 17) v = reader.Readstring();
+                            }
+                            this.test20[k] = v;
+                            reader.SeekLast();
+                            reader.SetMax(max);
                         }
                         break;
                     case 170:
@@ -368,20 +313,14 @@ namespace main
                         break;
                     case 226:
                         {
-                            int point;
+                            int size = reader.Readint32();
                             int max = reader.max;
-                            do
-                            {
-                                int size = reader.Readint32();
-                                point = reader.Position;
-                                reader.SetLimit(point, point + size);
-                                TestPB2 message = new TestPB2();
-                                message.Read(reader);
-                                this.test28.Add(message);
-                                reader.SetLimit(point += size, max);
-                                reader.Seek(point);
-                            } while (reader.ReadTag() == 226);
-                            reader.Seek(point);
+                            reader.SetMax(reader.Position + size);
+                            TestPB2 message = new TestPB2();
+                            message.Read(reader);
+                            this.test28.Add(message);
+                            reader.SeekLast();
+                            reader.SetMax(max);
                         }
                         break;
                     case 234:
