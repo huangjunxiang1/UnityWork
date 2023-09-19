@@ -80,6 +80,8 @@ namespace Game
                     net = new TCP(ipEndPoint);
                     break;
                 case ServerType.UDP:
+                    net = new UDP(ipEndPoint);
+                    break;
                 default:
                     Loger.Error($"未识别的链接类型->{type}");
                     return false;

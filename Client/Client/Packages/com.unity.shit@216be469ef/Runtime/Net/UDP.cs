@@ -1,60 +1,54 @@
 ﻿using PB;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEditor.PackageManager;
 
 namespace Main
 {
-    public class TCP : BaseNet
+    public class UDP : BaseNet
     {
-        public TCP(IPEndPoint ip) : base(ip)
+        public UDP(IPEndPoint ip) : base(ip)
         {
-            _client = new TcpClient();
-            _client.NoDelay = true;
-            _client.ReceiveTimeout = 3000;
-            _client.ReceiveBufferSize = ushort.MaxValue;
-            _client.SendTimeout = 3000;
-            _client.SendBufferSize = ushort.MaxValue;
+            if (Socket.OSSupportsIPv4)
+                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            else if (Socket.OSSupportsIPv6)
+                _socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         }
 
-        bool _sendHeart = false;
-        TcpClient _client;
-        Task _connectTask;
-        byte[] _heart = new byte[8] { 6, 0, 21, 0, 0, 0, 232, 3 };
+        Socket _socket;
+        int _sendLen;
 
-        public override ServerType serverType => ServerType.TCP;
+        public override ServerType serverType => ServerType.UDP;
 
         public override async Task<bool> Connect()
         {
-            if (_client.Connected)
+            if (_socket.Connected)
                 return true;
-            if (_connectTask != null)
-            {
-                await _connectTask;
-                return _client.Connected;
-            }
-            await (_connectTask = _client.ConnectAsync(IP.Address, IP.Port));
-            _connectTask = null;
-            if (_client.Connected)
+            _socket.Connect(IP);
+            await Task.CompletedTask;
+            if (_socket.Connected)
                 states = NetStates.Connect;
-            return _client.Connected;
+            return _socket.Connected;
         }
 
         public override void DisConnect()
         {
-            if (!_client.Connected)
+            if (!_socket.Connected)
                 return;
             states = NetStates.None;
-            _client.Close();
-            _client.Dispose();
+            _socket.Close();
+            _socket.Dispose();
         }
 
-
-        protected override async void ReceiveBuffer()
+        protected async override void ReceiveBuffer()
         {
             PBReader reader = new(new MemoryStream(_rBuffer, 0, _rBuffer.Length), 0, _rBuffer.Length);
             while (states != NetStates.None)
@@ -64,7 +58,9 @@ namespace Main
                     int len;
                     try
                     {
-                        await _client.GetStream().ReadAsync(_rBuffer, 0, 2);
+                        EndPoint ip = IP;
+                        await Task<int>.Factory.FromAsync(BeginReceive, EndReceive, null);
+
                         len = (_rBuffer[0] | _rBuffer[1] << 8) + 2;
 
                         if (len < 8)
@@ -72,8 +68,6 @@ namespace Main
                             Error(NetError.DataError, new Exception($"数据长度不对 len={len}"));
                             break;
                         }
-
-                        await _client.GetStream().ReadAsync(_rBuffer, 2, len - 2);
                     }
                     catch (Exception ex)
                     {
@@ -109,12 +103,6 @@ namespace Main
                             | (uint)_rBuffer[11] << 24;
                     }
 
-                    //心跳
-                    if (cmd == 1 << 16)
-                    {
-                        _sendHeart = true;
-                        continue;
-                    }
                     try
                     {
                         Type t = Types.GetCMDType(cmd);
@@ -145,22 +133,6 @@ namespace Main
             PBWriter writer = new(new MemoryStream(_sBuffer, 0, _sBuffer.Length, true, true));
             while (states != NetStates.None)
             {
-                if (_sendHeart)
-                {
-                    try
-                    {
-                        await _client.GetStream().WriteAsync(_heart, 0, _heart.Length);
-                    }
-                    catch (Exception e)
-                    {
-                        //被动断开链接
-                        if (states != NetStates.None)
-                            this.DisConnect();
-                        Loger.Error("发送消息错误 ex=" + e);
-                        return;
-                    }
-                    _sendHeart = false;
-                }
                 while (queues.TryDequeue(out var message))
                 {
                     try
@@ -180,7 +152,7 @@ namespace Main
                             continue;
                         }
 
-                        int len = writer.Position;
+                        int len = _sendLen = writer.Position;
                         if (len > ushort.MaxValue)
                         {
                             Loger.Error($"数据过大 len={len}");
@@ -207,10 +179,10 @@ namespace Main
                             checkCode += _sBuffer[i];
                         _sBuffer[2] = (byte)(~checkCode + 1);
 
-                        await _client.GetStream().WriteAsync(_sBuffer, 0, len);
+                        await Task<int>.Factory.FromAsync(BeginSend, EndSend, null);
                     }
                     catch (Exception e)
-                    { 
+                    {
                         //被动断开链接
                         if (states != NetStates.None)
                             this.DisConnect();
@@ -220,6 +192,25 @@ namespace Main
                 }
                 Thread.Sleep(1);
             }
+        }
+
+
+        IAsyncResult BeginSend(AsyncCallback callback, object state)
+        {
+            return _socket.BeginSendTo(_sBuffer, 0, _sendLen, SocketFlags.None, IP, callback, state);
+        }
+        int EndSend(IAsyncResult asyncResult)
+        {
+            return _socket.EndSend(asyncResult);
+        }
+        IAsyncResult BeginReceive(AsyncCallback callback, object state)
+        {
+            EndPoint ip = IP;
+            return _socket.BeginReceiveFrom(_rBuffer, 0, _rBuffer.Length, SocketFlags.None, ref ip, callback, state);
+        }
+        int EndReceive(IAsyncResult asyncResult)
+        {
+            return _socket.EndReceive(asyncResult);
         }
     }
 }

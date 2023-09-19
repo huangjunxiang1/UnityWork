@@ -32,6 +32,8 @@ namespace Main
         }
 
         protected ConcurrentQueue<PBMessage> queues = new ConcurrentQueue<PBMessage>();
+        protected byte[] _sBuffer = new byte[ushort.MaxValue];
+        protected byte[] _rBuffer = new byte[ushort.MaxValue];
 
         public IPEndPoint IP { get; set; }
         public NetStates states { get; protected set; }
@@ -45,19 +47,26 @@ namespace Main
         {
             queues.Enqueue(message);
         }
-        public abstract void Error(NetError error,Exception ex);
+        public void Error(NetError error,Exception ex)
+        {
+            //除了解析出错 其他都是非正常出错
+            if (error != NetError.ParseError)
+                this.DisConnect();
+            Loger.Error($"网络错误 error={ex} \n stack={Loger.GetStackTrace()}");
+            ThreadSynchronizationContext.Instance.Post(() => onError?.Invoke((int)error));
+        }
         public void Work()
         {
             new Thread(_work) { IsBackground = true }.Start();
         }
 
-        protected abstract void SendBuffer();
         protected abstract void ReceiveBuffer();
+        protected abstract void SendBuffer();
 
         void _work()
         {
-            SendBuffer();
             ReceiveBuffer();
+            SendBuffer();
         }
     }
 }
