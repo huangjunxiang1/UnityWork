@@ -462,6 +462,7 @@ internal class Gen
                                     rStr.AppendLine($"                                else if (tag2 == {vtag}) v = reader.Read{vRowType}();");
                                 else
                                     rStr.AppendLine($"                                else if (tag2 == {vtag}) reader.Readmessage(v);");
+                                rStr.AppendLine($"                                else break;");
                                 rStr.AppendLine($"                            }}");
                                 rStr.AppendLine($"                            this.{fieldName}[k] = v;");
                                 rStr.AppendLine($"                            reader.SeekLast();");

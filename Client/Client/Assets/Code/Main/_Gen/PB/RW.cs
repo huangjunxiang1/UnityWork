@@ -194,6 +194,7 @@ namespace main
                             {
                                 if (tag2 == 10) k = reader.Readstring();
                                 else if (tag2 == 18) reader.Readmessage(v);
+                                else break;
                             }
                             this.test9[k] = v;
                             reader.SeekLast();
@@ -212,6 +213,7 @@ namespace main
                             {
                                 if (tag2 == 8) k = reader.Readint64();
                                 else if (tag2 == 16) v = reader.Readbool();
+                                else break;
                             }
                             this.test10[k] = v;
                             reader.SeekLast();
@@ -230,6 +232,7 @@ namespace main
                             {
                                 if (tag2 == 8) k = reader.Readsint32();
                                 else if (tag2 == 16) v = reader.Readsint64();
+                                else break;
                             }
                             this.test11[k] = v;
                             reader.SeekLast();
@@ -266,6 +269,7 @@ namespace main
                             {
                                 if (tag2 == 13) k = reader.Readfixed32();
                                 else if (tag2 == 21) v = reader.Readdouble();
+                                else break;
                             }
                             this.test19[k] = v;
                             reader.SeekLast();
@@ -284,6 +288,7 @@ namespace main
                             {
                                 if (tag2 == 9) k = reader.Readsfixed64();
                                 else if (tag2 == 17) v = reader.Readstring();
+                                else break;
                             }
                             this.test20[k] = v;
                             reader.SeekLast();

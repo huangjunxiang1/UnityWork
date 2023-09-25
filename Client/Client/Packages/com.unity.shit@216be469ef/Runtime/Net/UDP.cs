@@ -153,7 +153,7 @@ namespace Main
                         }
 
                         int len = _sendLen = writer.Position;
-                        if (len > ushort.MaxValue)
+                        if (len > ushort.MaxValue - 2)
                         {
                             Loger.Error($"数据过大 len={len}");
                             continue;

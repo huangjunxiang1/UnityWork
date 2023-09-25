@@ -64,7 +64,9 @@ namespace Main
                     int len;
                     try
                     {
-                        await _client.GetStream().ReadAsync(_rBuffer, 0, 2);
+                        int index = 0;
+                        while (index < 2)
+                            index += await _client.GetStream().ReadAsync(_rBuffer, index, 2 - index);
                         len = (_rBuffer[0] | _rBuffer[1] << 8) + 2;
 
                         if (len < 8)
@@ -73,7 +75,9 @@ namespace Main
                             break;
                         }
 
-                        await _client.GetStream().ReadAsync(_rBuffer, 2, len - 2);
+                        index = 2;
+                        while (index < len)
+                            index += await _client.GetStream().ReadAsync(_rBuffer, index, len - index);
                     }
                     catch (Exception ex)
                     {
@@ -181,7 +185,7 @@ namespace Main
                         }
 
                         int len = writer.Position;
-                        if (len > ushort.MaxValue)
+                        if (len > ushort.MaxValue - 2)
                         {
                             Loger.Error($"数据过大 len={len}");
                             continue;
