@@ -69,7 +69,7 @@ namespace Main
                             index += await _client.GetStream().ReadAsync(_rBuffer, index, 2 - index);
                         len = (_rBuffer[0] | _rBuffer[1] << 8) + 2;
 
-                        if (len < 8)
+                        if (len < 8 || len > ushort.MaxValue)
                         {
                             Error(NetError.DataError, new Exception($"数据长度不对 len={len}"));
                             break;
@@ -185,7 +185,7 @@ namespace Main
                         }
 
                         int len = writer.Position;
-                        if (len > ushort.MaxValue - 2)
+                        if (len > ushort.MaxValue)
                         {
                             Loger.Error($"数据过大 len={len}");
                             continue;

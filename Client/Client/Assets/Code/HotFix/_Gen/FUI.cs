@@ -1,13 +1,49 @@
 using FairyGUI;
 using FairyGUI.Utils;
+partial class G_Box_YesOrNo
+{
+    public GComponent ui { get; }
+    public GButton _yes { get; }
+    public GButton _no { get; }
+    public GTextField _title { get; }
+    public GTextField _text { get; }
+    public G_Box_YesOrNo(GComponent ui)
+    {
+        this.ui = ui;
+        _yes = (GButton)ui.GetChildAt(1);
+        _no = (GButton)ui.GetChildAt(2);
+        _title = (GTextField)ui.GetChildAt(3);
+        _text = (GTextField)ui.GetChildAt(4);
+    }
+}
+partial class G_test
+{
+    public GComponent ui { get; }
+    public GTextField _n0 { get; }
+    public Controller _c2 { get; }
+    public Transition _t0 { get; }
+    public G_test(GComponent ui)
+    {
+        this.ui = ui;
+        _n0 = (GTextField)ui.GetChildAt(0);
+        _c2 = ui.GetControllerAt(1);
+        _t0 = ui.GetTransitionAt(0);
+    }
+}
+partial class G_Tips
+{
+    public GComponent ui { get; }
+    public G_Tips(GComponent ui)
+    {
+        this.ui = ui;
+    }
+}
 partial class FUIFighting : FUI
 {
     public sealed override string url => "FUIFighting";
     public GButton _btnBack;
     public GButton _play;
-    public GComponent _n5;
-    public Controller _n5_c2;
-    public Transition _n5_t0;
+    public G_test _n5;
     public Controller _c2;
     public Transition _t1;
     protected sealed override void Binding()
@@ -15,9 +51,7 @@ partial class FUIFighting : FUI
         GComponent ui = this.UI;
         _btnBack = (GButton)ui.GetChildAt(0);
         _play = (GButton)ui.GetChildAt(1);
-        _n5 = (GComponent)ui.GetChildAt(2);
-        _n5_c2 = _n5.GetControllerAt(1);
-        _n5_t0 = _n5.GetTransitionAt(0);
+        _n5 = new G_test(ui.GetChildAt(2).asCom);
         _c2 = ui.GetControllerAt(1);
         _t1 = ui.GetTransitionAt(1);
     }

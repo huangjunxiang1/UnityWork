@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using FairyGUI;
 using Main;
 using UnityEngine.InputSystem;
+using DG.Tweening.Plugins.Core.PathCore;
 
 public class Tool
 {
@@ -199,6 +200,21 @@ public class Tool
 
         foreach (var item in pkg.GetItems())
         {
+            if (item.exported)
+            {
+                if (!item.name.StartsWith("FUI") && !item.name.StartsWith("FUI3D"))
+                {
+                    code.AppendLine($"partial class G_{item.name}");
+                    code.AppendLine("{");
+
+                    appendExportedCode(code, item);
+
+                    code.AppendLine("}");
+                }
+            }
+        }
+        foreach (var item in pkg.GetItems())
+        {
             if (item.name.StartsWith("FUI") && !item.name.StartsWith("FUI3D"))
             {
                 code.AppendLine($"partial class {item.name} : FUI");
@@ -218,6 +234,62 @@ public class Tool
         {
             File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/FUI.cs", code.ToString());
             AssetDatabase.Refresh();
+        }
+    }
+    static void appendExportedCode(StringBuilder code, PackageItem item)
+    {
+        var obj = item.owner.CreateObject(item.name).asCom;
+        if (obj == null)
+        {
+            Debug.LogError(item.name + "不是FGUI组件类型");
+            return;
+        }
+
+        code.AppendLine("    public GComponent ui { get; }");
+        appendExportedChildCode("", obj, code);
+        code.AppendLine($"    public G_{item.name}(GComponent ui)");
+        code.AppendLine("    {");
+        code.AppendLine("        this.ui = ui;");
+        addChildBinding("", "ui", obj, code);
+        code.AppendLine("    }");
+
+        obj.Dispose();
+    }
+    static void appendExportedChildCode(string name, GComponent obj, StringBuilder code)
+    {
+        var cs = obj.GetChildren();
+        for (int i = 0; i < cs.Length; i++)
+        {
+            var c = cs[i];
+            if (!c.name.StartsWith("_"))
+                continue;
+
+            if (c is GComponent)
+            {
+                if (c.packageItem != null && c.packageItem.exported)
+                {
+                    code.AppendLine($"    public {c.packageItem.name} {name + c.name} {{ get; }}");
+                }
+                else
+                {
+                    code.AppendLine($"    public {c.GetType().Name} {name + c.name} {{ get; }}");
+                    addChildCode(name + c.name, c.asCom, code);
+                }
+            }
+            else
+                code.AppendLine($"    public {c.GetType().Name} {name + c.name} {{ get; }}");
+        }
+        for (int i = 0; i < obj.Controllers.Count; i++)
+        {
+            if (!obj.Controllers[i].name.StartsWith("_"))
+                continue;
+            code.AppendLine($"    public Controller {name + obj.Controllers[i].name} {{ get; }}");
+        }
+        for (int i = 0; i < obj.Transitions.Count; i++)
+        {
+            if (!obj.Transitions[i].name.StartsWith("_"))
+                continue;
+            code.AppendLine($"    public Transition {name + obj.Transitions[i].name} {{ get; }}");
         }
     }
     static void appendFUICode(StringBuilder code, PackageItem item)
@@ -249,12 +321,21 @@ public class Tool
             var c = cs[i];
             if (!c.name.StartsWith("_"))
                 continue;
-            code.AppendLine($"    public {c.GetType().Name} {name + c.name};");
 
             if (c is GComponent)
             {
-                addChildCode(name + c.name, c.asCom, code);
+                if (c.packageItem != null && c.packageItem.exported)
+                {
+                    code.AppendLine($"    public G_{c.packageItem.name} {name + c.name};");
+                }
+                else
+                {
+                    code.AppendLine($"    public {c.GetType().Name} {name + c.name};");
+                    addChildCode(name + c.name, c.asCom, code);
+                }
             }
+            else
+                code.AppendLine($"    public {c.GetType().Name} {name + c.name};");
         }
         for (int i = 0; i < obj.Controllers.Count; i++)
         {
@@ -277,12 +358,21 @@ public class Tool
             var c = cs[i];
             if (!c.name.StartsWith("_"))
                 continue;
-            code.AppendLine($"        {name + c.name} = ({c.GetType().Name}){path}.GetChildAt({i});");
 
             if (c is GComponent)
             {
-                addChildBinding(name + c.name, name + c.name, c.asCom, code);
+                if (c.packageItem != null && c.packageItem.exported)
+                {
+                    code.AppendLine($"        {name + c.name} = new G_{c.packageItem.name}(ui.GetChildAt({i}).asCom);");
+                }
+                else
+                {
+                    code.AppendLine($"        {name + c.name} = ({c.GetType().Name}){path}.GetChildAt({i});");
+                    addChildBinding(name + c.name, name + c.name, c.asCom, code);
+                }
             }
+            else
+                code.AppendLine($"        {name + c.name} = ({c.GetType().Name}){path}.GetChildAt({i});");
         }
         for (int i = 0; i < obj.Controllers.Count; i++)
         {
