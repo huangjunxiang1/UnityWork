@@ -402,10 +402,12 @@ class CodeGen
                 erw.AppendLine($"using Unity.Collections;");
                 erw.AppendLine($"using Unity.Mathematics;");
                 erw.AppendLine($"using Unity.Collections.LowLevel.Unsafe;");
-                erw.AppendLine($"using Unity.Entities;");
+                erw.AppendLine($"using Unity.Burst;");
                 erw.AppendLine($"");
                 erw.AppendLine($"public unsafe struct {name}_ST");
                 erw.AppendLine($"{{");
+                erw.AppendLine($"    public readonly static SharedStatic<{name}_ST> Tab = SharedStatic<{name}_ST>.GetOrCreate<SharedStatic<{name}_ST>>();");
+                erw.AppendLine();
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
@@ -419,21 +421,22 @@ class CodeGen
                     if (c.ecs.Count > 1)
                         erw.AppendLine($"    readonly NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST> {c.name}Map;");
                 }
-                erw.AppendLine($"    public void Init(DBuffer buffer)");
+                erw.AppendLine($"    public static void Init(DBuffer buffer)");
                 erw.AppendLine($"    {{");
+                erw.AppendLine($"        Tab.Data.Dispose();");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
                     if (c.ecs.Count > 1)
                     {
                         erw.AppendLine($"        int len{i} = buffer.Readint();");
-                        erw.AppendLine($"        fixed (NativeArray<{c.name}_ST>* ptr = &{c.name}Array) *ptr = new NativeArray<{c.name}_ST>(len{i}, Allocator.Persistent);");
-                        erw.AppendLine($"        fixed (NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST>* ptr = &{c.name}Map) *ptr = new NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST>(len{i}, AllocatorManager.Persistent);");
+                        erw.AppendLine($"        fixed (NativeArray<{c.name}_ST>* ptr = &Tab.Data.{c.name}Array) *ptr = new NativeArray<{c.name}_ST>(len{i}, Allocator.Persistent);");
+                        erw.AppendLine($"        fixed (NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST>* ptr = &Tab.Data.{c.name}Map) *ptr = new NativeHashMap<{c.fs[0].typeStrECS}, {c.name}_ST>(len{i}, AllocatorManager.Persistent);");
                         erw.AppendLine($"        for (int i = 0; i < len{i}; i++)");
                         erw.AppendLine($"        {{");
                         erw.AppendLine($"            {c.name}_ST st = new {c.name}_ST(buffer);");
-                        erw.AppendLine($"            UnsafeUtility.WriteArrayElement({c.name}Array.GetUnsafePtr(), i, st);");
-                        erw.AppendLine($"            {c.name}Map.Add(st.{c.fs[0].name}, st);");
+                        erw.AppendLine($"            UnsafeUtility.WriteArrayElement(Tab.Data.{c.name}Array.GetUnsafePtr(), i, st);");
+                        erw.AppendLine($"            Tab.Data.{c.name}Map.Add(st.{c.fs[0].name}, st);");
                         erw.AppendLine($"        }}");
                     }
                 }
@@ -465,7 +468,10 @@ class CodeGen
                 {
                     var c = cs[i];
                     if (c.ecs.Count > 1)
-                        erw.AppendLine($"    [return: ReadOnly] public {c.name}_ST Get{c.name}({c.fs[0].typeStrECS} key) => {c.name}Map[key];");
+                    {
+                        erw.AppendLine($"    [return: ReadOnly] public readonly bool Has{c.name}({c.fs[0].typeStrECS} key) => {c.name}Map.ContainsKey(key);");
+                        erw.AppendLine($"    [return: ReadOnly] public readonly {c.name}_ST Get{c.name}({c.fs[0].typeStrECS} key) => {c.name}Map[key];");
+                    }
                 }
                 erw.AppendLine($"}}");
                 for (int i = 0; i < cs.Count; i++)

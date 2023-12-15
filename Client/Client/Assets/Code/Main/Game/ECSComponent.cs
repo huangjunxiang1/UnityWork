@@ -23,8 +23,8 @@ public class Demo3DF
 
 
 
-[MaterialProperty("_EmissiveColor")]
-public struct HDRPMaterialPropertyEmissiveColor1 : IComponentData { public float4 Value; }
+//[MaterialProperty("_EmissiveColor")]
+//public struct HDRPMaterialPropertyEmissiveColor1 : IComponentData { public float4 Value; }
 public struct Demo1Delay : IComponentData
 {
     public float dTime;

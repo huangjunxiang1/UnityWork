@@ -13,7 +13,6 @@ namespace Game
 {
     public unsafe struct SceneConfig : IComponentData
     {
-        public SharedStatic<TabM_ST> Tab;
         public SharedStatic<Unity.Mathematics.Random> Random;
         public SharedStatic<NativeList<FixedString128Bytes>> Strings;
 
@@ -40,7 +39,6 @@ namespace Game
             single = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.CreateSingleton<SceneConfig>();
             var sc = new SceneConfig()
             {
-                Tab = SharedStatic<TabM_ST>.GetOrCreate<TabM_ST>(),
                 Random = SharedStatic<Unity.Mathematics.Random>.GetOrCreate<Unity.Mathematics.Random>(),
                 Strings = SharedStatic<NativeList<FixedString128Bytes>>.GetOrCreate<SharedStatic<NativeList<FixedString128Bytes>>>(),
             };
@@ -51,12 +49,7 @@ namespace Game
         }
         public static void Dispose()
         {
-            GetSingle<SceneConfig>().Tab.Data.Dispose();
             GetSingle<SceneConfig>().Strings.Data.Dispose();
-        }
-        public static void LoadTabs(DBuffer buffer)
-        {
-            GetSingle<SceneConfig>().Tab.Data.Init(buffer);
         }
         public static T GetSingle<T>() where T : unmanaged, IComponentData
         {

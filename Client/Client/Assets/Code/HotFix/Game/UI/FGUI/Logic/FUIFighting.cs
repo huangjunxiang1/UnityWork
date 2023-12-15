@@ -29,7 +29,7 @@ partial class FUIFighting
         }
         
         em.SetComponentData(one, new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
-        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
+        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor() { Value = new float3(1, 0, 0) });
 
         es = new NativeArray<Entity>(10000, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         es[0] = one;
@@ -38,7 +38,7 @@ partial class FUIFighting
         {
             es[j] = em.Instantiate(es[0]);
             em.SetComponentData(es[j], new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
-            em.SetComponentData(es[j], new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
+            em.SetComponentData(es[j], new HDRPMaterialPropertyEmissiveColor() { Value = new float3(1, 0, 0) });
         }
 
         _btnBack.onClick.Add(_clickBack);

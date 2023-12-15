@@ -14,5 +14,6 @@ static class CoreHandler
     {
         GameL.Close();
         GameM.Close();
+        TabM_ST.Tab.Data.Dispose();
     }
 }

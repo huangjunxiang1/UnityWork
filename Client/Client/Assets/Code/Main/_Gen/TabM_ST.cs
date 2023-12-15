@@ -1,23 +1,26 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
+using Unity.Burst;
 
 public unsafe struct TabM_ST
 {
+    public readonly static SharedStatic<TabM_ST> Tab = SharedStatic<TabM_ST>.GetOrCreate<SharedStatic<TabM_ST>>();
+
     public readonly NativeArray<_test2_ST> _test2Array;
 
     readonly NativeHashMap<int, _test2_ST> _test2Map;
-    public void Init(DBuffer buffer)
+    public static void Init(DBuffer buffer)
     {
+        Tab.Data.Dispose();
         int len0 = buffer.Readint();
-        fixed (NativeArray<_test2_ST>* ptr = &_test2Array) *ptr = new NativeArray<_test2_ST>(len0, Allocator.Persistent);
-        fixed (NativeHashMap<int, _test2_ST>* ptr = &_test2Map) *ptr = new NativeHashMap<int, _test2_ST>(len0, AllocatorManager.Persistent);
+        fixed (NativeArray<_test2_ST>* ptr = &Tab.Data._test2Array) *ptr = new NativeArray<_test2_ST>(len0, Allocator.Persistent);
+        fixed (NativeHashMap<int, _test2_ST>* ptr = &Tab.Data._test2Map) *ptr = new NativeHashMap<int, _test2_ST>(len0, AllocatorManager.Persistent);
         for (int i = 0; i < len0; i++)
         {
             _test2_ST st = new _test2_ST(buffer);
-            UnsafeUtility.WriteArrayElement(_test2Array.GetUnsafePtr(), i, st);
-            _test2Map.Add(st.id, st);
+            UnsafeUtility.WriteArrayElement(Tab.Data._test2Array.GetUnsafePtr(), i, st);
+            Tab.Data._test2Map.Add(st.id, st);
         }
     }
     public void Dispose()
@@ -34,7 +37,8 @@ public unsafe struct TabM_ST
         _test2Map.Dispose();
     }
 
-    [return: ReadOnly] public _test2_ST Get_test2(int key) => _test2Map[key];
+    [return: ReadOnly] public readonly bool Has_test2(int key) => _test2Map.ContainsKey(key);
+    [return: ReadOnly] public readonly _test2_ST Get_test2(int key) => _test2Map[key];
 }
 public partial struct _test2_ST
 {

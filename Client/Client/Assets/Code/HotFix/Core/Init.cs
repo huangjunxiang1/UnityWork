@@ -2,6 +2,7 @@ using UnityEngine;
 using Main;
 using System.IO;
 using Game;
+using UnityEngine.UIElements;
 
 public class Init
 {
@@ -19,25 +20,26 @@ public class Init
         GameM.Init();
         GameL.Init();
         GameM.Event.RunEvent(new EC_HotFixInit());
+
+        await LoadConfig();
         await GameL.UI.Init();
 
         GameL.Setting.Languege = SystemLanguage.Chinese;
         GameL.Setting.UIModel = UIModel.FGUI;
 
-        await LoadConfig();
         await GameL.UI.OpenAsync<FUIGlobal>();
         await GameL.Scene.InLoginScene();
     }
 
     static async TaskAwaiter LoadConfig()
     {
+        DBuffer buffM_ST = new(new MemoryStream((AssetLoad.Load<TextAsset>("Config/Tabs/TabM_ST.bytes")).bytes));
+        if (buffM_ST.ReadHeaderInfo())
+            TabM_ST.Init(buffM_ST);
+
         DBuffer buffM = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM.bytes")).bytes));
         if(buffM.ReadHeaderInfo())
             TabM.Init(buffM, ConstDefM.Debug);
-
-        DBuffer buffM_ST = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabM_ST.bytes")).bytes));
-        if (buffM_ST.ReadHeaderInfo())
-            Game.ECSSingle.LoadTabs(buffM_ST);
 
         DBuffer buffL = new(new MemoryStream((await AssetLoad.LoadAsync<TextAsset>("Config/Tabs/TabL.bytes")).bytes));
         if (buffL.ReadHeaderInfo())

@@ -1334,8 +1334,8 @@ namespace Animancer
             if (initial == null)
                 return false;
 
-            var wasAnimatePhysics = initial.Value == AnimatorUpdateMode.AnimatePhysics;
-            var isAnimatePhysics = current == AnimatorUpdateMode.AnimatePhysics;
+            var wasAnimatePhysics = initial.Value == AnimatorUpdateMode.Fixed;
+            var isAnimatePhysics = current == AnimatorUpdateMode.Fixed;
             return wasAnimatePhysics != isAnimatePhysics;
         }
 

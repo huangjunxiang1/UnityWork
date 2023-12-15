@@ -20,6 +20,7 @@ namespace Game
         readonly static Dictionary<Type, MethodData[]> _rpcListenerMethodCache = new(97);
         readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
         readonly static object[] _ilRuntimePs = new object[1];
+        static Type[] _parameterType = new Type[1];
 
         static bool _checkEventMethod(MethodInfo method, out Type key)
         {
@@ -351,12 +352,14 @@ namespace Game
                     return;
                 }
                 int i = _evtCalling[key] = 0;
-                for (; i < evts.Count; i = ++_evtCalling[key])
+                _ilRuntimePs[0] = data;
+                for (; i < evts.Count;)
                 {
                     EvtData e = evts[i];
+                    if (e.isOnece) evts.RemoveAt(i);
+                    else i = ++_evtCalling[key];
                     try
                     {
-                        _ilRuntimePs[0] = data;
                         e.method.Invoke(e.target, default, default, _ilRuntimePs, default);
                     }
                     catch (Exception ex)
@@ -377,14 +380,16 @@ namespace Game
                     Loger.Error("事件执行队列循环 key=" + key);
                     return;
                 }
-                List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
                 int i = _evtCalling[key] = 0;
-                for (; i < evts.Count; i = ++_evtCalling[key])
+                _ilRuntimePs[0] = data;
+                List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
+                for (; i < evts.Count;)
                 {
                     EvtData e = evts[i];
+                    if (e.isOnece) evts.RemoveAt(i);
+                    else i = ++_evtCalling[key];
                     try
                     {
-                        _ilRuntimePs[0] = data;
                         if (e.method.Invoke(e.target, default, default, _ilRuntimePs, default) is TaskAwaiter t)
                             ts.Add(t);
                     }
@@ -416,12 +421,14 @@ namespace Game
                 return;
             }
             int i = c[key] = 0;
-            for (; i < evts.Count; i = ++c[key])
+            _ilRuntimePs[0] = data;
+            for (; i < evts.Count;)
             {
                 EvtData e = evts[i];
+                if (e.isOnece) evts.RemoveAt(i);
+                else i = ++c[key];
                 try
                 {
-                    _ilRuntimePs[0] = data;
                     e.method.Invoke(e.target, default, default, _ilRuntimePs, default);
                 }
                 catch (Exception ex)
@@ -449,13 +456,15 @@ namespace Game
                 return;
             }
             int i = c[key] = 0;
+            _ilRuntimePs[0] = data;
             List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
-            for (; i < evts.Count; i = ++c[key])
+            for (; i < evts.Count;)
             {
                 EvtData e = evts[i];
+                if (e.isOnece) evts.RemoveAt(i);
+                else i = ++c[key];
                 try
                 {
-                    _ilRuntimePs[0] = data;
                     if (e.method.Invoke(e.target, default, default, _ilRuntimePs, default) is TaskAwaiter t)
                         ts.Add(t);
                 }
@@ -470,6 +479,72 @@ namespace Game
             await TaskAwaiter.All(ts);
             ts.Clear();
             ObjectPool.Return(ts);
+        }
+
+        public TaskAwaiter<T> WaitEvent<T>(int sortOrder = 0)
+        {
+            TaskAwaiter<T> task = new();
+            var k = typeof(T);
+
+            if (!_evtMap.TryGetValue(k, out var evts))
+                _evtMap[k] = evts = new();
+
+            EvtData e = new();
+            e.Key = k;
+            _parameterType[0] = k;
+            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType);
+            e.sortOrder = sortOrder;
+            e.isOnece = true;
+            e.target = task;
+
+            if (!_evtCalling.TryGetValue(k, out var idx))
+                evts.Add(e);
+            else
+            {
+                if (evts.Count == 0 || sortOrder >= evts[evts.Count - 1].sortOrder)
+                    evts.Add(e);
+                else
+                {
+                    int inserIdx = evts.FindLastIndex(t => t.sortOrder < sortOrder) + 1;
+                    if (inserIdx <= idx) _evtCalling[k]++;
+                    evts.Insert(inserIdx, e);
+                }
+            }
+            return task;
+        }
+        public TaskAwaiter<T> WaitRPCEvent<T>(long rpc, int sortOrder = 0)
+        {
+            TaskAwaiter<T> task = new();
+            var k = typeof(T);
+
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
+                _rpcEvtMap[rpc] = map = new();
+
+            if (!map.TryGetValue(k, out var evts))
+                map[k] = evts = new();
+
+            EvtData e = new();
+            e.Key = k;
+            _parameterType[0] = k;
+            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType);
+            e.sortOrder = sortOrder;
+            e.isOnece = true;
+            e.target = task;
+
+            if (!_evtRpcCalling.TryGetValue(rpc, out var c) || !c.TryGetValue(k, out var idx))
+                evts.Add(e);
+            else
+            {
+                if (evts.Count == 0 || sortOrder >= evts[evts.Count - 1].sortOrder)
+                    evts.Add(e);
+                else
+                {
+                    int inserIdx = evts.FindLastIndex(t => t.sortOrder < sortOrder) + 1;
+                    if (inserIdx <= idx) c[k]++;
+                    evts.Insert(inserIdx, e);
+                }
+            }
+            return task;
         }
 
         public void Clear()
@@ -487,6 +562,7 @@ namespace Game
 
             public MethodInfo method;
             public int sortOrder;
+            public bool isOnece;
 
             public object target;
         }

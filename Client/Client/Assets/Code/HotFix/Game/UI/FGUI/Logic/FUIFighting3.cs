@@ -30,7 +30,7 @@ partial class FUIFighting3
         Entity one = await ECSHelper.LoadEntity(@"3D\Model\ECS\Cube.prefab");
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
-        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(0, 0, 1, 1) });
+        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor() { Value = new float3(0, 0, 1) });
         block = new NativeArray<Entity>(blockCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         block[0] = one;
         for (int i = 1; i < blockCount; i++)
@@ -114,7 +114,7 @@ partial class FUIFighting3
             for (int i = 0; i < Player.Length; i++)
             {
                 var e = em.Instantiate(block[0]);
-                em.AddComponentData(e, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
+                em.AddComponentData(e, new HDRPMaterialPropertyEmissiveColor() { Value = new float3(1, 0, 0) });
                 em.AddComponentData(e, new Demo3Com());
                 Player[i] = e;
             }

@@ -155,61 +155,60 @@ class TabDataTest
     }
     void test_ST(DBuffer buffM)
     {
-        TabM_ST st = new TabM_ST();
         if (!buffM.ReadHeaderInfo())
             throw new System.Exception("不是TabM数据");
 
-        st.Init(buffM);
+        TabM_ST.Init(buffM);
         int key = 1;
 
-        if (st.Get_test2(key).value2[0] != 5)
+        if (TabM_ST.Tab.Data.Get_test2(key).value2[0] != 5)
             throw new System.Exception("数据出错");
-        if (st.Get_test2(key).value2[1] != 1221)
-            throw new System.Exception("数据出错");
-
-        if (st.Get_test2(2).value2[0] != -5)
-            throw new System.Exception("数据出错");
-        if (st.Get_test2(2).value2[1] != -1588994477)
+        if (TabM_ST.Tab.Data.Get_test2(key).value2[1] != 1221)
             throw new System.Exception("数据出错");
 
-        if (st.Get_test2(key).longValue != 888888888888)
+        if (TabM_ST.Tab.Data.Get_test2(2).value2[0] != -5)
             throw new System.Exception("数据出错");
-        if (st.Get_test2(key).longValue2[0] != 123456456123)
-            throw new System.Exception("数据出错");
-        if (st.Get_test2(key).longValue2[1] != 789456456789)
+        if (TabM_ST.Tab.Data.Get_test2(2).value2[1] != -1588994477)
             throw new System.Exception("数据出错");
 
-        if (st.Get_test2(2).longValue != -888888888888)
+        if (TabM_ST.Tab.Data.Get_test2(key).longValue != 888888888888)
             throw new System.Exception("数据出错");
-        if (st.Get_test2(2).longValue2[0] != -1)
+        if (TabM_ST.Tab.Data.Get_test2(key).longValue2[0] != 123456456123)
             throw new System.Exception("数据出错");
-        if (st.Get_test2(2).longValue2[1] != -445566778899)
-            throw new System.Exception("数据出错");
-
-        if (math.all(st.Get_test2(key).v2t != new int2(5, 5)))
-            throw new System.Exception("数据出错");
-        if (math.all(st.Get_test2(key).v2t2[0] != new int2(9, 82)))
-            throw new System.Exception("数据出错");
-        if (math.all(st.Get_test2(key).v2t2[1] != new int2(45, 65)))
-            throw new System.Exception("数据出错");
-        if (math.abs(st.Get_test2(key).f1 - 5.122) >= 0.0001f)
-            throw new System.Exception("数据出错");
-        if (math.abs(st.Get_test2(key).f2[0] - 0.945) >= 0.0001)
-            throw new System.Exception("数据出错");
-        if (math.abs(st.Get_test2(2).f2[1] - 0.878655) >= 0.0001)
-            throw new System.Exception("数据出错");
-        if (st.Get_test2(key).b1 != true)
-            throw new System.Exception("数据出错");
-        if (st.Get_test2(key).b2[0] != true)
-            throw new System.Exception("数据出错");
-        if (st.Get_test2(key).b2[1] != false)
+        if (TabM_ST.Tab.Data.Get_test2(key).longValue2[1] != 789456456789)
             throw new System.Exception("数据出错");
 
-        if (st._test2Array[1].b2[0] != true)
+        if (TabM_ST.Tab.Data.Get_test2(2).longValue != -888888888888)
             throw new System.Exception("数据出错");
-        if (st._test2Array[1].b2[1] != false)
+        if (TabM_ST.Tab.Data.Get_test2(2).longValue2[0] != -1)
             throw new System.Exception("数据出错");
-        if (st._test2Array[1].b2[2] != false)
+        if (TabM_ST.Tab.Data.Get_test2(2).longValue2[1] != -445566778899)
+            throw new System.Exception("数据出错");
+
+        if (math.all(TabM_ST.Tab.Data.Get_test2(key).v2t != new int2(5, 5)))
+            throw new System.Exception("数据出错");
+        if (math.all(TabM_ST.Tab.Data.Get_test2(key).v2t2[0] != new int2(9, 82)))
+            throw new System.Exception("数据出错");
+        if (math.all(TabM_ST.Tab.Data.Get_test2(key).v2t2[1] != new int2(45, 65)))
+            throw new System.Exception("数据出错");
+        if (math.abs(TabM_ST.Tab.Data.Get_test2(key).f1 - 5.122) >= 0.0001f)
+            throw new System.Exception("数据出错");
+        if (math.abs(TabM_ST.Tab.Data.Get_test2(key).f2[0] - 0.945) >= 0.0001)
+            throw new System.Exception("数据出错");
+        if (math.abs(TabM_ST.Tab.Data.Get_test2(2).f2[1] - 0.878655) >= 0.0001)
+            throw new System.Exception("数据出错");
+        if (TabM_ST.Tab.Data.Get_test2(key).b1 != true)
+            throw new System.Exception("数据出错");
+        if (TabM_ST.Tab.Data.Get_test2(key).b2[0] != true)
+            throw new System.Exception("数据出错");
+        if (TabM_ST.Tab.Data.Get_test2(key).b2[1] != false)
+            throw new System.Exception("数据出错");
+
+        if (TabM_ST.Tab.Data._test2Array[1].b2[0] != true)
+            throw new System.Exception("数据出错");
+        if (TabM_ST.Tab.Data._test2Array[1].b2[1] != false)
+            throw new System.Exception("数据出错");
+        if (TabM_ST.Tab.Data._test2Array[1].b2[2] != false)
             throw new System.Exception("数据出错");
     }
 }

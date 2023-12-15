@@ -36,7 +36,7 @@ partial class FUIFighting2
         road = new NativeArray<int>(roadSize.x * roadSize.y, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
         em.SetComponentData(one, new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
-        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
+        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor() { Value = new float3(1, 0, 0) });
         em.AddComponentData(one, new AI_XunLuo() { last = default, target = new float3(1, 0, 0) });
         ++road[0];
 
@@ -47,7 +47,7 @@ partial class FUIFighting2
             int2 p = random.NextInt2(0, roadSize.x);
             float3 cur = new float3(p.x, 0, p.y);
             em.SetComponentData(es[j], new LocalToWorld() { Value = float4x4.Translate(cur) });
-            em.SetComponentData(es[j], new HDRPMaterialPropertyEmissiveColor1() { Value = new float4(1, 0, 0, 1) });
+            em.SetComponentData(es[j], new HDRPMaterialPropertyEmissiveColor() { Value = new float3(1, 0, 0) });
             int2 r = math.clamp(random.NextInt2(-1, 1), 0, roadSize.x - 1);
             em.SetComponentData(es[j], new AI_XunLuo() { last = cur, target = new float3(p.x + r.x, 0, p.y + r.y) });
             ++road[p.y * roadSize.x + p.x];
