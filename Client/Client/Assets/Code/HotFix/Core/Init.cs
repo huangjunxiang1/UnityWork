@@ -1,8 +1,6 @@
 using UnityEngine;
 using Main;
 using System.IO;
-using Game;
-using UnityEngine.UIElements;
 
 public class Init
 {

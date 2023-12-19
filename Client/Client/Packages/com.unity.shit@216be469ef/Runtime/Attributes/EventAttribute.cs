@@ -16,14 +16,12 @@ public class EventAttribute : Attribute
     }
 }
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class RPCEventAttribute : Attribute
-{
-	public int SortOrder { get; }//消息调用顺序权值
+public class QueueEventAttribute : EventAttribute { }
 
-	public RPCEventAttribute() { }
-	public RPCEventAttribute(int sortOrder)
-	{
-        SortOrder = sortOrder;
-    }
+public class RPCEventAttribute : EventAttribute
+{
+	public RPCEventAttribute() : base() { }
+	public RPCEventAttribute(int sortOrder) : base(sortOrder) { }
 }
+
+public class QueueRPCEventAttribute : EventAttribute { }
