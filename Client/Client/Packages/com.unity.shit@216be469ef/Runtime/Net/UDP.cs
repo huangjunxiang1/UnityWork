@@ -58,7 +58,6 @@ namespace Main
                     int len;
                     try
                     {
-                        EndPoint ip = IP;
                         await Task<int>.Factory.FromAsync(BeginReceive, EndReceive, null);
 
                         len = (_rBuffer[0] | _rBuffer[1] << 8) + 2;
@@ -193,7 +192,6 @@ namespace Main
                 Thread.Sleep(1);
             }
         }
-
 
         IAsyncResult BeginSend(AsyncCallback callback, object state)
         {

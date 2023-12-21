@@ -205,7 +205,7 @@ public static class Timer
             for (int j = 0; j < len; j++)
             {
                 var method = methods[j];
-                var ea = method.GetCustomAttributes(typeof(TimerAttribute), false).FirstOrDefault() as TimerAttribute;
+                var ea = method.GetCustomAttributes(typeof(TimerAttribute), true).FirstOrDefault() as TimerAttribute;
                 if (ea != null)
                 {
 #if DebugEnable

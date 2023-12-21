@@ -16,7 +16,11 @@ public class EventAttribute : Attribute
     }
 }
 
-public class QueueEventAttribute : EventAttribute { }
+public class QueueEventAttribute : EventAttribute 
+{
+    public QueueEventAttribute() : base() { }
+    public QueueEventAttribute(int sortOrder) : base(sortOrder) { }
+}
 
 public class RPCEventAttribute : EventAttribute
 {
@@ -24,4 +28,8 @@ public class RPCEventAttribute : EventAttribute
 	public RPCEventAttribute(int sortOrder) : base(sortOrder) { }
 }
 
-public class QueueRPCEventAttribute : EventAttribute { }
+public class QueueRPCEventAttribute : EventAttribute
+{
+    public QueueRPCEventAttribute() : base() { }
+    public QueueRPCEventAttribute(int sortOrder) : base(sortOrder) { }
+}

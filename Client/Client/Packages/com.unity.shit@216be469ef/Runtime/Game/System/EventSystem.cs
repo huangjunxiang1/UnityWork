@@ -17,7 +17,7 @@ namespace Game
 
         readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
         readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
-        readonly static object[] _Parameters = new object[1];
+        readonly static object[] _parameters = new object[1];
         static Type[] _parameterType = new Type[1];
 
         static bool _checkEventMethod(MethodInfo method, out Type key)
@@ -66,15 +66,9 @@ namespace Game
                 {
                     var method = _methodInfos[i];
 
-                    var ea = method.GetCustomAttributes(typeof(EventAttribute), false).FirstOrDefault() as EventAttribute;
+                    var ea = method.GetCustomAttributes(typeof(EventAttribute), true).FirstOrDefault() as EventAttribute;
                     if (ea != null)
                     {
-                        if (method.IsVirtual)
-                        {
-                            Loger.Error("监听消息不使用virtual来实现");
-                            continue;
-                        }
-
                         MethodData e = new();
                         if (!_checkEventMethod(method, out e.key))
                             continue;
@@ -111,7 +105,7 @@ namespace Game
                     var ea = method.GetCustomAttributes(typeof(EventAttribute), false).FirstOrDefault() as EventAttribute;
                     if (ea != null)
                     {
-                        if (ea is RPCEventAttribute)
+                        if (ea is RPCEventAttribute || ea is QueueRPCEventAttribute)
                         {
                             Loger.Error("rpc事件不支持静态");
                             continue;
@@ -140,15 +134,18 @@ namespace Game
         /// <param name="target"></param>
         public void RigisteListener(object target)
         {
-            MethodData[] ms;
-#if ILRuntime
-            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                ms = _getListenerMethods(ilInstance.Type.ReflectionType);
-            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                ms = _getListenerMethods(ilWarp.ILInstance.Type.ReflectionType);
-            else
-#endif
-            ms = _getListenerMethods(target.GetType());
+            if (target == null)
+            {
+                Loger.Error("添加事件对象为空");
+                return;
+            }
+            Type t = _getType(target);
+            if (!t.IsClass)
+            {
+                Loger.Error("只能在class注册事件");
+                return;
+            }
+            MethodData[] ms = _getListenerMethods(t);
 
             for (int i = 0; i < ms.Length; i++)
             {
@@ -170,15 +167,18 @@ namespace Game
         }
         public void RigisteRPCListener(long rpc, object target)
         {
-            MethodData[] ms;
-#if ILRuntime
-            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                ms = _getListenerMethods(ilInstance.Type.ReflectionType);
-            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                ms = _getListenerMethods(ilWarp.ILInstance.Type.ReflectionType);
-            else
-#endif
-            ms = _getListenerMethods(target.GetType());
+            if (target == null)
+            {
+                Loger.Error("添加事件对象为空");
+                return;
+            }
+            Type t = _getType(target);
+            if (!t.IsClass)
+            {
+                Loger.Error("只能在class注册事件");
+                return;
+            }
+            MethodData[] ms = _getListenerMethods(t);
 
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 _rpcEvtMap[rpc] = map = new();
@@ -201,7 +201,7 @@ namespace Game
                 queue.Add(e);
             }
         }
-        public TaskAwaiter<T> WaitEvent<T>(int sortOrder = 0, bool isQueue = false)
+        public TaskAwaiter<T> WaitEvent<T>(int sortOrder = 0)
         {
             TaskAwaiter<T> task = new();
             var k = typeof(T);
@@ -217,12 +217,11 @@ namespace Game
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
-            e.isQueue = isQueue;
 
             queue.Add(e);
             return task;
         }
-        public TaskAwaiter<T> WaitRPCEvent<T>(long rpc, int sortOrder = 0, bool isQueue = false)
+        public TaskAwaiter<T> WaitRPCEvent<T>(long rpc, int sortOrder = 0)
         {
             TaskAwaiter<T> task = new();
             var k = typeof(T);
@@ -241,7 +240,6 @@ namespace Game
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
-            e.isQueue = isQueue;
 
             queue.Add(e);
             return task;
@@ -258,16 +256,7 @@ namespace Game
                 Loger.Error("移除事件对象为空");
                 return;
             }
-            Type t;
-#if ILRuntime
-            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                t = ilInstance.Type.ReflectionType;
-            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                t = ilWarp.ILInstance.Type.ReflectionType;
-            else
-#endif
-            t = target.GetType();
-
+            Type t = _getType(target);
             if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
                 for (int i = 0; i < ms.Length; i++)
@@ -283,16 +272,7 @@ namespace Game
                 return;
             }
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            Type t;
-#if ILRuntime
-            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                t = ilInstance.Type.ReflectionType;
-            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                t = ilWarp.ILInstance.Type.ReflectionType;
-            else
-#endif
-            t = target.GetType();
-
+            Type t = _getType(target);
             if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
                 for (int i = 0; i < ms.Length; i++)
@@ -303,50 +283,40 @@ namespace Game
 
         public void RunEvent(object data)
         {
-            var key = data.GetType();
-            if (!_evtMap.TryGetValue(key, out var queue)) return;
-            if (queue.index > -1)
-            {
-                Loger.Error("事件执行队列循环 key=" + key);
-                return;
-            }
-            queue.Run(data);
+            _runEvent(_evtMap, 0, data);
         }
         public TaskAwaiter RunEventAsync(object data)
         {
-            var key = data.GetType();
-            if (!_evtMap.TryGetValue(key, out var queue)) return TaskAwaiter.Completed;
-            if (queue.index > -1)
-            {
-                Loger.Error("事件执行队列循环 key=" + key);
-                return TaskAwaiter.Completed;
-            }
-            return queue.RunAsync(data);
+            return _runEventAsync(_evtMap, 0, data);
+        }
+        public T RunEventReturn<T>(object data)
+        {
+            return _runEventReturn<T>(_evtMap, 0, data);
+        }
+        public TaskAwaiter<T> RunEventAsyncReturn<T>(object data)
+        {
+            return _runEventAsyncReturn<T>(_evtMap, 0, data);
         }
 
         public void RunRPCEvent(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            var key = data.GetType();
-            if (!map.TryGetValue(key, out var queue)) return;
-            if (queue.index > -1)
-            {
-                Loger.Error($"事件执行队列循环 rpc={rpc} key={key}");
-                return;
-            }
-            queue.Run(data);
+            _runEvent(map, rpc, data);
         }
         public TaskAwaiter RunRPCEventAsync(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return TaskAwaiter.Completed;
-            var key = data.GetType();
-            if (!map.TryGetValue(key, out var queue)) return TaskAwaiter.Completed;
-            if (queue.index > -1)
-            {
-                Loger.Error($"事件执行队列循环 rpc={rpc} key={key}");
-                return TaskAwaiter.Completed;
-            }
-            return queue.RunAsync(data);
+            return _runEventAsync(map, rpc, data);
+        }
+        public T RunRPCEventReturn<T>(long rpc, object data)
+        {
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return default;
+            return _runEventReturn<T>(map, rpc, data);
+        }
+        public async TaskAwaiter<T> RunRPCEventAsyncReturn<T>(long rpc, object data)
+        {
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return default;
+            return await _runEventAsyncReturn<T>(map, rpc, data);
         }
 
         public void Clear()
@@ -354,6 +324,84 @@ namespace Game
             _rigistedStaticMethodEvt = false;
             _evtMap.Clear();
             _rpcEvtMap.Clear();
+        }
+
+        Type _getType(object target)
+        {
+#if ILRuntime
+            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
+                return ilInstance.Type.ReflectionType;
+            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
+                return ilWarp.ILInstance.Type.ReflectionType;
+            else
+#endif
+                return target.GetType();
+        }
+        void _runEvent(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        {
+            var key = data.GetType();
+            if (!evtMap.TryGetValue(key, out var queue)) return;
+            if (queue.index > -1)
+            {
+                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
+                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
+                return;
+            }
+            queue.Run(data);
+        }
+        TaskAwaiter _runEventAsync(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        {
+            var key = data.GetType();
+            if (!evtMap.TryGetValue(key, out var queue)) return TaskAwaiter.Completed;
+            if (queue.index > -1)
+            {
+                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
+                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
+                return TaskAwaiter.Completed;
+            }
+            return queue.RunAsync(data);
+        }
+        T _runEventReturn<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        {
+            var key = data.GetType();
+            if (!evtMap.TryGetValue(key, out var queue))
+            {
+                if (rpc == 0) Loger.Error($"没有此监听 key={key}");
+                else Loger.Error($"没有此监听 key={key} rpc={rpc}");
+                return default;
+            }
+            if (queue.index > -1)
+            {
+                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
+                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
+                return default;
+            }
+            return queue.RunReturn<T>(data);
+        }
+        async TaskAwaiter<T> _runEventAsyncReturn<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        {
+            var key = data.GetType();
+            if (!evtMap.TryGetValue(key, out var queue))
+            {
+                if (rpc == 0) Loger.Error($"没有此监听 key={key}");
+                else Loger.Error($"没有此监听 key={key} rpc={rpc}");
+                return default;
+            }
+            if (queue.index > -1)
+            {
+                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
+                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
+                return default;
+            }
+            var task = queue.RunAsyncReturn<T>(data);
+            if (task == null)
+            {
+                if (rpc == 0) Loger.Error($"没有匹配的监听 key={key}");
+                else Loger.Error($"没有匹配的监听 key={key} rpc={rpc}");
+                return default;
+            }
+            else
+                return await task;
         }
 
         class EvtData
@@ -375,18 +423,15 @@ namespace Game
 
             public void Add(EvtData evt)
             {
-                if (evts.Count == 0 || evt.sortOrder >= evts[evts.Count - 1].sortOrder)
-                    evts.Add(evt);
-                else
+                int inserIdx = evts.FindIndex(t => t.sortOrder > evt.sortOrder);
+                if (inserIdx != -1)
                 {
-                    int inserIdx = evts.FindLastIndex(t => t.sortOrder < evt.sortOrder) + 1;
                     evts.Insert(inserIdx, evt);
-                    if (inserIdx < index)
-                    {
-                        ++index;
-                        ++cnt;
-                    }
+                    if (inserIdx < index) ++index;
+                    if (inserIdx < cnt) ++cnt;
                 }
+                else
+                    evts.Add(evt);
             }
             public void Remove(object target)
             {
@@ -398,18 +443,14 @@ namespace Game
                         if (evts[j].target == target)
                         {
                             evts.RemoveAt(j);
-                            if (j <= index)
-                            {
-                                --index;
-                                --cnt;
-                            }
+                            if (j < index) --index;
+                            if (j < cnt) --cnt;
                         }
                     }
                 }
             }
             public async void Run(object data)
             {
-                _Parameters[0] = data;
                 cnt = evts.Count;
                 for (index = 0; index < cnt;)
                 {
@@ -418,7 +459,8 @@ namespace Game
                     else ++index;
                     try
                     {
-                        if (e.method.Invoke(e.target, default, default, _Parameters, default) is TaskAwaiter task)
+                        _parameters[0] = data;
+                        if (e.method.Invoke(e.target, default, default, _parameters, default) is TaskAwaiter task)
                             if (e.isQueue) await task;
                     }
                     catch (Exception ex)
@@ -426,13 +468,12 @@ namespace Game
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
                 }
-                _Parameters[0] = null;
+                _parameters[0] = null;
                 index = -1;
             }
             public async TaskAwaiter RunAsync(object data)
             {
                 List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
-                _Parameters[0] = data;
                 cnt = evts.Count;
                 for (index = 0; index < cnt;)
                 {
@@ -441,7 +482,8 @@ namespace Game
                     else ++index;
                     try
                     {
-                        if (e.method.Invoke(e.target, default, default, _Parameters, default) is TaskAwaiter task)
+                        _parameters[0] = data;
+                        if (e.method.Invoke(e.target, default, default, _parameters, default) is TaskAwaiter task)
                         {
                             if (e.isQueue) await task;
                             else ts.Add(task);
@@ -452,11 +494,65 @@ namespace Game
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
                 }
-                _Parameters[0] = null;
+                _parameters[0] = null;
                 index = -1;
                 await TaskAwaiter.All(ts);
                 ts.Clear();
                 ObjectPool.Return(ts);
+            }
+            public T RunReturn<T>(object data)
+            {
+                T ret = default;
+                cnt = evts.Count;
+                for (index = 0; index < cnt;)
+                {
+                    EvtData e = evts[index];
+                    if (e.isOnece) evts.RemoveAt(index);
+                    else ++index;
+                    try
+                    {
+                        _parameters[0] = data;
+                        if (e.method.Invoke(e.target, default, default, _parameters, default) is T t)
+                        {
+                            ret = t;
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Loger.Error("事件执行出错 error:" + ex.ToString());
+                    }
+                }
+                _parameters[0] = null;
+                index = -1;
+                return ret;
+            }
+            public TaskAwaiter<T> RunAsyncReturn<T>(object data)
+            {
+                TaskAwaiter<T> ret = default;
+                cnt = evts.Count;
+                for (index = 0; index < cnt;)
+                {
+                    EvtData e = evts[index];
+                    if (e.isOnece) evts.RemoveAt(index);
+                    else ++index;
+                    try
+                    {
+                        _parameters[0] = data;
+                        if (e.method.Invoke(e.target, default, default, _parameters, default) is TaskAwaiter<T> t)
+                        {
+                            ret = t;
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Loger.Error("事件执行出错 error:" + ex.ToString());
+                    }
+                }
+                _parameters[0] = null;
+                index = -1;
+                return ret;
             }
         }
         class MethodData

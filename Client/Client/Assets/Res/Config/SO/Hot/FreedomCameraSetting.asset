@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   yMin: 20
   yMax: 200
-  wheelSpeed: 0.02
+  wheelSpeed: 1
   moveSpeed: 0.05
