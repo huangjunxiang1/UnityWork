@@ -14,6 +14,7 @@ namespace Game
         bool _rigistedStaticMethodEvt = false;
         readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
+        bool _breakCurrentEvent;
 
         readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
         readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
@@ -281,6 +282,10 @@ namespace Game
             }
         }
 
+        /// <summary>
+        /// 执行事件
+        /// </summary>
+        /// <param name="data"></param>
         public void RunEvent(object data)
         {
             _runEvent(_evtMap, 0, data);
@@ -289,11 +294,7 @@ namespace Game
         {
             return _runEventAsync(_evtMap, 0, data);
         }
-        public T RunEventReturn<T>(object data)
-        {
-            return _runEventReturn<T>(_evtMap, 0, data);
-        }
-        public TaskAwaiter<T> RunEventAsyncReturn<T>(object data)
+        public TaskAwaiter<T> RunEventReturn<T>(object data)
         {
             return _runEventAsyncReturn<T>(_evtMap, 0, data);
         }
@@ -308,17 +309,19 @@ namespace Game
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return TaskAwaiter.Completed;
             return _runEventAsync(map, rpc, data);
         }
-        public T RunRPCEventReturn<T>(long rpc, object data)
-        {
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return default;
-            return _runEventReturn<T>(map, rpc, data);
-        }
-        public async TaskAwaiter<T> RunRPCEventAsyncReturn<T>(long rpc, object data)
+        public async TaskAwaiter<T> RunRPCEventReturn<T>(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return default;
             return await _runEventAsyncReturn<T>(map, rpc, data);
         }
 
+        /// <summary>
+        /// 跳出当前正在执行的事件（下一个不执行）
+        /// </summary>
+        public void BreakCurrentEvent()
+        {
+            _breakCurrentEvent = true;
+        }
         public void Clear()
         {
             _rigistedStaticMethodEvt = false;
@@ -335,7 +338,7 @@ namespace Game
                 return ilWarp.ILInstance.Type.ReflectionType;
             else
 #endif
-                return target.GetType();
+            return target.GetType();
         }
         void _runEvent(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
         {
@@ -347,7 +350,7 @@ namespace Game
                 else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
                 return;
             }
-            queue.Run(data);
+            queue.Run(data, this);
         }
         TaskAwaiter _runEventAsync(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
         {
@@ -359,24 +362,7 @@ namespace Game
                 else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
                 return TaskAwaiter.Completed;
             }
-            return queue.RunAsync(data);
-        }
-        T _runEventReturn<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
-        {
-            var key = data.GetType();
-            if (!evtMap.TryGetValue(key, out var queue))
-            {
-                if (rpc == 0) Loger.Error($"没有此监听 key={key}");
-                else Loger.Error($"没有此监听 key={key} rpc={rpc}");
-                return default;
-            }
-            if (queue.index > -1)
-            {
-                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
-                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
-                return default;
-            }
-            return queue.RunReturn<T>(data);
+            return queue.RunAsync(data, this);
         }
         async TaskAwaiter<T> _runEventAsyncReturn<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
         {
@@ -393,7 +379,7 @@ namespace Game
                 else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
                 return default;
             }
-            var task = queue.RunAsyncReturn<T>(data);
+            var task = queue.RunAsyncReturn<T>(data, this);
             if (task == null)
             {
                 if (rpc == 0) Loger.Error($"没有匹配的监听 key={key}");
@@ -449,19 +435,29 @@ namespace Game
                     }
                 }
             }
-            public async void Run(object data)
+            public async void Run(object data, EventSystem eventSystem)
             {
                 cnt = evts.Count;
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
-                    if (e.isOnece) evts.RemoveAt(index);
+                    if (e.isOnece)
+                    {
+                        evts.RemoveAt(index);
+                        --cnt;
+                    }
                     else ++index;
                     try
                     {
                         _parameters[0] = data;
-                        if (e.method.Invoke(e.target, default, default, _parameters, default) is TaskAwaiter task)
-                            if (e.isQueue) await task;
+                        object o = e.method.Invoke(e.target, default, default, _parameters, default);
+                        if (eventSystem._breakCurrentEvent)
+                        {
+                            eventSystem._breakCurrentEvent = false;
+                            cnt = index;
+                        }
+                        if (o is TaskAwaiter task && e.isQueue)
+                            await task;
                     }
                     catch (Exception ex)
                     {
@@ -471,19 +467,29 @@ namespace Game
                 _parameters[0] = null;
                 index = -1;
             }
-            public async TaskAwaiter RunAsync(object data)
+            public async TaskAwaiter RunAsync(object data, EventSystem eventSystem)
             {
                 List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
                 cnt = evts.Count;
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
-                    if (e.isOnece) evts.RemoveAt(index);
+                    if (e.isOnece)
+                    {
+                        evts.RemoveAt(index);
+                        --cnt;
+                    }
                     else ++index;
                     try
                     {
                         _parameters[0] = data;
-                        if (e.method.Invoke(e.target, default, default, _parameters, default) is TaskAwaiter task)
+                        object o = e.method.Invoke(e.target, default, default, _parameters, default);
+                        if (eventSystem._breakCurrentEvent)
+                        {
+                            eventSystem._breakCurrentEvent = false;
+                            cnt = index;
+                        }
+                        if (o is TaskAwaiter task)
                         {
                             if (e.isQueue) await task;
                             else ts.Add(task);
@@ -500,23 +506,41 @@ namespace Game
                 ts.Clear();
                 ObjectPool.Return(ts);
             }
-            public T RunReturn<T>(object data)
+            public async TaskAwaiter<T> RunAsyncReturn<T>(object data, EventSystem eventSystem)
             {
+                bool get = false;
                 T ret = default;
+                TaskAwaiter<T> task = default;
                 cnt = evts.Count;
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
-                    if (e.isOnece) evts.RemoveAt(index);
+                    if (e.isOnece)
+                    {
+                        evts.RemoveAt(index);
+                        --cnt;
+                    }
                     else ++index;
                     try
                     {
                         _parameters[0] = data;
-                        if (e.method.Invoke(e.target, default, default, _parameters, default) is T t)
+                        object o = e.method.Invoke(e.target, default, default, _parameters, default);
+                        if (!get && o is T)
                         {
-                            ret = t;
-                            break;
+                            get = true;
+                            ret = (T)o;
                         }
+                        if (!get && o is TaskAwaiter<T>)
+                        {
+                            get = true;
+                            task = (TaskAwaiter<T>)o;
+                        }
+                        if (eventSystem._breakCurrentEvent)
+                        {
+                            eventSystem._breakCurrentEvent = false;
+                            cnt = index;
+                        }
+                        if (o is TaskAwaiter t && e.isQueue) await t;
                     }
                     catch (Exception ex)
                     {
@@ -525,33 +549,7 @@ namespace Game
                 }
                 _parameters[0] = null;
                 index = -1;
-                return ret;
-            }
-            public TaskAwaiter<T> RunAsyncReturn<T>(object data)
-            {
-                TaskAwaiter<T> ret = default;
-                cnt = evts.Count;
-                for (index = 0; index < cnt;)
-                {
-                    EvtData e = evts[index];
-                    if (e.isOnece) evts.RemoveAt(index);
-                    else ++index;
-                    try
-                    {
-                        _parameters[0] = data;
-                        if (e.method.Invoke(e.target, default, default, _parameters, default) is TaskAwaiter<T> t)
-                        {
-                            ret = t;
-                            break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Loger.Error("事件执行出错 error:" + ex.ToString());
-                    }
-                }
-                _parameters[0] = null;
-                index = -1;
+                if (task != null) ret = await task;
                 return ret;
             }
         }

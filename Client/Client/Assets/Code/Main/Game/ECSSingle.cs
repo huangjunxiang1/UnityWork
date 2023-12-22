@@ -11,13 +11,18 @@ using Unity.Mathematics;
 
 namespace Game
 {
-    public unsafe struct SceneConfig : IComponentData
+    public static class ECSSingle
     {
-        public SharedStatic<Unity.Mathematics.Random> Random;
-        public SharedStatic<NativeList<FixedString128Bytes>> Strings;
+        public static readonly SharedStatic<Unity.Mathematics.Random> Random = SharedStatic<Unity.Mathematics.Random>.GetOrCreate<Unity.Mathematics.Random>();
+        public static readonly SharedStatic<NativeList<FixedString128Bytes>> Strings = SharedStatic<NativeList<FixedString128Bytes>>.GetOrCreate<NativeList<FixedString128Bytes>>();
 
+        public static void Init()
+        {
+            Random.Data.InitState((uint)DateTime.Now.Ticks);
+            Strings.Data = new NativeList<FixedString128Bytes>(10, AllocatorManager.Persistent);
+        }
         static Dictionary<string, int> stringsMap;
-        public int GetStringIndex(string k)
+        public static int GetStringIndex(string k)
         {
             if (stringsMap == null)
                 stringsMap = new Dictionary<string, int>();
@@ -29,35 +34,9 @@ namespace Game
             }
             return index;
         }
-    }
-    public static class ECSSingle
-    {
-        static Entity single;
-
-        public static void Init()
-        {
-            single = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.CreateSingleton<SceneConfig>();
-            var sc = new SceneConfig()
-            {
-                Random = SharedStatic<Unity.Mathematics.Random>.GetOrCreate<Unity.Mathematics.Random>(),
-                Strings = SharedStatic<NativeList<FixedString128Bytes>>.GetOrCreate<SharedStatic<NativeList<FixedString128Bytes>>>(),
-            };
-            sc.Random.Data.InitState((uint)DateTime.Now.Ticks);
-            sc.Strings.Data = new NativeList<FixedString128Bytes>(10, AllocatorManager.Persistent);
-
-            Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.AddComponentData(single, sc);
-        }
         public static void Dispose()
         {
-            GetSingle<SceneConfig>().Strings.Data.Dispose();
-        }
-        public static T GetSingle<T>() where T : unmanaged, IComponentData
-        {
-            return Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<T>(single);
-        }
-        public static void SetSingle<T>(T c) where T : unmanaged, IComponentData
-        {
-            Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(single, c);
+            Strings.Data.Dispose();
         }
     }
 }
