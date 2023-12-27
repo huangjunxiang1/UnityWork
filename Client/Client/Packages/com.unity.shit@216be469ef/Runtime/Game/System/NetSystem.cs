@@ -27,15 +27,15 @@ namespace Game
         }
 
         Engine engine;
-        BaseNet net;
-        readonly Dictionary<Type, Queue<TaskAwaiter<PB.PBMessage>>> _requestTask = new();
-        Queue<TaskAwaiter<PB.PBMessage>> _swap = new();
+        SBaseNet net;
+        readonly Dictionary<Type, Queue<STask<PB.PBMessage>>> _requestTask = new();
+        Queue<STask<PB.PBMessage>> _swap = new();
         ConcurrentQueue<PBMessage> msgs = new();
 
         void _onError(int error)
         {
             Loger.Error("Net Error Code:" + error);
-            GameM.Event.RunEvent(new EC_NetError { code = error });
+            SGameM.Event.RunEvent(new EC_NetError { code = error });
         }
         void _onResponse(PB.PBMessage message)
         {
@@ -45,15 +45,16 @@ namespace Game
 #if DebugEnable
             PrintField.Print($"<Color=#00FF00>收到消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
 #endif
+            SGameM.Event.RunEvent(new EC_ReceiveMessage { message = message });
             if (message.rpc > 0)
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
-                GameM.Event.RunRPCEvent(message.rpc, message);
+                SGameM.Event.RunRPCEvent(message.rpc, message);
             }
             else
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
-                GameM.Event.RunEvent(message);
+                SGameM.Event.RunEvent(message);
 
                 if (_requestTask.TryGetValue(type, out var queue))
                 {
@@ -71,16 +72,16 @@ namespace Game
         /// </summary>
         /// <param name="type"></param>
         /// <param name="ipEndPoint"></param>
-        public async TaskAwaiter<bool> Connect(ServerType type, IPEndPoint ipEndPoint)
+        public async STask<bool> Connect(ServerType type, IPEndPoint ipEndPoint)
         {
             net?.DisConnect();
             switch (type)
             {
                 case ServerType.TCP:
-                    net = new TCP(ipEndPoint);
+                    net = new STCP(ipEndPoint);
                     break;
                 case ServerType.UDP:
-                    net = new UDP(ipEndPoint);
+                    net = new SUDP(ipEndPoint);
                     break;
                 default:
                     Loger.Error($"未识别的链接类型->{type}");
@@ -115,7 +116,7 @@ namespace Game
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public TaskAwaiter<PB.PBMessage> SendAsync(PBMessage request)
+        public STask<PB.PBMessage> SendAsync(PBMessage request)
         {
             Type t;
 #if ILRuntime
@@ -131,12 +132,12 @@ namespace Game
                 Loger.Error("没有responseType类型 req=" + t);
                 return null;
             }
-            if (!_requestTask.TryGetValue(rsp, out Queue<TaskAwaiter<PB.PBMessage>> queue))
+            if (!_requestTask.TryGetValue(rsp, out Queue<STask<PB.PBMessage>> queue))
             {
-                queue = new Queue<TaskAwaiter<PB.PBMessage>>();
+                queue = new Queue<STask<PB.PBMessage>>();
                 _requestTask[rsp] = queue;
             }
-            TaskAwaiter<PB.PBMessage> task = new();
+            STask<PB.PBMessage> task = new();
             queue.Enqueue(task);
             Send(request);
             return task.MakeAutoCancel();

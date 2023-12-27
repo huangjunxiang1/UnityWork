@@ -74,7 +74,7 @@ public class Tool
                 code.AppendLine(@$"partial class {go.name} : UUI");
              
             code.AppendLine(@"{");
-            code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(go).Replace(AssetLoad.Directory, "")}\";");
+            code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(go).Replace(SAsset.Directory, "")}\";");
 
             var childs = go.GetComponentsInChildren<Transform>(true);
             for (int j = 0; j < childs.Length; j++)
@@ -193,7 +193,7 @@ public class Tool
         UIPackage.RemoveAllPackages();
         FontManager.Clear();
         FairyGUI.UIConfig.defaultFont = "Impact";
-        var pkg = UIPackage.AddPackage($"{AssetLoad.Directory}/UI/FUI/ComPkg/ComPkg");
+        var pkg = UIPackage.AddPackage($"{SAsset.Directory}/UI/FUI/ComPkg/ComPkg");
         StringBuilder code = new StringBuilder(100000);
         code.AppendLine("using FairyGUI;");
         code.AppendLine("using FairyGUI.Utils;");
@@ -450,65 +450,32 @@ public class Tool
     [MenuItem("Tools/MyTool/生成Config代码")]
     static void CreateConfigCode()
     {
-        //main
-        {
-            StringBuilder so = new StringBuilder();
-            so.AppendLine("using UnityEngine;");
-            so.AppendLine("using Game;");
-            so.AppendLine("using Main;");
-            so.AppendLine("");
-            so.AppendLine("namespace Game");
-            so.AppendLine("{");
-            so.AppendLine("\tpublic partial class SettingM");
-            so.AppendLine("\t{");
+        StringBuilder so = new StringBuilder();
+        so.AppendLine("using UnityEngine;");
+        so.AppendLine("using Game;");
+        so.AppendLine("using Main;");
+        so.AppendLine("");
+        so.AppendLine("namespace Game");
+        so.AppendLine("{");
+        so.AppendLine("\tpublic static partial class SSetting");
+        so.AppendLine("\t{");
 
-            StringBuilder input = new StringBuilder();
-            input.AppendLine(@"using UnityEngine.InputSystem;");
-            input.AppendLine(@"using Main;");
-            input.AppendLine(@"using UnityEngine;");
-            input.AppendLine(@"");
+        StringBuilder input = new StringBuilder();
+        input.AppendLine(@"using UnityEngine.InputSystem;");
+        input.AppendLine(@"using Main;");
+        input.AppendLine(@"using UnityEngine;");
+        input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/SO/Main", so, input);
+        appendConfigWithDirectory(Application.dataPath + "/Res/Config/SO/", so, input);
 
-            so.AppendLine("\t}");
-            so.AppendLine("}");
+        so.AppendLine("\t}");
+        so.AppendLine("}");
 
-            if (!Directory.Exists(Application.dataPath + "/Code/Main/_Gen"))
-                Directory.CreateDirectory(Application.dataPath + "/Code/Main/_Gen");
+        if (!Directory.Exists(Application.dataPath + "/Code/HotFix/_Gen"))
+            Directory.CreateDirectory(Application.dataPath + "/Code/HotFix/_Gen");
 
-            File.WriteAllText(Application.dataPath + $"/Code/Main/_Gen/Setting.cs", so.ToString());
-            File.WriteAllText(Application.dataPath + $"/Code/Main/_Gen/Inputs.cs", input.ToString());
-        }
-        //hot
-        {
-            StringBuilder so = new StringBuilder();
-            so.AppendLine("using UnityEngine;");
-            so.AppendLine("using Game;");
-            so.AppendLine("using Main;");
-            so.AppendLine("");
-            so.AppendLine("namespace Game");
-            so.AppendLine("{");
-            so.AppendLine("\tpublic partial class SettingL");
-            so.AppendLine("\t{");
-
-            StringBuilder input = new StringBuilder();
-            input.AppendLine(@"using UnityEngine.InputSystem;");
-            input.AppendLine(@"using Main;");
-            input.AppendLine(@"using UnityEngine;");
-            input.AppendLine(@"");
-
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/SO/Hot", so, input);
-
-            so.AppendLine("\t}");
-            so.AppendLine("}");
-
-            if (!Directory.Exists(Application.dataPath + "/Code/HotFix/_Gen"))
-                Directory.CreateDirectory(Application.dataPath + "/Code/HotFix/_Gen");
-
-            File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/Setting.cs", so.ToString());
-            File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/Inputs.cs", input.ToString());
-        }
-
+        File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/SSetting.cs", so.ToString());
+        File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/Inputs.cs", input.ToString());
 
         AssetDatabase.Refresh();
     }
@@ -535,13 +502,13 @@ public class Tool
     {
         var url = AssetDatabase.GetAssetPath(so);
         string type = so.GetType().FullName;
-        code.AppendLine($"\t    {type} _{so.name};");
-        code.AppendLine($"\t    public {type} {so.name}");
+        code.AppendLine($"\t    static {type} _{so.name};");
+        code.AppendLine($"\t    public static {type} {so.name}");
         code.AppendLine("\t    {");
         code.AppendLine("\t        get");
         code.AppendLine("\t        {");
         code.AppendLine($"\t            if (!_{so.name})");
-        code.AppendLine($"\t                _{so.name} = ({type})AssetLoad.Load<ScriptableObject>(\"{url.Replace(AssetLoad.Directory, "")}\");");
+        code.AppendLine($"\t                _{so.name} = ({type})SAsset.Load<ScriptableObject>(\"{url.Replace(SAsset.Directory, "")}\");");
         code.AppendLine($"\t            return _{so.name};");
         code.AppendLine("\t        }");
         code.AppendLine("\t    }");
@@ -553,7 +520,7 @@ public class Tool
         str.AppendLine($"    public {input.name}()");
         str.AppendLine("    {");
         var url = AssetDatabase.GetAssetPath(input);
-        str.AppendLine($"        this.Asset = AssetLoad.Load<InputActionAsset>(\"{url.Replace(AssetLoad.Directory, "")}\");");
+        str.AppendLine($"        this.Asset = SAsset.Load<InputActionAsset>(\"{url.Replace(SAsset.Directory, "")}\");");
 
         foreach (var item in input.actionMaps)
         {
@@ -581,7 +548,7 @@ public class Tool
         str.AppendLine();
         str.AppendLine("    public void Dispose()");
         str.AppendLine("    {");
-        str.AppendLine("        AssetLoad.Release(Asset);");
+        str.AppendLine("        SAsset.Release(Asset);");
         foreach (var item in input.actionMaps)
         {
             str.AppendLine($"        this.{item.name}.Dispose();");
@@ -594,8 +561,8 @@ public class Tool
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;
-        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabM.bytes"))), ConstDefM.Debug);
-        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/TabL.bytes"))), ConstDefM.Debug);
+        STabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabM.bytes"))), SConstDefM.Debug);
+        STabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabL.bytes"))), SConstDefM.Debug);
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 }

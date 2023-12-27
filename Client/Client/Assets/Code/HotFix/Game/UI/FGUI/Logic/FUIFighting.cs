@@ -12,7 +12,7 @@ using UnityEngine;
 using Main;
 using Game;
 
-[Main.UIConfig(20)]
+[Main.SUIConfig(20)]
 partial class FUIFighting
 {
     NativeArray<Entity> es = default;
@@ -64,7 +64,7 @@ partial class FUIFighting
 
     void _clickBack()
     {
-        _ = GameL.Scene.InLoginScene();
+        _ = SGameL.Scene.InLoginScene();
     }
     int lastRange = -1;
     void _onPlay()

@@ -22,9 +22,9 @@ public enum UIStates
 }
 namespace Game
 {
-    class UIManager
+    class UIManager : SObject
     {
-        public UIManager()
+        public UIManager() : base()
         {
             GameObject root = new("UIRoot", typeof(RectTransform));
             root.layer = Layers.UI;
@@ -35,8 +35,8 @@ namespace Game
             UGUIRoot.position = Vector3.zero;
             UGUICamera = GameObject.Find("UGUICamera").GetComponent<Camera>();
 
-            NTexture.CustomDestroyMethod += t => AssetLoad.Release(t);
-            NAudioClip.CustomDestroyMethod += t => AssetLoad.Release(t);
+            NTexture.CustomDestroyMethod += t => SAsset.Release(t);
+            NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
         }
 
         readonly List<UIBase> _uiLst = new();
@@ -48,21 +48,24 @@ namespace Game
         public RectTransform UGUIRoot { get; }
         public Camera UGUICamera { get; }
 
-        public async TaskAwaiter Init()
+        [Event(2, Queue = true)]
+        async STask Init(EC_HotFixInit e)
         {
             //ugui init
             {
-                UGUIRoot.gameObject.SetActive(GameL.Setting.UIModel == UIModel.UGUI);
-                UGUICamera.gameObject.SetActive(GameL.Setting.UIModel == UIModel.UGUI);
+                UGUIRoot.gameObject.SetActive(SSetting.UIModel == UIModel.UGUI);
+                UGUICamera.gameObject.SetActive(SSetting.UIModel == UIModel.UGUI);
             }
 
             //fgui init
             {
-                GRoot.inst.visible = GameL.Setting.UIModel == UIModel.FGUI;
-                StageCamera.main.gameObject.SetActive(GameL.Setting.UIModel == UIModel.FGUI);
-                UIPkg.ComPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
-                UIPkg.ResPkg = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
-                UIPkg.Items = UIPackage.AddPackage((await AssetLoad.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);
+                FairyGUI.UIConfig.defaultFont = "Impact";
+                GRoot.inst.visible = SSetting.UIModel == UIModel.FGUI;
+                StageCamera.main.gameObject.SetActive(SSetting.UIModel == UIModel.FGUI);
+                UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
+                UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
+                UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);
+                await SGameL.UI.OpenAsync<FUIGlobal>();
             }
         }
         async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
@@ -71,7 +74,7 @@ namespace Game
             {
                 case PackageItemType.Sound:
                 case PackageItemType.Atlas:
-                    item.owner.SetItemAsset(item, await AssetLoad.LoadAsync<UnityEngine.Object>($"UI/FUI/{item.owner.name}/{name}{extension}"), DestroyMethod.Custom);
+                    item.owner.SetItemAsset(item, await SAsset.LoadAsync<UnityEngine.Object>($"UI/FUI/{item.owner.name}/{name}{extension}"), DestroyMethod.Custom);
                     break;
                 default:
                     Loger.Error("未定义加载->" + item.type);
@@ -84,12 +87,12 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                cfg = Main.UIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
+                cfg = Main.SUIConfig.Default;
 
             ui = new();
             _uiLst.Add(ui);
-            ui.LoadConfig(cfg, new TaskAwaiter<T>(), data);
+            ui.LoadConfig(cfg, new STask<T>(), data);
             _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
 
             for (int i = _uiLst.Count - 1; i >= 0; i--)
@@ -104,11 +107,11 @@ namespace Game
                 }
             }
             ui.Show();
-            ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
+            ((STask<T>)ui.onCompleted).TrySetResult(ui);
 
             return ui;
         }
-        public TaskAwaiter<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
+        public STask<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
         {
             T ui = Get<T>();
             if (ui == null)
@@ -116,8 +119,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                        cfg = Main.UIConfig.Default;
+                    if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
+                        cfg = Main.SUIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -128,7 +131,7 @@ namespace Game
                             UIHelper.EnableUIInput(true);
                     });
                     _uiLst.Add(ui);
-                    TaskAwaiter loadTask = ui.LoadConfigAsync(cfg, new TaskAwaiter<T>(), data);
+                    STask loadTask = ui.LoadConfigAsync(cfg, new STask<T>(), data);
                     _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
                     await loadTask;
                     await ui.onTask;
@@ -147,15 +150,15 @@ namespace Game
                         }
                     }
                     ui.ListenerEnable = true;
-                    Timer.AutoRigisterTimer(ui);
+                    STimer.AutoRigisterTimer(ui);
                     ui.Show();
                     UIHelper.EnableUIInput(true);
 
-                    ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
+                    ((STask<T>)ui.onCompleted).TrySetResult(ui);
                 }
             }
           
-            return (TaskAwaiter<T>)ui.onCompleted;
+            return (STask<T>)ui.onCompleted;
         }
 
         public T OpenSubUI<T>(UIBase parent, params object[] data) where T : UIBase, new()
@@ -164,18 +167,18 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                cfg = Main.UIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
+                cfg = Main.SUIConfig.Default;
 
             ui = new();
             parent.AddChild(ui);
-            ui.LoadConfig(cfg, new TaskAwaiter<T>(), data);
+            ui.LoadConfig(cfg, new STask<T>(), data);
             ui.Show();
-            ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
+            ((STask<T>)ui.onCompleted).TrySetResult(ui);
 
             return ui;
         }
-        public TaskAwaiter<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
+        public STask<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
         {
             T ui = parent.GetSubUI<T>();
             if (ui == null)
@@ -183,8 +186,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                        cfg = Main.UIConfig.Default;
+                    if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
+                        cfg = Main.SUIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -195,43 +198,43 @@ namespace Game
                             UIHelper.EnableUIInput(true);
                     });
                     parent.AddChild(ui);
-                    await ui.LoadConfigAsync(cfg, new TaskAwaiter<T>(), data);
+                    await ui.LoadConfigAsync(cfg, new STask<T>(), data);
                     await ui.onTask;
                     if (ui.Disposed)
                         return;
 
                     ui.ListenerEnable = true;
-                    Timer.AutoRigisterTimer(ui);
+                    STimer.AutoRigisterTimer(ui);
                     ui.Show();
                     UIHelper.EnableUIInput(true);
 
-                    ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
+                    ((STask<T>)ui.onCompleted).TrySetResult(ui);
                 }
             }
            
-            return (TaskAwaiter<T>)ui.onCompleted;
+            return (STask<T>)ui.onCompleted;
         }
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                cfg = Main.UIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
+                cfg = Main.SUIConfig.Default;
 
             T ui = new();
             _3duiLst.Add(ui);
-            ui.LoadConfig(cfg, new TaskAwaiter<T>(), data);
-            ((TaskAwaiter<T>)ui.onCompleted).TrySetResult(ui);
+            ui.LoadConfig(cfg, new STask<T>(), data);
+            ((STask<T>)ui.onCompleted).TrySetResult(ui);
 
             return ui;
         }
-        public TaskAwaiter<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
+        public STask<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
         {
-            TaskAwaiter<T> task = new();
+            STask<T> task = new();
             open();
             async void open()
             {
-                if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                    cfg = Main.UIConfig.Default;
+                if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
+                    cfg = Main.SUIConfig.Default;
 
                 T ui = new();
                 _3duiLst.Add(ui);
@@ -241,7 +244,7 @@ namespace Game
                     return;
 
                 ui.ListenerEnable = true;
-                Timer.AutoRigisterTimer(ui);
+                STimer.AutoRigisterTimer(ui);
 
                 task.TrySetResult(ui);
             }

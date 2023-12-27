@@ -12,9 +12,9 @@ using FairyGUI;
 abstract class FUIBase : UIBase
 {
     bool isShowing = false;
-    TaskAwaiter showTask;
+    STask showTask;
     bool isHiding = false;
-    TaskAwaiter hideTask;
+    STask hideTask;
 
     public abstract GComponent UI { get; }
 
@@ -71,7 +71,7 @@ abstract class FUIBase : UIBase
         this.isShow = false;
         callBack?.Invoke();
     }
-    public sealed override TaskAwaiter HideAsync(bool playAnimation = true)
+    public sealed override STask HideAsync(bool playAnimation = true)
     {
         if (isHiding)
             return hideTask;
@@ -116,7 +116,7 @@ abstract class FUIBase : UIBase
             }
         }
         this.isShow = false;
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
     public sealed override async void Show(bool playAnimation = true, Action callBack = null)
     {
@@ -151,7 +151,7 @@ abstract class FUIBase : UIBase
         }
         callBack?.Invoke();
     }
-    public sealed override TaskAwaiter ShowAsync(bool playAnimation = true)
+    public sealed override STask ShowAsync(bool playAnimation = true)
     {
         if (isShowing)
             return showTask;
@@ -177,6 +177,6 @@ abstract class FUIBase : UIBase
                 return showTask;
             }
         }
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
 }

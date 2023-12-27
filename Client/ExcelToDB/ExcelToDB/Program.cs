@@ -40,10 +40,10 @@ class Program
         //main
         {
             CodeGen gen = new CodeGen();
-            gen.name = "TabM";
+            gen.name = "STabM";
             gen.excelPath = excelPath + "/main";
-            gen.codePath = assetPath + "/Code/Main/_Gen/TabM";
-            gen.dataPath = assetPath + "/Res/Config/Tabs/TabM";
+            gen.codePath = assetPath + "/Code/Main/_Gen/STabM";
+            gen.dataPath = assetPath + "/Res/Config/Tabs/STabM";
             gen.genMapping = true;
             gen.genEcs = true;
             gen.Gen();
@@ -52,10 +52,10 @@ class Program
         //hot
         {
             CodeGen gen = new CodeGen();
-            gen.name = "TabL";
+            gen.name = "STabL";
             gen.excelPath = excelPath + "/hot";
-            gen.codePath = assetPath + "/Code/HotFix/_Gen/TabL";
-            gen.dataPath = assetPath + "/Res/Config/Tabs/TabL";
+            gen.codePath = assetPath + "/Code/HotFix/_Gen/STabL";
+            gen.dataPath = assetPath + "/Res/Config/Tabs/STabL";
             gen.Gen();
         }
 
@@ -143,7 +143,7 @@ class Program
                     buffer.Write(item.kv2[i].v);
                 }
 
-                File.WriteAllBytes(assetPath + $"/Res/Config/Tabs/Language_{item.name}.bytes", buffer.ToBytes());
+                File.WriteAllBytes(assetPath + $"/Res/Config/Tabs/SLanguage_{item.name}.bytes", buffer.ToBytes());
             }
         }
 

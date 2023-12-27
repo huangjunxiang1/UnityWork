@@ -10,9 +10,9 @@ using Game;
 abstract class UUIBase : UIBase
 {
     bool isShowing = false;
-    TaskAwaiter showTask;
+    STask showTask;
     bool isHiding = false;
-    TaskAwaiter hideTask;
+    STask hideTask;
 
     public abstract Canvas Canvas { get; }
     public abstract RectTransform UI { get; }
@@ -50,7 +50,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    Timer.Add(ani["close"].length + 0.1f, 1, () =>
+                    STimer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -67,7 +67,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -82,7 +82,7 @@ abstract class UUIBase : UIBase
         this.isShow = false;
         callBack?.Invoke();
     }
-    public sealed override TaskAwaiter HideAsync(bool playAnimation = true)
+    public sealed override STask HideAsync(bool playAnimation = true)
     {
         if (isHiding)
             return showTask;
@@ -102,7 +102,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    Timer.Add(ani["close"].length + 0.1f, 1, () =>
+                    STimer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -118,7 +118,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -130,7 +130,7 @@ abstract class UUIBase : UIBase
             }
         }
         this.isShow = false;
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
     public sealed override async void Show(bool playAnimation = true, Action callBack = null)
     {
@@ -155,7 +155,7 @@ abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     UIHelper.EnableUIInput(false);
-                    Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isShowing = false;
                         UIHelper.EnableUIInput(true);
@@ -168,7 +168,7 @@ abstract class UUIBase : UIBase
         }
         callBack?.Invoke();
     }
-    public sealed override TaskAwaiter ShowAsync(bool playAnimation = true)
+    public sealed override STask ShowAsync(bool playAnimation = true)
     {
         if (isShowing)
             return showTask;
@@ -187,7 +187,7 @@ abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     UIHelper.EnableUIInput(false);
-                    Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         UIHelper.EnableUIInput(true);
                         this.isShow = true;
@@ -197,7 +197,7 @@ abstract class UUIBase : UIBase
                 }
             }
         }
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
     public sealed override void Dispose()
     {
@@ -208,8 +208,8 @@ abstract class UUIBase : UIBase
         {
             this.Hide(true, () =>
             {
-                AssetLoad.ReleaseTextureRef(this.UI.gameObject);
-                AssetLoad.Release(this.UI.gameObject);
+                SAsset.ReleaseTextureRef(this.UI.gameObject);
+                SAsset.Release(this.UI.gameObject);
             });
         }
     }

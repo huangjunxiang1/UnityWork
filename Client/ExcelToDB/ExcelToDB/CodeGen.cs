@@ -204,9 +204,9 @@ class CodeGen
             {
                 var c = cs[i];
                 rw.AppendLine($"    static Dictionary<{c.fs[0].typeStr}, TabMapping> _map{c.name}Idx;");
-                rw.AppendLine($"    static Tab{c.name}[] _{c.name}Array;");
-                rw.AppendLine($"    static Dictionary<{c.fs[0].typeStr}, Tab{c.name}> _map{c.name};");
-                rw.AppendLine($"    public static Tab{c.name}[] {c.name}Array");
+                rw.AppendLine($"    static {name}{c.name}[] _{c.name}Array;");
+                rw.AppendLine($"    static Dictionary<{c.fs[0].typeStr}, {name}{c.name}> _map{c.name};");
+                rw.AppendLine($"    public static {name}{c.name}[] {c.name}Array");
                 rw.AppendLine($"    {{");
                 rw.AppendLine($"        get");
                 rw.AppendLine($"        {{");
@@ -215,17 +215,17 @@ class CodeGen
                 rw.AppendLine($"                bool isLoadAll = loadAll;");
                 rw.AppendLine($"                {c.fs[0].typeStr}[] keys = _map{c.name}Idx.Keys.ToArray();");
                 rw.AppendLine($"                int len = keys.Length;");
-                rw.AppendLine($"                _{c.name}Array = new Tab{c.name}[_map{c.name}Idx.Count];");
+                rw.AppendLine($"                _{c.name}Array = new {name}{c.name}[_map{c.name}Idx.Count];");
                 rw.AppendLine($"                for (int i = 0; i < len; i++)");
                 rw.AppendLine($"                {{");
                 rw.AppendLine($"                    {c.fs[0].typeStr} k = keys[i];");
                 rw.AppendLine($"                    TabMapping v = _map{c.name}Idx[k];");
-                rw.AppendLine($"                    if (_map{c.name}.TryGetValue(k, out Tab{c.name} value))");
+                rw.AppendLine($"                    if (_map{c.name}.TryGetValue(k, out {name}{c.name} value))");
                 rw.AppendLine($"                        _{c.name}Array[v.index] = value;");
                 rw.AppendLine($"                    else");
                 rw.AppendLine($"                    {{");
                 rw.AppendLine($"                        dbbuff.Seek(v.point);");
-                rw.AppendLine($"                        Tab{c.name} tmp = new Tab{c.name}(dbbuff, isLoadAll);");
+                rw.AppendLine($"                        {name}{c.name} tmp = new {name}{c.name}(dbbuff, isLoadAll);");
                 rw.AppendLine($"                        _map{c.name}[k] = tmp;");
                 rw.AppendLine($"                        _{c.name}Array[v.index] = tmp;");
                 rw.AppendLine($"                    }}");
@@ -247,7 +247,7 @@ class CodeGen
                 var c = cs[i];
                 rw.AppendLine(@$"        int len{i} = buffer.Readint();
         _map{c.name}Idx = new Dictionary<{c.fs[0].typeStr}, TabMapping>(len{i});
-        _map{c.name} = new Dictionary<{c.fs[0].typeStr}, Tab{c.name}>(len{i});
+        _map{c.name} = new Dictionary<{c.fs[0].typeStr}, {name}{c.name}>(len{i});
         _{c.name}Array = null;
         for (int i = 0; i < len{i}; i++)
         {{
@@ -269,18 +269,18 @@ class CodeGen
             {
                 var c = cs[i];
                 rw.AppendLine($"    public static bool Has{c.name}({c.fs[0].typeStr} key) => (_map{c.name}Idx != null && _map{c.name}Idx.ContainsKey(key)) || _map{c.name}.ContainsKey(key);");
-                rw.AppendLine($"    public static Tab{c.name} Get{c.name}({c.fs[0].typeStr} key)");
+                rw.AppendLine($"    public static {name}{c.name} Get{c.name}({c.fs[0].typeStr} key)");
                 rw.AppendLine($"    {{");
                 rw.AppendLine($"        if (_map{c.name}.TryGetValue(key, out var value))");
                 rw.AppendLine($"            return value;");
                 rw.AppendLine($"        if (_map{c.name}Idx != null && _map{c.name}Idx.TryGetValue(key, out TabMapping map))");
                 rw.AppendLine($"        {{");
                 rw.AppendLine($"            dbbuff.Seek(map.point);");
-                rw.AppendLine($"            Tab{c.name} tmp = new Tab{c.name}(dbbuff, loadAll);");
+                rw.AppendLine($"            {name}{c.name} tmp = new {name}{c.name}(dbbuff, loadAll);");
                 rw.AppendLine($"            _map{c.name}[key] = tmp;");
                 rw.AppendLine($"            return tmp;");
                 rw.AppendLine($"        }}");
-                rw.AppendLine($"        Loger.Error(\"Tab{c.name}表没有key: \" + key);");
+                rw.AppendLine($"        Loger.Error(\"{name}{c.name}表没有key: \" + key);");
                 rw.AppendLine($"        return null;");
                 rw.AppendLine($"    }}");
             }
@@ -288,7 +288,7 @@ class CodeGen
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
-                rw.AppendLine($"public partial class Tab{c.name}");
+                rw.AppendLine($"public partial class {name}{c.name}");
                 rw.AppendLine($"{{");
                 rw.AppendLine($"    DBuffer dbuff;");
 
@@ -312,7 +312,7 @@ class CodeGen
                     }
                 }
                 rw.AppendLine($"");
-                rw.AppendLine($"    public Tab{c.name}(DBuffer buffer, bool loadAll = false)");
+                rw.AppendLine($"    public {name}{c.name}(DBuffer buffer, bool loadAll = false)");
                 rw.AppendLine($"    {{");
                 rw.AppendLine($"        dbuff = buffer;");
                 for (int j = 0; j < c.fs.Count; j++)
@@ -354,7 +354,7 @@ class CodeGen
             {
                 var c = cs[i];
                 df.AppendLine($"");
-                df.AppendLine($"public partial class Tab{c.name}");
+                df.AppendLine($"public partial class {name}{c.name}");
                 df.AppendLine($"{{");
                 for (int j = 0; j < c.fs.Count; j++)
                 {

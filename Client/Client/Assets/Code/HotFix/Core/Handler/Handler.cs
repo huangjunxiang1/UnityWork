@@ -12,8 +12,8 @@ static class CoreHandler
     [Event]
     static void Quit(EC_QuitGame e)
     {
-        GameL.Close();
-        GameM.Close();
-        TabM_ST.Tab.Data.Dispose();
+        SGameL.Close();
+        SGameM.Close();
+        STabM_ST.Tab.Data.Dispose();
     }
 }

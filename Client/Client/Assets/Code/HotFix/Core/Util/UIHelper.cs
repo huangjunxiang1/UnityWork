@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Main;
 using FairyGUI;
+using Game;
 
 static partial class UIHelper
 {
@@ -18,7 +19,7 @@ static partial class UIHelper
         if (!enable) EnableCounter++;
         else EnableCounter--;
 
-        if (GameL.Setting.UIModel == UIModel.UGUI)
+        if (SSetting.UIModel == UIModel.UGUI)
         {
             if (!eventSysCurrent)
                 eventSysCurrent = UnityEngine.EventSystems.EventSystem.current;

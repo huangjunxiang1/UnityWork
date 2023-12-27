@@ -34,8 +34,8 @@ public static class ExFunc
                     if (destroyMore)
                     {
                         GameObject g = parent.GetChild(i - 1).gameObject;
-                        AssetLoad.ReleaseTextureRef(g);
-                        AssetLoad.TryReleaseGameObject(g);
+                        SAsset.ReleaseTextureRef(g);
+                        SAsset.TryReleaseGameObject(g);
                     }
                     else
                         parent.GetChild(i - 1).gameObject.SetActive(false);
@@ -64,8 +64,8 @@ public static class ExFunc
                 if (destroyMore)
                 {
                     GameObject g = parent.GetChild(i - 1).gameObject;
-                    AssetLoad.ReleaseTextureRef(g);
-                    AssetLoad.TryReleaseGameObject(g);
+                    SAsset.ReleaseTextureRef(g);
+                    SAsset.TryReleaseGameObject(g);
                 }
                 else
                     parent.GetChild(i - 1).gameObject.SetActive(false);

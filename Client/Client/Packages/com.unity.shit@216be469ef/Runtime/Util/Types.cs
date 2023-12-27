@@ -195,7 +195,7 @@ public static class Types
                         ms.Add(t[i]);
                 }
             }
-            var lst = ObjectPool.Get<List<MethodAndAttribute>>();
+            var lst = SObjectPool.Get<List<MethodAndAttribute>>();
             for (int i = 0; i < ms.Count; i++)
             {
                 var att = ms[i].GetCustomAttribute(typeof(T));
@@ -204,7 +204,7 @@ public static class Types
             }
             map[typeof(T)] = arr = lst.ToArray();
             lst.Clear();
-            ObjectPool.Return(lst);
+            SObjectPool.Return(lst);
         }
         return arr;
     }

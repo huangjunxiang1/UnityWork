@@ -9,11 +9,11 @@ using Main;
 [DisableAutoRegisteredEvent]
 [DisableAutoRegisteredRPCEvent]
 [DisableAutoRegisteredTimer]
-abstract class UIBase : TreeL<UIBase>
+abstract class UIBase : STree<UIBase>
 {
-    Eventer _onDispose;
+    SEventListener _onDispose;
 
-    public Main.UIConfig uiConfig { get; private set; }
+    public Main.SUIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
 
@@ -21,7 +21,7 @@ abstract class UIBase : TreeL<UIBase>
     /// <summary>
     /// dispose 监听
     /// </summary>
-    public Eventer onDispose => _onDispose ??= new Eventer(this);
+    public SEventListener onDispose => _onDispose ??= new SEventListener(this);
     /// <summary>
     /// UI层级
     /// </summary>
@@ -33,25 +33,25 @@ abstract class UIBase : TreeL<UIBase>
     /// <summary>
     /// 自定义界面是否已经可以打开
     /// </summary>
-    public virtual TaskAwaiter onTask { get; }
+    public virtual STask onTask { get; }
     /// <summary>
     /// 加载中异步
     /// </summary>
-    public TaskAwaiter onCompleted { get; private set; }
+    public STask onCompleted { get; private set; }
 
-    public virtual TaskAwaiter LoadConfig(Main.UIConfig config, TaskAwaiter completed, params object[] data)
+    public virtual STask LoadConfig(Main.SUIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
         this.ListenerEnable = true;
-        Timer.AutoRigisterTimer(this);
+        STimer.AutoRigisterTimer(this);
         onCompleted = completed;
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
-    public virtual TaskAwaiter LoadConfigAsync(Main.UIConfig config, TaskAwaiter completed, params object[] data)
+    public virtual STask LoadConfigAsync(Main.SUIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
         onCompleted = completed;
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
     public T GetSubUI<T>() where T : UIBase
     {
@@ -63,12 +63,12 @@ abstract class UIBase : TreeL<UIBase>
         for (int i = uis.Count - 1; i >= 0; i--)
             uis[i].Hide(playAnimation);
     }
-    public virtual TaskAwaiter HideAsync(bool playAnimation = true)
+    public virtual STask HideAsync(bool playAnimation = true)
     {
         List<UIBase> uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
             uis[i].HideAsync(playAnimation);
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
     public virtual void Show(bool playAnimation = true, Action callBack = null)
     {
@@ -76,23 +76,23 @@ abstract class UIBase : TreeL<UIBase>
         for (int i = uis.Count - 1; i >= 0; i--)
             uis[i].Show(playAnimation);
     }
-    public virtual TaskAwaiter ShowAsync(bool playAnimation = true)
+    public virtual STask ShowAsync(bool playAnimation = true)
     {
         List<UIBase> uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
             uis[i].ShowAsync(playAnimation);
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
     public override void Dispose()
     {  
         //先从列表移除
-        GameL.UI.Remove(this);
-        Timer.AutoRemoveTimer(this);
+        SGameL.UI.Remove(this);
+        STimer.AutoRemoveTimer(this);
         base.Dispose();
         //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
         //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
         if (this.uiStates == UIStates.Success)
-            GameL.UI.ShowLastUI();
+            SGameL.UI.ShowLastUI();
         //先执行退出逻辑
         if (this.uiStates >= UIStates.OnTask)
             this.OnExit();
@@ -100,9 +100,9 @@ abstract class UIBase : TreeL<UIBase>
     }
 
     protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用
-    protected virtual TaskAwaiter OnTask(params object[] data)//自定义何时界面可以打开
+    protected virtual STask OnTask(params object[] data)//自定义何时界面可以打开
     {
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
     protected virtual void VMBinding() { }//显示绑定
     protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用

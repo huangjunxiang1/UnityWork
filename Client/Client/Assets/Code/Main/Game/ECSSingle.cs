@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -14,12 +15,12 @@ namespace Game
     public static class ECSSingle
     {
         public static readonly SharedStatic<Unity.Mathematics.Random> Random = SharedStatic<Unity.Mathematics.Random>.GetOrCreate<Unity.Mathematics.Random>();
-        public static readonly SharedStatic<NativeList<FixedString128Bytes>> Strings = SharedStatic<NativeList<FixedString128Bytes>>.GetOrCreate<NativeList<FixedString128Bytes>>();
+        public static readonly SharedStatic<UnsafeList<FixedString128Bytes>> Strings = SharedStatic<UnsafeList<FixedString128Bytes>>.GetOrCreate<UnsafeList<FixedString128Bytes>>();
 
         public static void Init()
         {
             Random.Data.InitState((uint)DateTime.Now.Ticks);
-            Strings.Data = new NativeList<FixedString128Bytes>(10, AllocatorManager.Persistent);
+            Strings.Data = new UnsafeList<FixedString128Bytes>(10, AllocatorManager.Persistent);
         }
         static Dictionary<string, int> stringsMap;
         public static int GetStringIndex(string k)

@@ -7,29 +7,13 @@ using System.Threading.Tasks;
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public class EventAttribute : Attribute
 {
-	public int SortOrder { get; }//消息调用顺序权值
+    public int SortOrder { get; }//消息调用顺序权值
+    public bool RPC { get; set; }
+    public bool Queue { get; set; }
 
-	public EventAttribute() { }
-	public EventAttribute(int sortOrder)
+    public EventAttribute() { }
+    public EventAttribute(int sortOrder)
     {
         SortOrder = sortOrder;
     }
-}
-
-public class QueueEventAttribute : EventAttribute 
-{
-    public QueueEventAttribute() : base() { }
-    public QueueEventAttribute(int sortOrder) : base(sortOrder) { }
-}
-
-public class RPCEventAttribute : EventAttribute
-{
-	public RPCEventAttribute() : base() { }
-	public RPCEventAttribute(int sortOrder) : base(sortOrder) { }
-}
-
-public class QueueRPCEventAttribute : EventAttribute
-{
-    public QueueRPCEventAttribute() : base() { }
-    public QueueRPCEventAttribute(int sortOrder) : base(sortOrder) { }
 }

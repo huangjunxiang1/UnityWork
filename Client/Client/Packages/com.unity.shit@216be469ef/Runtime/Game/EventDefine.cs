@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,4 +22,16 @@ public class EC_OutScene
 {
     public int sceneId;
     public int sceneType;
+}
+public class EC_ReceiveMessage
+{
+    public PB.PBMessage message;
+}
+public class EC_NewSObject
+{
+    public SObject obj;
+}
+public class EC_DisposeSObject
+{
+    public SObject obj;
 }

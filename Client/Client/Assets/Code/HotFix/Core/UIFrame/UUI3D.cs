@@ -11,22 +11,22 @@ abstract class UUI3D : UUIBase
 {
     RectTransform ui;
     Canvas canvas;
-    TaskAwaiter task;
+    STask task;
     UIStates states;
 
     public sealed override UIStates uiStates => states;
     public sealed override Canvas Canvas => this.canvas;
     public sealed override RectTransform UI => this.ui;
-    public sealed override TaskAwaiter onTask => task;
+    public sealed override STask onTask => task;
 
-    public sealed override TaskAwaiter LoadConfig(UIConfig config, TaskAwaiter completed, params object[] data)
+    public sealed override STask LoadConfig(SUIConfig config, STask completed, params object[] data)
     {
         base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        this.ui = (RectTransform)AssetLoad.LoadGameObject(url).transform;
-        this.ui.SetParent(GameL.UI.UGUIRoot);
+        this.ui = (RectTransform)SAsset.LoadGameObject(url).transform;
+        this.ui.SetParent(SGameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
         this.ui.anchoredPosition = default;
@@ -37,17 +37,17 @@ abstract class UUI3D : UUIBase
         task = this.OnTask(data);
         this.states = UIStates.Success;
         this.OnEnter(data);
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
-    public sealed override async TaskAwaiter LoadConfigAsync(UIConfig config, TaskAwaiter completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(SUIConfig config, STask completed, params object[] data)
     {
         _ = base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        GameObject ui = await AssetLoad.LoadGameObjectAsync(url);
+        GameObject ui = await SAsset.LoadGameObjectAsync(url);
         this.ui = (RectTransform)ui.transform;
-        this.ui.SetParent(GameL.UI.UGUIRoot);
+        this.ui.SetParent(SGameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
         this.ui.anchoredPosition = default;

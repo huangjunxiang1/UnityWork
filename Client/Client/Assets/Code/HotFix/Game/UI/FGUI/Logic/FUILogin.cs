@@ -11,7 +11,7 @@ partial class FUILogin
 {
     static int demoIdx = 0;
 
-    protected override async TaskAwaiter OnTask(params object[] data)
+    protected override async STask OnTask(params object[] data)
     {
         await this._bg.SetTexture("UI/Texture/BG/bg.jpg");
     }
@@ -44,26 +44,26 @@ partial class FUILogin
     async void onUIModel()
     {
         if (_uiType.selectedIndex == 0)
-            GameL.Setting.UIModel = UIModel.FGUI;
+            SSetting.UIModel = UIModel.FGUI;
         else
         {
-            GameL.Setting.UIModel = UIModel.UGUI;
-            await GameL.UI.OpenAsync<UUILogin>();
+            SSetting.UIModel = UIModel.UGUI;
+            await SGameL.UI.OpenAsync<UUILogin>();
             this.Dispose();
         }
     }
    
     async void login()
     {
-        await GameL.Scene.InScene(10001);
+        await SGameL.Scene.InScene(10001);
         if (_demo.selectedIndex == 0)
-            await GameL.UI.OpenAsync<FUIFighting>();
+            await SGameL.UI.OpenAsync<FUIFighting>();
         else if (_demo.selectedIndex == 1)
-            await GameL.UI.OpenAsync<FUIFighting2>();
+            await SGameL.UI.OpenAsync<FUIFighting2>();
         else if (_demo.selectedIndex == 2)
-            await GameL.UI.OpenAsync<FUIFighting3>();
+            await SGameL.UI.OpenAsync<FUIFighting3>();
         else if (_demo.selectedIndex == 3)
-            await GameL.UI.OpenAsync<FUIFighting4>();
+            await SGameL.UI.OpenAsync<FUIFighting4>();
 
         /*//链接服务器演示
         if (_gameTypeCB.selectedIndex == 0)

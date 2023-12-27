@@ -5,7 +5,7 @@ using Game;
 using FairyGUI;
 using System;
 
-[Main.UIConfig(50, UIType = Main.UIType.GlobalUI)]
+[Main.SUIConfig(50, UIType = Main.UIType.GlobalUI)]
 partial class FUILoading
 {
     float cur = 0;
@@ -19,7 +19,7 @@ partial class FUILoading
         _loadingBar.max = 1;
     }
 
-    [Timer(0, -1)]
+    [STimer(0, -1)]
     void timer()
     {
         if (cur < max)
@@ -29,7 +29,7 @@ partial class FUILoading
             _loadingBar.value = cur;
             if (cur >= 1)
             {
-                Timer.Add(1, 1, this.Dispose);
+                STimer.Add(1, 1, this.Dispose);
             }
         }
     }

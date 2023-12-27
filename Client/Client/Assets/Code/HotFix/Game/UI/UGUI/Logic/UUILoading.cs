@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using DG.Tweening;
 
-[Main.UIConfig(50, UIType = Main.UIType.GlobalUI)]
+[Main.SUIConfig(50, UIType = Main.UIType.GlobalUI)]
 partial class UUILoading
 {
     float cur = 0;
@@ -23,7 +23,7 @@ partial class UUILoading
         refView();
     }
 
-    [Timer(0, -1)]
+    [STimer(0, -1)]
     void timer()
     {
         if (cur < max)
@@ -33,7 +33,7 @@ partial class UUILoading
             _fillImageBinding.value = cur;
             if (cur >= 1)
             {
-                Timer.Add(2, 1, () =>
+                STimer.Add(2, 1, () =>
                 {
                     this.Dispose();
                 });

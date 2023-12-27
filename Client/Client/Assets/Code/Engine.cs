@@ -20,8 +20,8 @@ public class Engine : MonoBehaviour
         _ = ThreadSynchronizationContext.Instance;
         DontDestroyOnLoad(this.gameObject);
 
-        AppSetting.Runtime = Runtime;
-        AppSetting.Debug = Debug;
+        SAppSetting.Runtime = Runtime;
+        SAppSetting.Debug = Debug;
 
         EnterGame();
     }
@@ -30,18 +30,18 @@ public class Engine : MonoBehaviour
     void Update()
     {
         ThreadSynchronizationContext.Instance.Update();
-        Timer.Update();
+        STimer.Update();
     }
 
     void EnterGame()
     {
         Type[] a1 = typeof(Types).Assembly.GetTypes();
-        Type[] a2 = typeof(TabM).Assembly.GetTypes();
+        Type[] a2 = typeof(STabM).Assembly.GetTypes();
         Type[] all = new Type[a1.Length + a2.Length];
         a1.CopyTo(all, 0);
         a2.CopyTo(all, a1.Length);
 
-        if (AppSetting.Runtime == CodeRuntime.Native)
+        if (SAppSetting.Runtime == CodeRuntime.Native)
         {
 #if !ILRuntime && !Assembly
             Type[] a3 = typeof(Init).Assembly.GetTypes();
@@ -53,7 +53,7 @@ public class Engine : MonoBehaviour
             Loger.Error("当前Runtime宏定义不正确");
 #endif
         }
-        else if (AppSetting.Runtime == CodeRuntime.Assembly)
+        else if (SAppSetting.Runtime == CodeRuntime.Assembly)
         {
 #if !Assembly
             Loger.Error("当前Runtime宏定义不正确");
@@ -62,7 +62,7 @@ public class Engine : MonoBehaviour
             Loger.Error("IL2CPP模式无法运行");
 #endif
             Assembly asm;
-            if (AppSetting.Debug)
+            if (SAppSetting.Debug)
             {
                 byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll");
                 byte[] pdb = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb");
@@ -80,13 +80,13 @@ public class Engine : MonoBehaviour
 
             asm.GetType("Init").GetMethod("Main").Invoke(null, null);
         }
-        else if (AppSetting.Runtime == CodeRuntime.ILRuntime)
+        else if (SAppSetting.Runtime == CodeRuntime.ILRuntime)
         {
 #if !ILRuntime
             Loger.Error("当前Runtime宏定义不正确");
 #endif
             ILRuntime.Runtime.Enviorment.AppDomain app = new();
-            if (AppSetting.Debug)
+            if (SAppSetting.Debug)
             {
                 System.IO.MemoryStream dll = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
                 System.IO.MemoryStream pdb = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb"));
@@ -109,6 +109,6 @@ public class Engine : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        GameM.Event?.RunEvent(new EC_QuitGame());
+        SGameM.Event?.RunEvent(new EC_QuitGame());
     }
 }

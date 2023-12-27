@@ -30,13 +30,13 @@ partial class FUIFighting4
     ComputeBuffer mvs = new ComputeBuffer(playerCount, sizeof(int));
     ComputeBuffer temp = new ComputeBuffer(size * size * playerCount, 4 * 4);
     ComputeBuffer targetP = new ComputeBuffer(playerCount, sizeof(int) * 2);
-    protected override async TaskAwaiter OnTask(params object[] data)
+    protected override async STask OnTask(params object[] data)
     {
-        mat = await AssetLoad.LoadAsync<Material>(@"3D\Model\ECS\ECSLit2.mat");
-        var go = await AssetLoad.LoadGameObjectAsync(@"3D\Model\ECS\Cube.prefab");
+        mat = await SAsset.LoadAsync<Material>(@"3D\Model\ECS\ECSLit2.mat");
+        var go = await SAsset.LoadGameObjectAsync(@"3D\Model\ECS\Cube.prefab");
         mesh = go.GetComponent<MeshFilter>().mesh;
-        AssetLoad.Release(go);
-        cs = await AssetLoad.LoadAsync<ComputeShader>(@"Shader/PathFinding.compute");
+        SAsset.Release(go);
+        cs = await SAsset.LoadAsync<ComputeShader>(@"Shader/PathFinding.compute");
 
         Entity one = await ECSHelper.LoadEntity(@"3D\Model\ECS\Cube.prefab");
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -57,7 +57,7 @@ partial class FUIFighting4
     protected override void OnExit()
     {
         base.OnExit();
-        Timer.Remove(draw);
+        STimer.Remove(draw);
         pCb.Dispose();
         roadCb.Dispose();
         mark.Dispose();
@@ -74,7 +74,7 @@ partial class FUIFighting4
     }
     void _clickBack()
     {
-        _ = GameL.Scene.InLoginScene();
+        _ = SGameL.Scene.InLoginScene();
     }
     void _click_rangeRoad()
     {
@@ -98,9 +98,9 @@ partial class FUIFighting4
             Box.Tips("未初始化障碍");
             return;
         }    
-        if (!Timer.Contains(draw))
+        if (!STimer.Contains(draw))
         {
-            Timer.Add(0, -1, draw);
+            STimer.Add(0, -1, draw);
 
             mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
 

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 abstract class FUI : FUIBase
 {
     GComponent ui;
-    TaskAwaiter task;
+    STask task;
     UIStates states;
 
     public sealed override UIStates uiStates => states;
@@ -24,9 +24,9 @@ abstract class FUI : FUIBase
         get { return this.ui.visible; }
         set { this.ui.visible = value; }
     }
-    public sealed override TaskAwaiter onTask => task;
+    public sealed override STask onTask => task;
 
-    public sealed override TaskAwaiter LoadConfig(Main.UIConfig config, TaskAwaiter completed, params object[] data)
+    public sealed override STask LoadConfig(Main.SUIConfig config, STask completed, params object[] data)
     {
         base.LoadConfig(config, completed, data);
 
@@ -40,14 +40,14 @@ abstract class FUI : FUIBase
         task = this.OnTask(data);
         this.states = UIStates.Success;
         this.OnEnter(data);
-        return TaskAwaiter.Completed;
+        return STask.Completed;
     }
-    public sealed override TaskAwaiter LoadConfigAsync(Main.UIConfig config, TaskAwaiter completed, params object[] data)
+    public sealed override STask LoadConfigAsync(Main.SUIConfig config, STask completed, params object[] data)
     {
         base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
-        TaskAwaiter loadTask = new TaskAwaiter();
+        STask loadTask = new STask();
         this.states = UIStates.Loading;
         UIPkg.ComPkg.CreateObjectAsync(this.url, obj =>
         {

@@ -6,7 +6,7 @@ public class CMInput
 {
     public CMInput()
     {
-        this.Asset = AssetLoad.Load<InputActionAsset>("Config/SO/Hot/CMInput.inputactions");
+        this.Asset = SAsset.Load<InputActionAsset>("Config/SO/CMInput.inputactions");
         this.CMEditor = this.Asset.FindActionMap("CMEditor", true);
         this.CMEditorMouseClick = this.CMEditor.FindAction("MouseClick");
         this.CMEditorMouseMove = this.CMEditor.FindAction("MouseMove");
@@ -28,7 +28,7 @@ public class CMInput
 
     public void Dispose()
     {
-        AssetLoad.Release(Asset);
+        SAsset.Release(Asset);
         this.CMEditor.Dispose();
         this.CMMobile.Dispose();
     }
@@ -37,7 +37,7 @@ public class ESCInput
 {
     public ESCInput()
     {
-        this.Asset = AssetLoad.Load<InputActionAsset>("Config/SO/Hot/ESCInput.inputactions");
+        this.Asset = SAsset.Load<InputActionAsset>("Config/SO/ESCInput.inputactions");
         this.esc = this.Asset.FindActionMap("esc", true);
         this.esconEsc = this.esc.FindAction("onEsc");
     }
@@ -49,7 +49,7 @@ public class ESCInput
 
     public void Dispose()
     {
-        AssetLoad.Release(Asset);
+        SAsset.Release(Asset);
         this.esc.Dispose();
     }
 }

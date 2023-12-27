@@ -8,7 +8,7 @@ unsafe static class DelegateBinding
         appdomain.DelegateManager.RegisterFunctionDelegate<ILRuntime.Runtime.Intepreter.ILTypeInstance, System.Boolean>();
         appdomain.DelegateManager.RegisterMethodDelegate<UnityEngine.Texture>();
         appdomain.DelegateManager.RegisterMethodDelegate<UnityEngine.AudioClip>();
-        appdomain.DelegateManager.RegisterMethodDelegate<global::EventerContent>();
+        appdomain.DelegateManager.RegisterMethodDelegate<global::SEventContent>();
         appdomain.DelegateManager.RegisterMethodDelegate<System.String, System.String, System.Type, FairyGUI.PackageItem>();
         appdomain.DelegateManager.RegisterMethodDelegate<UnityEngine.InputSystem.InputAction.CallbackContext>();
         //xx1End

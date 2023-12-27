@@ -11,58 +11,58 @@ using FairyGUI;
 [DebuggerNonUserCode]
 public static class AsyncUtil
 {
-    public static TaskAwaiter AsTask(this AsyncOperation op)
+    public static STask AsTask(this AsyncOperation op)
     {
         if (op.isDone)
-            return TaskAwaiter.Completed;
+            return STask.Completed;
 
-        TaskAwaiter task = new();
+        STask task = new();
         op.completed += e => task.TrySetResult();
         return task;
     }
 
-    public static TaskAwaiter AsTask(this IEnumerator ie)
+    public static STask AsTask(this IEnumerator ie)
     {
         if(ie.MoveNext())
-            return TaskAwaiter.Completed;
+            return STask.Completed;
 
-        TaskAwaiter task = new();
+        STask task = new();
         void update()
         {
             if (ie.MoveNext())
             {
-                Timer.Remove(update);
+                STimer.Remove(update);
                 task.TrySetResult();
             }
         }
-        Timer.Add(0.1f, -1, update);
+        STimer.Add(0.1f, -1, update);
         return task;
     }
 #if FairyGUI
-    public static TaskAwaiter AsTask(this GTweener tween)
+    public static STask AsTask(this GTweener tween)
     {
         if (tween.completed)
-            return TaskAwaiter.Completed;
+            return STask.Completed;
 
-        TaskAwaiter task = new();
+        STask task = new();
         tween.OnComplete(() => task.TrySetResult());
         return task;
     }
-    public static TaskAwaiter PlayAsTask(this Transition t)
+    public static STask PlayAsTask(this Transition t)
     {
-        TaskAwaiter task = new();
+        STask task = new();
         t.Play(() => task.TrySetResult());
         return task;
     }
-    public static TaskAwaiter PlayReverseAsTask(this Transition t)
+    public static STask PlayReverseAsTask(this Transition t)
     {
-        TaskAwaiter task = new();
+        STask task = new();
         t.PlayReverse(() => task.TrySetResult());
         return task;
     }
-    public static TaskAwaiter AsTask(this EventListener eventListener)
+    public static STask AsTask(this EventListener eventListener)
     {
-        TaskAwaiter task = new();
+        STask task = new();
 
         //只触发一次 然后移除掉
         void trigger()
@@ -75,18 +75,18 @@ public static class AsyncUtil
         return task;
     }
 #endif
-    public static TaskAwaiter AsTask(this Tween tween)
+    public static STask AsTask(this Tween tween)
     {
         if (tween.IsComplete())
-            return TaskAwaiter.Completed;
+            return STask.Completed;
 
-        TaskAwaiter task = new();
+        STask task = new();
         tween.OnComplete(() => task.TrySetResult());
         return task;
     }
-    public static TaskAwaiter AsTask(this UnityEvent unityEvent)
+    public static STask AsTask(this UnityEvent unityEvent)
     {
-        TaskAwaiter task = new();
+        STask task = new();
 
         //只触发一次 然后移除掉
         void trigger()
@@ -98,9 +98,9 @@ public static class AsyncUtil
 
         return task;
     }
-    public static TaskAwaiter AsTask(this Eventer eventer)
+    public static STask AsTask(this SEventListener eventer)
     {
-        TaskAwaiter task = new();
+        STask task = new();
 
         //只触发一次 然后移除掉
         void trigger()

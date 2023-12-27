@@ -1,4 +1,5 @@
 ﻿using Cinemachine;
+using Game;
 using Main;
 using System;
 using System.Collections.Generic;
@@ -27,12 +28,25 @@ static class Handler
             BaseCamera.Current.EnableCamera();
         }
     }
-    [Event]
-    static void EC_HotFixInit(EC_HotFixInit e)
+    [Event(1, Queue = true)]
+    static async STask EC_HotFixInit(EC_HotFixInit e)
     {
+        SSetting.Languege = SystemLanguage.Chinese;
+        SSetting.UIModel = UIModel.FGUI;
         Game.ECSSingle.Init();
         Application.targetFrameRate = -1;
-        FairyGUI.UIConfig.defaultFont = "Impact";
+
+        DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>("Config/Tabs/STabM_ST.bytes")).bytes));
+        if (buffM_ST.ReadHeaderInfo())
+            STabM_ST.Init(buffM_ST);
+
+        DBuffer buffM = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>("Config/Tabs/STabM.bytes")).bytes));
+        if (buffM.ReadHeaderInfo())
+            STabM.Init(buffM, SConstDefM.Debug);
+
+        DBuffer buffL = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>("Config/Tabs/STabL.bytes")).bytes));
+        if (buffL.ReadHeaderInfo())
+            STabL.Init(buffL, SConstDefM.Debug);
     }
     [Event]
     static void EC_QuitGame(EC_QuitGame e)

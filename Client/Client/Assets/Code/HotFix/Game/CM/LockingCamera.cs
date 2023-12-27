@@ -48,7 +48,7 @@ class LockingCamera : BaseCamera
         base.EnableCamera();
         if (Application.platform == RuntimePlatform.Android
              || Application.platform == RuntimePlatform.IPhonePlayer)
-            Timer.Add(0, -1, mobileMove);
+            STimer.Add(0, -1, mobileMove);
         input.Asset.Enable();
     }
     public override void DisableCamera()
@@ -58,7 +58,7 @@ class LockingCamera : BaseCamera
         base.DisableCamera();
         if (Application.platform == RuntimePlatform.Android
             || Application.platform == RuntimePlatform.IPhonePlayer)
-            Timer.Remove(mobileMove);
+            STimer.Remove(mobileMove);
         input.Asset.Disable();
     }
     public override void SetFilterZone(Vector2 pos, Vector2 size)
@@ -79,17 +79,17 @@ class LockingCamera : BaseCamera
         Vector3 offset = ct.m_FollowOffset;
         if (_wheel > 0)
         {
-            if (offset.y > GameL.Setting.LockingCameraSetting.yMin)
+            if (offset.y > SSetting.LockingCameraSetting.yMin)
             {
-                offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
         else
         {
-            if (offset.y < GameL.Setting.LockingCameraSetting.yMax)
+            if (offset.y < SSetting.LockingCameraSetting.yMax)
             {
-                offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
@@ -173,17 +173,17 @@ class LockingCamera : BaseCamera
                     Vector3 offset = ct.m_FollowOffset;
                     if (_wheel > 0)
                     {
-                        if (offset.y > GameL.Setting.LockingCameraSetting.yMin)
+                        if (offset.y > SSetting.LockingCameraSetting.yMin)
                         {
-                            offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }
                     else
                     {
-                        if (offset.y < GameL.Setting.LockingCameraSetting.yMax)
+                        if (offset.y < SSetting.LockingCameraSetting.yMax)
                         {
-                            offset += _wheel * GameL.Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }

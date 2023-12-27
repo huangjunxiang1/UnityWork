@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using Main;
 
 namespace Game
 {
@@ -14,21 +10,34 @@ namespace Game
         bool _rigistedStaticMethodEvt = false;
         readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
-        bool _breakCurrentEvent;
 
         readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
         readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
-        readonly static object[] _parameters = new object[1];
         static Type[] _parameterType = new Type[1];
 
-        static bool _checkEventMethod(MethodInfo method, out Type key)
+        static bool _checkEventMethod(MethodInfo method, out Type key, out bool setHandler)
         {
-            var ps = method.GetParameters();
             key = null;
-            if (ps.Length != 1)
+            setHandler = false;
+            if (method.IsGenericMethod)
+            {
+                Loger.Error("事件函数不能是泛型函数");
+                return false;
+            }
+            var ps = method.GetParameters();
+            if (ps.Length == 0 || ps.Length > 2)
             {
                 Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
                 return false;
+            }
+            if (ps.Length == 2)
+            {
+                setHandler = ps[1].ParameterType == typeof(SEventHandler);
+                if (!setHandler)
+                {
+                    Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
+                    return false;
+                }
             }
             key = ps[0].ParameterType;
 #if ILRuntime
@@ -71,12 +80,10 @@ namespace Game
                     if (ea != null)
                     {
                         MethodData e = new();
-                        if (!_checkEventMethod(method, out e.key))
+                        if (!_checkEventMethod(method, out e.key, out e.setHandler))
                             continue;
                         e.info = method;
-                        e.sortOrder = ea.SortOrder;
-                        e.isRPC = ea is RPCEventAttribute || ea is QueueRPCEventAttribute;
-                        e.isQueue = ea is QueueEventAttribute || ea is QueueRPCEventAttribute;
+                        e.attribute = ea;
                         evts.Add(e);
                     }
                 }
@@ -106,14 +113,14 @@ namespace Game
                     var ea = method.GetCustomAttributes(typeof(EventAttribute), false).FirstOrDefault() as EventAttribute;
                     if (ea != null)
                     {
-                        if (ea is RPCEventAttribute || ea is QueueRPCEventAttribute)
+                        if (ea.RPC)
                         {
                             Loger.Error("rpc事件不支持静态");
                             continue;
                         }
 
                         EvtData e = new();
-                        if (!_checkEventMethod(method, out e.Key))
+                        if (!_checkEventMethod(method, out e.Key, out e.setHandler))
                             continue;
 
                         if (!_evtMap.TryGetValue(e.Key, out var queue))
@@ -121,7 +128,7 @@ namespace Game
 
                         e.method = method;
                         e.sortOrder = ea.SortOrder;
-                        e.isQueue = ea is QueueEventAttribute || ea is QueueRPCEventAttribute;
+                        e.isQueue = ea.Queue;
 
                         queue.Add(e);
                     }
@@ -151,7 +158,7 @@ namespace Game
             for (int i = 0; i < ms.Length; i++)
             {
                 MethodData m = ms[i];
-                if (m.isRPC) continue;
+                if (m.attribute.RPC) continue;
 
                 if (!_evtMap.TryGetValue(m.key, out var queue))
                     _evtMap[m.key] = queue = new();
@@ -159,9 +166,10 @@ namespace Game
                 EvtData e = new();
                 e.Key = m.key;
                 e.method = m.info;
-                e.sortOrder = m.sortOrder;
+                e.sortOrder = m.attribute.SortOrder;
                 e.target = target;
-                e.isQueue = m.isQueue;
+                e.isQueue = m.attribute.Queue;
+                e.setHandler = m.setHandler;
 
                 queue.Add(e);
             }
@@ -187,7 +195,7 @@ namespace Game
             for (int i = 0; i < ms.Length; i++)
             {
                 MethodData m = ms[i];
-                if (!m.isRPC) continue;
+                if (!m.attribute.RPC) continue;
 
                 if (!map.TryGetValue(m.key, out var queue))
                     map[m.key] = queue = new();
@@ -195,16 +203,17 @@ namespace Game
                 EvtData e = new();
                 e.Key = m.key;
                 e.method = m.info;
-                e.sortOrder = m.sortOrder;
+                e.sortOrder = m.attribute.SortOrder;
                 e.target = target;
-                e.isQueue = m.isQueue;
+                e.isQueue = m.attribute.Queue;
+                e.setHandler = m.setHandler;
 
                 queue.Add(e);
             }
         }
-        public TaskAwaiter<T> WaitEvent<T>(int sortOrder = 0)
+        public STask<T> WaitEvent<T>(int sortOrder = 0)
         {
-            TaskAwaiter<T> task = new();
+            STask<T> task = new();
             var k = typeof(T);
 
             if (!_evtMap.TryGetValue(k, out var queue))
@@ -222,9 +231,9 @@ namespace Game
             queue.Add(e);
             return task;
         }
-        public TaskAwaiter<T> WaitRPCEvent<T>(long rpc, int sortOrder = 0)
+        public STask<T> WaitRPCEvent<T>(long rpc, int sortOrder = 0)
         {
-            TaskAwaiter<T> task = new();
+            STask<T> task = new();
             var k = typeof(T);
 
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
@@ -290,11 +299,11 @@ namespace Game
         {
             _runEvent(_evtMap, 0, data);
         }
-        public TaskAwaiter RunEventAsync(object data)
+        public STask RunEventAsync(object data)
         {
             return _runEventAsync(_evtMap, 0, data);
         }
-        public TaskAwaiter<T> RunEventReturn<T>(object data)
+        public STask<T> RunEventReturn<T>(object data)
         {
             return _runEventAsyncReturn<T>(_evtMap, 0, data);
         }
@@ -304,24 +313,17 @@ namespace Game
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
             _runEvent(map, rpc, data);
         }
-        public TaskAwaiter RunRPCEventAsync(long rpc, object data)
+        public STask RunRPCEventAsync(long rpc, object data)
         {
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return TaskAwaiter.Completed;
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
             return _runEventAsync(map, rpc, data);
         }
-        public async TaskAwaiter<T> RunRPCEventReturn<T>(long rpc, object data)
+        public async STask<T> RunRPCEventReturn<T>(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return default;
             return await _runEventAsyncReturn<T>(map, rpc, data);
         }
 
-        /// <summary>
-        /// 跳出当前正在执行的事件（下一个不执行）
-        /// </summary>
-        public void BreakCurrentEvent()
-        {
-            _breakCurrentEvent = true;
-        }
         public void Clear()
         {
             _rigistedStaticMethodEvt = false;
@@ -350,21 +352,21 @@ namespace Game
                 else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
                 return;
             }
-            queue.Run(data, this);
+            queue.Run(data);
         }
-        TaskAwaiter _runEventAsync(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
         {
             var key = data.GetType();
-            if (!evtMap.TryGetValue(key, out var queue)) return TaskAwaiter.Completed;
+            if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
             if (queue.index > -1)
             {
                 if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
                 else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
-                return TaskAwaiter.Completed;
+                return STask.Completed;
             }
-            return queue.RunAsync(data, this);
+            return queue.RunAsync(data);
         }
-        async TaskAwaiter<T> _runEventAsyncReturn<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        async STask<T> _runEventAsyncReturn<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue))
@@ -379,7 +381,7 @@ namespace Game
                 else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
                 return default;
             }
-            var task = queue.RunAsyncReturn<T>(data, this);
+            var task = queue.RunAsyncReturn<T>(data);
             if (task == null)
             {
                 if (rpc == 0) Loger.Error($"没有匹配的监听 key={key}");
@@ -400,12 +402,15 @@ namespace Game
 
             public object target;
             public bool isQueue;
+            public bool setHandler;
         }
         class EvtQueue
         {
             public List<EvtData> evts = new List<EvtData>();
             public int index = -1;//当前执行位置
             int cnt;
+            static object[] _parameters1 = new object[1];
+            static object[] _parameters2 = new object[2];
 
             public void Add(EvtData evt)
             {
@@ -435,9 +440,11 @@ namespace Game
                     }
                 }
             }
-            public async void Run(object data, EventSystem eventSystem)
+            public async void Run(object data)
             {
                 cnt = evts.Count;
+                SEventHandler eh = SObjectPool.Get<SEventHandler>();
+                eh.Reset();
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
@@ -449,28 +456,23 @@ namespace Game
                     else ++index;
                     try
                     {
-                        _parameters[0] = data;
-                        object o = e.method.Invoke(e.target, default, default, _parameters, default);
-                        if (eventSystem._breakCurrentEvent)
-                        {
-                            eventSystem._breakCurrentEvent = false;
-                            cnt = index;
-                        }
-                        if (o is TaskAwaiter task && e.isQueue)
-                            await task;
+                        object o = invoke(e, data, eh);
+                        if (o is STask t && e.isQueue) await t;
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
                 }
-                _parameters[0] = null;
                 index = -1;
+                SObjectPool.Return(eh);
             }
-            public async TaskAwaiter RunAsync(object data, EventSystem eventSystem)
+            public async STask RunAsync(object data)
             {
-                List<TaskAwaiter> ts = ObjectPool.Get<List<TaskAwaiter>>();
+                List<STask> ts = SObjectPool.Get<List<STask>>();
                 cnt = evts.Count;
+                SEventHandler eh = SObjectPool.Get<SEventHandler>();
+                eh.Reset();
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
@@ -482,14 +484,8 @@ namespace Game
                     else ++index;
                     try
                     {
-                        _parameters[0] = data;
-                        object o = e.method.Invoke(e.target, default, default, _parameters, default);
-                        if (eventSystem._breakCurrentEvent)
-                        {
-                            eventSystem._breakCurrentEvent = false;
-                            cnt = index;
-                        }
-                        if (o is TaskAwaiter task)
+                        object o = invoke(e, data, eh);
+                        if (o is STask task)
                         {
                             if (e.isQueue) await task;
                             else ts.Add(task);
@@ -500,18 +496,20 @@ namespace Game
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
                 }
-                _parameters[0] = null;
                 index = -1;
-                await TaskAwaiter.All(ts);
+                SObjectPool.Return(eh);
+                await STask.All(ts);
                 ts.Clear();
-                ObjectPool.Return(ts);
+                SObjectPool.Return(ts);
             }
-            public async TaskAwaiter<T> RunAsyncReturn<T>(object data, EventSystem eventSystem)
+            public async STask<T> RunAsyncReturn<T>(object data)
             {
                 bool get = false;
                 T ret = default;
-                TaskAwaiter<T> task = default;
+                STask<T> task = default;
                 cnt = evts.Count;
+                SEventHandler eh = SObjectPool.Get<SEventHandler>();
+                eh.Reset();
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
@@ -523,34 +521,48 @@ namespace Game
                     else ++index;
                     try
                     {
-                        _parameters[0] = data;
-                        object o = e.method.Invoke(e.target, default, default, _parameters, default);
+                        object o = invoke(e, data, eh);
                         if (!get && o is T)
                         {
                             get = true;
                             ret = (T)o;
                         }
-                        if (!get && o is TaskAwaiter<T>)
+                        if (!get && o is STask<T>)
                         {
                             get = true;
-                            task = (TaskAwaiter<T>)o;
+                            task = (STask<T>)o;
                         }
-                        if (eventSystem._breakCurrentEvent)
-                        {
-                            eventSystem._breakCurrentEvent = false;
-                            cnt = index;
-                        }
-                        if (o is TaskAwaiter t && e.isQueue) await t;
+                        if (o is STask t && e.isQueue) await t;
                     }
                     catch (Exception ex)
                     {
                         Loger.Error("事件执行出错 error:" + ex.ToString());
                     }
                 }
-                _parameters[0] = null;
                 index = -1;
+                SObjectPool.Return(eh);
                 if (task != null) ret = await task;
                 return ret;
+            }
+
+            object invoke(EvtData e, object data, SEventHandler eh)
+            {
+                object o;
+                if (!e.setHandler)
+                {
+                    _parameters1[0] = data;
+                    o = e.method.Invoke(e.target, default, default, _parameters1, default);
+                    _parameters1[0] = default;
+                }
+                else
+                {
+                    _parameters2[0] = data;
+                    _parameters2[1] = eh;
+                    o = e.method.Invoke(e.target, default, default, _parameters2, default);
+                    _parameters2[0] = default;
+                }
+                if (eh.isBreak) cnt = index;
+                return o;
             }
         }
         class MethodData
@@ -558,9 +570,20 @@ namespace Game
             public Type key;
 
             public MethodInfo info;
-            public int sortOrder;
-            public bool isRPC;
-            public bool isQueue;
+            public EventAttribute attribute;
+            public bool setHandler;
+        }
+    }
+    public class SEventHandler
+    {
+        public bool isBreak { get; private set; }
+        public void BreakEvent()
+        {
+            isBreak = true;
+        }
+        internal void Reset()
+        {
+            this.isBreak = false;
         }
     }
 }

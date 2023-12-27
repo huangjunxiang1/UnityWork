@@ -5,6 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-partial class Data : ObjectL
+partial class Data : SObject
 {
 }
