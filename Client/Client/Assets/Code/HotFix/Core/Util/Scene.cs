@@ -9,7 +9,7 @@ namespace Game
         public int SceneID { get; private set; }
 
         [Event(3, Queue = true)]
-        async STask EC_HotFixInit(EC_HotFixInit e)
+        async STask EC_HotFixInit(EC_GameStart e)
         {
             await InLoginScene();
         }

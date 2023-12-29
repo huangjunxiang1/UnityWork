@@ -49,7 +49,7 @@ namespace Game
         public Camera UGUICamera { get; }
 
         [Event(2, Queue = true)]
-        async STask Init(EC_HotFixInit e)
+        async STask Init(EC_GameStart e)
         {
             //ugui init
             {
@@ -149,7 +149,7 @@ namespace Game
                             break;
                         }
                     }
-                    ui.ListenerEnable = true;
+                    ui.EventEnable = true;
                     STimer.AutoRigisterTimer(ui);
                     ui.Show();
                     UIHelper.EnableUIInput(true);
@@ -203,7 +203,7 @@ namespace Game
                     if (ui.Disposed)
                         return;
 
-                    ui.ListenerEnable = true;
+                    ui.EventEnable = true;
                     STimer.AutoRigisterTimer(ui);
                     ui.Show();
                     UIHelper.EnableUIInput(true);
@@ -243,7 +243,7 @@ namespace Game
                 if (ui.Disposed)
                     return;
 
-                ui.ListenerEnable = true;
+                ui.EventEnable = true;
                 STimer.AutoRigisterTimer(ui);
 
                 task.TrySetResult(ui);

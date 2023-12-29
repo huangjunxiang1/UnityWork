@@ -5,4 +5,3 @@ using System.Text;
 using System.Threading.Tasks;
 
 class EC_LanguageChange { }
-class EC_HotFixInit { }

@@ -2,6 +2,7 @@ using UnityEngine;
 using Main;
 using System.IO;
 using Game;
+using System.Collections.Generic;
 
 public class Init
 {
@@ -15,9 +16,10 @@ public class Init
         }
 
         DG.Tweening.DOTween.Init();
-        STimer.RigisterStaticTimer();
         SGameM.Init();
         SGameL.Init();
-        SGameM.Event.RunEvent(new EC_HotFixInit());
+        SGameM.Event.RunEvent(new EC_GameInit());
+        Types.ClearStaticMethodsCache();
+        SGameM.Event.RunEvent(new EC_GameStart());
     }
 }

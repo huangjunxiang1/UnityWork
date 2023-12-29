@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+public class EC_GameInit { }
+public class EC_GameStart { }
 public class EC_NetError
 {
     public int code;

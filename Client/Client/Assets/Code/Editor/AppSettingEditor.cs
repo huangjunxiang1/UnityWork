@@ -8,13 +8,13 @@ using UnityEngine;
 using System.IO;
 using UnityEditor.Compilation;
 
-[CustomEditor(typeof(Engine))]
+[CustomEditor(typeof(GameStart))]
 public class AppSettingEditor : Editor
 {
-    Engine setting;
+    GameStart setting;
     void OnEnable()
     {
-        setting = (Engine)target;
+        setting = (GameStart)target;
     }
     public override void OnInspectorGUI()
     {

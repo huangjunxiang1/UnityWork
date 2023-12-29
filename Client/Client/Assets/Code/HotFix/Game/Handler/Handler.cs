@@ -29,7 +29,7 @@ static class Handler
         }
     }
     [Event(1, Queue = true)]
-    static async STask EC_HotFixInit(EC_HotFixInit e)
+    static async STask EC_HotFixInit(EC_GameStart e)
     {
         SSetting.Languege = SystemLanguage.Chinese;
         SSetting.UIModel = UIModel.FGUI;

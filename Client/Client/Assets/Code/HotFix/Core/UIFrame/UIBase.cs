@@ -42,7 +42,7 @@ abstract class UIBase : STree<UIBase>
     public virtual STask LoadConfig(Main.SUIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
-        this.ListenerEnable = true;
+        this.EventEnable = true;
         STimer.AutoRigisterTimer(this);
         onCompleted = completed;
         return STask.Completed;
