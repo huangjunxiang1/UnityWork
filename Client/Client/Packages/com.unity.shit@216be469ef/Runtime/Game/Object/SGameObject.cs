@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Game
 {
-    public enum SGameObjectLoadStyle
+    public enum SGameObjectType
     {
         Static = 0,//场景静态类型
         Resource,//资源类型
@@ -16,19 +16,19 @@ namespace Game
     }
     public class SGameObject : STree<SGameObject>
     {
-        public SGameObject(long cid, SGameObjectLoadStyle style = SGameObjectLoadStyle.LogicRoot) : base(cid)
+        public SGameObject(long rpc = 0, SGameObjectType style = SGameObjectType.LogicRoot) : base(rpc)
         {
-            this.ObjectStyle = style;
-            if (ObjectStyle == SGameObjectLoadStyle.LogicRoot)
+            this.GameObjectType = style;
+            if (GameObjectType == SGameObjectType.LogicRoot)
             {
                 this.GameRoot = new GameObject();
 #if UNITY_EDITOR
-                this.Name = $"{this.GetType().Name}_id={cid}";
+                this.Name = $"{this.GetType().Name}_rpc={rpc}";
 #endif
                 if (this is not SWorld)
                 {
-                    this.GameRoot.transform.SetParent(SGameM.World.GameRoot.transform);
-                    SGameM.World.AddChild(this);
+                    this.GameRoot.transform.SetParent(GameM.World.GameRoot.transform);
+                    GameM.World.AddChild(this);
                 }
             }
         }
@@ -62,7 +62,7 @@ namespace Game
         /// <summary>
         ///  
         /// </summary>
-        public SGameObjectLoadStyle ObjectStyle { get; }
+        public SGameObjectType GameObjectType { get; }
 
         /// <summary>
         /// 坐标
@@ -77,7 +77,7 @@ namespace Game
             }
             set
             {
-                if (ObjectStyle == SGameObjectLoadStyle.Static)
+                if (GameObjectType == SGameObjectType.Static)
                 {
                     Loger.Error("静态物体不能设置坐标");
                     return;
@@ -99,9 +99,9 @@ namespace Game
         public virtual void SetGameObject(GameObject res, bool release = true)
         {
             ++_resVersion;
-            switch (ObjectStyle)
+            switch (GameObjectType)
             {
-                case SGameObjectLoadStyle.Static:
+                case SGameObjectType.Static:
                     if (this.GameRoot)
                     {
                         Loger.Error("已set 游戏对象");
@@ -110,7 +110,7 @@ namespace Game
                     this.GameRoot = res;
                     this.GameObject = res;
                     break;
-                case SGameObjectLoadStyle.Resource:
+                case SGameObjectType.Resource:
                     if (res == this.GameObject)
                         return;
 
@@ -124,13 +124,13 @@ namespace Game
                         if (release)
                             SAsset.Release(this.GameObject);
                         else
-                            this.GameObject.transform.parent = SGameM.World.GameRoot.transform;
+                            this.GameObject.transform.parent = GameM.World.GameRoot.transform;
                     }
                     else
                     {
                         if (res)
                         {
-                            res.transform.SetParent(SGameM.World.GameRoot.transform);
+                            res.transform.SetParent(GameM.World.GameRoot.transform);
                             res.transform.SetPositionAndRotation(default, Quaternion.identity);
                         }
                     }
@@ -138,7 +138,7 @@ namespace Game
                     this.GameRoot = res;
                     this.GameObject = res;
                     break;
-                case SGameObjectLoadStyle.LogicRoot:
+                case SGameObjectType.LogicRoot:
                     if (res == this.GameObject)
                         return;
 
@@ -153,7 +153,7 @@ namespace Game
                         if (release)
                             SAsset.Release(this.GameObject);
                         else
-                            this.GameObject.transform.parent = SGameM.World.GameRoot.transform;
+                            this.GameObject.transform.parent = GameM.World.GameRoot.transform;
                     }
                     this.GameObject = res;
                     break;
@@ -168,7 +168,7 @@ namespace Game
         /// <param name="url"></param>
         public void LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
-            if (this.ObjectStyle == SGameObjectLoadStyle.Static)
+            if (this.GameObjectType == SGameObjectType.Static)
             {
                 Loger.Error("静态类型不能动态加载");
                 return;
@@ -181,7 +181,7 @@ namespace Game
         }
         public async STask LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
         {
-            if (this.ObjectStyle == SGameObjectLoadStyle.Static)
+            if (this.GameObjectType == SGameObjectType.Static)
             {
                 Loger.Error("静态类型不能动态加载");
                 return;
@@ -206,15 +206,15 @@ namespace Game
         {
             base.Dispose();
 
-            switch (this.ObjectStyle)
+            switch (this.GameObjectType)
             {
-                case SGameObjectLoadStyle.Static:
+                case SGameObjectType.Static:
                     break;
-                case SGameObjectLoadStyle.Resource:
+                case SGameObjectType.Resource:
                     if (this.GameObject)
                         SAsset.Release(this.GameObject);
                     break;
-                case SGameObjectLoadStyle.LogicRoot:
+                case SGameObjectType.LogicRoot:
                     if (this.GameObject)
                         SAsset.Release(this.GameObject);
                     GameObject.DestroyImmediate(this.GameRoot);

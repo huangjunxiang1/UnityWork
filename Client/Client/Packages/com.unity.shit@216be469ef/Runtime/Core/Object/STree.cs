@@ -8,11 +8,11 @@ namespace Game
 {
     public abstract class STree<T> : SObject  where T : STree<T>
     {
-        public STree(long cid) : base(cid) { }
+        public STree(long rpc) : base(rpc) { }
         public STree() : base() { }
 
         Dictionary<long, T> _childGMap = new();
-        Dictionary<long, T> _childCMap = new();
+        Dictionary<long, T> _childRMap = new();
         List<T> _childLst = new();
 
         /// <summary>
@@ -98,12 +98,12 @@ namespace Game
                 child.Parent.Remove(child);
 
             _childGMap.Add(child.gid, child);
-            if (child.cid > 0)
+            if (child.rpc > 0)
             {
-                if (!_childCMap.ContainsKey(child.cid))
-                    _childCMap[child.cid] = child;
+                if (!_childRMap.ContainsKey(child.rpc))
+                    _childRMap[child.rpc] = child;
                 else
-                    Loger.Error($"已经包含子对象 this={this.GetType()} cid={this.cid}  child={child.GetType()} cid={child.cid}");
+                    Loger.Error($"已经包含子对象 this={this.GetType()} rpc={this.rpc}  child={child.GetType()} rpc={child.rpc}");
             }
 
             _childLst.Add(child);
@@ -120,14 +120,14 @@ namespace Game
             _childGMap.TryGetValue(gid, out T child);
             return child;
         }
-        public T GetChildCid(long cid)
+        public T GetChildRpc(long rpc)
         {
-            if (cid == 0)
+            if (rpc == 0)
             {
-                Loger.Error("无效cid");
+                Loger.Error("无效rpc");
                 return null;
             }
-            _childCMap.TryGetValue(cid, out T child);
+            _childRMap.TryGetValue(rpc, out T child);
             return child;
         }
         public List<T> ToChildren()
@@ -148,8 +148,8 @@ namespace Game
         public void Remove(T child)
         {
             _childGMap.Remove(child.gid);
-            if (child.cid > 0)
-                _childCMap.Remove(child.cid);
+            if (child.rpc > 0)
+                _childRMap.Remove(child.rpc);
             _childLst.Remove(child);
             child.Parent = null;
         }
@@ -158,22 +158,22 @@ namespace Game
             if (!_childGMap.TryGetValue(gid, out T child))
                 return;
             _childGMap.Remove(gid);
-            if (child.cid > 0)
-                _childCMap.Remove(child.cid);
+            if (child.rpc > 0)
+                _childRMap.Remove(child.rpc);
             _childLst.Remove(child);
             child.Parent = null;
         }
-        public virtual void RemoveCid(long cid)
+        public virtual void RemoveRpc(long rpc)
         {
-            if (cid == 0)
+            if (rpc == 0)
             {
-                Loger.Error("无效cid");
+                Loger.Error("无效rpc");
                 return;
             }
-            if (!_childCMap.TryGetValue(cid, out T child))
+            if (!_childRMap.TryGetValue(rpc, out T child))
                 return;
             _childGMap.Remove(child.gid);
-            _childCMap.Remove(cid);
+            _childRMap.Remove(rpc);
             _childLst.Remove(child);
             child.Parent = null;
         }
@@ -184,7 +184,7 @@ namespace Game
 
             var lst = ToChildren();
             _childGMap.Clear();
-            _childCMap.Clear();
+            _childRMap.Clear();
             _childLst.Clear();
             for (int i = lst.Count - 1; i >= 0; i--)
                 lst[i].Dispose();

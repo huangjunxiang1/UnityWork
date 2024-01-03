@@ -4,7 +4,7 @@ using Main;
 
 namespace Game
 {
-	public static partial class SSetting
+	public static partial class Setting
 	{
 	    static FreedomCameraSetting _FreedomCameraSetting;
 	    public static FreedomCameraSetting FreedomCameraSetting

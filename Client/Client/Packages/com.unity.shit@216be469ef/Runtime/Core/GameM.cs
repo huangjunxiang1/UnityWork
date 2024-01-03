@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public static class SGameM
+public static class GameM
 {
     public static EventSystem Event { get; private set; }
     public static NetSystem Net { get; private set; }
@@ -20,6 +20,9 @@ public static class SGameM
         Net = new NetSystem();
         World = new SWorld();
         Data = new SData();
+        SSystem.Init();
+        STimer.Init();
+        Types.ClearStaticMethodsCache();
         GameObject.DontDestroyOnLoad(new GameObject($"[{nameof(Engine)}]").AddComponent<Engine>());
     }
     public static void Close()
@@ -40,7 +43,7 @@ public static class SGameM
     {
         private void Update()
         {
-            SGameM.Update();
+            GameM.Update();
         }
     }
 }

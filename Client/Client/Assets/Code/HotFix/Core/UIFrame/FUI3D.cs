@@ -29,14 +29,14 @@ abstract class FUI3D : FUIBase
     public GameObject goRoot { get; private set; }
     public UIPanel Panel { get; private set; }
 
-    public sealed override STask LoadConfig(Main.SUIConfig config, STask completed, params object[] data)
+    public sealed override STask LoadConfig(Main.UIConfig config, STask completed, params object[] data)
     {
         base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this.goRoot = SAsset.LoadGameObject(url);
-        this.goRoot.transform.SetParent(SGameM.World.GameRoot.transform);
+        this.goRoot.transform.SetParent(GameM.World.GameRoot.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
@@ -46,14 +46,14 @@ abstract class FUI3D : FUIBase
         this.OnEnter(data);
         return STask.Completed;
     }
-    public sealed override async STask LoadConfigAsync(Main.SUIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(Main.UIConfig config, STask completed, params object[] data)
     {
         _ = base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this.goRoot = await SAsset.LoadGameObjectAsync(url);
-        this.goRoot.transform.SetParent(SGameM.World.GameRoot.transform);
+        this.goRoot.transform.SetParent(GameM.World.GameRoot.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();

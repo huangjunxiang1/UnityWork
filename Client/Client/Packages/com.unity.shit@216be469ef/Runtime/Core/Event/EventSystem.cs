@@ -38,7 +38,7 @@ namespace Game
             }
             if (ps.Length == 2)
             {
-                setHandler = ps[1].ParameterType == typeof(SEventHandler);
+                setHandler = ps[1].ParameterType == typeof(EventHandler);
                 if (!setHandler)
                 {
                     Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
@@ -438,7 +438,7 @@ namespace Game
             public async void Run(object data)
             {
                 cnt = evts.Count;
-                SEventHandler eh = SObjectPool.Get<SEventHandler>();
+                EventHandler eh = ObjectPool.Get<EventHandler>();
                 eh.Reset();
                 for (index = 0; index < cnt;)
                 {
@@ -453,13 +453,13 @@ namespace Game
                     if (o is STask t && e.isQueue) await t;
                 }
                 index = -1;
-                SObjectPool.Return(eh);
+                ObjectPool.Return(eh);
             }
             public async STask RunAsync(object data)
             {
-                List<STask> ts = SObjectPool.Get<List<STask>>();
+                List<STask> ts = ObjectPool.Get<List<STask>>();
                 cnt = evts.Count;
-                SEventHandler eh = SObjectPool.Get<SEventHandler>();
+                EventHandler eh = ObjectPool.Get<EventHandler>();
                 eh.Reset();
                 for (index = 0; index < cnt;)
                 {
@@ -478,10 +478,10 @@ namespace Game
                     }
                 }
                 index = -1;
-                SObjectPool.Return(eh);
+                ObjectPool.Return(eh);
                 await STask.All(ts);
                 ts.Clear();
-                SObjectPool.Return(ts);
+                ObjectPool.Return(ts);
             }
             public async STask<T> RunAsyncReturn<T>(object data)
             {
@@ -489,7 +489,7 @@ namespace Game
                 T ret = default;
                 STask<T> task = default;
                 cnt = evts.Count;
-                SEventHandler eh = SObjectPool.Get<SEventHandler>();
+                EventHandler eh = ObjectPool.Get<EventHandler>();
                 eh.Reset();
                 for (index = 0; index < cnt;)
                 {
@@ -514,12 +514,12 @@ namespace Game
                     if (o is STask t && e.isQueue) await t;
                 }
                 index = -1;
-                SObjectPool.Return(eh);
+                ObjectPool.Return(eh);
                 if (task != null) ret = await task;
                 return ret;
             }
 
-            object invoke(EvtData e, object data, SEventHandler eh)
+            object invoke(EvtData e, object data, EventHandler eh)
             {
                 object o = default;
                 try
@@ -555,7 +555,7 @@ namespace Game
             public bool setHandler;
         }
     }
-    public class SEventHandler
+    public class EventHandler
     {
         public bool isBreak { get; private set; }
         public object Data { get; private set; }

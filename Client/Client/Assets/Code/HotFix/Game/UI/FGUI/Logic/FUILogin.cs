@@ -44,26 +44,26 @@ partial class FUILogin
     async void onUIModel()
     {
         if (_uiType.selectedIndex == 0)
-            SSetting.UIModel = UIModel.FGUI;
+            Setting.UIModel = UIModel.FGUI;
         else
         {
-            SSetting.UIModel = UIModel.UGUI;
-            await SGameL.UI.OpenAsync<UUILogin>();
+            Setting.UIModel = UIModel.UGUI;
+            await GameL.UI.OpenAsync<UUILogin>();
             this.Dispose();
         }
     }
    
     async void login()
     {
-        await SGameL.Scene.InScene(10001);
+        await GameL.Scene.InScene(10001);
         if (_demo.selectedIndex == 0)
-            await SGameL.UI.OpenAsync<FUIFighting>();
+            await GameL.UI.OpenAsync<FUIFighting>();
         else if (_demo.selectedIndex == 1)
-            await SGameL.UI.OpenAsync<FUIFighting2>();
+            await GameL.UI.OpenAsync<FUIFighting2>();
         else if (_demo.selectedIndex == 2)
-            await SGameL.UI.OpenAsync<FUIFighting3>();
+            await GameL.UI.OpenAsync<FUIFighting3>();
         else if (_demo.selectedIndex == 3)
-            await SGameL.UI.OpenAsync<FUIFighting4>();
+            await GameL.UI.OpenAsync<FUIFighting4>();
 
         /*//链接服务器演示
         if (_gameTypeCB.selectedIndex == 0)

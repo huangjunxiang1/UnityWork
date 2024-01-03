@@ -12,7 +12,7 @@ using Unity.Mathematics;
 
 namespace Game
 {
-    public static class ECSSingle
+    public static class ShareData
     {
         public static readonly SharedStatic<Unity.Mathematics.Random> Random = SharedStatic<Unity.Mathematics.Random>.GetOrCreate<Unity.Mathematics.Random>();
         public static readonly SharedStatic<UnsafeList<FixedString128Bytes>> Strings = SharedStatic<UnsafeList<FixedString128Bytes>>.GetOrCreate<UnsafeList<FixedString128Bytes>>();

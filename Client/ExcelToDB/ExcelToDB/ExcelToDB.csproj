@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Client\Packages\com.unity.shit%40216be469ef\Runtime\Serialized\DBuffer.cs" Link="DBuffer.cs" />
+    <Compile Include="..\..\Client\Packages\com.unity.shit%40216be469ef\Runtime\Core\Serialized\DBuffer.cs" Link="DBuffer.cs" />
   </ItemGroup>
 
   <ItemGroup>

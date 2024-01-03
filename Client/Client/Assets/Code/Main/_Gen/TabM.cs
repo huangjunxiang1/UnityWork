@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public static class STabM
+public static class TabM
 {
     static DBuffer dbbuff;
     static bool loadAll;
 
     static Dictionary<int, TabMapping> _map_test2Idx;
-    static STabM_test2[] __test2Array;
-    static Dictionary<int, STabM_test2> _map_test2;
-    public static STabM_test2[] _test2Array
+    static TabM_test2[] __test2Array;
+    static Dictionary<int, TabM_test2> _map_test2;
+    public static TabM_test2[] _test2Array
     {
         get
         {
@@ -19,17 +19,17 @@ public static class STabM
                 bool isLoadAll = loadAll;
                 int[] keys = _map_test2Idx.Keys.ToArray();
                 int len = keys.Length;
-                __test2Array = new STabM_test2[_map_test2Idx.Count];
+                __test2Array = new TabM_test2[_map_test2Idx.Count];
                 for (int i = 0; i < len; i++)
                 {
                     int k = keys[i];
                     TabMapping v = _map_test2Idx[k];
-                    if (_map_test2.TryGetValue(k, out STabM_test2 value))
+                    if (_map_test2.TryGetValue(k, out TabM_test2 value))
                         __test2Array[v.index] = value;
                     else
                     {
                         dbbuff.Seek(v.point);
-                        STabM_test2 tmp = new STabM_test2(dbbuff, isLoadAll);
+                        TabM_test2 tmp = new TabM_test2(dbbuff, isLoadAll);
                         _map_test2[k] = tmp;
                         __test2Array[v.index] = tmp;
                     }
@@ -47,7 +47,7 @@ public static class STabM
 
         int len0 = buffer.Readint();
         _map_test2Idx = new Dictionary<int, TabMapping>(len0);
-        _map_test2 = new Dictionary<int, STabM_test2>(len0);
+        _map_test2 = new Dictionary<int, TabM_test2>(len0);
         __test2Array = null;
         for (int i = 0; i < len0; i++)
         {
@@ -64,22 +64,22 @@ public static class STabM
         }
     }
     public static bool Has_test2(int key) => (_map_test2Idx != null && _map_test2Idx.ContainsKey(key)) || _map_test2.ContainsKey(key);
-    public static STabM_test2 Get_test2(int key)
+    public static TabM_test2 Get_test2(int key)
     {
         if (_map_test2.TryGetValue(key, out var value))
             return value;
         if (_map_test2Idx != null && _map_test2Idx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
-            STabM_test2 tmp = new STabM_test2(dbbuff, loadAll);
+            TabM_test2 tmp = new TabM_test2(dbbuff, loadAll);
             _map_test2[key] = tmp;
             return tmp;
         }
-        Loger.Error("STabM_test2表没有key: " + key);
+        Loger.Error("TabM_test2表没有key: " + key);
         return null;
     }
 }
-public partial class STabM_test2
+public partial class TabM_test2
 {
     DBuffer dbuff;
 
@@ -191,7 +191,7 @@ public partial class STabM_test2
         return _arr2sTmp;
     }
 
-    public STabM_test2(DBuffer buffer, bool loadAll = false)
+    public TabM_test2(DBuffer buffer, bool loadAll = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();

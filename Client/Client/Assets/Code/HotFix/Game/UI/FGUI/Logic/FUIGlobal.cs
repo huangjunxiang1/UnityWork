@@ -7,14 +7,14 @@ using UnityEngine.InputSystem;
 using UnityEngine;
 using Game;
 
-[Main.SUIConfig(100, UIType = Main.UIType.GlobalUI)]
+[Main.UIConfig(100, UIType = Main.UIType.GlobalUI)]
 partial class FUIGlobal
 {
     bool showExit = false;
     ESCInput input;
     protected override void OnEnter(params object[] data)
     {
-        this._log.visible = !Application.isEditor && SAppSetting.Debug;
+        this._log.visible = !Application.isEditor && AppSetting.Debug;
         if (this._log.visible)
             this._log.onClick.Add(log);
 
@@ -28,7 +28,7 @@ partial class FUIGlobal
     }
     void log()
     {
-        SAppSetting.ShowReporter = !SAppSetting.ShowReporter;
+        AppSetting.ShowReporter = !AppSetting.ShowReporter;
     }
     void esc(InputAction.CallbackContext e)
     {

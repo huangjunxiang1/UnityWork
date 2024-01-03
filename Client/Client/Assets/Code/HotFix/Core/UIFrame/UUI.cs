@@ -19,7 +19,7 @@ abstract class UUI : UUIBase
     public sealed override RectTransform UI => this.ui;
     public sealed override STask onTask => task;
 
-    public sealed override STask LoadConfig(SUIConfig config, STask completed, params object[] data)
+    public sealed override STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
         base.LoadConfig(config, completed, data);
 
@@ -35,7 +35,7 @@ abstract class UUI : UUIBase
         this.OnEnter(data);
         return STask.Completed;
     }
-    public sealed override async STask LoadConfigAsync(SUIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
         _ = base.LoadConfigAsync(config, completed, data);
 
@@ -59,10 +59,10 @@ abstract class UUI : UUIBase
 
     void setConfig()
     {
-        this.ui.SetParent(SGameL.UI.UGUIRoot);
+        this.ui.SetParent(GameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
-        this.ui.sizeDelta = SGameL.UI.UGUIRoot.sizeDelta;
+        this.ui.sizeDelta = GameL.UI.UGUIRoot.sizeDelta;
         this.ui.anchorMin = default;
         this.ui.anchorMax = Vector2.one;
         this.ui.anchoredPosition = default;

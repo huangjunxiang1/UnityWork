@@ -11,4 +11,5 @@ namespace Main
     public class AwakeAttribute : SSystemAttribute { }
     public class DisposeAttribute : SSystemAttribute { }
     public class UpdateAttribute : SSystemAttribute { }
+    public class ChangeAttribute : SSystemAttribute { }
 }

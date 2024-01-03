@@ -8,7 +8,7 @@ using Game;
 
 namespace Game
 {
-    public static class SAppSetting
+    public static class AppSetting
     {
         static Reporter _reporter;
         static bool _debug;

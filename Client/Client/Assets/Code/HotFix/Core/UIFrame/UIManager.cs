@@ -49,23 +49,23 @@ namespace Game
         public Camera UGUICamera { get; }
 
         [Event(2, Queue = true)]
-        async STask Init(EC_GameStart e)
+        async STask Init(EC_GameInit e)
         {
             //ugui init
             {
-                UGUIRoot.gameObject.SetActive(SSetting.UIModel == UIModel.UGUI);
-                UGUICamera.gameObject.SetActive(SSetting.UIModel == UIModel.UGUI);
+                UGUIRoot.gameObject.SetActive(Setting.UIModel == UIModel.UGUI);
+                UGUICamera.gameObject.SetActive(Setting.UIModel == UIModel.UGUI);
             }
 
             //fgui init
             {
                 FairyGUI.UIConfig.defaultFont = "Impact";
-                GRoot.inst.visible = SSetting.UIModel == UIModel.FGUI;
-                StageCamera.main.gameObject.SetActive(SSetting.UIModel == UIModel.FGUI);
+                GRoot.inst.visible = Setting.UIModel == UIModel.FGUI;
+                StageCamera.main.gameObject.SetActive(Setting.UIModel == UIModel.FGUI);
                 UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
                 UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
                 UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);
-                await SGameL.UI.OpenAsync<FUIGlobal>();
+                await GameL.UI.OpenAsync<FUIGlobal>();
             }
         }
         async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
@@ -87,8 +87,8 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
-                cfg = Main.SUIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                cfg = Main.UIConfig.Default;
 
             ui = new();
             _uiLst.Add(ui);
@@ -119,8 +119,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
-                        cfg = Main.SUIConfig.Default;
+                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                        cfg = Main.UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -167,8 +167,8 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
-                cfg = Main.SUIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                cfg = Main.UIConfig.Default;
 
             ui = new();
             parent.AddChild(ui);
@@ -186,8 +186,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
-                        cfg = Main.SUIConfig.Default;
+                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                        cfg = Main.UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -217,8 +217,8 @@ namespace Game
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
-                cfg = Main.SUIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                cfg = Main.UIConfig.Default;
 
             T ui = new();
             _3duiLst.Add(ui);
@@ -233,8 +233,8 @@ namespace Game
             open();
             async void open()
             {
-                if (Types.GetAttribute(typeof(T), typeof(Main.SUIConfig)) is not Main.SUIConfig cfg)
-                    cfg = Main.SUIConfig.Default;
+                if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
+                    cfg = Main.UIConfig.Default;
 
                 T ui = new();
                 _3duiLst.Add(ui);

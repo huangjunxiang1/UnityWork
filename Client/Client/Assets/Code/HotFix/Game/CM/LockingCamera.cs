@@ -79,17 +79,17 @@ class LockingCamera : BaseCamera
         Vector3 offset = ct.m_FollowOffset;
         if (_wheel > 0)
         {
-            if (offset.y > SSetting.LockingCameraSetting.yMin)
+            if (offset.y > Setting.LockingCameraSetting.yMin)
             {
-                offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
         else
         {
-            if (offset.y < SSetting.LockingCameraSetting.yMax)
+            if (offset.y < Setting.LockingCameraSetting.yMax)
             {
-                offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
@@ -173,17 +173,17 @@ class LockingCamera : BaseCamera
                     Vector3 offset = ct.m_FollowOffset;
                     if (_wheel > 0)
                     {
-                        if (offset.y > SSetting.LockingCameraSetting.yMin)
+                        if (offset.y > Setting.LockingCameraSetting.yMin)
                         {
-                            offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }
                     else
                     {
-                        if (offset.y < SSetting.LockingCameraSetting.yMax)
+                        if (offset.y < Setting.LockingCameraSetting.yMax)
                         {
-                            offset += _wheel * SSetting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }

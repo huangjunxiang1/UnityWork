@@ -11,21 +11,30 @@ namespace Game
     public abstract class SObject : IDisposable, IAsyncCancel
     {
         public SObject() : this(0) { }
-        public SObject(long cid)
+        public SObject(long rpc)
         {
-            this.gid = IDGenerate.GenerateID();
-            this.cid = cid;
+            this.gid = ++generateId;
+            this.rpc = rpc;
+            gidMap.Add(gid, this);
             if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredEventAttribute), true))
                 this.EventEnable = true;
-            if (cid != 0)
+            if (rpc != 0)
             {
                 if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredRPCEventAttribute), true))
-                    this.RigisteRPCEvent(cid);
+                    this.RigisteRPCEvent(rpc);
+                if (!rpcMap.TryGetValue(rpc, out var o))
+                    rpcMap.Add(rpc, this);
+                else
+                    Loger.Error($"已经创建rpc对象 rpc={rpc} obj={o}");
             }
             if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredTimerAttribute), true))
                 _timerRigisterd = STimer.AutoRigisterTimer(this);
-            ThreadSynchronizationContext.Instance.PostNext(() => SGameM.Event.RunEvent(new EC_NewSObject { obj = this }));
+            GameM.Event.RunEvent(new EC_NewSObject { obj = this });
         }
+
+        static long generateId = 0;
+        static Dictionary<long, SObject> rpcMap = new();
+        static Dictionary<long, SObject> gidMap = new();
 
         bool _eventEnable = false;
         bool _rpcEventEnable = false;
@@ -42,9 +51,9 @@ namespace Game
         public long gid { get; }
 
         /// <summary>
-        /// 自定义ID
+        /// 单位ID
         /// </summary>
-        public long cid { get; }
+        public long rpc { get; }
 
         /// <summary>
         /// 是否已被销毁
@@ -64,7 +73,7 @@ namespace Game
                     if (!_eventEnable)
                     {
                         _eventEnable = true;
-                        SGameM.Event.RigisteEvent(this);
+                        GameM.Event.RigisteEvent(this);
                     }
                 }
                 else
@@ -72,7 +81,7 @@ namespace Game
                     if (_eventEnable)
                     {
                         _eventEnable = false;
-                        SGameM.Event.RemoveEvent(this);
+                        GameM.Event.RemoveEvent(this);
                     }
                 }
             }
@@ -81,48 +90,71 @@ namespace Game
 
         public T AddComponent<T>() where T : SComponent, new()
         {
-            if (components.TryGetValue(typeof(T), out var c))
-            {
-                Loger.Error($"已经包含 component={typeof(T)}");
-                return (T)c;
-            }
-            c = components[typeof(T)] = new T() { Entity = this };
-            SSystem.RigisteComponent(c);
-            SGameM.Event.RigisteEvent(c);
-            if (this.cid > 0)
-                SGameM.Event.RigisteRPCEvent(this.cid, c); 
-            SSystem.Run<AwakeAttribute>(c);
-            return (T)c;
+            return AddComponent(new T());
         }
         public T AddComponent<T>(T c) where T : SComponent
         {
+            if (components.TryGetValue(typeof(T), out var cc))
+            {
+                Loger.Error($"已经包含 component={cc}");
+                return (T)cc;
+            }
+            if (c.Disposed)
+            {
+                Loger.Error($"组件已经销毁 ={this}");
+                return default;
+            }
             if (c.Entity != null)
             {
-                Loger.Error($"已经添加到实体 component={c}");
-                return c;
+                Loger.Error($"组件已经在实体 ={c.Entity}");
+                return default;
             }
-            if (components.ContainsKey(typeof(T)))
+            if (this.Disposed)
             {
-                Loger.Error($"已经包含 component={c}");
-                return c;
+                Loger.Error($"实体已经销毁 ={this}");
+                return default;
             }
-            components[c.GetType()] = c;
             c.Entity = this;
+            components[c.GetType()] = c;
             SSystem.RigisteComponent(c);
-            SGameM.Event.RigisteEvent(c);
-            if (this.cid > 0)
-                SGameM.Event.RigisteRPCEvent(this.cid, c);
             SSystem.Run<AwakeAttribute>(c);
             return c;
         }
-        public T GetComponent<T>() where T : SComponent, new()
+        public T GetComponent<T>() where T : SComponent
         {
-            if (!components.TryGetValue(typeof(T), out var c))
-                Loger.Error($"未包含 component={typeof(T)}");
-            return (T)c;
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                return default;
+            }
+            if (components.TryGetValue(typeof(T), out var c))
+                return (T)c;
+            Loger.Error($"未包含 component={typeof(T)}");
+            return default;
+        }
+        public bool TryGetComponent<T>(out T c) where T : SComponent
+        {
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                c = default;
+                return false;
+            }
+            if (components.TryGetValue(typeof(T), out var cc))
+            {
+                c = (T)cc;
+                return true;
+            }
+            c = default;
+            return false;
         }
         public bool RemoveComponent<T>() where T : SComponent
         {
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                return false;
+            }
             if (!components.TryGetValue(typeof(T), out var c))
             {
                 Loger.Error($"未包含 component={typeof(T)}");
@@ -131,24 +163,18 @@ namespace Game
             c.Dispose();
             return true;
         }
-        public bool RemoveComponent(SComponent c)
-        {
-            if (!components.ContainsKey(c.GetType()))
-            {
-                Loger.Error($"未包含 component={c.GetType()}");
-                return false;
-            }
-            c.Dispose();
-            return true;
-        }
-        internal void UnPack(SComponent c)
-        {
-            components.Remove(c.GetType());
-            c.Entity = null;
-        }
         public bool HasComponent<T>() where T : SComponent
         {
-            return components.ContainsKey(typeof(T));
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                return false;
+            }
+            return components.TryGetValue(typeof(T), out var c);
+        }
+        internal void RemoveFromComponents(SComponent c)
+        {
+            components.Remove(c.GetType());
         }
 
         /// <summary>
@@ -162,16 +188,31 @@ namespace Game
                 return;
             }
 
-            foreach (var item in components.Values)
-                item.Dispose();
             this.Disposed = true;
+            if (rpc > 0)
+                rpcMap.Remove(rpc);
+            gidMap.Remove(gid);
+            foreach (var item in components.Values)
+                item.dispose(false);
+            components.Clear();
             if (_eventEnable)
-                SGameM.Event.RemoveEvent(this);
+                GameM.Event.RemoveEvent(this);
             if (_rpcEventEnable)
-                SGameM.Event.RemoveRPCEvent(_rpcid, this);
+                GameM.Event.RemoveRPCEvent(_rpcid, this);
             if (_timerRigisterd)
                 STimer.AutoRemoveTimer(this);
-            ThreadSynchronizationContext.Instance.PostNext(() => SGameM.Event.RunEvent(new EC_DisposeSObject { obj = this }));
+            GameM.Event.RunEvent(new EC_DisposeSObject { obj = this });
+        }
+
+        public static SObject GetWithRpc(long rpc)
+        {
+            rpcMap.TryGetValue(rpc, out var obj);
+            return obj;
+        }
+        public static SObject GetWithGid(long gid)
+        {
+            gidMap.TryGetValue(gid, out var obj);
+            return obj;
         }
 
         protected void RigisteRPCEvent(long rpc)
@@ -188,7 +229,7 @@ namespace Game
             }
             _rpcid = rpc;
             _rpcEventEnable = true;
-            SGameM.Event.RigisteRPCEvent(rpc, this);
+            GameM.Event.RigisteRPCEvent(rpc, this);
         }
     }
 }

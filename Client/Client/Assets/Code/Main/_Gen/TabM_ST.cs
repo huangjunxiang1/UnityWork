@@ -3,9 +3,9 @@ using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
 
-public unsafe struct STabM_ST
+public unsafe struct TabM_ST
 {
-    public readonly static SharedStatic<STabM_ST> Tab = SharedStatic<STabM_ST>.GetOrCreate<SharedStatic<STabM_ST>>();
+    public readonly static SharedStatic<TabM_ST> Tab = SharedStatic<TabM_ST>.GetOrCreate<SharedStatic<TabM_ST>>();
 
     public readonly NativeArray<_test2_ST> _test2Array;
 

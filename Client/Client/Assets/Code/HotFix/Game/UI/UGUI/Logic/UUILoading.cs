@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using DG.Tweening;
 
-[Main.SUIConfig(50, UIType = Main.UIType.GlobalUI)]
+[Main.UIConfig(50, UIType = Main.UIType.GlobalUI)]
 partial class UUILoading
 {
     float cur = 0;

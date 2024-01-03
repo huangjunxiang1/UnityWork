@@ -24,19 +24,19 @@ public static class Types
     static Dictionary<Type, Dictionary<Type, MethodAndAttribute[]>> methodAttributeCache = new();
     static List<MethodAndAttribute> staticMethods;
 
-    public static void InitTypes(Type[] mtypes, Type[] htypes)
+    public static void InitTypes(Type[] mTypes, Type[] hTypes)
     {
-        AllTypes = new Type[mtypes.Length + htypes.Length];
-        mtypes.CopyTo(AllTypes, 0);
-        htypes.CopyTo(AllTypes, mtypes.Length);
+        AllTypes = new Type[mTypes.Length + hTypes.Length];
+        mTypes.CopyTo(AllTypes, 0);
+        hTypes.CopyTo(AllTypes, mTypes.Length);
 
-        MainTypes = mtypes;
-        HotTypes = htypes;
-        int len = mtypes.Length;
+        MainTypes = mTypes;
+        HotTypes = hTypes;
+        int len = mTypes.Length;
         int index = 0;
         for (int i = 0; i < len; i++)
         {
-            Type type = mtypes[i];
+            Type type = mTypes[i];
 
             if (typeof(Attribute).IsAssignableFrom(type))
             {
@@ -152,7 +152,7 @@ public static class Types
     {
         if (!assignableTypesMap.TryGetValue(t, out var arr))
         {
-            var lst = new List<Type>();
+            var lst = ObjectPool.Get<List<Type>>();
             int len = AllTypes.Length;
             for (int i = 0; i < len; i++)
             {
@@ -162,6 +162,8 @@ public static class Types
                 lst.Add(type);
             }
             assignableTypesMap[t] = arr = lst.ToArray();
+            lst.Clear();
+            ObjectPool.Return(lst);
         }
         return arr;
     }
@@ -178,7 +180,7 @@ public static class Types
         return _asyncNeedCancel.TryGetValue(stateMachineType, out bool v) && v;
     }
 
-    public static MethodAndAttribute[] GetInstanceMethodsWithAttribute<T>(Type self)
+    internal static MethodAndAttribute[] GetInstanceMethodsWithAttribute<T>(Type self)
     {
         if (!methodAttributeCache.TryGetValue(self, out var map))
             methodAttributeCache[self] = map = new();
@@ -197,7 +199,7 @@ public static class Types
                         ms.Add(t[i]);
                 }
             }
-            var lst = SObjectPool.Get<List<MethodAndAttribute>>();
+            var lst = ObjectPool.Get<List<MethodAndAttribute>>();
             for (int i = 0; i < ms.Count; i++)
             {
                 var att = ms[i].GetCustomAttribute(typeof(T));
@@ -206,7 +208,7 @@ public static class Types
             }
             map[typeof(T)] = arr = lst.ToArray();
             lst.Clear();
-            SObjectPool.Return(lst);
+            ObjectPool.Return(lst);
         }
         return arr;
     }
@@ -232,18 +234,13 @@ public static class Types
         }
         return staticMethods;
     }
-    public static void ClearStaticMethodsCache()
+    internal static void ClearStaticMethodsCache()
     {
         staticMethods = null;
     }
-
-    public static T As<T>(this object o) where T : class
-    {
-        return o as T;
-    }
 }
 
-public class MethodAndAttribute
+class MethodAndAttribute
 {
     public MethodAndAttribute(MethodInfo method, object attribute)
     {

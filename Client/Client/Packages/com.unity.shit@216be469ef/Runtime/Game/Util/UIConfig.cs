@@ -12,16 +12,16 @@ namespace Main
         GlobalUI,//全局UI  只能主动关闭
     }
     [AttributeUsage(AttributeTargets.Class)]
-    public class SUIConfig : SAttribute
+    public class UIConfig : SAttribute
     {
-        public static SUIConfig Default { get; } = new SUIConfig(0);
+        public static UIConfig Default { get; } = new UIConfig(0);
 
         public int SortOrder { get; }
         public UIType UIType { get; set; } = UIType.SceneUI;
         public bool HideOnOpenOtherUI { get; set; } = true;//打开新UI 自动隐藏当前UI
 
 
-        public SUIConfig(int SortOrder)
+        public UIConfig(int SortOrder)
         {
             if (SortOrder > 100 || SortOrder < -100)
                 Loger.Error("SortOrder不能超过-100到100");

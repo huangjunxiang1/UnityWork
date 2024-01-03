@@ -18,26 +18,24 @@ namespace Game
         void _onError(int error)
         {
             Loger.Error("Net Error Code:" + error);
-            SGameM.Event.RunEvent(new EC_NetError { code = error });
+            GameM.Event.RunEvent(new EC_NetError { code = error });
         }
         void _onResponse(PB.PBMessage message)
         {
             var type = message.GetType();
             uint cmd = Types.GetCMDCode(type);
 
-#if DebugEnable
             PrintField.Print($"<Color=#00FF00>收到消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
-#endif
-            SGameM.Event.RunEvent(new EC_ReceiveMessage { message = message });
+            GameM.Event.RunEvent(new EC_ReceiveMessage { message = message });
             if (message.rpc > 0)
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
-                SGameM.Event.RunRPCEvent(message.rpc, message);
+                GameM.Event.RunRPCEvent(message.rpc, message);
             }
             else
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
-                SGameM.Event.RunEvent(message);
+                GameM.Event.RunEvent(message);
 
                 if (_requestTask.TryGetValue(type, out var queue))
                 {
@@ -55,21 +53,10 @@ namespace Game
         /// </summary>
         /// <param name="type"></param>
         /// <param name="ipEndPoint"></param>
-        public async STask<bool> Connect(ServerType type, IPEndPoint ipEndPoint)
+        public async STask<bool> Connect(SBaseNet _net)
         {
             net?.DisConnect();
-            switch (type)
-            {
-                case ServerType.TCP:
-                    net = new STCP(ipEndPoint);
-                    break;
-                case ServerType.UDP:
-                    net = new SUDP(ipEndPoint);
-                    break;
-                default:
-                    Loger.Error($"未识别的链接类型->{type}");
-                    return false;
-            }
+            net = _net;
             net.onReceive += msg => msgs.Enqueue(msg);
             net.onError += _onError;
             var b = await net.Connect();

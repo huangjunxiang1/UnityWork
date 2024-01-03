@@ -87,7 +87,7 @@ partial class FUIFighting2
 
     void _clickBack()
     {
-        _ = SGameL.Scene.InLoginScene();
+        _ = GameL.Scene.InLoginScene();
     }
     void _onPlay()
     {

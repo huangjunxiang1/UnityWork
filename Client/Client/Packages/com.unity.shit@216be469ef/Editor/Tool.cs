@@ -252,6 +252,10 @@ public class Tool
         code.AppendLine("        this.ui = ui;");
         addChildBinding("", "ui", obj, code);
         code.AppendLine("    }");
+        code.AppendLine($"    public static G_{item.name} Create()");
+        code.AppendLine("    {");
+        code.AppendLine($"        return new G_{item.name}(UIPackage.CreateObject(\"{item.owner.name}\", \"{item.name}\").asCom);");
+        code.AppendLine("    }");
 
         obj.Dispose();
     }
@@ -326,28 +330,28 @@ public class Tool
             {
                 if (c.packageItem != null && c.packageItem.exported)
                 {
-                    code.AppendLine($"    public G_{c.packageItem.name} {name + c.name};");
+                    code.AppendLine($"    public G_{c.packageItem.name} {name + c.name} {{ get; private set; }}");
                 }
                 else
                 {
-                    code.AppendLine($"    public {c.GetType().Name} {name + c.name};");
+                    code.AppendLine($"    public {c.GetType().Name} {name + c.name} {{ get; private set; }}");
                     addChildCode(name + c.name, c.asCom, code);
                 }
             }
             else
-                code.AppendLine($"    public {c.GetType().Name} {name + c.name};");
+                code.AppendLine($"    public {c.GetType().Name} {name + c.name} {{ get; private set; }}");
         }
         for (int i = 0; i < obj.Controllers.Count; i++)
         {
             if (!obj.Controllers[i].name.StartsWith("_"))
                 continue;
-            code.AppendLine($"    public Controller {name + obj.Controllers[i].name};");
+            code.AppendLine($"    public Controller {name + obj.Controllers[i].name} {{ get; private set; }}");
         }
         for (int i = 0; i < obj.Transitions.Count; i++)
         {
             if (!obj.Transitions[i].name.StartsWith("_"))
                 continue;
-            code.AppendLine($"    public Transition {name + obj.Transitions[i].name};");
+            code.AppendLine($"    public Transition {name + obj.Transitions[i].name} {{ get; private set; }}");
         }
     }
     static void addChildBinding(string name, string path, GComponent obj, StringBuilder code)
@@ -457,7 +461,7 @@ public class Tool
         so.AppendLine("");
         so.AppendLine("namespace Game");
         so.AppendLine("{");
-        so.AppendLine("\tpublic static partial class SSetting");
+        so.AppendLine("\tpublic static partial class Setting");
         so.AppendLine("\t{");
 
         StringBuilder input = new StringBuilder();
@@ -474,7 +478,7 @@ public class Tool
         if (!Directory.Exists(Application.dataPath + "/Code/HotFix/_Gen"))
             Directory.CreateDirectory(Application.dataPath + "/Code/HotFix/_Gen");
 
-        File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/SSetting.cs", so.ToString());
+        File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/Setting.cs", so.ToString());
         File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/Inputs.cs", input.ToString());
 
         AssetDatabase.Refresh();
@@ -561,8 +565,8 @@ public class Tool
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;
-        STabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabM.bytes"))), SConstDefM.Debug);
-        STabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabL.bytes"))), SConstDefM.Debug);
+        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabM.bytes"))), ConstDefM.Debug);
+        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabL.bytes"))), ConstDefM.Debug);
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 }

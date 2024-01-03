@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Game
 {
-    static partial class SSetting
+    static partial class Setting
     {
         static UIModel _uiModel = UIModel.FGUI;
         public static UIModel UIModel
@@ -23,8 +23,8 @@ namespace Game
                 {
                     _uiModel = value;
 
-                    SGameL.UI.UGUIRoot.gameObject.SetActive(value == UIModel.UGUI);
-                    SGameL.UI.UGUICamera.gameObject.SetActive(value == UIModel.UGUI);
+                    GameL.UI.UGUIRoot.gameObject.SetActive(value == UIModel.UGUI);
+                    GameL.UI.UGUICamera.gameObject.SetActive(value == UIModel.UGUI);
 
                     GRoot.inst.visible = value == UIModel.FGUI;
                     StageCamera.main.gameObject.SetActive(value == UIModel.FGUI);
@@ -47,7 +47,7 @@ namespace Game
         static async void loadLocationText()
         {
             var t = LanguageUtil.LanguageType;
-            DBuffer buff = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/SLanguage_{LanguageUtil.LanguageType}.bytes")).bytes));
+            DBuffer buff = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/Language_{LanguageUtil.LanguageType}.bytes")).bytes));
             if (LanguageUtil.LanguageType != t)
             {
                 buff.Dispose();
@@ -55,8 +55,8 @@ namespace Game
             }
 
             if (buff.ReadHeaderInfo())
-                LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, SConstDefM.Debug);
-            SGameM.Event.RunEvent(new EC_LanguageChange());
+                LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefM.Debug);
+            GameM.Event.RunEvent(new EC_LanguageChange());
         }
     }
 }

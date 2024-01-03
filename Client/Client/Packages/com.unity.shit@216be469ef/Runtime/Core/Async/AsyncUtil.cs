@@ -48,13 +48,13 @@ public static class AsyncUtil
         tween.OnComplete(() => task.TrySetResult());
         return task;
     }
-    public static STask PlayAsTask(this Transition t)
+    public static STask AsTask(this Transition t)
     {
         STask task = new();
         t.Play(() => task.TrySetResult());
         return task;
     }
-    public static STask PlayReverseAsTask(this Transition t)
+    public static STask AsReverseTask(this Transition t)
     {
         STask task = new();
         t.PlayReverse(() => task.TrySetResult());

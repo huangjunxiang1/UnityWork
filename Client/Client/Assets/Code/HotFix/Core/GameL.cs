@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Game;
 
-static class SGameL
+static class GameL
 {
     public static Scene Scene { get; private set; }
     public static Data Data { get; private set; }

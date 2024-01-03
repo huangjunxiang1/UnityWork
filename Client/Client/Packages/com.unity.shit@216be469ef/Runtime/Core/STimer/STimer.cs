@@ -35,7 +35,7 @@ public static class STimer
 
     public static void Add(float time, int count, Action call, object target = null)
     {
-        if (SAppSetting.Debug)
+        if (AppSetting.Debug)
         {
             if (Contains(call))
                 Loger.Error("已经包含timer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
@@ -74,7 +74,7 @@ public static class STimer
 
     public static void AddUTC(long utc, Action call)
     {
-        if (SAppSetting.Debug)
+        if (AppSetting.Debug)
         {
             if (ContainsUTC(call))
                 Loger.Error("已经包含utcTimer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
@@ -188,8 +188,7 @@ public static class STimer
         }
     }
 
-    [Event]
-    static void RigisterStaticTimer(EC_GameInit e)
+    internal static void Init()
     {
         var lst = Types.GetStaticMethods();
         for (int i = 0; i < lst.Count; i++)
@@ -230,7 +229,7 @@ public static class STimer
                 continue;
             }
 #endif
-            var timer = ts[i].attribute.As<STimerAttribute>();
+            var timer = ts[i].attribute as STimerAttribute;
 #if ILRuntime
             Add(timer.Time, timer.Count, () =>
             {

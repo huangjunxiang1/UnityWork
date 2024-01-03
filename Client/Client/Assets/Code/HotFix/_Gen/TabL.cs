@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public static class STabL
+public static class TabL
 {
     static DBuffer dbbuff;
     static bool loadAll;
 
     static Dictionary<int, TabMapping> _mapSceneIdx;
-    static STabLScene[] _SceneArray;
-    static Dictionary<int, STabLScene> _mapScene;
-    public static STabLScene[] SceneArray
+    static TabLScene[] _SceneArray;
+    static Dictionary<int, TabLScene> _mapScene;
+    public static TabLScene[] SceneArray
     {
         get
         {
@@ -19,17 +19,17 @@ public static class STabL
                 bool isLoadAll = loadAll;
                 int[] keys = _mapSceneIdx.Keys.ToArray();
                 int len = keys.Length;
-                _SceneArray = new STabLScene[_mapSceneIdx.Count];
+                _SceneArray = new TabLScene[_mapSceneIdx.Count];
                 for (int i = 0; i < len; i++)
                 {
                     int k = keys[i];
                     TabMapping v = _mapSceneIdx[k];
-                    if (_mapScene.TryGetValue(k, out STabLScene value))
+                    if (_mapScene.TryGetValue(k, out TabLScene value))
                         _SceneArray[v.index] = value;
                     else
                     {
                         dbbuff.Seek(v.point);
-                        STabLScene tmp = new STabLScene(dbbuff, isLoadAll);
+                        TabLScene tmp = new TabLScene(dbbuff, isLoadAll);
                         _mapScene[k] = tmp;
                         _SceneArray[v.index] = tmp;
                     }
@@ -41,9 +41,9 @@ public static class STabL
     }
 
     static Dictionary<int, TabMapping> _map_test1Idx;
-    static STabL_test1[] __test1Array;
-    static Dictionary<int, STabL_test1> _map_test1;
-    public static STabL_test1[] _test1Array
+    static TabL_test1[] __test1Array;
+    static Dictionary<int, TabL_test1> _map_test1;
+    public static TabL_test1[] _test1Array
     {
         get
         {
@@ -52,17 +52,17 @@ public static class STabL
                 bool isLoadAll = loadAll;
                 int[] keys = _map_test1Idx.Keys.ToArray();
                 int len = keys.Length;
-                __test1Array = new STabL_test1[_map_test1Idx.Count];
+                __test1Array = new TabL_test1[_map_test1Idx.Count];
                 for (int i = 0; i < len; i++)
                 {
                     int k = keys[i];
                     TabMapping v = _map_test1Idx[k];
-                    if (_map_test1.TryGetValue(k, out STabL_test1 value))
+                    if (_map_test1.TryGetValue(k, out TabL_test1 value))
                         __test1Array[v.index] = value;
                     else
                     {
                         dbbuff.Seek(v.point);
-                        STabL_test1 tmp = new STabL_test1(dbbuff, isLoadAll);
+                        TabL_test1 tmp = new TabL_test1(dbbuff, isLoadAll);
                         _map_test1[k] = tmp;
                         __test1Array[v.index] = tmp;
                     }
@@ -80,7 +80,7 @@ public static class STabL
 
         int len0 = buffer.Readint();
         _mapSceneIdx = new Dictionary<int, TabMapping>(len0);
-        _mapScene = new Dictionary<int, STabLScene>(len0);
+        _mapScene = new Dictionary<int, TabLScene>(len0);
         _SceneArray = null;
         for (int i = 0; i < len0; i++)
         {
@@ -93,7 +93,7 @@ public static class STabL
         }
         int len1 = buffer.Readint();
         _map_test1Idx = new Dictionary<int, TabMapping>(len1);
-        _map_test1 = new Dictionary<int, STabL_test1>(len1);
+        _map_test1 = new Dictionary<int, TabL_test1>(len1);
         __test1Array = null;
         for (int i = 0; i < len1; i++)
         {
@@ -111,37 +111,37 @@ public static class STabL
         }
     }
     public static bool HasScene(int key) => (_mapSceneIdx != null && _mapSceneIdx.ContainsKey(key)) || _mapScene.ContainsKey(key);
-    public static STabLScene GetScene(int key)
+    public static TabLScene GetScene(int key)
     {
         if (_mapScene.TryGetValue(key, out var value))
             return value;
         if (_mapSceneIdx != null && _mapSceneIdx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
-            STabLScene tmp = new STabLScene(dbbuff, loadAll);
+            TabLScene tmp = new TabLScene(dbbuff, loadAll);
             _mapScene[key] = tmp;
             return tmp;
         }
-        Loger.Error("STabLScene表没有key: " + key);
+        Loger.Error("TabLScene表没有key: " + key);
         return null;
     }
     public static bool Has_test1(int key) => (_map_test1Idx != null && _map_test1Idx.ContainsKey(key)) || _map_test1.ContainsKey(key);
-    public static STabL_test1 Get_test1(int key)
+    public static TabL_test1 Get_test1(int key)
     {
         if (_map_test1.TryGetValue(key, out var value))
             return value;
         if (_map_test1Idx != null && _map_test1Idx.TryGetValue(key, out TabMapping map))
         {
             dbbuff.Seek(map.point);
-            STabL_test1 tmp = new STabL_test1(dbbuff, loadAll);
+            TabL_test1 tmp = new TabL_test1(dbbuff, loadAll);
             _map_test1[key] = tmp;
             return tmp;
         }
-        Loger.Error("STabL_test1表没有key: " + key);
+        Loger.Error("TabL_test1表没有key: " + key);
         return null;
     }
 }
-public partial class STabLScene
+public partial class TabLScene
 {
     DBuffer dbuff;
 
@@ -157,7 +157,7 @@ public partial class STabLScene
         return _nameTmp;
     }
 
-    public STabLScene(DBuffer buffer, bool loadAll = false)
+    public TabLScene(DBuffer buffer, bool loadAll = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();
@@ -170,7 +170,7 @@ public partial class STabLScene
         }
     }
 }
-public partial class STabL_test1
+public partial class TabL_test1
 {
     DBuffer dbuff;
 
@@ -246,7 +246,7 @@ public partial class STabL_test1
         return _b2Tmp;
     }
 
-    public STabL_test1(DBuffer buffer, bool loadAll = false)
+    public TabL_test1(DBuffer buffer, bool loadAll = false)
     {
         dbuff = buffer;
         this.id = buffer.Readint();

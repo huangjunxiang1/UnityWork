@@ -13,7 +13,7 @@ abstract class UIBase : STree<UIBase>
 {
     SEventListener _onDispose;
 
-    public Main.SUIConfig uiConfig { get; private set; }
+    public Main.UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
 
@@ -39,7 +39,7 @@ abstract class UIBase : STree<UIBase>
     /// </summary>
     public STask onCompleted { get; private set; }
 
-    public virtual STask LoadConfig(Main.SUIConfig config, STask completed, params object[] data)
+    public virtual STask LoadConfig(Main.UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
         this.EventEnable = true;
@@ -47,7 +47,7 @@ abstract class UIBase : STree<UIBase>
         onCompleted = completed;
         return STask.Completed;
     }
-    public virtual STask LoadConfigAsync(Main.SUIConfig config, STask completed, params object[] data)
+    public virtual STask LoadConfigAsync(Main.UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
         onCompleted = completed;
@@ -86,13 +86,13 @@ abstract class UIBase : STree<UIBase>
     public override void Dispose()
     {  
         //先从列表移除
-        SGameL.UI.Remove(this);
+        GameL.UI.Remove(this);
         STimer.AutoRemoveTimer(this);
         base.Dispose();
         //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
         //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
         if (this.uiStates == UIStates.Success)
-            SGameL.UI.ShowLastUI();
+            GameL.UI.ShowLastUI();
         //先执行退出逻辑
         if (this.uiStates >= UIStates.OnTask)
             this.OnExit();

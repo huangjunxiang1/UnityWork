@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public static class SObjectPool
+public static class ObjectPool
 {
     static Dictionary<Type, List<object>> pool = new();
     public static T Get<T>() where T : class, new()

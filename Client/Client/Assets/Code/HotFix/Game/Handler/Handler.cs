@@ -29,29 +29,30 @@ static class Handler
         }
     }
     [Event(1, Queue = true)]
-    static async STask EC_HotFixInit(EC_GameStart e)
+    static async STask EC_GameInit(EC_GameInit e)
     {
-        SSetting.Languege = SystemLanguage.Chinese;
-        SSetting.UIModel = UIModel.FGUI;
-        Game.ECSSingle.Init();
+        DG.Tweening.DOTween.Init();
+        Setting.Languege = SystemLanguage.Chinese;
+        Setting.UIModel = UIModel.FGUI;
+        Game.ShareData.Init();
         Application.targetFrameRate = -1;
 
-        DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>("Config/Tabs/STabM_ST.bytes")).bytes));
+        DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>($"Config/Tabs/{nameof(TabM_ST)}.bytes")).bytes));
         if (buffM_ST.ReadHeaderInfo())
-            STabM_ST.Init(buffM_ST);
+            TabM_ST.Init(buffM_ST);
 
-        DBuffer buffM = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>("Config/Tabs/STabM.bytes")).bytes));
+        DBuffer buffM = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/{nameof(TabM)}.bytes")).bytes));
         if (buffM.ReadHeaderInfo())
-            STabM.Init(buffM, SConstDefM.Debug);
+            TabM.Init(buffM, ConstDefM.Debug);
 
-        DBuffer buffL = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>("Config/Tabs/STabL.bytes")).bytes));
+        DBuffer buffL = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/{nameof(TabL)}.bytes")).bytes));
         if (buffL.ReadHeaderInfo())
-            STabL.Init(buffL, SConstDefM.Debug);
+            TabL.Init(buffL, ConstDefM.Debug);
     }
     [Event]
     static void EC_QuitGame(EC_QuitGame e)
     {
-        Game.ECSSingle.Dispose();
+        Game.ShareData.Dispose();
     }
 
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-static partial class SConstDefL
+static partial class ConstDefL
 {
     public static bool Debug
     {

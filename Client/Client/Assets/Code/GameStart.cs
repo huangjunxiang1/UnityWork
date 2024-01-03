@@ -20,20 +20,20 @@ public class GameStart : MonoBehaviour
         _ = ThreadSynchronizationContext.Instance;
         DontDestroyOnLoad(this.gameObject);
 
-        SAppSetting.Runtime = Runtime;
-        SAppSetting.Debug = Debug;
+        AppSetting.Runtime = Runtime;
+        AppSetting.Debug = Debug;
 
         EnterGame();
     }
     void EnterGame()
     {
         Type[] a1 = typeof(Types).Assembly.GetTypes();
-        Type[] a2 = typeof(STabM).Assembly.GetTypes();
+        Type[] a2 = typeof(TabM).Assembly.GetTypes();
         Type[] all = new Type[a1.Length + a2.Length];
         a1.CopyTo(all, 0);
         a2.CopyTo(all, a1.Length);
 
-        if (SAppSetting.Runtime == CodeRuntime.Native)
+        if (AppSetting.Runtime == CodeRuntime.Native)
         {
 #if !ILRuntime && !Assembly
             Type[] a3 = typeof(Init).Assembly.GetTypes();
@@ -45,7 +45,7 @@ public class GameStart : MonoBehaviour
             Loger.Error("当前Runtime宏定义不正确");
 #endif
         }
-        else if (SAppSetting.Runtime == CodeRuntime.Assembly)
+        else if (AppSetting.Runtime == CodeRuntime.Assembly)
         {
 #if !Assembly
             Loger.Error("当前Runtime宏定义不正确");
@@ -54,7 +54,7 @@ public class GameStart : MonoBehaviour
             Loger.Error("IL2CPP模式无法运行");
 #endif
             Assembly asm;
-            if (SAppSetting.Debug)
+            if (AppSetting.Debug)
             {
                 byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll");
                 byte[] pdb = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb");
@@ -72,13 +72,13 @@ public class GameStart : MonoBehaviour
 
             asm.GetType("Init").GetMethod("Main").Invoke(null, null);
         }
-        else if (SAppSetting.Runtime == CodeRuntime.ILRuntime)
+        else if (AppSetting.Runtime == CodeRuntime.ILRuntime)
         {
 #if !ILRuntime
             Loger.Error("当前Runtime宏定义不正确");
 #endif
             ILRuntime.Runtime.Enviorment.AppDomain app = new();
-            if (SAppSetting.Debug)
+            if (AppSetting.Debug)
             {
                 System.IO.MemoryStream dll = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
                 System.IO.MemoryStream pdb = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb"));
@@ -101,6 +101,6 @@ public class GameStart : MonoBehaviour
     }
     private void OnApplicationQuit()
     {
-        SGameM.Event?.RunEvent(new EC_QuitGame());
+        GameM.Event?.RunEvent(new EC_QuitGame());
     }
 }

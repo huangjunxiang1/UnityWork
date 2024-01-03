@@ -1,22 +1,6 @@
 using UnityEngine;
 
-public partial class STabLScene
-{
-    /// <summary>
-    /// id
-    /// </summary>
-    public int id { get; }
-    /// <summary>
-    /// xxxx
-    /// </summary>
-    public string name => getname();
-    /// <summary>
-    /// 类型
-    /// </summary>
-    public int type { get; }
-}
-
-public partial class STabL_test1
+public partial class TabM_test2
 {
     /// <summary>
     /// id
@@ -26,6 +10,14 @@ public partial class STabL_test1
     /// xxxx
     /// </summary>
     public int[] value2 => getvalue2();
+    /// <summary>
+    /// xxx
+    /// </summary>
+    public long longValue { get; }
+    /// <summary>
+    /// xxx
+    /// </summary>
+    public long[] longValue2 => getlongValue2();
     /// <summary>
     /// xxxx
     /// </summary>
@@ -58,4 +50,12 @@ public partial class STabL_test1
     /// xx
     /// </summary>
     public bool[] b2 => getb2();
+    /// <summary>
+    /// hh
+    /// </summary>
+    public int[][] arrs => getarrs();
+    /// <summary>
+    /// hh
+    /// </summary>
+    public string[][] arr2s => getarr2s();
 }
