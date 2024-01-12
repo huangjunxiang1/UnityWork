@@ -40,10 +40,11 @@ public sealed class STask<T> : STask
     /// 回传结果
     /// </summary>
     /// <param name="result"></param>
-    public bool TrySetResult(T result)
+    public void TrySetResult(T result)
     {
+        if (this.IsCompleted || this.Disposed) return;
         this._result = result;
-        return base.TrySetResult();
+        base.TrySetResult();
     }
     public new STask<T> MakeAutoCancel(bool autoCancel = true)
     {

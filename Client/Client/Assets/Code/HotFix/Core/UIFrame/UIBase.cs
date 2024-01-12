@@ -13,7 +13,7 @@ abstract class UIBase : STree<UIBase>
 {
     SEventListener _onDispose;
 
-    public Main.UIConfig uiConfig { get; private set; }
+    public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
 
@@ -39,7 +39,7 @@ abstract class UIBase : STree<UIBase>
     /// </summary>
     public STask onCompleted { get; private set; }
 
-    public virtual STask LoadConfig(Main.UIConfig config, STask completed, params object[] data)
+    public virtual STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
         this.EventEnable = true;
@@ -47,7 +47,7 @@ abstract class UIBase : STree<UIBase>
         onCompleted = completed;
         return STask.Completed;
     }
-    public virtual STask LoadConfigAsync(Main.UIConfig config, STask completed, params object[] data)
+    public virtual STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
         onCompleted = completed;

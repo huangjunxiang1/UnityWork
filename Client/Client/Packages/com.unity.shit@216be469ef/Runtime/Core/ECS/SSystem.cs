@@ -18,8 +18,9 @@ namespace Main
         static Dictionary<Type, Delegate> runMis = new();
         static MethodInfo runMi = typeof(SSystem).GetMethod("run", BindingFlags.Static | BindingFlags.NonPublic);
         static object[] parameters1 = new object[1];
-        static object[] parameters3 = new object[2];
+        static object[] parameters2 = new object[2];
         static HashSet<Type> removed = new();
+        static HashSet<SComponent> changeHash = ObjectPool.Get<HashSet<SComponent>>();
 
         internal static void RigisteComponent(SComponent c)
         {
@@ -33,10 +34,13 @@ namespace Main
                 value.Remove(c);
             removed.Add(c.GetType());
         }
+        internal static void SetChange(SComponent c)
+        {
+            changeHash.Add(c);
+        }
 
         internal static void Run<T>(SComponent c) where T : SSystemAttribute
         {
-            if (c.Disposed || !c.Enable) return;
             if (attributeMap.TryGetValue(typeof(T), out var map))
             {
                 if (map.TryGetValue(c.GetType(), out var value))
@@ -49,21 +53,6 @@ namespace Main
                     catch (Exception ex)
                     {
                         Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
-                    }
-                }
-            }
-        }
-        internal static void update()
-        {
-            if (attributeMap.TryGetValue(typeof(UpdateAttribute), out var map))
-            {
-                foreach (var kv in map)
-                {
-                    if (componentMap.TryGetValue(kv.Key, out var cs) && cs.components.Count > 0)
-                    {
-                        parameters3[0] = cs.components;
-                        parameters3[1] = kv.Value;
-                        runMis[kv.Key].DynamicInvoke(parameters3);
                     }
                 }
             }
@@ -146,10 +135,6 @@ namespace Main
                 return false;
             }
             key = ps[0].ParameterType;
-#if ILRuntime
-            if (key is ILRuntime.Reflection.ILRuntimeWrapperType warp)
-                key = warp.RealType;
-#endif
             if (!typeof(SComponent).IsAssignableFrom(key))
             {
                 Loger.Error($"{key}不是ECS组件");
@@ -191,7 +176,38 @@ namespace Main
         }
         internal static void Update()
         {
-            update();
+            if (changeHash.Count>0)
+            {
+                if (attributeMap.TryGetValue(typeof(ChangeAttribute), out var map1))
+                {
+                    var hs = changeHash;
+                    changeHash = ObjectPool.Get<HashSet<SComponent>>();
+                    foreach (var c in hs)
+                    {
+                        if (c.Disposed) continue;
+                        if (map1.TryGetValue(c.GetType(), out var action))
+                        {
+                            parameters1[0] = c;
+                            action.DynamicInvoke(parameters1);
+                        }
+                    }
+                    hs.Clear();
+                    ObjectPool.Return(hs);
+                }
+            }
+
+            if (attributeMap.TryGetValue(typeof(UpdateAttribute), out var map))
+            {
+                foreach (var kv in map)
+                {
+                    if (componentMap.TryGetValue(kv.Key, out var cs) && cs.components.Count > 0)
+                    {
+                        parameters2[0] = cs.components;
+                        parameters2[1] = kv.Value;
+                        runMis[kv.Key].DynamicInvoke(parameters2);
+                    }
+                }
+            }
         }
         internal static void AfterUpdate()
         {
@@ -215,10 +231,13 @@ namespace Main
             public void Add(SComponent c)
             {
                 components.Add(c);
-                if (!rpcMap.TryGetValue(c.Entity.rpc, out var cc))
-                    rpcMap[c.Entity.rpc] = c;
-                else
-                    Loger.Error($"已经包含rpc组件 c={c} rpc={cc.Entity.rpc}");
+                if (c.Entity.rpc > 0)
+                {
+                    if (!rpcMap.TryGetValue(c.Entity.rpc, out var cc))
+                        rpcMap[c.Entity.rpc] = c;
+                    else
+                        Loger.Error($"已经包含rpc组件 c={c} rpc={cc.Entity.rpc}");
+                }
                 if (!gidMap.TryGetValue(c.Entity.gid, out var ccc))
                     gidMap[c.Entity.gid] = c;
                 else

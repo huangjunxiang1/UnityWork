@@ -1,10 +1,7 @@
 ﻿using FairyGUI;
 using Main;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Game;
 
 abstract class FUI : FUIBase
 {
@@ -26,7 +23,7 @@ abstract class FUI : FUIBase
     }
     public sealed override STask onTask => task;
 
-    public sealed override STask LoadConfig(Main.UIConfig config, STask completed, params object[] data)
+    public sealed override STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
     {
         base.LoadConfig(config, completed, data);
 
@@ -42,7 +39,7 @@ abstract class FUI : FUIBase
         this.OnEnter(data);
         return STask.Completed;
     }
-    public sealed override STask LoadConfigAsync(Main.UIConfig config, STask completed, params object[] data)
+    public sealed override STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
     {
         base.LoadConfigAsync(config, completed, data);
 

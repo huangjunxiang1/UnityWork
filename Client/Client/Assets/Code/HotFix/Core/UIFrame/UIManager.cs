@@ -87,8 +87,8 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                cfg = Main.UIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
+                cfg = Game.UIConfig.Default;
 
             ui = new();
             _uiLst.Add(ui);
@@ -119,8 +119,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                        cfg = Main.UIConfig.Default;
+                    if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
+                        cfg = Game.UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -167,8 +167,8 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                cfg = Main.UIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
+                cfg = Game.UIConfig.Default;
 
             ui = new();
             parent.AddChild(ui);
@@ -186,8 +186,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                        cfg = Main.UIConfig.Default;
+                    if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
+                        cfg = Game.UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -217,8 +217,8 @@ namespace Game
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                cfg = Main.UIConfig.Default;
+            if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
+                cfg = Game.UIConfig.Default;
 
             T ui = new();
             _3duiLst.Add(ui);
@@ -233,8 +233,8 @@ namespace Game
             open();
             async void open()
             {
-                if (Types.GetAttribute(typeof(T), typeof(Main.UIConfig)) is not Main.UIConfig cfg)
-                    cfg = Main.UIConfig.Default;
+                if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
+                    cfg = Game.UIConfig.Default;
 
                 T ui = new();
                 _3duiLst.Add(ui);

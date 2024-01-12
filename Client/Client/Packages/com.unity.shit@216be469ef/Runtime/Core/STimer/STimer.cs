@@ -209,15 +209,7 @@ public static class STimer
     }
     public static bool AutoRigisterTimer(object target)
     {
-        Type t;
-#if ILRuntime
-            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                t = ilInstance.Type.ReflectionType;
-            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                t = ilWarp.ILInstance.Type.ReflectionType;
-            else
-#endif
-        t = target.GetType();
+        Type t = target.GetType();
         var ts = Types.GetInstanceMethodsWithAttribute<STimerAttribute>(t);
         for (int i = 0; i < ts.Length; i++)
         {
@@ -230,14 +222,7 @@ public static class STimer
             }
 #endif
             var timer = ts[i].attribute as STimerAttribute;
-#if ILRuntime
-            Add(timer.Time, timer.Count, () =>
-            {
-                method.Invoke(o, default, default, Array.Empty<object>(), default);
-            }, target);
-#else
             Add(timer.Time, timer.Count, (Action)method.CreateDelegate(typeof(Action), target), target);
-#endif
         }
         return ts.Length > 0;
     }

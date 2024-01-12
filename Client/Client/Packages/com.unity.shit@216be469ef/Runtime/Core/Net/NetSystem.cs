@@ -85,14 +85,7 @@ namespace Game
         /// <returns></returns>
         public STask<PB.PBMessage> SendAsync(PBMessage request)
         {
-            Type t;
-#if ILRuntime
-            if (request is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilRequest)
-                t = ilRequest.ILInstance.Type.ReflectionType;
-            else
-#endif
-            t = request.GetType();
-
+            Type t = request.GetType();
             var rsp = Types.GetResponseType(t);
             if (rsp == null)
             {

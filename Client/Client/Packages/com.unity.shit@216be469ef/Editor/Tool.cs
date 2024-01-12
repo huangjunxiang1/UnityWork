@@ -74,7 +74,7 @@ public class Tool
                 code.AppendLine(@$"partial class {go.name} : UUI");
              
             code.AppendLine(@"{");
-            code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(go).Replace(SAsset.Directory, "")}\";");
+            code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(go).Replace(Game.SAsset.Directory, "")}\";");
 
             var childs = go.GetComponentsInChildren<Transform>(true);
             for (int j = 0; j < childs.Length; j++)
@@ -193,7 +193,7 @@ public class Tool
         UIPackage.RemoveAllPackages();
         FontManager.Clear();
         FairyGUI.UIConfig.defaultFont = "Impact";
-        var pkg = UIPackage.AddPackage($"{SAsset.Directory}/UI/FUI/ComPkg/ComPkg");
+        var pkg = UIPackage.AddPackage($"{Game.SAsset.Directory}/UI/FUI/ComPkg/ComPkg");
         StringBuilder code = new StringBuilder(100000);
         code.AppendLine("using FairyGUI;");
         code.AppendLine("using FairyGUI.Utils;");
@@ -466,6 +466,7 @@ public class Tool
 
         StringBuilder input = new StringBuilder();
         input.AppendLine(@"using UnityEngine.InputSystem;");
+        input.AppendLine("using Game;");
         input.AppendLine(@"using Main;");
         input.AppendLine(@"using UnityEngine;");
         input.AppendLine(@"");
@@ -512,7 +513,7 @@ public class Tool
         code.AppendLine("\t        get");
         code.AppendLine("\t        {");
         code.AppendLine($"\t            if (!_{so.name})");
-        code.AppendLine($"\t                _{so.name} = ({type})SAsset.Load<ScriptableObject>(\"{url.Replace(SAsset.Directory, "")}\");");
+        code.AppendLine($"\t                _{so.name} = ({type})SAsset.Load<ScriptableObject>(\"{url.Replace(Game.SAsset.Directory, "")}\");");
         code.AppendLine($"\t            return _{so.name};");
         code.AppendLine("\t        }");
         code.AppendLine("\t    }");
@@ -524,7 +525,7 @@ public class Tool
         str.AppendLine($"    public {input.name}()");
         str.AppendLine("    {");
         var url = AssetDatabase.GetAssetPath(input);
-        str.AppendLine($"        this.Asset = SAsset.Load<InputActionAsset>(\"{url.Replace(SAsset.Directory, "")}\");");
+        str.AppendLine($"        this.Asset = SAsset.Load<InputActionAsset>(\"{url.Replace(Game.SAsset.Directory, "")}\");");
 
         foreach (var item in input.actionMaps)
         {

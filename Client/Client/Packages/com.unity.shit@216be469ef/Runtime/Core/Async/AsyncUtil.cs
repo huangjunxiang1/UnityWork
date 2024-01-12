@@ -4,6 +4,9 @@ using System.Diagnostics;
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.Events;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceProviders;
+
 #if FairyGUI
 using FairyGUI;
 #endif
@@ -18,6 +21,15 @@ public static class AsyncUtil
 
         STask task = new();
         op.completed += e => task.TrySetResult();
+        return task;
+    }
+    public static STask<T> AsTask<T>(this AsyncOperationHandle<T> op)
+    {
+        if (op.IsDone)
+            return default;
+
+        STask<T> task = new();
+        op.Completed += e => task.TrySetResult();
         return task;
     }
 

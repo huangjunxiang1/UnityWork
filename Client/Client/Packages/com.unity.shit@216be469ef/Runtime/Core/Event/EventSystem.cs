@@ -1,9 +1,7 @@
-﻿using Main;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 namespace Game
 {
@@ -19,12 +17,15 @@ namespace Game
 
         readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
         readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
-        static Type[] _parameterType = new Type[1];
+        static Type[] _parameterType1 = new Type[1];
+        static Type[] _parameterType2 = new Type[2];
+        static Type[] _parameterType3 = new Type[3];
 
-        static bool _checkEventMethod(MethodInfo method, out Type key, out bool setHandler)
+        static bool _checkEventMethod(MethodInfo method, out Type key, out bool setHandler, out Type returnType)
         {
             key = null;
             setHandler = false;
+            returnType = method.ReturnType;
             if (method.IsGenericMethod)
             {
                 Loger.Error("事件函数不能是泛型函数");
@@ -46,10 +47,6 @@ namespace Game
                 }
             }
             key = ps[0].ParameterType;
-#if ILRuntime
-            if (key is ILRuntime.Reflection.ILRuntimeWrapperType warp)
-                key = warp.RealType;
-#endif
 #if DebugEnable
             if (key.IsPrimitive)
                 Loger.Error("不要使用系统值类型作为事件参数类型");
@@ -86,9 +83,9 @@ namespace Game
                     if (ea != null)
                     {
                         MethodData e = new();
-                        if (!_checkEventMethod(method, out e.key, out e.setHandler))
+                        if (!_checkEventMethod(method, out e.key, out e.setHandler, out e.returnType))
                             continue;
-                        e.info = method;
+                        e.method = method;
                         e.attribute = ea;
                         evts.Add(e);
                     }
@@ -117,15 +114,16 @@ namespace Game
                     }
 
                     EvtData e = new();
-                    if (!_checkEventMethod(ma.method, out e.Key, out e.setHandler))
+                    if (!_checkEventMethod(ma.method, out e.Key, out e.setHandler, out e.returnType))
                         continue;
 
                     if (!_evtMap.TryGetValue(e.Key, out var queue))
                         _evtMap[e.Key] = queue = new();
 
-                    e.method = ma.method;
                     e.sortOrder = ea.SortOrder;
                     e.isQueue = ea.Queue;
+                    e.method = ma.method;
+                    createDelegate(e, null);
 
                     queue.Add(e);
                 }
@@ -143,7 +141,7 @@ namespace Game
                 Loger.Error("添加事件对象为空");
                 return;
             }
-            Type t = _getType(target);
+            Type t = target.GetType();
             if (!t.IsClass)
             {
                 Loger.Error("只能在class注册事件");
@@ -161,11 +159,13 @@ namespace Game
 
                 EvtData e = new();
                 e.Key = m.key;
-                e.method = m.info;
+                e.method = m.method;
                 e.sortOrder = m.attribute.SortOrder;
                 e.target = target;
                 e.isQueue = m.attribute.Queue;
                 e.setHandler = m.setHandler;
+                e.returnType = m.returnType;
+                createDelegate(e, target);
 
                 queue.Add(e);
             }
@@ -177,7 +177,7 @@ namespace Game
                 Loger.Error("添加事件对象为空");
                 return;
             }
-            Type t = _getType(target);
+            Type t = target.GetType();
             if (!t.IsClass)
             {
                 Loger.Error("只能在class注册事件");
@@ -198,11 +198,13 @@ namespace Game
 
                 EvtData e = new();
                 e.Key = m.key;
-                e.method = m.info;
+                e.method = m.method;
                 e.sortOrder = m.attribute.SortOrder;
                 e.target = target;
                 e.isQueue = m.attribute.Queue;
                 e.setHandler = m.setHandler;
+                e.returnType = m.returnType;
+                createDelegate(e, target);
 
                 queue.Add(e);
             }
@@ -217,9 +219,8 @@ namespace Game
 
             EvtData e = new();
             e.Key = k;
-            _parameterType[0] = k;
-            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType);
-            _parameterType[0] = null;
+            _parameterType1[0] = k;
+            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType1);
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
@@ -240,9 +241,8 @@ namespace Game
 
             EvtData e = new();
             e.Key = k;
-            _parameterType[0] = k;
-            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType);
-            _parameterType[0] = null;
+            _parameterType1[0] = k;
+            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType1);
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
@@ -262,7 +262,7 @@ namespace Game
                 Loger.Error("移除事件对象为空");
                 return;
             }
-            Type t = _getType(target);
+            Type t = target.GetType();
             if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
                 for (int i = 0; i < ms.Length; i++)
@@ -278,7 +278,7 @@ namespace Game
                 return;
             }
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            Type t = _getType(target);
+            Type t = target.GetType();
             if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
             {
                 for (int i = 0; i < ms.Length; i++)
@@ -291,33 +291,33 @@ namespace Game
         /// 执行事件
         /// </summary>
         /// <param name="data"></param>
-        public void RunEvent(object data)
+        public void RunEvent<T>(T data)
         {
             _runEvent(_evtMap, 0, data);
         }
-        public STask RunEventAsync(object data)
+        public STask RunEventAsync<T>(T data)
         {
             return _runEventAsync(_evtMap, 0, data);
         }
-        public STask<T> RunEventReturn<T>(object data)
+        public STask<K> RunEventAsync<K>(object data)
         {
-            return _runEventAsyncReturn<T>(_evtMap, 0, data);
+            return _runEventAsync<K>(_evtMap, 0, data);
         }
 
-        public void RunRPCEvent(long rpc, object data)
+        public void RunRPCEvent<T>(long rpc, T data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
             _runEvent(map, rpc, data);
         }
-        public STask RunRPCEventAsync(long rpc, object data)
+        public STask RunRPCEventAsync<T>(long rpc, T data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
             return _runEventAsync(map, rpc, data);
         }
-        public async STask<T> RunRPCEventReturn<T>(long rpc, object data)
+        public async STask<K> RunRPCEventAsync<K>(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return default;
-            return await _runEventAsyncReturn<T>(map, rpc, data);
+            return await _runEventAsync<K>(map, rpc, data);
         }
 
         public void Clear()
@@ -326,18 +326,7 @@ namespace Game
             _rpcEvtMap.Clear();
         }
 
-        Type _getType(object target)
-        {
-#if ILRuntime
-            if (target is ILRuntime.Runtime.Intepreter.ILTypeInstance ilInstance)
-                return ilInstance.Type.ReflectionType;
-            else if (target is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType ilWarp)
-                return ilWarp.ILInstance.Type.ReflectionType;
-            else
-#endif
-            return target.GetType();
-        }
-        void _runEvent(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        void _runEvent<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, T data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue)) return;
@@ -349,7 +338,7 @@ namespace Game
             }
             queue.Run(data);
         }
-        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        STask _runEventAsync<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, T data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
@@ -361,7 +350,7 @@ namespace Game
             }
             return queue.RunAsync(data);
         }
-        async STask<T> _runEventAsyncReturn<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        async STask<K> _runEventAsync<K>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue))
@@ -376,7 +365,7 @@ namespace Game
                 else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
                 return default;
             }
-            var task = queue.RunAsyncReturn<T>(data);
+            var task = queue.RunAsync<K>(data);
             if (task == null)
             {
                 if (rpc == 0) Loger.Error($"没有匹配的监听 key={key}");
@@ -386,12 +375,48 @@ namespace Game
             else
                 return await task;
         }
+        void createDelegate(EvtData ed, object o)
+        {
+            if (ed.returnType == typeof(void))
+            {
+                if (ed.setHandler)
+                {
+                    _parameterType2[0] = ed.Key;
+                    _parameterType2[1] = typeof(EventHandler);
+                    ed.action = ed.method.CreateDelegate(typeof(Action<,>).MakeGenericType(_parameterType2), o);
+                }
+                else
+                {
+                    _parameterType1[0] = ed.Key;
+                    ed.action = ed.method.CreateDelegate(typeof(Action<>).MakeGenericType(_parameterType1), o);
+                }
+            }
+            else
+            {
+                if (ed.setHandler)
+                {
+                    _parameterType3[0] = ed.Key;
+                    _parameterType3[1] = typeof(EventHandler);
+                    _parameterType3[2] = ed.returnType;
+                    ed.action = ed.method.CreateDelegate(typeof(Func<,,>).MakeGenericType(_parameterType3), o);
+                }
+                else
+                {
+                    _parameterType2[0] = ed.Key;
+                    _parameterType2[1] = ed.returnType;
+                    ed.action = ed.method.CreateDelegate(typeof(Func<,>).MakeGenericType(_parameterType2), o);
+                }
+            }
+        }
 
         class EvtData
         {
             public Type Key;
+            public Type returnType;
 
+            public Delegate action;
             public MethodInfo method;
+
             public int sortOrder;
             public bool isOnece;
 
@@ -404,8 +429,9 @@ namespace Game
             public List<EvtData> evts = new List<EvtData>();
             public int index = -1;//当前执行位置
             int cnt;
-            static object[] _parameters1 = new object[1];
-            static object[] _parameters2 = new object[2];
+
+            static object[] parameters1 = new object[1];
+            static object[] parameters2 = new object[2];
 
             public void Add(EvtData evt)
             {
@@ -435,7 +461,7 @@ namespace Game
                     }
                 }
             }
-            public async void Run(object data)
+            public async void Run<T>(T data)
             {
                 cnt = evts.Count;
                 EventHandler eh = ObjectPool.Get<EventHandler>();
@@ -455,7 +481,7 @@ namespace Game
                 index = -1;
                 ObjectPool.Return(eh);
             }
-            public async STask RunAsync(object data)
+            public async STask RunAsync<T>(T data)
             {
                 List<STask> ts = ObjectPool.Get<List<STask>>();
                 cnt = evts.Count;
@@ -483,11 +509,11 @@ namespace Game
                 ts.Clear();
                 ObjectPool.Return(ts);
             }
-            public async STask<T> RunAsyncReturn<T>(object data)
+            public async STask<K> RunAsync<K>(object data)
             {
                 bool get = false;
-                T ret = default;
-                STask<T> task = default;
+                K ret = default;
+                STask<K> task = default;
                 cnt = evts.Count;
                 EventHandler eh = ObjectPool.Get<EventHandler>();
                 eh.Reset();
@@ -500,16 +526,16 @@ namespace Game
                         --cnt;
                     }
                     else ++index;
-                    object o = invoke(e, data, eh);
-                    if (!get && o is T)
+                    object o = invoke2(e, data, eh);
+                    if (!get && o is K)
                     {
                         get = true;
-                        ret = (T)o;
+                        ret = (K)o;
                     }
-                    if (!get && o is STask<T>)
+                    if (!get && o is STask<K>)
                     {
                         get = true;
-                        task = (STask<T>)o;
+                        task = (STask<K>)o;
                     }
                     if (o is STask t && e.isQueue) await t;
                 }
@@ -519,23 +545,55 @@ namespace Game
                 return ret;
             }
 
-            object invoke(EvtData e, object data, EventHandler eh)
+            object invoke<T>(EvtData e, T data, EventHandler eh)
             {
                 object o = default;
                 try
                 {
                     if (!e.setHandler)
                     {
-                        _parameters1[0] = data;
-                        o = e.method.Invoke(e.target, default, default, _parameters1, default);
-                        _parameters1[0] = default;
+                        if (e.returnType == typeof(void))
+                            ((Action<T>)e.action).Invoke(data);
+                        else
+                        {
+                            parameters1[0] = data;
+                            o = e.method.Invoke(e.target, parameters1);
+                        }
                     }
                     else
                     {
-                        _parameters2[0] = data;
-                        _parameters2[1] = eh;
-                        o = e.method.Invoke(e.target, default, default, _parameters2, default);
-                        _parameters2[0] = default;
+                        if (e.returnType == typeof(void))
+                            ((Action<T, EventHandler>)e.action).Invoke(data, eh);
+                        else
+                        {
+                            parameters2[0] = data;
+                            parameters2[1] = eh;
+                            o = e.method.Invoke(e.target, parameters2);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Loger.Error("事件执行出错 error:" + ex.ToString());
+                }
+                if (eh.isBreak) cnt = index;
+                return o;
+            }
+            object invoke2(EvtData e, object data, EventHandler eh)
+            {
+                object o = default;
+                try
+                {
+                    if (!e.setHandler)
+                    {
+                        parameters1[0] = data;
+                        o = e.method.Invoke(e.target, parameters1);
+                    }
+                    else
+                    {
+                        parameters2[0] = data;
+                        parameters2[1] = eh;
+                        o = e.method.Invoke(e.target, parameters2);
                     }
                 }
                 catch (Exception ex)
@@ -549,29 +607,11 @@ namespace Game
         class MethodData
         {
             public Type key;
+            public Type returnType;
 
-            public MethodInfo info;
+            public MethodInfo method;
             public EventAttribute attribute;
             public bool setHandler;
-        }
-    }
-    public class EventHandler
-    {
-        public bool isBreak { get; private set; }
-        public object Data { get; private set; }
-
-        public void BreakEvent()
-        {
-            isBreak = true;
-        }
-        public void SetData(object data)
-        {
-            Data = data;
-        }
-        internal void Reset()
-        {
-            this.isBreak = false;
-            this.Data = null;
         }
     }
 }

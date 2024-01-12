@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine;
 
-namespace Main
+namespace Game
 {
     /// <summary>
     /// 原始资源加载器

@@ -35,8 +35,7 @@ public class AppSettingEditor : Editor
             string path = Application.dataPath + "/Code/HotFix/HotFix.asmdef";
             AssmblyOpter ao = AssmblyOpter.Load(path);
 
-            if (setting.Runtime == CodeRuntime.Assembly
-                || setting.Runtime == CodeRuntime.ILRuntime)
+            if (setting.Runtime == CodeRuntime.Assembly)
             {
                 ao.includePlatforms = new List<string>();
                 ao.includePlatforms.Add("Editor");
@@ -46,23 +45,6 @@ public class AppSettingEditor : Editor
 
             ao.Save(path);
         }
-
-        {
-            string path = Application.dataPath + "/../Packages/ILRuntimeBinding/ILRuntimeBinding.asmdef";
-            AssmblyOpter ao = AssmblyOpter.Load(path);
-
-            if (setting.Runtime == CodeRuntime.Assembly
-                || setting.Runtime == CodeRuntime.ILRuntime)
-            {
-                ao.includePlatforms = new List<string>();
-                ao.includePlatforms.Add("Editor");
-            }
-            else
-                ao.includePlatforms = new List<string>();
-
-            ao.Save(path);
-        }
-
 
         BuildTargetGroup[] groups = new BuildTargetGroup[]
         {
@@ -73,14 +55,6 @@ public class AppSettingEditor : Editor
         for (int i = 0; i < groups.Length; i++)
         {
             List<string> defs = PlayerSettings.GetScriptingDefineSymbolsForGroup(groups[i]).Split(';').ToList();
-
-            if (setting.Runtime == CodeRuntime.ILRuntime)
-            {
-                if (!defs.Contains("ILRuntime"))
-                    defs.Add("ILRuntime");
-            }
-            else
-                defs.RemoveAll(t => t == "ILRuntime");
 
             if (setting.Runtime == CodeRuntime.Assembly)
             {

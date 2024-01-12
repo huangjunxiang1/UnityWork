@@ -6,7 +6,6 @@ public enum CodeRuntime
 {
     Native,
     Assembly,
-    ILRuntime,
 }
 public static class ConstDefM
 {
@@ -15,17 +14,6 @@ public static class ConstDefM
         get
         {
 #if DebugEnable
-            return true;
-#else 
-            return false;
-#endif
-        }
-    }
-    public static bool isILRuntime
-    {
-        get
-        {
-#if ILRuntime
             return true;
 #else 
             return false;

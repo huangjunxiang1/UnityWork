@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 [DebuggerNonUserCode]
-public sealed class STaskBuilder1<T> 
+public struct STaskBuilder1<T> 
 {
     STask<T> _task;
     public static STaskBuilder1<T> Create()

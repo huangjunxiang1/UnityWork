@@ -104,26 +104,8 @@ public static class Types
             ulong mv = 0;
             foreach (var item in attributeMask)
             {
-#if ILRuntime
-                if (t is ILRuntime.Reflection.ILRuntimeType ilType)
-                {
-                    Type temp = t;
-                    while (temp != null)
-                    {
-                        if (temp.IsDefined(item.Key, true))
-                        {
-                            mv |= 1ul << item.Value;
-                            break;
-                        }
-                        temp = temp.BaseType;
-                    }
-                }
-                else
-#endif
-                {
-                    if (t.IsDefined(item.Key, true))
-                        mv |= 1ul << item.Value;
-                }
+                if (t.IsDefined(item.Key, true))
+                    mv |= 1ul << item.Value;
             }
             typeMaskV[t] = vs = mv;
         }

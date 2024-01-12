@@ -93,82 +93,22 @@ public static class PrintField
         }
 
         str.AppendLine(getSpaceInLayer(layer));
-        if (o is ILRuntime.Runtime.Intepreter.ILTypeInstance instance)
+        var fields = type.GetFields();
+        for (int i = 0; i < fields.Length; i++)
         {
-            var ilType = instance.Type.ReflectionType;
-
-            {
-                var fields = ilType.GetFields();
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    var f = fields[i];
-                    if (f.IsStatic) continue;
-                    str.Append(getSpaceInLayer(layer) + f.Name + ":");
-                    WriteField(str, f.GetValue(o), layer + 1);
-                }
-            }
-
-            {
-                var propers = ilType.GetProperties();
-                for (int i = 0; i < propers.Length; i++)
-                {
-                    var f = propers[i];
-                    str.Append(getSpaceInLayer(layer) + f.Name + ":");
-                    WriteField(str, f.GetValue(o), layer + 1);
-                }
-            }
-            str.AppendLine();
+            var f = fields[i];
+            if (f.IsStatic) continue;
+            str.Append(getSpaceInLayer(layer) + f.Name + ":");
+            WriteField(str, f.GetValue(o), layer + 1);
         }
-        else if (o is ILRuntime.Runtime.Enviorment.CrossBindingAdaptorType cbType)
+        var propers = type.GetProperties();
+        for (int i = 0; i < propers.Length; i++)
         {
-            var ilType = cbType.ILInstance.Type.ReflectionType;
-
-            {
-                var fields = ilType.GetFields();
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    var f = fields[i];
-                    if (f.IsStatic) continue;
-                    str.Append(getSpaceInLayer(layer) + f.Name + ":");
-                    WriteField(str, f.GetValue(o), layer + 1);
-                }
-            }
-
-            {
-                var propers = ilType.GetProperties();
-                for (int i = 0; i < propers.Length; i++)
-                {
-                    var f = propers[i];
-                    str.Append(getSpaceInLayer(layer) + f.Name + ":");
-                    WriteField(str, f.GetValue(o), layer + 1);
-                }
-            }
-            str.AppendLine();
+            var f = propers[i];
+            str.Append(getSpaceInLayer(layer) + f.Name + ":");
+            WriteField(str, f.GetValue(o), layer + 1);
         }
-        else
-        {
-            {
-                var fields = type.GetFields();
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    var f = fields[i];
-                    if (f.IsStatic) continue;
-                    str.Append(getSpaceInLayer(layer) + f.Name + ":");
-                    WriteField(str, f.GetValue(o), layer + 1);
-                }
-            }
-
-            {
-                var propers = type.GetProperties();
-                for (int i = 0; i < propers.Length; i++)
-                {
-                    var f = propers[i];
-                    str.Append(getSpaceInLayer(layer) + f.Name + ":");
-                    WriteField(str, f.GetValue(o), layer + 1);
-                }
-            }
-            str.AppendLine();
-        }
+        str.AppendLine();
     }
     static string[] spaceStrs = new string[]
     {

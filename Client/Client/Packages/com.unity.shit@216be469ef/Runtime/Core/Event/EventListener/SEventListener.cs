@@ -39,7 +39,7 @@ public class SEventListener
         t.action0 = call;
         _evtLst.Add(t);
     }
-    public void Add(Action<SEventContent> call)
+    public void Add(Action<EventHandler> call)
     {
         Temp t = new();
         t.isP0 = false;
@@ -56,7 +56,7 @@ public class SEventListener
         this.Clear();
         Add(call);
     }
-    public void Set(Action<SEventContent> call)
+    public void Set(Action<EventHandler> call)
     {
         this.Clear();
         Add(call);
@@ -76,7 +76,7 @@ public class SEventListener
         }
         return false;
     }
-    public bool Contains(Action<SEventContent> call)
+    public bool Contains(Action<EventHandler> call)
     {
         for (int i = 0; i < _evtLst.Count; i++)
         {
@@ -103,7 +103,7 @@ public class SEventListener
         else
             _evtLst.RemoveAll(t => t.isP0 && t.action0 == call);
     }
-    public void Remove(Action<SEventContent> call)
+    public void Remove(Action<EventHandler> call)
     {
         if (_isExcuting)
         {
@@ -168,7 +168,7 @@ public class SEventListener
                 if (t.isP0)
                     t.action0();
                 else
-                    t.action1(new SEventContent(this.Creater, value, data));
+                    t.action1(new EventHandler(this.Creater, value, data));
             }
             catch (Exception ex)
             { Loger.Error("Eventer Error:" + ex); }
@@ -185,7 +185,7 @@ public class SEventListener
     {
         public bool isP0;
         public Action action0;
-        public Action<SEventContent> action1;
+        public Action<EventHandler> action1;
         public bool isDisposed;
     }
 }

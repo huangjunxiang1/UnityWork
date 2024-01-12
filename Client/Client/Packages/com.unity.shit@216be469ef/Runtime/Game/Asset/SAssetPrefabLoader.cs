@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine;
 
-namespace Main
+namespace Game
 {
     /// <summary>
     /// prefab比较特殊  作为一个单独加载器

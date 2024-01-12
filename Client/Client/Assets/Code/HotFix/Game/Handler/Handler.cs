@@ -17,7 +17,7 @@ static class Handler
         BaseCamera.Current?.Dispose();
     }
     [Event]
-    static void EC_InScene(EC_InScene e)
+    static async void EC_InScene(EC_InScene e)
     {
         if (e.sceneId > 10000)
         {
@@ -27,6 +27,8 @@ static class Handler
             BaseCamera.Current.Init(cm);
             BaseCamera.Current.EnableCamera();
         }
+        if (e.sceneId == 1)
+            await GameL.UI.OpenAsync<FUILogin>();
     }
     [Event(1, Queue = true)]
     static async STask EC_GameInit(EC_GameInit e)

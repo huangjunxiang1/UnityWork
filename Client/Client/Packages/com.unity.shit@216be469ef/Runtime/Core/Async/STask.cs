@@ -84,9 +84,9 @@ public class STask : ICriticalNotifyCompletion
     /// <summary>
     /// 执行下一步
     /// </summary>
-    public bool TrySetResult()
+    public void TrySetResult()
     {
-        if (this.IsCompleted || this.Disposed) return false;
+        if (this.IsCompleted || this.Disposed) return;
        
         this._Disposed = true;
         this.IsCompleted = true;
@@ -94,7 +94,6 @@ public class STask : ICriticalNotifyCompletion
         Action act = this._event;
         this._event = null;
         act?.Invoke();
-        return true;
     }
 
     /// <summary>

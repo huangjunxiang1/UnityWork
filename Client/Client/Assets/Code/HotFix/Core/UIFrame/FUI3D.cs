@@ -29,7 +29,7 @@ abstract class FUI3D : FUIBase
     public GameObject goRoot { get; private set; }
     public UIPanel Panel { get; private set; }
 
-    public sealed override STask LoadConfig(Main.UIConfig config, STask completed, params object[] data)
+    public sealed override STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
     {
         base.LoadConfig(config, completed, data);
 
@@ -46,7 +46,7 @@ abstract class FUI3D : FUIBase
         this.OnEnter(data);
         return STask.Completed;
     }
-    public sealed override async STask LoadConfigAsync(Main.UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
     {
         _ = base.LoadConfigAsync(config, completed, data);
 

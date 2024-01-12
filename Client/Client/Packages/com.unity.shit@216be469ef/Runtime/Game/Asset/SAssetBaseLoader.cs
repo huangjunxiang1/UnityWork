@@ -1,4 +1,4 @@
-﻿namespace Main
+﻿namespace Game
 {
     public abstract class SAssetBaseLoader
     {

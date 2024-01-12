@@ -8,7 +8,7 @@ static class Box
 {
     public static void Tips(string s)
     {
-        var g = new G_Tips(UIPkg.ComPkg.CreateObject("Tips").asCom);
+        var g = G_Tips.Create();
         GRoot.inst.AddChild(g.ui);
         g.ui.Center();
         g.ui.sortingOrder = int.MaxValue;
@@ -17,7 +17,7 @@ static class Box
     }
     public static void Op_YesOrNo(string title, string text, string yes, string no, EventCallback0 onYes = null, EventCallback0 onNo = null)
     {
-        var g = new G_Box_YesOrNo(UIPkg.ComPkg.CreateObject("Box_YesOrNo").asCom);
+        var g = G_Box_YesOrNo.Create();
         GRoot.inst.AddChild(g.ui);
         g.ui.Center();
         g.ui.sortingOrder = int.MaxValue - 1;

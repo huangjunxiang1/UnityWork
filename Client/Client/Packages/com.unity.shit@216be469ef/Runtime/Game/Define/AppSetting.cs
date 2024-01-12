@@ -52,6 +52,5 @@ namespace Game
         }
 
         static public CodeRuntime Runtime { get; set; }
-        static public ServerType ServiceType { get; set; }
     }
 }

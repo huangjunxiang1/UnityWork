@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 [DebuggerNonUserCode]
-public sealed class STaskBuilder
+public struct STaskBuilder
 {
     STask _task;
     public static STaskBuilder Create()

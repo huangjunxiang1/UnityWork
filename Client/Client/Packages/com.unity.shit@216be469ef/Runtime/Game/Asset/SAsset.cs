@@ -3,9 +3,12 @@ using FairyGUI;
 #endif
 using System;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace Main
+namespace Game
 {
     public static partial class SAsset
     {
@@ -44,6 +47,10 @@ namespace Main
             }
             STimer.Add(0, 1, run);
             return task.MakeAutoCancel();
+        }
+        public static STask<SceneInstance> LoadScene(string url, LoadSceneMode mode = LoadSceneMode.Single)
+        {
+            return Addressables.LoadSceneAsync(Directory + url, mode).AsTask();
         }
         public static T Load<T>(string url) where T : UnityEngine.Object
         {
@@ -107,6 +114,10 @@ namespace Main
             }
             else
                 primitiveLoader.Release(target);
+        }
+        public static void ReleaseScene(SceneInstance scene)
+        {
+            Addressables.UnloadSceneAsync(scene);
         }
         public static void TryReleaseGameObject(GameObject target)
         {

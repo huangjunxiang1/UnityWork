@@ -49,7 +49,7 @@ namespace Game
         }
         public void Change()
         {
-            SSystem.Run<ChangeAttribute>(this);
+            SSystem.SetChange(this);
         }
         public void Dispose()
         {

@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine;
 using Game;
 
-[Main.UIConfig(100, UIType = Main.UIType.GlobalUI)]
+[Game.UIConfig(100, UIType = Game.UIType.GlobalUI)]
 partial class FUIGlobal
 {
     bool showExit = false;

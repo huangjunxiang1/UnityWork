@@ -35,24 +35,19 @@ public class GameStart : MonoBehaviour
 
         if (AppSetting.Runtime == CodeRuntime.Native)
         {
-#if !ILRuntime && !Assembly
-            Type[] a3 = typeof(Init).Assembly.GetTypes();
-
-            Types.InitTypes(all, a3);
-
-            Init.Main();
-#else
+#if Assembly
             Loger.Error("当前Runtime宏定义不正确");
+#else
+            Type[] a3 = typeof(Init).Assembly.GetTypes();
+            Types.InitTypes(all, a3);
+            Init.Main();
 #endif
         }
         else if (AppSetting.Runtime == CodeRuntime.Assembly)
         {
 #if !Assembly
             Loger.Error("当前Runtime宏定义不正确");
-#endif
-#if ENABLE_IL2CPP
-            Loger.Error("IL2CPP模式无法运行");
-#endif
+#else
             Assembly asm;
             if (AppSetting.Debug)
             {
@@ -71,33 +66,8 @@ public class GameStart : MonoBehaviour
             Types.InitTypes(all, a3);
 
             asm.GetType("Init").GetMethod("Main").Invoke(null, null);
-        }
-        else if (AppSetting.Runtime == CodeRuntime.ILRuntime)
-        {
-#if !ILRuntime
-            Loger.Error("当前Runtime宏定义不正确");
 #endif
-            ILRuntime.Runtime.Enviorment.AppDomain app = new();
-            if (AppSetting.Debug)
-            {
-                System.IO.MemoryStream dll = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
-                System.IO.MemoryStream pdb = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb"));
-                app.LoadAssembly(dll, pdb, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
-            }
-            else
-            {
-                System.IO.MemoryStream dll = new(System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll"));
-                app.LoadAssembly(dll);
-            }
-            ILRuntimeBinding.Binding(app);
-
-            Type[] a3 = app.LoadedTypes.Values.Select(t => t.ReflectionType).ToArray();
-
-            Types.InitTypes(all, a3);
-
-            app.Invoke("Init", "Main", null, null);
         }
-
     }
     private void OnApplicationQuit()
     {
