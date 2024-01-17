@@ -118,6 +118,7 @@ namespace Game
             components[c.GetType()] = c;
             SSystem.RigisteComponent(c);
             SSystem.Run<AwakeAttribute>(c);
+            c.Change();
             return c;
         }
         public T GetComponent<T>() where T : SComponent
@@ -132,6 +133,18 @@ namespace Game
             Loger.Error($"未包含 component={typeof(T)}");
             return default;
         }
+        public SComponent GetComponent(Type type)
+        {
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                return default;
+            }
+            if (components.TryGetValue(type, out var c))
+                return c;
+            Loger.Error($"未包含 component={type}");
+            return default;
+        }
         public bool TryGetComponent<T>(out T c) where T : SComponent
         {
             if (this.Disposed)
@@ -143,6 +156,22 @@ namespace Game
             if (components.TryGetValue(typeof(T), out var cc))
             {
                 c = (T)cc;
+                return true;
+            }
+            c = default;
+            return false;
+        }
+        public bool TryGetComponent(Type type, out SComponent c)
+        {
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                c = default;
+                return false;
+            }
+            if (components.TryGetValue(type, out var cc))
+            {
+                c = cc;
                 return true;
             }
             c = default;
@@ -163,6 +192,21 @@ namespace Game
             c.Dispose();
             return true;
         }
+        public bool RemoveComponent(Type type)
+        {
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                return false;
+            }
+            if (!components.TryGetValue(type, out var c))
+            {
+                Loger.Error($"未包含 component={type}");
+                return false;
+            }
+            c.Dispose();
+            return true;
+        }
         public bool HasComponent<T>() where T : SComponent
         {
             if (this.Disposed)
@@ -170,7 +214,16 @@ namespace Game
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            return components.TryGetValue(typeof(T), out var c);
+            return components.ContainsKey(typeof(T));
+        }
+        public bool HasComponent(Type type)
+        {
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                return false;
+            }
+            return components.ContainsKey(type);
         }
         internal void RemoveFromComponents(SComponent c)
         {

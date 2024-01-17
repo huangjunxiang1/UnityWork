@@ -219,8 +219,6 @@ namespace Game
 
             EvtData e = new();
             e.Key = k;
-            _parameterType1[0] = k;
-            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType1);
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
@@ -241,8 +239,6 @@ namespace Game
 
             EvtData e = new();
             e.Key = k;
-            _parameterType1[0] = k;
-            e.method = task.GetType().GetMethod(nameof(task.TrySetResult), _parameterType1);
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
@@ -430,9 +426,6 @@ namespace Game
             public int index = -1;//当前执行位置
             int cnt;
 
-            static object[] parameters1 = new object[1];
-            static object[] parameters2 = new object[2];
-
             public void Add(EvtData evt)
             {
                 int inserIdx = evts.FindIndex(t => t.sortOrder > evt.sortOrder);
@@ -556,8 +549,16 @@ namespace Game
                             ((Action<T>)e.action).Invoke(data);
                         else
                         {
-                            parameters1[0] = data;
-                            o = e.method.Invoke(e.target, parameters1);
+                            if (e.target is STask task)
+                            {
+                                task.TrySetResult(data);
+                            }
+                            else
+                            {
+                                var ps = ParametersArrayCache.Get(1);
+                                ps[0] = data;
+                                o = e.method.Invoke(e.target, ps);
+                            }
                         }
                     }
                     else
@@ -566,9 +567,10 @@ namespace Game
                             ((Action<T, EventHandler>)e.action).Invoke(data, eh);
                         else
                         {
-                            parameters2[0] = data;
-                            parameters2[1] = eh;
-                            o = e.method.Invoke(e.target, parameters2);
+                            var ps = ParametersArrayCache.Get(2);
+                            ps[0] = data;
+                            ps[1] = eh;
+                            o = e.method.Invoke(e.target, ps);
                         }
                     }
                 }
@@ -586,14 +588,23 @@ namespace Game
                 {
                     if (!e.setHandler)
                     {
-                        parameters1[0] = data;
-                        o = e.method.Invoke(e.target, parameters1);
+                        if (e.target is STask task)
+                        {
+                            task.TrySetResult(data);
+                        }
+                        else
+                        {
+                            var ps = ParametersArrayCache.Get(1);
+                            ps[0] = data;
+                            o = e.method.Invoke(e.target, ps);
+                        }
                     }
                     else
                     {
-                        parameters2[0] = data;
-                        parameters2[1] = eh;
-                        o = e.method.Invoke(e.target, parameters2);
+                        var ps = ParametersArrayCache.Get(2);
+                        ps[0] = data;
+                        ps[1] = eh;
+                        o = e.method.Invoke(e.target, ps);
                     }
                 }
                 catch (Exception ex)

@@ -69,8 +69,4 @@ public class GameStart : MonoBehaviour
 #endif
         }
     }
-    private void OnApplicationQuit()
-    {
-        GameM.Event?.RunEvent(new EC_QuitGame());
-    }
 }

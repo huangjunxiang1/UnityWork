@@ -95,6 +95,10 @@ public class STask : ICriticalNotifyCompletion
         this._event = null;
         act?.Invoke();
     }
+    public virtual void TrySetResult(object result)
+    {
+        this.TrySetResult();
+    }
 
     /// <summary>
     /// 错误

@@ -2,7 +2,7 @@ using UnityEngine;
 using Main;
 using Game;
 
-public class Init
+public static class Init
 {
     public static async void Main()
     {

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -13,12 +14,12 @@ namespace Main
 {
     public static class SSystem
     {
-        static Dictionary<Type, Dictionary<Type, Delegate>> attributeMap = new();
+        static Dictionary<Type, Dictionary<Type, List<Delegate>>> handlerMap = new();
+        static Dictionary<Type, List<Delegate>> updateDelegates;
+        static Dictionary<Type, List<ChangeHandler>> compoundHandlerMap = new();
         static Dictionary<Type, Component> componentMap = new();
         static Dictionary<Type, Delegate> runMis = new();
-        static MethodInfo runMi = typeof(SSystem).GetMethod("run", BindingFlags.Static | BindingFlags.NonPublic);
-        static object[] parameters1 = new object[1];
-        static object[] parameters2 = new object[2];
+        static MethodInfo runMi = typeof(SSystem).GetMethod(nameof(run), BindingFlags.Static | BindingFlags.NonPublic);
         static HashSet<Type> removed = new();
         static HashSet<SComponent> changeHash = ObjectPool.Get<HashSet<SComponent>>();
 
@@ -41,31 +42,20 @@ namespace Main
 
         internal static void Run<T>(SComponent c) where T : SSystemAttribute
         {
-            if (attributeMap.TryGetValue(typeof(T), out var map))
+            if (handlerMap.TryGetValue(typeof(T), out var map))
             {
                 if (map.TryGetValue(c.GetType(), out var value))
                 {
                     try
                     {
-                        parameters1[0] = c;
-                        value.DynamicInvoke(parameters1);
+                        var ps = ParametersArrayCache.Get(1);
+                        ps[0] = c;
+                        for (int i = 0; i < value.Count; i++)
+                            value[i].DynamicInvoke(ps);
                     }
                     catch (Exception ex)
                     {
                         Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
-                    }
-                }
-            }
-        }
-        public static void RunAll<T, K>() where T : SSystemAttribute where K : SComponent
-        {
-            if (attributeMap.TryGetValue(typeof(T), out var map))
-            {
-                if (map.TryGetValue(typeof(K), out var d))
-                {
-                    if (componentMap.TryGetValue(typeof(K), out var cs) && cs.components.Count > 0)
-                    {
-                        run<K>(cs.components, d);
                     }
                 }
             }
@@ -98,26 +88,28 @@ namespace Main
             return false;
         }
 
-        static void run<T>(List<SComponent> lst, Delegate d) where T : SComponent
+        static void run<T>(List<SComponent> lst, List<Delegate> ds) where T : SComponent
         {
-            Action<T> call = (Action<T>)d;
-            for (int i = 0; i < lst.Count; i++)
+            for (int i = 0; i < ds.Count; i++)
             {
-                var c = lst[i];
-                if (c.Disposed || !c.Enable) continue;
-                try
+                Action<T> call = (Action<T>)ds[i];
+                for (int j = 0; j < lst.Count; j++)
                 {
-                    call((T)c);
-                }
-                catch (Exception ex)
-                {
-                    Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
+                    var c = lst[j];
+                    if (c.Disposed || !c.Enable) continue;
+                    try
+                    {
+                        call((T)c);
+                    }
+                    catch (Exception ex)
+                    {
+                        Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
+                    }
                 }
             }
         }
-        static bool _checkEventMethod(MethodInfo method, out Type key)
+        static bool _checkEventMethod(MethodInfo method)
         {
-            key = null;
             if (method.IsGenericMethod)
             {
                 Loger.Error($"事件函数不能是泛型函数 class:{method.ReflectedType.FullName} method:{method.Name}");
@@ -126,18 +118,6 @@ namespace Main
             if (method.ReturnType != typeof(void))
             {
                 Loger.Error($"事件函数返回值无效 class:{method.ReflectedType.FullName} method:{method.Name}");
-                return false;
-            }
-            var ps = method.GetParameters();
-            if (ps.Length != 1)
-            {
-                Loger.Error($"无法解析的参数类型 class:{method.ReflectedType.FullName} method:{method.Name}");
-                return false;
-            }
-            key = ps[0].ParameterType;
-            if (!typeof(SComponent).IsAssignableFrom(key))
-            {
-                Loger.Error($"{key}不是ECS组件");
                 return false;
             }
             return true;
@@ -155,57 +135,89 @@ namespace Main
                 MethodAndAttribute ma = lst[i];
                 if (ma.attribute is SSystemAttribute ea)
                 {
-                    if (!_checkEventMethod(ma.method, out var key))
+                    if (!_checkEventMethod(ma.method))
                         continue;
-
-                    if (!attributeMap.TryGetValue(ea.GetType(), out var map))
-                        attributeMap[ea.GetType()] = map = new();
-                    if (!map.ContainsKey(key))
+                   
+                    var ps = ma.method.GetParameters();
+                    for (int j = 0; j < ps.Length; j++)
                     {
+                        if (!typeof(SComponent).IsAssignableFrom(ps[j].ParameterType))
+                        {
+                            Loger.Error($"{ps[j].ParameterType}不是ECS组件");
+                            goto go;
+                        }
+                    }
+
+                    //只有Change 可接受复合参数组件事件
+                    if (ma.attribute is not ChangeAttribute)
+                    {
+                        if (ps.Length != 1)
+                        {
+                            Loger.Error($"无法解析的参数类型 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
+                            goto go;
+                        }
+
+                        var key = ps[0].ParameterType;
+                        if (!handlerMap.TryGetValue(ea.GetType(), out var map))
+                            handlerMap[ea.GetType()] = map = new();
+                        if (!map.TryGetValue(key, out var ds))
+                            map[key] = ds = new();
                         types[0] = key;
-                        map[key] = ma.method.CreateDelegate(typeof(Action<>).MakeGenericType(types));
+                        ds.Add(ma.method.CreateDelegate(typeof(Action<>).MakeGenericType(types)));
+                        if (!runMis.ContainsKey(key))
+                            runMis[key] = runMi.MakeGenericMethod(types).CreateDelegate(typeof(Action<List<SComponent>, List<Delegate>>));
                     }
                     else
                     {
-                        Loger.Error($"{key}的{ea}处理重复 1={map[key].Method.ReflectedType.Name}.{map[key].Method.Name} 2={ma.method.ReflectedType.Name}.{ma.method.Name}");
+                        if (ps.Length > 5)
+                        {
+                            Loger.Error($"参数类型最多为5 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
+                            goto go;
+                        }
+
+                        ChangeHandler h = new(ps.Select(t => t.ParameterType).ToArray());
+                        h.method = ma.method;
+                        for (int j = 0; j < ps.Length; j++)
+                        {
+                            var key = ps[j].ParameterType;
+
+                            if (!compoundHandlerMap.TryGetValue(key, out var hs))
+                                compoundHandlerMap[key] = hs = new();
+                            hs.Add(h);
+                        }
                     }
-                    if (!runMis.ContainsKey(key))
-                        runMis[key] = runMi.MakeGenericMethod(types).CreateDelegate(typeof(Action<List<SComponent>, Delegate>));
+                go:;
                 }
             }
+            updateDelegates = handlerMap.TryGetValue(typeof(UpdateAttribute), out var dc) ? dc : new(0);
         }
         internal static void Update()
         {
-            if (changeHash.Count>0)
+            if (changeHash.Count > 0)
             {
-                if (attributeMap.TryGetValue(typeof(ChangeAttribute), out var map1))
+                var hs = changeHash;
+                changeHash = ObjectPool.Get<HashSet<SComponent>>();
+                foreach (var c in hs)
                 {
-                    var hs = changeHash;
-                    changeHash = ObjectPool.Get<HashSet<SComponent>>();
-                    foreach (var c in hs)
+                    if (c.Disposed) continue;
+                    if (compoundHandlerMap.TryGetValue(c.GetType(), out var handlers))
                     {
-                        if (c.Disposed) continue;
-                        if (map1.TryGetValue(c.GetType(), out var action))
-                        {
-                            parameters1[0] = c;
-                            action.DynamicInvoke(parameters1);
-                        }
+                        for (int i = 0; i < handlers.Count; i++)
+                            handlers[i].TryInvoke(c.Entity);
                     }
-                    hs.Clear();
-                    ObjectPool.Return(hs);
                 }
+                hs.Clear();
+                ObjectPool.Return(hs);
             }
 
-            if (attributeMap.TryGetValue(typeof(UpdateAttribute), out var map))
+            foreach (var kv in updateDelegates)
             {
-                foreach (var kv in map)
+                if (componentMap.TryGetValue(kv.Key, out var cs) && cs.components.Count > 0)
                 {
-                    if (componentMap.TryGetValue(kv.Key, out var cs) && cs.components.Count > 0)
-                    {
-                        parameters2[0] = cs.components;
-                        parameters2[1] = kv.Value;
-                        runMis[kv.Key].DynamicInvoke(parameters2);
-                    }
+                    var ps = ParametersArrayCache.Get(2);
+                    ps[0] = cs.components;
+                    ps[1] = kv.Value;
+                    runMis[kv.Key].DynamicInvoke(ps);
                 }
             }
         }
@@ -251,6 +263,35 @@ namespace Main
             public void RemoveAll()
             {
                 components.RemoveAll(t => t.Disposed);
+            }
+        }
+        class ChangeHandler
+        {
+            public ChangeHandler(Type[] types)
+            {
+                this.types = types;
+                for (int i = 0; i < types.Length; i++)
+                    typeIndex[types[i]] = i;
+            }
+            public MethodInfo method;
+            public Type[] types;
+
+            Dictionary<Type, int> typeIndex = new(); 
+
+            public void TryInvoke(SObject obj)
+            {
+                for (int i = 0; i < types.Length; i++)
+                {
+                    if (!obj.HasComponent(types[i]))
+                        return;
+                }
+                var ps = ParametersArrayCache.Get(types.Length);
+                for (int i = 0; i < ps.Length; i++)
+                {
+                    var c = obj.GetComponent(types[i]);
+                    ps[typeIndex[c.GetType()]] = c;
+                }
+                method.Invoke(null, ps);
             }
         }
     }

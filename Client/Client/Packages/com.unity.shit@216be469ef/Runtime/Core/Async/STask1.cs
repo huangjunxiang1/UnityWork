@@ -46,6 +46,13 @@ public sealed class STask<T> : STask
         this._result = result;
         base.TrySetResult();
     }
+    public override void TrySetResult(object result)
+    {
+        if (this.IsCompleted || this.Disposed) return;
+        if (result is T t)
+            this._result = t;
+        base.TrySetResult(result);
+    }
     public new STask<T> MakeAutoCancel(bool autoCancel = true)
     {
         base.MakeAutoCancel(autoCancel);

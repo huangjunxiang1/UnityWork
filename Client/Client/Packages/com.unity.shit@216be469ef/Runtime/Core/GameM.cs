@@ -41,9 +41,13 @@ public static class GameM
 
     class Engine : MonoBehaviour
     {
-        private void Update()
+        void Update()
         {
             GameM.Update();
+        }
+        void OnApplicationQuit()
+        {
+            GameM.Event.RunEvent(new EC_QuitGame());
         }
     }
 }
