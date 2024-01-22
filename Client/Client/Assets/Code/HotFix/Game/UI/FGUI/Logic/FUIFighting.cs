@@ -22,7 +22,7 @@ partial class FUIFighting
 
     protected override async void OnEnter(params object[] data)
     {
-        /*var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity one = await ECSHelper.LoadEntity(@"3D\Model\ECS\Cube.prefab");
 
         if (this.Disposed)
@@ -42,7 +42,7 @@ partial class FUIFighting
             es[j] = em.Instantiate(es[0]);
             em.SetComponentData(es[j], new LocalToWorld() { Value = float4x4.Translate(float3.zero) });
             em.SetComponentData(es[j], new HDRPMaterialPropertyEmissiveColor() { Value = new float3(1, 0, 0) });
-        }*/
+        }
 
         _btnBack.onClick.Add(_clickBack);
         _play.onClick.Add(_onPlay);
@@ -76,7 +76,7 @@ partial class FUIFighting
     float3x4[] arr2;
     unsafe void _onPlay()
     {
-        BatchRendererGroup brg = new(job, default);
+        /*BatchRendererGroup brg = new(job, default);
         brg.SetEnabledViewTypes(new BatchCullingViewType[]
             {
                 BatchCullingViewType.Camera,
@@ -101,7 +101,7 @@ partial class FUIFighting
         arr[1] = new MetadataValue()
         {
             NameID = Shader.PropertyToID("_EmissiveColor"),
-            Value = /*kIsPerInstanceBit |*/ (uint)(5 * sizeof(float3x4))
+            Value = kIsPerInstanceBit | (uint)(5 * sizeof(float3x4))
         };
 
         {
@@ -124,17 +124,6 @@ partial class FUIFighting
             }
             bid[0] = brg.AddBatch(arr, gb.bufferHandle);
         }
-        /*{
-            GraphicsBuffer gb = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 5, sizeof(float3x4));
-            arr2 = new float3x4[5];
-            for (int i = 0; i < arr2.Length; i++)
-            {
-                var v44 = float4x4.TRS(new float3(i * 5, 0, 10), quaternion.identity, i + 1);
-                arr2[i] = new float3x4(v44.c0.xyz, v44.c1.xyz, v44.c2.xyz, v44.c3.xyz);
-            }
-            gb.SetData(arr2);
-            bid[1] = brg.AddBatch(arr, gb.bufferHandle);
-        }*/
 
         UnityEngine.Bounds bounds = new Bounds(new Vector3(0, 0, 0), new Vector3(1048576.0f, 1048576.0f, 1048576.0f));
         brg.SetGlobalBounds(bounds);
@@ -201,7 +190,7 @@ partial class FUIFighting
         }
 
         SAsset.Release(g);
-        return;
+        return;*/
 
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
 

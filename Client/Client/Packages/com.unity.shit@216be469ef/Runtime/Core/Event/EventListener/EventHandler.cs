@@ -49,10 +49,4 @@ public class EventHandler
     {
         Value = v;
     }
-    internal void Reset()
-    {
-        this.isBreak = false;
-        this.Data = null;
-        this.Value = 0;
-    }
 }

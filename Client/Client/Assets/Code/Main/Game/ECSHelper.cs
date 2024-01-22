@@ -25,7 +25,10 @@ public static class ECSHelper
         Entity e = mgr.CreateEntity();
         Renderer r = g.GetComponent<Renderer>();
         MeshFilter mf = g.GetComponent<MeshFilter>();
-        RenderMeshUtility.AddComponents(e, mgr, new RenderMeshDescription(r), new RenderMeshArray(new[] { r.sharedMaterial }, new[] { mf.sharedMesh }), MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+        var egs = World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<EntitiesGraphicsSystem>();
+        var matId= egs.RegisterMaterial(r.sharedMaterial);
+        var meshId = egs.RegisterMesh(mf.sharedMesh);
+        RenderMeshUtility.AddComponents(e, mgr, new RenderMeshDescription(r), new MaterialMeshInfo(matId, meshId));
 
         mgr.AddComponentData(e, new LocalToWorld() { Value = float4x4.TRS(float3.zero, g.transform.rotation, g.transform.lossyScale) });
         SAsset.Release(g);

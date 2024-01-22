@@ -1,13 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Linq;
 using Main;
 using Game;
-using System.Threading.Tasks;
-using System.Reflection;
-using System.Threading;
 
 public class GameStart : MonoBehaviour
 {

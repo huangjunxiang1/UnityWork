@@ -55,7 +55,6 @@ partial class FUIFighting : FUI
     public sealed override string url => "FUIFighting";
     public GButton _btnBack { get; private set; }
     public GButton _play { get; private set; }
-    public G_test _n5 { get; private set; }
     public Controller _c2 { get; private set; }
     public Transition _t1 { get; private set; }
     protected sealed override void Binding()
@@ -63,7 +62,6 @@ partial class FUIFighting : FUI
         GComponent ui = this.UI;
         _btnBack = (GButton)ui.GetChildAt(0);
         _play = (GButton)ui.GetChildAt(1);
-        _n5 = new G_test(ui.GetChildAt(2).asCom);
         _c2 = ui.GetControllerAt(1);
         _t1 = ui.GetTransitionAt(1);
     }

@@ -12,80 +12,119 @@ using static UnityEditor.Progress;
 
 namespace Main
 {
-    public static class SSystem
+    static class SSystem
     {
         static Dictionary<Type, Dictionary<Type, List<Delegate>>> handlerMap = new();
         static Dictionary<Type, List<Delegate>> updateDelegates;
         static Dictionary<Type, List<ChangeHandler>> compoundHandlerMap = new();
-        static Dictionary<Type, Component> componentMap = new();
+
+        static Dictionary<Type, List<Type>> condition = new();
+        static Dictionary<Type, AddComponentIfTemp> addIf = new();
+        static Dictionary<SObject, HashSet<Type>> checkComponents = ObjectPool.Get<Dictionary<SObject, HashSet<Type>>>();
+
+        static Dictionary<Type, List<SComponent>> updateComponents = new();
         static Dictionary<Type, Delegate> runMis = new();
         static MethodInfo runMi = typeof(SSystem).GetMethod(nameof(run), BindingFlags.Static | BindingFlags.NonPublic);
         static HashSet<Type> removed = new();
-        static HashSet<SComponent> changeHash = ObjectPool.Get<HashSet<SComponent>>();
+        static HashSet<SComponent> changeFlag = ObjectPool.Get<HashSet<SComponent>>();
 
         internal static void RigisteComponent(SComponent c)
         {
-            if (!componentMap.TryGetValue(c.GetType(), out var value))
-                componentMap[c.GetType()] = value = new();
-            value.Add(c);
+            if (updateDelegates != null && updateDelegates.ContainsKey(c.GetType()))
+            {
+                if (!updateComponents.TryGetValue(c.GetType(), out var value))
+                    updateComponents[c.GetType()] = value = new();
+                value.Add(c);
+            }
+            if (condition.TryGetValue(c.GetType(), out var lst))
+            {
+                if (!checkComponents.TryGetValue(c.Entity, out var cs))
+                    checkComponents[c.Entity] = cs = ObjectPool.Get<HashSet<Type>>();
+                for (int i = 0; i < lst.Count; i++)
+                    cs.Add(lst[i]);
+            }
         }
         internal static void UnRigisteComponent(SComponent c)
         {
-            if (componentMap.TryGetValue(c.GetType(), out var value))
-                value.Remove(c);
             removed.Add(c.GetType());
+            if (condition.TryGetValue(c.GetType(), out var lst))
+            {
+                if (!checkComponents.TryGetValue(c.Entity, out var cs))
+                    checkComponents[c.Entity] = cs = ObjectPool.Get<HashSet<Type>>();
+                for (int i = 0; i < lst.Count; i++)
+                    cs.Add(lst[i]);
+            }
         }
         internal static void SetChange(SComponent c)
         {
-            changeHash.Add(c);
+            changeFlag.Add(c);
         }
-
+        internal static void CheckComponent(SObject entity, HashSet<Type> types)
+        {
+            foreach (var type in types)
+            {
+                if (addIf.TryGetValue(type, out var tmp))
+                {
+                    bool addit = false;
+                    if (tmp.all != null)
+                    {
+                        for (int j = 0; j < tmp.all.Types.Length; j++)
+                        {
+                            if (!entity.HasComponent(tmp.all.Types[j]))
+                                goto here;
+                        }
+                    }
+                    if (tmp.any != null)
+                    {
+                        bool has = false;
+                        for (int j = 0; j < tmp.any.Types.Length; j++)
+                        {
+                            if (entity.HasComponent(tmp.any.Types[j]))
+                            {
+                                has = true;
+                                break;
+                            }
+                        }
+                        if (!has)
+                            goto here;
+                    }
+                    if (tmp.none != null)
+                    {
+                        for (int j = 0; j < tmp.none.Types.Length; j++)
+                        {
+                            if (entity.HasComponent(tmp.none.Types[j]))
+                                goto here;
+                        }
+                    }
+                    addit = true;
+                here:;
+                    if (addit)
+                        entity.AddComponentInternal(type);
+                    else
+                        entity.RemoveComponentInternal(type);
+                }
+            }
+        }
+        internal static bool isAutoAddComponent(Type type) => addIf.ContainsKey(type);
         internal static void Run<T>(SComponent c) where T : SSystemAttribute
         {
             if (handlerMap.TryGetValue(typeof(T), out var map))
             {
                 if (map.TryGetValue(c.GetType(), out var value))
                 {
-                    try
-                    {
-                        var ps = ParametersArrayCache.Get(1);
-                        ps[0] = c;
-                        for (int i = 0; i < value.Count; i++)
+                    var ps = ParametersArrayCache.Get(1);
+                    ps[0] = c;
+                    for (int i = 0; i < value.Count; i++)
+                        try
+                        {
                             value[i].DynamicInvoke(ps);
-                    }
-                    catch (Exception ex)
-                    {
-                        Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
-                    }
+                        }
+                        catch (Exception ex)
+                        {
+                            Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
+                        }
                 }
             }
-        }
-
-        public static bool QueryWithRpc<T>(long rpc, out T c) where T : SComponent
-        {
-            if (componentMap.TryGetValue(typeof(T), out var value))
-            {
-                if (value.rpcMap.TryGetValue(rpc, out var cc))
-                {
-                    c = (T)cc;
-                    return true;
-                }
-            }
-            c = default;
-            return false;
-        }
-        public static bool QueryWithGid<T>(long gid, out T c) where T : SComponent
-        {
-            if (componentMap.TryGetValue(typeof(T), out var value))
-            {
-                if (value.gidMap.TryGetValue(gid, out var cc))
-                {
-                    c = (T)cc;
-                    return true;
-                }
-            }
-            c = default;
-            return false;
         }
 
         static void run<T>(List<SComponent> lst, List<Delegate> ds) where T : SComponent
@@ -137,16 +176,20 @@ namespace Main
                 {
                     if (!_checkEventMethod(ma.method))
                         continue;
-                   
+
                     var ps = ma.method.GetParameters();
+#if DebugEnable
+                    List<Type> check = new();
                     for (int j = 0; j < ps.Length; j++)
                     {
-                        if (!typeof(SComponent).IsAssignableFrom(ps[j].ParameterType))
-                        {
-                            Loger.Error($"{ps[j].ParameterType}不是ECS组件");
-                            goto go;
-                        }
+                        var key = ps[j].ParameterType;
+                        if (!typeof(SComponent).IsAssignableFrom(key))
+                            Loger.Error($"{key}不是ECS组件");
+                        if (check.Contains(key))
+                            Loger.Error($"参数类型重复 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
+                        check.Add(key);
                     }
+#endif
 
                     //只有Change 可接受复合参数组件事件
                     if (ma.attribute is not ChangeAttribute)
@@ -174,7 +217,7 @@ namespace Main
                             Loger.Error($"参数类型最多为5 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
                             goto go;
                         }
-
+                      
                         ChangeHandler h = new(ps.Select(t => t.ParameterType).ToArray());
                         h.method = ma.method;
                         for (int j = 0; j < ps.Length; j++)
@@ -189,15 +232,85 @@ namespace Main
                 go:;
                 }
             }
-            updateDelegates = handlerMap.TryGetValue(typeof(UpdateAttribute), out var dc) ? dc : new(0);
+            handlerMap.TryGetValue(typeof(UpdateAttribute), out updateDelegates);
+
+            for (int i = 0; i < Types.AllTypes.Length; i++)
+            {
+                Type t = Types.AllTypes[i];
+                if (typeof(SComponent).IsAssignableFrom(t))
+                {
+                    var all = t.GetCustomAttribute<AddComponentIfAll>();
+                    var any = t.GetCustomAttribute<AddComponentIfAny>();
+                    var none = t.GetCustomAttribute<AddComponentIfNone>();
+                    if (none != null && all == null && any == null)
+                    {
+                        Loger.Error($"{nameof(AddComponentIfNone)}不能单独存在");
+                        continue;
+                    }
+                    if (all != null || any != null || none != null)
+                    {
+                        AddComponentIfTemp tmp = new();
+                        tmp.all = all;
+                        tmp.any = any;
+                        tmp.none = none;
+                        addIf[t] = tmp;
+
+                        if (all != null)
+                        {
+                            for (int j = 0; j < all.Types.Length; j++)
+                            {
+                                if (!condition.TryGetValue(all.Types[j], out var list))
+                                    condition[all.Types[j]] = list = new();
+                                if (!list.Contains(t))
+                                    list.Add(t);
+                            }
+                        }
+                        if (any != null)
+                        {
+                            for (int j = 0; j < any.Types.Length; j++)
+                            {
+                                if (!condition.TryGetValue(any.Types[j], out var list))
+                                    condition[any.Types[j]] = list = new();
+                                if (!list.Contains(t))
+                                    list.Add(t);
+                            }
+                        }
+                        if (none != null)
+                        {
+                            for (int j = 0; j < none.Types.Length; j++)
+                            {
+                                if (!condition.TryGetValue(none.Types[j], out var list))
+                                    condition[none.Types[j]] = list = new();
+                                if (!list.Contains(t))
+                                    list.Add(t);
+                            }
+                        }
+                    }
+                }
+            }
         }
         internal static void Update()
         {
-            if (changeHash.Count > 0)
+            if (checkComponents.Count > 0)
             {
-                var hs = changeHash;
-                changeHash = ObjectPool.Get<HashSet<SComponent>>();
-                foreach (var c in hs)
+                var tmp = checkComponents;
+                checkComponents = ObjectPool.Get<Dictionary<SObject, HashSet<Type>>>();
+                foreach (var c in tmp)
+                {
+                    if (c.Key.Disposed) continue;
+                    CheckComponent(c.Key, c.Value);
+                    c.Value.Clear();
+                    ObjectPool.Return(c.Value);
+                }
+                tmp.Clear();
+                ObjectPool.Return(tmp);
+            }
+
+            if (changeFlag.Count > 0)
+            {
+                var tmp = changeFlag;
+                changeFlag = ObjectPool.Get<HashSet<SComponent>>();
+                foreach (var c in tmp)
                 {
                     if (c.Disposed) continue;
                     if (compoundHandlerMap.TryGetValue(c.GetType(), out var handlers))
@@ -206,18 +319,21 @@ namespace Main
                             handlers[i].TryInvoke(c.Entity);
                     }
                 }
-                hs.Clear();
-                ObjectPool.Return(hs);
+                tmp.Clear();
+                ObjectPool.Return(tmp);
             }
 
-            foreach (var kv in updateDelegates)
+            if (updateDelegates != null)
             {
-                if (componentMap.TryGetValue(kv.Key, out var cs) && cs.components.Count > 0)
+                foreach (var kv in updateDelegates)
                 {
-                    var ps = ParametersArrayCache.Get(2);
-                    ps[0] = cs.components;
-                    ps[1] = kv.Value;
-                    runMis[kv.Key].DynamicInvoke(ps);
+                    if (updateComponents.TryGetValue(kv.Key, out var cs) && cs.Count > 0)
+                    {
+                        var ps = ParametersArrayCache.Get(2);
+                        ps[0] = cs;
+                        ps[1] = kv.Value;
+                        runMis[kv.Key].DynamicInvoke(ps);
+                    }
                 }
             }
         }
@@ -227,44 +343,13 @@ namespace Main
             {
                 foreach (var item in removed)
                 {
-                    if (componentMap.TryGetValue(item, out var value))
-                        value.RemoveAll();
+                    if (updateComponents.TryGetValue(item, out var value))
+                        value.RemoveAll(t => t.Disposed);
                 }
                 removed.Clear();
             }
         }
 
-        class Component
-        {
-            public List<SComponent> components = new();
-            public Dictionary<long, SComponent> rpcMap = new();
-            public Dictionary<long, SComponent> gidMap = new();
-
-            public void Add(SComponent c)
-            {
-                components.Add(c);
-                if (c.Entity.rpc > 0)
-                {
-                    if (!rpcMap.TryGetValue(c.Entity.rpc, out var cc))
-                        rpcMap[c.Entity.rpc] = c;
-                    else
-                        Loger.Error($"已经包含rpc组件 c={c} rpc={cc.Entity.rpc}");
-                }
-                if (!gidMap.TryGetValue(c.Entity.gid, out var ccc))
-                    gidMap[c.Entity.gid] = c;
-                else
-                    Loger.Error($"已经包含gid组件 c={c} gid={ccc.Entity.gid}");
-            }
-            public void Remove(SComponent c)
-            {
-                rpcMap.Remove(c.Entity.rpc);
-                gidMap.Remove(c.Entity.gid);
-            }
-            public void RemoveAll()
-            {
-                components.RemoveAll(t => t.Disposed);
-            }
-        }
         class ChangeHandler
         {
             public ChangeHandler(Type[] types)
@@ -280,19 +365,28 @@ namespace Main
 
             public void TryInvoke(SObject obj)
             {
+                var ps = ParametersArrayCache.Get(types.Length);
                 for (int i = 0; i < types.Length; i++)
                 {
-                    if (!obj.HasComponent(types[i]))
+                    if (!obj.TryGetComponent(types[i], out var c))
                         return;
-                }
-                var ps = ParametersArrayCache.Get(types.Length);
-                for (int i = 0; i < ps.Length; i++)
-                {
-                    var c = obj.GetComponent(types[i]);
                     ps[typeIndex[c.GetType()]] = c;
                 }
-                method.Invoke(null, ps);
+                try
+                {
+                    method.Invoke(null, ps);
+                }
+                catch (Exception ex)
+                {
+                    Loger.Error($"{method}事件执行出错 error:" + ex.ToString());
+                }
             }
+        }
+        class AddComponentIfTemp
+        {
+            public AddComponentIfAll all;
+            public AddComponentIfAny any;
+            public AddComponentIfNone none;
         }
     }
 }

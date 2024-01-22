@@ -44,6 +44,7 @@ namespace Game
             if (entity == Entity)
                 return;
             this.dispose();
+            this.Entity = null;
             this.Disposed = false;
             entity.AddComponent(this);
         }
@@ -60,15 +61,12 @@ namespace Game
             }
             this.dispose();
         }
-        internal void dispose(bool removeEntity = true)
+        internal void dispose(bool removeFromEntity = true)
         {
             this.Disposed = true;
             SSystem.UnRigisteComponent(this);
-            if (removeEntity)
-            {
+            if (removeFromEntity)
                 Entity.RemoveFromComponents(this);
-                Entity = null;
-            }
             SSystem.Run<DisposeAttribute>(this);
         }
     }

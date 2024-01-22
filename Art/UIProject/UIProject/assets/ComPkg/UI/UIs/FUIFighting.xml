@@ -10,7 +10,6 @@
       <relation target="" sidePair="left-left,top-top"/>
       <Button title="播放"/>
     </component>
-    <component id="n5_oxwq" name="_n5" src="oxwqn" fileName="UI/Box/test.xml" xy="179,24"/>
   </displayList>
   <transition name="open">
     <item time="0" type="XY" target="n2_n68q" tween="true" startValue="-,-114" endValue="-,50" duration="6"/>

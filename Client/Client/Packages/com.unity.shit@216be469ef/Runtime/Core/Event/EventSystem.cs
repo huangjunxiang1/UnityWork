@@ -457,8 +457,7 @@ namespace Game
             public async void Run<T>(T data)
             {
                 cnt = evts.Count;
-                EventHandler eh = ObjectPool.Get<EventHandler>();
-                eh.Reset();
+                EventHandler eh = new();
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
@@ -472,14 +471,12 @@ namespace Game
                     if (o is STask t && e.isQueue) await t;
                 }
                 index = -1;
-                ObjectPool.Return(eh);
             }
             public async STask RunAsync<T>(T data)
             {
                 List<STask> ts = ObjectPool.Get<List<STask>>();
                 cnt = evts.Count;
-                EventHandler eh = ObjectPool.Get<EventHandler>();
-                eh.Reset();
+                EventHandler eh = new();
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
@@ -497,7 +494,6 @@ namespace Game
                     }
                 }
                 index = -1;
-                ObjectPool.Return(eh);
                 await STask.All(ts);
                 ts.Clear();
                 ObjectPool.Return(ts);
@@ -508,8 +504,7 @@ namespace Game
                 K ret = default;
                 STask<K> task = default;
                 cnt = evts.Count;
-                EventHandler eh = ObjectPool.Get<EventHandler>();
-                eh.Reset();
+                EventHandler eh = new();
                 for (index = 0; index < cnt;)
                 {
                     EvtData e = evts[index];
@@ -533,7 +528,6 @@ namespace Game
                     if (o is STask t && e.isQueue) await t;
                 }
                 index = -1;
-                ObjectPool.Return(eh);
                 if (task != null) ret = await task;
                 return ret;
             }

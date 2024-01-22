@@ -187,7 +187,7 @@ namespace Main
                         int len = writer.Position;
                         if (len > ushort.MaxValue)
                         {
-                            Loger.Error($"数据过大 len={len}");
+                            Loger.Error($"数据过大 len={len}  class={message.GetType().FullName}");
                             continue;
                         }
 

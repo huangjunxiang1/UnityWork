@@ -32,7 +32,7 @@ namespace BehaviorDesigner.Runtime.Tasks.Basic.UnityRigidbody
                 return TaskStatus.Failure;
             }
 
-            storeValue.Value = rigidbody.drag;
+            storeValue.Value = rigidbody.linearDamping;
 
             return TaskStatus.Success;
         }

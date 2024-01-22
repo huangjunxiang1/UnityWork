@@ -40,7 +40,7 @@ namespace Game
         bool _rpcEventEnable = false;
         long _rpcid;
         bool _timerRigisterd = false;
-        Dictionary<Type, SComponent> components = new();
+        internal Dictionary<Type, SComponent> components = new();
 
         public long value;
         public object data;
@@ -90,15 +90,12 @@ namespace Game
 
         public T AddComponent<T>() where T : SComponent, new()
         {
+            if (components.TryGetValue(typeof(T), out var c))
+                return (T)c;
             return AddComponent(new T());
         }
         public T AddComponent<T>(T c) where T : SComponent
         {
-            if (components.TryGetValue(typeof(T), out var cc))
-            {
-                Loger.Error($"已经包含 component={cc}");
-                return (T)cc;
-            }
             if (c.Disposed)
             {
                 Loger.Error($"组件已经销毁 ={this}");
@@ -114,12 +111,27 @@ namespace Game
                 Loger.Error($"实体已经销毁 ={this}");
                 return default;
             }
-            c.Entity = this;
-            components[c.GetType()] = c;
-            SSystem.RigisteComponent(c);
-            SSystem.Run<AwakeAttribute>(c);
-            c.Change();
+            if (SSystem.isAutoAddComponent(c.GetType()))
+            {
+                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={c}");
+                return null;
+            }
+            if (components.TryGetValue(typeof(T), out var cc))
+            {
+                Loger.Error($"已经包含 component={cc}");
+                return (T)cc;
+            }
+            addComponent(c);
             return c;
+        }
+        public SComponent AddComponent(Type type)
+        {
+            if (SSystem.isAutoAddComponent(type))
+            {
+                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={type}");
+                return null;
+            }
+            return AddComponentInternal(type);
         }
         public T GetComponent<T>() where T : SComponent
         {
@@ -184,6 +196,11 @@ namespace Game
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
+            if (SSystem.isAutoAddComponent(typeof(T)))
+            {
+                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={typeof(T)}");
+                return false;
+            }
             if (!components.TryGetValue(typeof(T), out var c))
             {
                 Loger.Error($"未包含 component={typeof(T)}");
@@ -199,12 +216,16 @@ namespace Game
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            if (!components.TryGetValue(type, out var c))
+            if (SSystem.isAutoAddComponent(type))
+            {
+                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={type}");
+                return false;
+            }
+            if (!RemoveComponentInternal(type))
             {
                 Loger.Error($"未包含 component={type}");
                 return false;
             }
-            c.Dispose();
             return true;
         }
         public bool HasComponent<T>() where T : SComponent
@@ -224,6 +245,21 @@ namespace Game
                 return false;
             }
             return components.ContainsKey(type);
+        }
+
+        internal SComponent AddComponentInternal(Type type)
+        {
+            if (components.TryGetValue(type, out var c))
+                return c;
+            c = (SComponent)Activator.CreateInstance(type);
+            return addComponent(c);
+        }
+        internal bool RemoveComponentInternal(Type type)
+        {
+            if (!components.TryGetValue(type, out var c))
+                return false;
+            c.Dispose();
+            return true;
         }
         internal void RemoveFromComponents(SComponent c)
         {
@@ -268,6 +304,15 @@ namespace Game
             return obj;
         }
 
+        SComponent addComponent(SComponent c)
+        {
+            c.Entity = this;
+            components[c.GetType()] = c;
+            SSystem.RigisteComponent(c);
+            SSystem.Run<AwakeAttribute>(c);
+            c.Change();
+            return c;
+        }
         protected void RigisteRPCEvent(long rpc)
         {
             if (rpc == 0)
