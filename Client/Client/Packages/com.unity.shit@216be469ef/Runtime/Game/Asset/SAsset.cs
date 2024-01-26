@@ -1,12 +1,13 @@
-﻿#if FairyGUI
-using FairyGUI;
-#endif
-using System;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if FairyGUI
+using FairyGUI;
+#endif
 
 namespace Game
 {
@@ -19,7 +20,7 @@ namespace Game
         static readonly SAssetBaseLoader primitiveLoader = new SAssetPrimitiveLoader();
         //static readonly AssetBaseLoader copyLoader = new AssetCopyLoader();
 
-        public static GameObject LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        public static GameObject LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
             GameObject g = (GameObject)prefabLoader.Load(url);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
@@ -28,7 +29,7 @@ namespace Game
             r.mode = releaseMode;
             return g;
         }
-        public static STask<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        public static STask<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
             STask<GameObject> task = new();
             async void run()
@@ -89,7 +90,7 @@ namespace Game
             return task.MakeAutoCancel();
         }
 
-        public static void Release(UnityEngine.Object target)
+        public static void Release(UnityEngine.Object target, bool check = true)
         {
             if (!target)
             {
@@ -98,19 +99,21 @@ namespace Game
             }
             if (target is GameObject g)
             {
+                ReleaseTextureRef(g);
+                var list = ObjectPool.Get<List<UrlRef>>();
+                g.GetComponentsInChildren(list);
+                for (int i = list.Count - 1; i >= 0; i--)
+                    ReleaseGameObject(list[i]);
+                list.Clear();
+                ObjectPool.Return(list);
 
-#if DebugEnable
                 //debug模式检查一次Release的是不是加载对象
-                if (!g.TryGetComponent<UrlRef>(out var r))
+                if (g && !g.GetComponent<UrlRef>())
                 {
-                    Loger.Error($"不是从资源加载的对象 target={target}");
+                    if (check)
+                        Loger.Error($"不是从资源加载的对象 target={target}");
                     GameObject.DestroyImmediate(target);
-                    return;
                 }
-#endif
-                UrlRef[] rs = g.GetComponentsInChildren<UrlRef>();
-                for (int i = rs.Length - 1; i >= 0; i--)
-                    ReleaseGameObject(rs[i], false);
             }
             else
                 primitiveLoader.Release(target);
@@ -119,21 +122,7 @@ namespace Game
         {
             Addressables.UnloadSceneAsync(scene);
         }
-        public static void TryReleaseGameObject(GameObject target)
-        {
-            if (!target)
-            {
-                Loger.Error("Asset is null");
-                return;
-            }
-            if (!target.TryGetComponent<UrlRef>(out var r))
-            {
-                GameObject.DestroyImmediate(target);
-                return;
-            }
-            ReleaseGameObject(r, true);
-        }
-        static void ReleaseGameObject(UrlRef r, bool destroyIfIsNotLoad = true)
+        static void ReleaseGameObject(UrlRef r)
         {
             switch (r.mode)
             {
@@ -141,7 +130,7 @@ namespace Game
                 case ReleaseMode.Destroy:
                     if (r.isFromLoad)
                         prefabLoader.Release(r.gameObject);
-                    else if (destroyIfIsNotLoad)
+                    else
                         GameObject.DestroyImmediate(r.gameObject);
                     break;
                 case ReleaseMode.PutToPool:
@@ -165,14 +154,17 @@ namespace Game
                 Loger.Error("Asset is null");
                 return;
             }
-            TextureRef[] rs = target.GetComponentsInChildren<TextureRef>();
-            int len = rs.Length;
+            var list = ObjectPool.Get<List<TextureRef>>();
+            target.GetComponentsInChildren(list);
+            int len = list.Count;
             for (int i = 0; i < len; i++)
             {
-                TextureRef r = rs[i];
+                TextureRef r = list[i];
                 if (r.texture)
                     primitiveLoader.Release(r.texture);
             }
+            list.Clear();
+            ObjectPool.Return(list);
         }
 
         public static async STask SetTexture(this RawImage ri, string url)

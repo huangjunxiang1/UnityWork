@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace Game
             int len = types.Length;
             for (int i = 0; i < len; i++)
             {
-                var o = Types.GetAttribute(types[i], typeof(AutoCreateFormSceneTypeAttribute)) as AutoCreateFormSceneTypeAttribute;
+                var o = types[i].GetCustomAttribute<AutoCreateFormSceneTypeAttribute>();
                 if (o != null && o.type == sceneType)
                 {
                     var s = (SBehavior)Activator.CreateInstance(types[i]);
@@ -30,7 +31,7 @@ namespace Game
             }
             for (int i = 0; i < len; i++)
             {
-                var o = Types.GetAttribute(types[i], typeof(AutoCreateFormSceneIDAttribute)) as AutoCreateFormSceneIDAttribute;
+                var o = types[i].GetCustomAttribute<AutoCreateFormSceneIDAttribute>();
                 if (o != null && o.ID == sceneID)
                 {
                     var s = (SBehavior)Activator.CreateInstance(types[i]);
@@ -47,7 +48,7 @@ namespace Game
             int len = sys.Count;
             for (int i = 0; i < len; i++)
             {
-                var o = Types.GetAttribute(sys[i].GetType(), typeof(AutoCreateFormSceneTypeAttribute)) as AutoCreateFormSceneTypeAttribute;
+                var o = sys[i].GetType().GetCustomAttribute<AutoCreateFormSceneTypeAttribute>();
                 if (o != null && o.type == sceneType)
                 {
                     var s = sys[i];
@@ -59,7 +60,7 @@ namespace Game
             }
             for (int i = 0; i < len; i++)
             {
-                var o = Types.GetAttribute(sys[i].GetType(), typeof(AutoCreateFormSceneIDAttribute)) as AutoCreateFormSceneIDAttribute;
+                var o = sys[i].GetType().GetCustomAttribute<AutoCreateFormSceneIDAttribute>();
                 if (o != null && o.ID == sceneID)
                 {
                     var s = sys[i];

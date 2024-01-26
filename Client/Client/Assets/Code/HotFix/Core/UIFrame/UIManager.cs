@@ -8,6 +8,7 @@ using UnityEngine;
 using Game;
 using FairyGUI;
 using Main;
+using System.Reflection;
 
 public enum UIModel
 {
@@ -22,7 +23,7 @@ public enum UIStates
 }
 namespace Game
 {
-    class UIManager : SObject
+    class UIManager
     {
         public UIManager() : base()
         {
@@ -48,8 +49,7 @@ namespace Game
         public RectTransform UGUIRoot { get; }
         public Camera UGUICamera { get; }
 
-        [Event(2, Queue = true)]
-        async STask Init(EC_GameInit e)
+        internal async STask Init()
         {
             //ugui init
             {
@@ -87,8 +87,8 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
-                cfg = Game.UIConfig.Default;
+            if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
+                cfg = UIConfig.Default;
 
             ui = new();
             _uiLst.Add(ui);
@@ -119,8 +119,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
-                        cfg = Game.UIConfig.Default;
+                    if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
+                        cfg = UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -167,8 +167,8 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
-                cfg = Game.UIConfig.Default;
+            if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
+                cfg = UIConfig.Default;
 
             ui = new();
             parent.AddChild(ui);
@@ -186,8 +186,8 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
-                        cfg = Game.UIConfig.Default;
+                    if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
+                        cfg = UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -217,8 +217,8 @@ namespace Game
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
-                cfg = Game.UIConfig.Default;
+            if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
+                cfg = UIConfig.Default;
 
             T ui = new();
             _3duiLst.Add(ui);
@@ -233,8 +233,8 @@ namespace Game
             open();
             async void open()
             {
-                if (Types.GetAttribute(typeof(T), typeof(Game.UIConfig)) is not Game.UIConfig cfg)
-                    cfg = Game.UIConfig.Default;
+                if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
+                    cfg = UIConfig.Default;
 
                 T ui = new();
                 _3duiLst.Add(ui);

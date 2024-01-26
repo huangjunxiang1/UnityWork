@@ -87,15 +87,6 @@ public static class AsyncUtil
         return task;
     }
 #endif
-    public static STask AsTask(this Tween tween)
-    {
-        if (tween.IsComplete())
-            return STask.Completed;
-
-        STask task = new();
-        tween.OnComplete(() => task.TrySetResult());
-        return task;
-    }
     public static STask AsTask(this UnityEvent unityEvent)
     {
         STask task = new();

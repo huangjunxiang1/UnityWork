@@ -7,49 +7,29 @@ using System.Runtime.CompilerServices;
 
 public static class Types
 {
-    public static Type[] MainTypes { get; private set; }//主工程类型
-    public static Type[] HotTypes { get; private set; }//热更工程类型
-    public static Type[] AllTypes { get; private set; }//所有类型
+    public static List<Type> AllTypes { get; } = new(1000);
 
     readonly static Dictionary<Type, uint> _typeCmd = new();
     readonly static Dictionary<uint, Type> _cmdType = new();
     readonly static Dictionary<Type, Type> _requestResponse = new();
 
-    static Dictionary<Type, ulong> typeMaskV = new();
-    static Dictionary<Type, int> attributeMask = new();
-    static Dictionary<Type, object[]> typeAttributeMap = new();
     static Dictionary<Type, Type[]> assignableTypesMap = new();
     static Dictionary<Type, FieldInfo> StateMachineThisFieldMap = new();
     static Dictionary<Type, bool> _asyncNeedCancel = new();
-    static Dictionary<Type, Dictionary<Type, MethodAndAttribute[]>> methodAttributeCache = new();
-    static List<MethodAndAttribute> staticMethods;
+    static Dictionary<Type, MethodParseData[]> methodAttributeCache = new();
 
-    public static void InitTypes(Type[] mTypes, Type[] hTypes)
+    public static void RigisterTypes(IEnumerable<Type> types)
     {
-        AllTypes = new Type[mTypes.Length + hTypes.Length];
-        mTypes.CopyTo(AllTypes, 0);
-        hTypes.CopyTo(AllTypes, mTypes.Length);
-
-        MainTypes = mTypes;
-        HotTypes = hTypes;
-        int len = mTypes.Length;
-        int index = 0;
-        for (int i = 0; i < len; i++)
-        {
-            Type type = mTypes[i];
-
-            if (typeof(Attribute).IsAssignableFrom(type))
-            {
-                if (index >= 64)
-                    Loger.Error("属性个数超过64限制");
-                else
-                    attributeMask[type] = ++index;
-            }
-        }
-        len = AllTypes.Length;
+        AllTypes.AddRange(types);
+    }
+    internal static List<MethodParseData> Parse()
+    {
+        int len = AllTypes.Count;
+        List<MethodParseData> staticMethods = new(1000);
         for (int i = 0; i < len; i++)
         {
             Type type = AllTypes[i];
+
             if (typeof(PB.PBMessage).IsAssignableFrom(type))
             {
                 var m = type.GetCustomAttribute<MessageAttribute>();
@@ -62,16 +42,33 @@ public static class Types
                         _requestResponse[type] = m.ResponseType;
                 }
             }
-            var ms = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-            for (int j = 0; j < ms.Length; j++)
+
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            for (int j = 0; j < methods.Length; j++)
             {
-                var a = ms[j].GetCustomAttribute<AsyncStateMachineAttribute>();
-                if (a != null)
-                    _asyncNeedCancel[a.StateMachineType] = ms[j].GetCustomAttribute<AsynAutoCancelIfCallerDisposedAttribute>() != null;
+                var method = methods[j];
+                var asm = method.GetCustomAttribute<AsyncStateMachineAttribute>();
+                if (asm != null)
+                    _asyncNeedCancel[asm.StateMachineType] = method.GetCustomAttribute<AsynAutoCancelIfCallerDisposedAttribute>() != null;
+
+                if (method.IsStatic)
+                {
+                    foreach (var item in method.GetCustomAttributes<SAttribute>())
+                        staticMethods.Add(new MethodParseData(method, item));
+                }
+            }
+
+            var propertys = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            for (int j = 0; j < propertys.Length; j++)
+            {
+                var property = propertys[j];
+                if (property.SetMethod == null) continue;
+                foreach (var item in property.GetCustomAttributes<SAttribute>())
+                    staticMethods.Add(new MethodParseData(property, item));
             }
         }
+        return staticMethods;
     }
-
 
     public static uint GetCMDCode(Type type)
     {
@@ -91,51 +88,12 @@ public static class Types
             Loger.Error("request没有Response  requestType:" + type.FullName);
         return type;
     }
-
-    public static bool HasDefineAttribute(Type t, Type attribute)
-    {
-        if (!attributeMask.TryGetValue(attribute, out int v))
-        {
-            Loger.Error($"属性类型->{attribute} 未在定义里面");
-            return false;
-        }
-        if (!typeMaskV.TryGetValue(t, out ulong vs))
-        {
-            ulong mv = 0;
-            foreach (var item in attributeMask)
-            {
-                if (t.IsDefined(item.Key, true))
-                    mv |= 1ul << item.Value;
-            }
-            typeMaskV[t] = vs = mv;
-        }
-        return (vs & (1ul << v)) != 0;
-    }
-
-    public static object[] GetAttributes(Type t)
-    {
-        if (!typeAttributeMap.TryGetValue(t, out var lst))
-            typeAttributeMap[t] = lst = t.GetCustomAttributes(true);
-        return lst;
-    }
-
-    public static object GetAttribute(Type t, Type attribute)
-    {
-        var arr = GetAttributes(t);
-        for (int i = 0; i < arr.Length; i++)
-        {
-            if (arr[i].GetType() == attribute)
-                return arr[i];
-        }
-        return null;
-    }
-
     public static Type[] GetAllAssignableTypes(Type t)
     {
         if (!assignableTypesMap.TryGetValue(t, out var arr))
         {
             var lst = ObjectPool.Get<List<Type>>();
-            int len = AllTypes.Length;
+            int len = AllTypes.Count;
             for (int i = 0; i < len; i++)
             {
                 Type type = AllTypes[i];
@@ -143,13 +101,12 @@ public static class Types
                     continue;
                 lst.Add(type);
             }
-            assignableTypesMap[t] = arr = lst.ToArray();
+            assignableTypesMap[t] = arr = lst.Count == 0 ? Array.Empty<Type>() : lst.ToArray();
             lst.Clear();
             ObjectPool.Return(lst);
         }
         return arr;
     }
-
     public static FieldInfo GetStateMachineThisField(Type t)
     {
         if (!StateMachineThisFieldMap.TryGetValue(t, out var value))
@@ -162,73 +119,82 @@ public static class Types
         return _asyncNeedCancel.TryGetValue(stateMachineType, out bool v) && v;
     }
 
-    internal static MethodAndAttribute[] GetInstanceMethodsWithAttribute<T>(Type self)
+    internal static MethodParseData[] GetInstanceMethodsAttribute(Type type)
     {
-        if (!methodAttributeCache.TryGetValue(self, out var map))
-            methodAttributeCache[self] = map = new();
-
-        if (!map.TryGetValue(typeof(T), out var arr))
+        if (!methodAttributeCache.TryGetValue(type, out var array))
         {
-            List<MethodInfo> ms = new List<MethodInfo>() { };
-            ms.AddRange(self.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
-            while (self.BaseType != null)
+            var lst = ObjectPool.Get<List<MethodParseData>>();
+
+            var methods = ObjectPool.Get<List<MethodInfo>>();
+            var tmp = type;
+            methods.AddRange(tmp.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+            while (tmp.BaseType != null)
             {
-                self = self.BaseType;
-                var t = self.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
-                for (int i = 0; i < t.Length; i++)
+                tmp = tmp.BaseType;
+                var ms = tmp.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+                for (int i = 0; i < ms.Length; i++)
                 {
-                    if (t[i].IsPrivate)
-                        ms.Add(t[i]);
+                    if (ms[i].IsPrivate)
+                        methods.Add(ms[i]);
                 }
             }
-            var lst = ObjectPool.Get<List<MethodAndAttribute>>();
-            for (int i = 0; i < ms.Count; i++)
+            for (int i = 0; i < methods.Count; i++)
             {
-                var att = ms[i].GetCustomAttribute(typeof(T));
-                if (att != null)
-                    lst.Add(new MethodAndAttribute(ms[i], att));
+                foreach (var item in methods[i].GetCustomAttributes<SAttribute>())
+                    lst.Add(new MethodParseData(methods[i], item));
             }
-            map[typeof(T)] = arr = lst.ToArray();
+            methods.Clear();
+            ObjectPool.Return(methods);
+
+            var propertys = ObjectPool.Get<List<PropertyInfo>>();
+            tmp = type;
+            propertys.AddRange(tmp.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+            while (tmp.BaseType != null)
+            {
+                tmp = tmp.BaseType;
+                var ps = tmp.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                for (int i = 0; i < ps.Length; i++)
+                {
+                    var p = ps[i];
+                    if (p.SetMethod != null && p.SetMethod.IsPrivate)
+                        propertys.Add(p);
+                }
+            }
+            for (int i = 0; i < propertys.Count; i++)
+            {
+                if (propertys[i].SetMethod == null) continue;
+                foreach (var item in propertys[i].GetCustomAttributes<SAttribute>())
+                    lst.Add(new MethodParseData(propertys[i], item));
+            }
+            propertys.Clear();
+            ObjectPool.Return(propertys);
+
+            methodAttributeCache[type] = array = lst.Count == 0 ? Array.Empty<MethodParseData>() : lst.ToArray();
             lst.Clear();
             ObjectPool.Return(lst);
         }
-        return arr;
-    }
-    internal static List<MethodAndAttribute> GetStaticMethods()
-    {
-        if (staticMethods == null)
-        {
-            staticMethods = new(1000);
-            int cnt = Types.AllTypes.Length;
-            for (int i = 0; i < cnt; i++)
-            {
-                Type type = Types.AllTypes[i];
-                var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-                int len = methods.Length;
-                for (int j = 0; j < len; j++)
-                {
-                    var method = methods[j];
-
-                    foreach (var item in method.GetCustomAttributes(typeof(SAttribute), false))
-                        staticMethods.Add(new MethodAndAttribute(method, item));
-                }
-            }
-        }
-        return staticMethods;
-    }
-    internal static void ClearStaticMethodsCache()
-    {
-        staticMethods = null;
+        return array;
     }
 }
 
-class MethodAndAttribute
+class MethodParseData
 {
-    public MethodAndAttribute(MethodInfo method, object attribute)
+    public MethodParseData(MethodInfo method, Attribute attribute)
     {
         this.method = method;
         this.attribute = attribute;
+        this.parameters = method.GetParameters();
     }
+    public MethodParseData(PropertyInfo property, Attribute attribute)
+    {
+        this.method = property.SetMethod;
+        this.attribute = attribute;
+        this.property = property;
+    }
+
     public MethodInfo method;
-    public object attribute;
+    public Attribute attribute;
+
+    public ParameterInfo[] parameters;
+    public PropertyInfo property;
 }

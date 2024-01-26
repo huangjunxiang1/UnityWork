@@ -26,11 +26,6 @@ partial class FUIFighting2
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity one = await ECSHelper.LoadEntity(@"3D\Model\ECS\Cube.prefab");
 
-        if (this.Disposed)
-        {
-           
-        }
-
         es = new NativeArray<Entity>(esSize.x * esSize.y, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         es[0] = one;
         road = new NativeArray<int>(roadSize.x * roadSize.y, Allocator.Persistent, NativeArrayOptions.ClearMemory);

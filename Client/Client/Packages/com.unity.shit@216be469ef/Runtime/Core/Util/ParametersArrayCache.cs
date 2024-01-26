@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 internal static class ParametersArrayCache
 {
     public const int Max = 5;
-    static object[][] oss = new object[5][]
+    static object[][] oss = new object[Max][]
     {
         new object[1],
         new object[2],

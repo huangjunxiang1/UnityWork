@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
-using System.IO;
-using UnityEditor.Compilation;
+using UnityEditor.Build;
 
 [CustomEditor(typeof(GameStart))]
 public class AppSettingEditor : Editor
@@ -46,15 +43,15 @@ public class AppSettingEditor : Editor
             ao.Save(path);
         }
 
-        BuildTargetGroup[] groups = new BuildTargetGroup[]
+        NamedBuildTarget[] groups = new NamedBuildTarget[]
         {
-            BuildTargetGroup.Standalone,
-            BuildTargetGroup.Android,
-            BuildTargetGroup.iOS,
+            NamedBuildTarget.Standalone,
+            NamedBuildTarget.Android,
+            NamedBuildTarget.iOS,
         };
         for (int i = 0; i < groups.Length; i++)
         {
-            List<string> defs = PlayerSettings.GetScriptingDefineSymbolsForGroup(groups[i]).Split(';').ToList();
+            List<string> defs = PlayerSettings.GetScriptingDefineSymbols(groups[i]).Split(';').ToList();
 
             if (setting.Runtime == CodeRuntime.Assembly)
             {
@@ -81,7 +78,7 @@ public class AppSettingEditor : Editor
                     str1.Append(defs[j]);
             }
 
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(groups[i], str1.ToString());
+            PlayerSettings.SetScriptingDefineSymbols(groups[i], str1.ToString());
         }
 
         AssetDatabase.Refresh();

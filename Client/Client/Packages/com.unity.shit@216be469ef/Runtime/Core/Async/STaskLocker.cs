@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// TaskAwaiter 有自动取消机制 所以这里使用要注意 单次锁 如果异步被中途取消 会走到超时逻辑
+/// STask 有自动取消机制 所以这里使用要注意 单次锁 如果异步被中途取消 会走到超时逻辑
 /// </summary>
 public class STaskLocker : IDisposable
 {

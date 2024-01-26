@@ -206,11 +206,7 @@ abstract class UUIBase : UIBase
         //ui不做池管理
         if (this.UI)
         {
-            this.Hide(true, () =>
-            {
-                SAsset.ReleaseTextureRef(this.UI.gameObject);
-                SAsset.Release(this.UI.gameObject);
-            });
+            this.Hide(true, () => SAsset.Release(this.UI.gameObject));
         }
     }
 }

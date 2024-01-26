@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property)]
 public class EventAttribute : SAttribute
 {
     public int SortOrder { get; }//消息调用顺序权值

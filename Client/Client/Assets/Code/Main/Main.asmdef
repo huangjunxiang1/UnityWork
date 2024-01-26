@@ -12,7 +12,8 @@
         "GUID:e0cd26848372d4e5c891c569017e11f1",
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:75469ad4d38634e559750d17036d5f7c",
-        "GUID:4307f53044263cf4b835bd812fc161a4"
+        "GUID:4307f53044263cf4b835bd812fc161a4",
+        "GUID:2fbd3b3a606f3f0428d332f56568d6f3"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -20,7 +21,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "Loger.dll",
-        "DOTween.dll"
+        "DOTween.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

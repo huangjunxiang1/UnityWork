@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.UI;
 using FairyGUI;
-using Main;
 using UnityEngine.InputSystem;
-using DG.Tweening.Plugins.Core.PathCore;
 
 public class Tool
 {

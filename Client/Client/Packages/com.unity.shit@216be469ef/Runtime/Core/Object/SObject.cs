@@ -303,6 +303,14 @@ namespace Game
             gidMap.TryGetValue(gid, out var obj);
             return obj;
         }
+        public static bool TryGetWithRpc(long rpc, out SObject obj)
+        {
+            return rpcMap.TryGetValue(rpc, out obj);
+        }
+        public static bool TryGetWithGid(long gid, out SObject obj)
+        {
+            return gidMap.TryGetValue(gid, out obj);
+        }
 
         SComponent addComponent(SComponent c)
         {

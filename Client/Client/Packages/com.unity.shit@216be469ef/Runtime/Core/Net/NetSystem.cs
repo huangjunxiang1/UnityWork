@@ -12,7 +12,6 @@ namespace Game
     {
         SBaseNet net;
         readonly Dictionary<Type, Queue<STask<PB.PBMessage>>> _requestTask = new();
-        Queue<STask<PB.PBMessage>> _swap = new();
         ConcurrentQueue<PBMessage> msgs = new();
 
         void _onError(int error)
@@ -39,11 +38,10 @@ namespace Game
 
                 if (_requestTask.TryGetValue(type, out var queue))
                 {
-                    //防止TrySetResult执行过程中 有另外的异步发送同时执行
-                    _requestTask[type] = _swap;
+                    _requestTask.Remove(type);
                     while (queue.Count > 0)
                         queue.Dequeue().TrySetResult(message);
-                    _swap = queue;
+                    ObjectPool.Return(queue);
                 }
             }
         }
@@ -85,18 +83,15 @@ namespace Game
         /// <returns></returns>
         public STask<PB.PBMessage> SendAsync(PBMessage request)
         {
-            Type t = request.GetType();
-            var rsp = Types.GetResponseType(t);
-            if (rsp == null)
+            Type k = request.GetType();
+            var v = Types.GetResponseType(k);
+            if (v == null)
             {
-                Loger.Error("没有responseType类型 req=" + t);
+                Loger.Error("没有responseType类型 req=" + k);
                 return null;
             }
-            if (!_requestTask.TryGetValue(rsp, out Queue<STask<PB.PBMessage>> queue))
-            {
-                queue = new Queue<STask<PB.PBMessage>>();
-                _requestTask[rsp] = queue;
-            }
+            if (!_requestTask.TryGetValue(v, out var queue))
+                _requestTask[v] = ObjectPool.Get<Queue<STask<PB.PBMessage>>>();
             STask<PB.PBMessage> task = new();
             queue.Enqueue(task);
             Send(request);
@@ -118,9 +113,8 @@ namespace Game
             _requestTask.Clear();
         }
 
-        internal void update()
+        internal void Update(long tick)
         {
-            long tick = DateTime.Now.Ticks;
             while (msgs.TryDequeue(out var item))
             {
                 _onResponse(item);

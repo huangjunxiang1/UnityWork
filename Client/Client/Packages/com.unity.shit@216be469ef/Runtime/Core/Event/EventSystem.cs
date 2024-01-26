@@ -1,111 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Game
 {
     public class EventSystem
     {
-        public EventSystem()
-        {
-            this.RigisteAllStaticEvent();
-        }
-
         readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
 
-        readonly static Dictionary<Type, MethodData[]> _listenerMethodCache = new(97);
-        readonly static List<MethodInfo> _methodInfos = new List<MethodInfo>();
         static Type[] _parameterType1 = new Type[1];
         static Type[] _parameterType2 = new Type[2];
-        static Type[] _parameterType3 = new Type[3];
 
-        static bool _checkEventMethod(MethodInfo method, out Type key, out bool setHandler, out Type returnType)
+        [Conditional("DebugEnable")]
+        static void _checkAllMethod()
         {
-            key = null;
-            setHandler = false;
-            returnType = method.ReturnType;
-            if (method.IsGenericMethod)
+            for (int i = 0; i < Types.AllTypes.Count; i++)
             {
-                Loger.Error("事件函数不能是泛型函数");
-                return false;
-            }
-            var ps = method.GetParameters();
-            if (ps.Length == 0 || ps.Length > 2)
-            {
-                Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
-                return false;
-            }
-            if (ps.Length == 2)
-            {
-                setHandler = ps[1].ParameterType == typeof(EventHandler);
-                if (!setHandler)
-                {
-                    Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
-                    return false;
-                }
-            }
-            key = ps[0].ParameterType;
-#if DebugEnable
-            if (key.IsPrimitive)
-                Loger.Error("不要使用系统值类型作为事件参数类型");
-#endif
-            return true;
-        }
-        /// <summary>
-        /// 获取对应事件函数
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        static MethodData[] _getListenerMethods(Type t)
-        {
-            if (!_listenerMethodCache.TryGetValue(t, out MethodData[] result))
-            {
-                Type tt = t;
-                _methodInfos.AddRange(tt.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
-                while ((tt = tt.BaseType) != null)
-                {
-                    var ms = tt.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
-                    for (int i = 0; i < ms.Length; i++)
-                    {
-                        if (ms[i].IsPrivate)
-                            _methodInfos.Add(ms[i]);
-                    }
-                }
+                var type = Types.AllTypes[i];
+                var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
-                List<MethodData> evts = new();
-                for (int i = 0; i < _methodInfos.Count; i++)
+                for (int j = 0; j < methods.Length; j++)
                 {
-                    var method = _methodInfos[i];
-
-                    var ea = method.GetCustomAttributes(typeof(EventAttribute), true).FirstOrDefault() as EventAttribute;
-                    if (ea != null)
+                    var method = methods[j];
+                    if (method.IsDefined(typeof(EventAttribute)))
                     {
-                        MethodData e = new();
-                        if (!_checkEventMethod(method, out e.key, out e.setHandler, out e.returnType))
+                        var ps = method.GetParameters();
+
+                        if (method.IsGenericMethod)
+                            Loger.Error("事件函数不能是泛型函数  class:" + method.ReflectedType.FullName + " method:" + method.Name);
+                        if (ps.Length == 0 || ps.Length > 2)
+                        {
+                            Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
                             continue;
-                        e.method = method;
-                        e.attribute = ea;
-                        evts.Add(e);
+                        }
+                        if (ps.Length == 2)
+                        {
+                            if (ps[1].ParameterType != typeof(EventHandler))
+                                Loger.Error("无法解析的参数类型 class:" + method.ReflectedType.FullName + " method:" + method.Name);
+                        }
+                        if (ps[0].ParameterType.IsPrimitive)
+                            Loger.Error("不要使用系统值类型作为事件参数类型");
                     }
                 }
-                _methodInfos.Clear();
-                result = _listenerMethodCache[t] = evts.ToArray();
             }
-            return result;
         }
-
+        
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
         /// </summary>
-        void RigisteAllStaticEvent()
+        internal void RigisteAllStaticEvent(List<MethodParseData> methods)
         {
-            var lst = Types.GetStaticMethods();
-            for (int i = 0; i < lst.Count; i++)
+            _checkAllMethod();
+            for (int i = 0; i < methods.Count; i++)
             {
-                MethodAndAttribute ma = lst[i];
-                if (ma.attribute is EventAttribute ea)
+                MethodParseData dt = methods[i];
+                if (dt.attribute is EventAttribute ea)
                 {
                     if (ea.RPC)
                     {
@@ -114,15 +65,15 @@ namespace Game
                     }
 
                     EvtData e = new();
-                    if (!_checkEventMethod(ma.method, out e.Key, out e.setHandler, out e.returnType))
-                        continue;
-
-                    if (!_evtMap.TryGetValue(e.Key, out var queue))
-                        _evtMap[e.Key] = queue = new();
+                    e.key = dt.parameters != null ? dt.parameters[0].ParameterType : dt.property.PropertyType;
+                    if (!_evtMap.TryGetValue(e.key, out var queue))
+                        _evtMap[e.key] = queue = new();
 
                     e.sortOrder = ea.SortOrder;
                     e.isQueue = ea.Queue;
-                    e.method = ma.method;
+                    e.method = dt.method;
+                    e.setHandler = dt.parameters != null && dt.parameters.Length == 2;
+                    e.returnType = dt.method.ReturnType;
                     createDelegate(e, null);
 
                     queue.Add(e);
@@ -147,27 +98,31 @@ namespace Game
                 Loger.Error("只能在class注册事件");
                 return;
             }
-            MethodData[] ms = _getListenerMethods(t);
 
+            var ms = Types.GetInstanceMethodsAttribute(t);
             for (int i = 0; i < ms.Length; i++)
             {
-                MethodData m = ms[i];
-                if (m.attribute.RPC) continue;
+                var m = ms[i];
+                if (m.attribute is EventAttribute ea)
+                {
+                    if (ea.RPC) continue;
 
-                if (!_evtMap.TryGetValue(m.key, out var queue))
-                    _evtMap[m.key] = queue = new();
+                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
+                    if (!_evtMap.TryGetValue(key, out var queue))
+                        _evtMap[key] = queue = new();
 
-                EvtData e = new();
-                e.Key = m.key;
-                e.method = m.method;
-                e.sortOrder = m.attribute.SortOrder;
-                e.target = target;
-                e.isQueue = m.attribute.Queue;
-                e.setHandler = m.setHandler;
-                e.returnType = m.returnType;
-                createDelegate(e, target);
+                    EvtData e = new();
+                    e.key = key;
+                    e.method = m.method;
+                    e.sortOrder = ea.SortOrder;
+                    e.target = target;
+                    e.isQueue = ea.Queue;
+                    e.setHandler = m.parameters != null && m.parameters.Length == 2;
+                    e.returnType = m.method.ReturnType;
+                    createDelegate(e, target);
 
-                queue.Add(e);
+                    queue.Add(e);
+                }
             }
         }
         public void RigisteRPCEvent(long rpc, object target)
@@ -183,30 +138,34 @@ namespace Game
                 Loger.Error("只能在class注册事件");
                 return;
             }
-            MethodData[] ms = _getListenerMethods(t);
 
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 _rpcEvtMap[rpc] = map = new();
 
+            var ms = Types.GetInstanceMethodsAttribute(t);
             for (int i = 0; i < ms.Length; i++)
             {
-                MethodData m = ms[i];
-                if (!m.attribute.RPC) continue;
+                var m = ms[i];
+                if (m.attribute is EventAttribute ea)
+                {
+                    if (!ea.RPC) continue;
 
-                if (!map.TryGetValue(m.key, out var queue))
-                    map[m.key] = queue = new();
+                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
+                    if (!map.TryGetValue(key, out var queue))
+                        map[key] = queue = new();
 
-                EvtData e = new();
-                e.Key = m.key;
-                e.method = m.method;
-                e.sortOrder = m.attribute.SortOrder;
-                e.target = target;
-                e.isQueue = m.attribute.Queue;
-                e.setHandler = m.setHandler;
-                e.returnType = m.returnType;
-                createDelegate(e, target);
+                    EvtData e = new();
+                    e.key = key;
+                    e.method = m.method;
+                    e.sortOrder = ea.SortOrder;
+                    e.target = target;
+                    e.isQueue = ea.Queue;
+                    e.setHandler = m.parameters != null && m.parameters.Length == 2;
+                    e.returnType = m.method.ReturnType;
+                    createDelegate(e, target);
 
-                queue.Add(e);
+                    queue.Add(e);
+                }
             }
         }
         public STask<T> WaitEvent<T>(int sortOrder = 0)
@@ -218,7 +177,7 @@ namespace Game
                 _evtMap[k] = queue = new();
 
             EvtData e = new();
-            e.Key = k;
+            e.key = k;
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
@@ -238,7 +197,7 @@ namespace Game
                 map[k] = queue = new();
 
             EvtData e = new();
-            e.Key = k;
+            e.key = k;
             e.sortOrder = sortOrder;
             e.isOnece = true;
             e.target = task;
@@ -259,11 +218,21 @@ namespace Game
                 return;
             }
             Type t = target.GetType();
-            if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
+            if (!t.IsClass)
             {
-                for (int i = 0; i < ms.Length; i++)
-                    if (_evtMap.TryGetValue(ms[i].key, out var queue))
+                Loger.Error("只能在class注册事件");
+                return;
+            }
+            var ms = Types.GetInstanceMethodsAttribute(t);
+            for (int i = 0; i < ms.Length; i++)
+            {
+                var m = ms[i];
+                if (m.attribute is EventAttribute)
+                {
+                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
+                    if (_evtMap.TryGetValue(key, out var queue))
                         queue.Remove(target);
+                }
             }
         }
         public void RemoveRPCEvent(long rpc, object target)
@@ -273,13 +242,23 @@ namespace Game
                 Loger.Error("移除事件对象为空");
                 return;
             }
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
             Type t = target.GetType();
-            if (_listenerMethodCache.TryGetValue(t, out MethodData[] ms))
+            if (!t.IsClass)
             {
-                for (int i = 0; i < ms.Length; i++)
-                    if (map.TryGetValue(ms[i].key, out var queue))
+                Loger.Error("只能在class注册事件");
+                return;
+            }
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
+            var ms = Types.GetInstanceMethodsAttribute(t);
+            for (int i = 0; i < ms.Length; i++)
+            {
+                var m = ms[i];
+                if (m.attribute is EventAttribute)
+                {
+                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
+                    if (map.TryGetValue(key, out var queue))
                         queue.Remove(target);
+                }
             }
         }
 
@@ -328,8 +307,21 @@ namespace Game
             if (!evtMap.TryGetValue(key, out var queue)) return;
             if (queue.index > -1)
             {
-                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
-                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
+#if DebugEnable
+                var evt = queue.evts[queue.index];
+                if (evt.method != null)
+                {
+                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+                }
+                else
+                {
+
+                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
+                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
+                }
+                Loger.LogStackTrace();
+#endif
                 return;
             }
             queue.Run(data);
@@ -340,8 +332,21 @@ namespace Game
             if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
             if (queue.index > -1)
             {
-                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
-                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
+#if DebugEnable
+                var evt = queue.evts[queue.index];
+                if (evt.method != null)
+                {
+                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+                }
+                else
+                {
+
+                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
+                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
+                }
+                Loger.LogStackTrace();
+#endif
                 return STask.Completed;
             }
             return queue.RunAsync(data);
@@ -357,8 +362,21 @@ namespace Game
             }
             if (queue.index > -1)
             {
-                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key}");
-                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc}");
+#if DebugEnable
+                var evt = queue.evts[queue.index];
+                if (evt.method != null)
+                {
+                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+                }
+                else
+                {
+
+                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
+                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
+                }
+                Loger.LogStackTrace();
+#endif
                 return default;
             }
             var task = queue.RunAsync<K>(data);
@@ -377,37 +395,37 @@ namespace Game
             {
                 if (ed.setHandler)
                 {
-                    _parameterType2[0] = ed.Key;
+                    _parameterType2[0] = ed.key;
                     _parameterType2[1] = typeof(EventHandler);
                     ed.action = ed.method.CreateDelegate(typeof(Action<,>).MakeGenericType(_parameterType2), o);
                 }
                 else
                 {
-                    _parameterType1[0] = ed.Key;
+                    _parameterType1[0] = ed.key;
                     ed.action = ed.method.CreateDelegate(typeof(Action<>).MakeGenericType(_parameterType1), o);
                 }
             }
-            else
+            /*else
             {
                 if (ed.setHandler)
                 {
-                    _parameterType3[0] = ed.Key;
+                    _parameterType3[0] = ed.key;
                     _parameterType3[1] = typeof(EventHandler);
                     _parameterType3[2] = ed.returnType;
                     ed.action = ed.method.CreateDelegate(typeof(Func<,,>).MakeGenericType(_parameterType3), o);
                 }
                 else
                 {
-                    _parameterType2[0] = ed.Key;
+                    _parameterType2[0] = ed.key;
                     _parameterType2[1] = ed.returnType;
                     ed.action = ed.method.CreateDelegate(typeof(Func<,>).MakeGenericType(_parameterType2), o);
                 }
-            }
+            }*/
         }
 
         class EvtData
         {
-            public Type Key;
+            public Type key;
             public Type returnType;
 
             public Delegate action;
@@ -608,15 +626,6 @@ namespace Game
                 if (eh.isBreak) cnt = index;
                 return o;
             }
-        }
-        class MethodData
-        {
-            public Type key;
-            public Type returnType;
-
-            public MethodInfo method;
-            public EventAttribute attribute;
-            public bool setHandler;
         }
     }
 }

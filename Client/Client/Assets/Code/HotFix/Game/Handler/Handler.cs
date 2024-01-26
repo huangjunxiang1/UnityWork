@@ -30,7 +30,7 @@ static class Handler
         if (e.sceneId == 1)
             await GameL.UI.OpenAsync<FUILogin>();
     }
-    [Event(1, Queue = true)]
+    [Event(-2, Queue = true)]
     static async STask EC_GameInit(EC_GameInit e)
     {
         DG.Tweening.DOTween.Init();

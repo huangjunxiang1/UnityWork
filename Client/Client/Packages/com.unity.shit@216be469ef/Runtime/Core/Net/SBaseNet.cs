@@ -53,7 +53,7 @@ namespace Main
             if (error != NetError.ParseError)
                 this.DisConnect();
             Loger.Error($"网络错误 error={ex} \n stack={Loger.GetStackTrace()}");
-            ThreadSynchronizationContext.Instance.Post(() => onError?.Invoke((int)error));
+            SynchronizationContext.Current.Post(state => onError?.Invoke((int)error), null);
         }
         public void Work()
         {

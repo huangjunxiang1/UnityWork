@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Game;
 using Main;
+using DG.Tweening;
 
 public static class ExFunc
 {
@@ -32,11 +33,7 @@ public static class ExFunc
                 for (int i = childCnt; i > 1; i--)
                 {
                     if (destroyMore)
-                    {
-                        GameObject g = parent.GetChild(i - 1).gameObject;
-                        SAsset.ReleaseTextureRef(g);
-                        SAsset.TryReleaseGameObject(g);
-                    }
+                        SAsset.Release(parent.GetChild(i - 1).gameObject, false);
                     else
                         parent.GetChild(i - 1).gameObject.SetActive(false);
                 }
@@ -62,11 +59,7 @@ public static class ExFunc
             for (int i = childCnt; i > count; i--)
             {
                 if (destroyMore)
-                {
-                    GameObject g = parent.GetChild(i - 1).gameObject;
-                    SAsset.ReleaseTextureRef(g);
-                    SAsset.TryReleaseGameObject(g);
-                }
+                    SAsset.Release(parent.GetChild(i - 1).gameObject, false);
                 else
                     parent.GetChild(i - 1).gameObject.SetActive(false);
             }
@@ -162,5 +155,16 @@ public static class ExFunc
             }
             lst[i + 1] = item;
         }
+    }
+
+
+    public static STask AsTask(this Tween tween)
+    {
+        if (tween.IsComplete())
+            return STask.Completed;
+
+        STask task = new();
+        tween.OnComplete(() => task.TrySetResult());
+        return task;
     }
 }

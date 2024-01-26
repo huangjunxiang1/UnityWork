@@ -7,6 +7,7 @@ using UnityEngine;
 using Main;
 using Game;
 using System.Reflection;
+using System.Diagnostics;
 
 public static class STimer
 {
@@ -188,43 +189,48 @@ public static class STimer
         }
     }
 
-    internal static void Init()
+    [Conditional("DebugEnable")]
+    static void _checkAllMethod()
     {
-        var lst = Types.GetStaticMethods();
-        for (int i = 0; i < lst.Count; i++)
+        for (int i = 0; i < Types.AllTypes.Count; i++)
         {
-            MethodAndAttribute ma = lst[i];
-            if (ma.attribute is STimerAttribute ea)
+            var type = Types.AllTypes[i];
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
+            for (int j = 0; j < methods.Length; j++)
             {
-#if DebugEnable
-                if (ma.method.GetParameters().Length != 0)
+                var method = methods[j];
+                if (method.IsDefined(typeof(STimerAttribute)))
                 {
-                    Loger.Error($"{ma.method.ReflectedType.FullName}  {ma.method.Name}  timer必须没有参数");
-                    continue;
+                    if(method.IsGenericMethod)
+                        Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数不能是泛型函数");
+                    if (method.GetParameters().Length != 0)
+                        Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数必须没有参数");
+                    if (method.ReturnType != typeof(void))
+                        Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数必须没有返回值");
                 }
-#endif
-                Add(ea.Time, ea.Count, (Action)ma.method.CreateDelegate(typeof(Action)));
             }
+        }
+    }
+    internal static void Init(List<MethodParseData> methods)
+    {
+        _checkAllMethod();
+        for (int i = 0; i < methods.Count; i++)
+        {
+            MethodParseData ma = methods[i];
+            if (ma.attribute is STimerAttribute ea)
+                Add(ea.Time, ea.Count, (Action)ma.method.CreateDelegate(typeof(Action)));
         }
     }
     public static bool AutoRigisterTimer(object target)
     {
-        Type t = target.GetType();
-        var ts = Types.GetInstanceMethodsWithAttribute<STimerAttribute>(t);
-        for (int i = 0; i < ts.Length; i++)
+        var methods = Types.GetInstanceMethodsAttribute(target.GetType());
+        for (int i = 0; i < methods.Length; i++)
         {
-            var method = ts[i].method;
-#if DebugEnable
-            if (method.GetParameters().Length != 0)
-            {
-                Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer必须没有参数");
-                continue;
-            }
-#endif
-            var timer = ts[i].attribute as STimerAttribute;
-            Add(timer.Time, timer.Count, (Action)method.CreateDelegate(typeof(Action), target), target);
+            if (methods[i].attribute is STimerAttribute ta)
+                Add(ta.Time, ta.Count, (Action)methods[i].method.CreateDelegate(typeof(Action), target), target);
         }
-        return ts.Length > 0;
+        return methods.Length > 0;
     }
     public static void AutoRemoveTimer(object target)
     {
