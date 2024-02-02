@@ -65,7 +65,6 @@ namespace Game
                 UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
                 UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
                 UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);
-                await GameL.UI.OpenAsync<FUIGlobal>();
             }
         }
         async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
@@ -100,14 +99,14 @@ namespace Game
                 UIBase tmp = _uiLst[i];
                 if (tmp == ui)
                     continue;
-                if (tmp.uiConfig.HideOnOpenOtherUI && tmp.isShow && tmp.uiConfig.UIType < UIType.GlobalUI)
+                if (tmp.uiConfig.HideIfOpenOtherUI && tmp.isShow)
                 {
                     tmp.Hide();
                     break;
                 }
             }
             ui.Show();
-            ((STask<T>)ui.onCompleted).TrySetResult(ui);
+            ui.onCompleted.TrySetResult(ui);
 
             return ui;
         }
@@ -143,18 +142,18 @@ namespace Game
                         UIBase tmp = _uiLst[i];
                         if (tmp == ui)
                             continue;
-                        if (tmp.uiConfig.HideOnOpenOtherUI && tmp.isShow && tmp.uiConfig.UIType < UIType.GlobalUI)
+                        if (tmp.uiConfig.HideIfOpenOtherUI && tmp.isShow)
                         {
                             tmp.Hide();
                             break;
                         }
                     }
                     ui.EventEnable = true;
-                    STimer.AutoRigisterTimer(ui);
+                    ui.TimerEnable = true;
                     ui.Show();
                     UIHelper.EnableUIInput(true);
 
-                    ((STask<T>)ui.onCompleted).TrySetResult(ui);
+                    ui.onCompleted.TrySetResult(ui);
                 }
             }
           
@@ -174,7 +173,7 @@ namespace Game
             parent.AddChild(ui);
             ui.LoadConfig(cfg, new STask<T>(), data);
             ui.Show();
-            ((STask<T>)ui.onCompleted).TrySetResult(ui);
+            ui.onCompleted.TrySetResult(ui);
 
             return ui;
         }
@@ -204,11 +203,11 @@ namespace Game
                         return;
 
                     ui.EventEnable = true;
-                    STimer.AutoRigisterTimer(ui);
+                    ui.TimerEnable = true;
                     ui.Show();
                     UIHelper.EnableUIInput(true);
 
-                    ((STask<T>)ui.onCompleted).TrySetResult(ui);
+                    ui.onCompleted.TrySetResult(ui);
                 }
             }
            
@@ -223,7 +222,7 @@ namespace Game
             T ui = new();
             _3duiLst.Add(ui);
             ui.LoadConfig(cfg, new STask<T>(), data);
-            ((STask<T>)ui.onCompleted).TrySetResult(ui);
+            ui.onCompleted.TrySetResult(ui);
 
             return ui;
         }
@@ -244,9 +243,9 @@ namespace Game
                     return;
 
                 ui.EventEnable = true;
-                STimer.AutoRigisterTimer(ui);
+                ui.TimerEnable = true;
 
-                task.TrySetResult(ui);
+                task.TrySetResult(ui);  
             }
             return task;
         }
@@ -275,13 +274,28 @@ namespace Game
             for (; len > 0; len--)
             {
                 UIBase ui = _uiLst[len - 1];
-                if (ui.uiConfig.UIType >= UIType.GlobalUI)
-                    continue;
                 ui.Dispose();
             }
             len = _3duiLst.Count;
             for (; len > 0; len--)
                 _3duiLst[len - 1].Dispose();
+        }
+        public void CloseAll(Func<UIBase,bool> test)
+        {
+            int len = _uiLst.Count;
+            for (; len > 0; len--)
+            {
+                UIBase ui = _uiLst[len - 1];
+                if (!test(ui)) continue;
+                ui.Dispose();
+            }
+            len = _3duiLst.Count;
+            for (; len > 0; len--)
+            {
+                UIBase ui = _3duiLst[len - 1];
+                if (!test(ui)) continue;
+                ui.Dispose();
+            }
         }
         public void CloseOnlyUI()
         {
@@ -289,8 +303,6 @@ namespace Game
             for (; len > 0; len--)
             {
                 var ui = _uiLst[len - 1];
-                if (ui.uiConfig.UIType >= UIType.GlobalUI)
-                    continue;
                 ui.Dispose();
             }
         }
@@ -305,7 +317,7 @@ namespace Game
         /// 只移除 Close的时候会回调到这里
         /// </summary>
         /// <param name="ui"></param>
-        public void Remove(UIBase ui)
+        internal void Remove(UIBase ui)
         {
             if (ui is FUI3D || ui is UUI3D)
                 _3duiLst.Remove(ui);

@@ -72,16 +72,9 @@ abstract class FUI : FUIBase
     }
     public sealed override void Dispose()
     {
-        base.Dispose();
-
         if (this.ui != null && this.uiStates == UIStates.Success)
-        {
-            this.Hide(true, () =>
-            {
-                this.ui.Dispose();
-                this.ui = null;
-            });
-        }
+            this.Hide(true, this.ui.Dispose);
+        base.Dispose();
     }
 
     void setConfig()
@@ -98,6 +91,6 @@ abstract class FUI : FUIBase
         if (this.Parent == null)
             this.ui.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
         else
-            this.ui.sortingOrder = Parent.sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
+            this.ui.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
     }
 }

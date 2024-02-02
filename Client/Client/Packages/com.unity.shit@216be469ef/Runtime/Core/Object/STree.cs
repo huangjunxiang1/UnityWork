@@ -6,70 +6,17 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    public abstract class STree<T> : SObject  where T : STree<T>
+    public class STree : SObject
     {
-        public STree(long rpc) : base(rpc) { }
-        public STree() : base() { }
+        public STree(long rpc = 0) : base(rpc) { }
 
-        Dictionary<long, T> _childGMap = new();
-        Dictionary<long, T> _childRMap = new();
-        List<T> _childLst = new();
-
-        /// <summary>
-        /// 父节点
-        /// </summary>
-        public T Parent { get; private set; }
-
-        /// <summary>
-        /// 根
-        /// </summary>
-        public T Root
-        {
-            get
-            {
-                T root = (T)this;
-                while (root.Parent != null)
-                    root = root.Parent;
-                return root;
-            }
-        }
-
-        /// <summary>
-        /// 节点层级
-        /// </summary>
-        public int Layer
-        {
-            get
-            {
-                int layer = 0;
-                STree<T> parent = this.Parent;
-                while (parent != null)
-                {
-                    layer++;
-                    parent = this.Parent;
-                }
-                return layer;
-            }
-        }
-
-        /// <summary>
-        /// 在父节点的下标
-        /// </summary>
-        public int SiblingIndex
-        {
-            get
-            {
-                if (Parent == null)
-                    return 0;
-                return Parent._childLst.IndexOf((T)this);
-            }
-        }
+        Dictionary<long, SObject> _childrenGMap = ObjectPool<Dictionary<long, SObject>>.Get();
+        Dictionary<long, SObject> _childrenRMap = ObjectPool<Dictionary<long, SObject>>.Get();
+        internal List<SObject> _children = ObjectPool<List<SObject>>.Get();
 
         public override void Dispose()
         {
-            this.DisposeAllChildren();
-            if (this.Parent != null)
-                this.Parent.Remove((T)this);
+            this._disposeAllChildren(true);
             base.Dispose();
         }
 
@@ -77,13 +24,13 @@ namespace Game
         /// 子添加
         /// </summary>
         /// <param name="child"></param>
-        public virtual void AddChild(T child)
+        public virtual void AddChild(SObject child)
         {
             if (child.Parent == this)
                 return;
 
 #if DebugEnable
-            STree<T> o = this;
+            SObject o = this;
             do
             {
                 if (o == child)
@@ -97,17 +44,17 @@ namespace Game
             if (child.Parent != null)
                 child.Parent.Remove(child);
 
-            _childGMap.Add(child.gid, child);
-            if (child.rpc > 0)
+            _childrenGMap.Add(child.gid, child);
+            if (child.rpc != 0)
             {
-                if (!_childRMap.ContainsKey(child.rpc))
-                    _childRMap[child.rpc] = child;
+                if (!_childrenRMap.ContainsKey(child.rpc))
+                    _childrenRMap[child.rpc] = child;
                 else
                     Loger.Error($"已经包含子对象 this={this.GetType()} rpc={this.rpc}  child={child.GetType()} rpc={child.rpc}");
             }
 
-            _childLst.Add(child);
-            child.Parent = (T)this;
+            _children.Add(child);
+            child.Parent = this;
         }
 
         /// <summary>
@@ -115,52 +62,46 @@ namespace Game
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T GetChildGid(long gid)
+        public SObject GetChildGid(long gid)
         {
-            _childGMap.TryGetValue(gid, out T child);
+            _childrenGMap.TryGetValue(gid, out SObject child);
             return child;
         }
-        public T GetChildRpc(long rpc)
+        public SObject GetChildRpc(long rpc)
         {
             if (rpc == 0)
             {
                 Loger.Error("无效rpc");
                 return null;
             }
-            _childRMap.TryGetValue(rpc, out T child);
+            _childrenRMap.TryGetValue(rpc, out SObject child);
             return child;
         }
-        public List<T> ToChildren()
-        {
-            List<T> lst = new(_childLst.Count);
-            lst.AddRange(_childLst);
-            return lst;
-        }
-        public List<T> GetChildren()
-        {
-            return _childLst;
-        }
+        public List<SObject> ToChildren() => new(_children);
+        public List<SObject> GetChildren() => _children;
 
         /// <summary>
         /// 子移除
         /// </summary>
         /// <param name="child"></param>
-        public void Remove(T child)
+        public void Remove(SObject child)
         {
-            _childGMap.Remove(child.gid);
-            if (child.rpc > 0)
-                _childRMap.Remove(child.rpc);
-            _childLst.Remove(child);
+            if (!_childrenGMap.ContainsKey(gid))
+                return;
+            _childrenGMap.Remove(child.gid);
+            if (child.rpc != 0)
+                _childrenRMap.Remove(child.rpc);
+            _children.Remove(child);
             child.Parent = null;
         }
         public virtual void RemoveGid(long gid)
         {
-            if (!_childGMap.TryGetValue(gid, out T child))
+            if (!_childrenGMap.TryGetValue(gid, out SObject child))
                 return;
-            _childGMap.Remove(gid);
-            if (child.rpc > 0)
-                _childRMap.Remove(child.rpc);
-            _childLst.Remove(child);
+            _childrenGMap.Remove(gid);
+            if (child.rpc != 0)
+                _childrenRMap.Remove(child.rpc);
+            _children.Remove(child);
             child.Parent = null;
         }
         public virtual void RemoveRpc(long rpc)
@@ -170,24 +111,55 @@ namespace Game
                 Loger.Error("无效rpc");
                 return;
             }
-            if (!_childRMap.TryGetValue(rpc, out T child))
+            if (!_childrenRMap.TryGetValue(rpc, out SObject child))
                 return;
-            _childGMap.Remove(child.gid);
-            _childRMap.Remove(rpc);
-            _childLst.Remove(child);
+            _childrenGMap.Remove(child.gid);
+            _childrenRMap.Remove(rpc);
+            _children.Remove(child);
             child.Parent = null;
         }
-        public void DisposeAllChildren()
-        {
-            if (_childLst.Count <= 0)
-                return;
+        public void DisposeAllChildren() => this._disposeAllChildren(false);
 
-            var lst = ToChildren();
-            _childGMap.Clear();
-            _childRMap.Clear();
-            _childLst.Clear();
-            for (int i = lst.Count - 1; i >= 0; i--)
-                lst[i].Dispose();
+        void _disposeAllChildren(bool _isDisposeSelf)
+        {
+            if (_isDisposeSelf)
+            {
+                _childrenGMap.Clear();
+                ObjectPool<Dictionary<long, SObject>>.Return(_childrenGMap);
+                _childrenGMap = null;
+
+                _childrenRMap.Clear();
+                ObjectPool<Dictionary<long, SObject>>.Return(_childrenRMap);
+                _childrenRMap = null;
+
+                List<SObject> tmp = _children;
+                _children = null;
+                for (int i = tmp.Count - 1; i >= 0; i--)
+                {
+                    if (!tmp[i].Disposed)
+                        tmp[i].Dispose();
+                }
+                tmp.Clear();
+                ObjectPool<List<SObject>>.Return(tmp);
+            }
+            else
+            {
+                if (_children.Count <= 0)
+                    return;
+
+                _childrenGMap.Clear();
+                _childrenRMap.Clear();
+
+                List<SObject> tmp = _children;
+                _children = ObjectPool<List<SObject>>.Get();
+                for (int i = tmp.Count - 1; i >= 0; i--)
+                {
+                    if (!tmp[i].Disposed)
+                        tmp[i].Dispose();
+                }
+                tmp.Clear();
+                ObjectPool<List<SObject>>.Return(tmp);
+            }
         }
     }
 }

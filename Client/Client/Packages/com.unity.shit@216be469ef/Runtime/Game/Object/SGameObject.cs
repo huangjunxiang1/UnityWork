@@ -14,7 +14,7 @@ namespace Game
         Resource,//资源类型
         LogicRoot,//根节点是空节点 下面挂资源
     }
-    public class SGameObject : STree<SGameObject>
+    public class SGameObject : STree
     {
         public SGameObject(long rpc = 0, SGameObjectType style = SGameObjectType.LogicRoot) : base(rpc)
         {
@@ -23,7 +23,10 @@ namespace Game
             {
                 this.GameRoot = new GameObject();
 #if UNITY_EDITOR
-                this.Name = $"{this.GetType().Name}_rpc={rpc}";
+                if (rpc != 0)
+                    this.Name = $"{this.GetType().Name}_rpc={rpc}";
+                else
+                    this.Name = $"{this.GetType().Name}";
 #endif
                 if (this is not SWorld)
                 {

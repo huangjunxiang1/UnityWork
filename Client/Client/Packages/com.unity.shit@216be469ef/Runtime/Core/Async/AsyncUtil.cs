@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
-using DG.Tweening;
 using UnityEngine.Events;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;

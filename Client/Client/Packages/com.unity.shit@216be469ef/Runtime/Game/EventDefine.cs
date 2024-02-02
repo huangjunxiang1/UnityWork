@@ -29,11 +29,13 @@ public class EC_ReceiveMessage
 {
     public PB.PBMessage message;
 }
-public class EC_NewSObject
+public class EC_NewSObject<T> where T : SObject
 {
-    public SObject obj;
+    public EC_NewSObject(T o) => obj = o;
+    public T obj { get; }
 }
-public class EC_DisposeSObject
+public class EC_DisposeSObject<T> where T : SObject
 {
-    public SObject obj;
+    public EC_DisposeSObject(T o) => obj = o;
+    public T obj { get; }
 }

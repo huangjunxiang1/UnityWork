@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// STask 有自动取消机制 所以这里使用要注意 单次锁 如果异步被中途取消 会走到超时逻辑
 /// </summary>
-public class STaskLocker : IDisposable
+public class STaskLocker : IDispose
 {
     static Dictionary<object, STaskLocker> locks = new();
     static Dictionary<long, STaskLocker> locks2 = new();
@@ -18,27 +18,30 @@ public class STaskLocker : IDisposable
     STask next;
     CancellationTokenSource cts;
 
-    public bool IsDisposed { get; private set; }
+    public bool Disposed { get; private set; }
 
     public static STask Lock(ref STaskLocker locker, int timeout = 5000)
     {
-        if (locker == null || locker.IsDisposed)
+        if (locker == null || locker.Disposed)
         {
             locker = new STaskLocker();
-            locker.timeout(timeout);
+            if (timeout > 0)
+                locker.timeout(timeout);
             return STask.Completed;
         }
         STask task = locker.next = new STask();
         locker = new STaskLocker();
-        locker.timeout(timeout);
+        if (timeout > 0)
+            locker.timeout(timeout);
         return task;
     }
     public static async STask<STaskLocker> Lock(object key, int timeout = 5000)
     {
-        if (!locks.TryGetValue(key, out var locker) || locker.IsDisposed)
+        if (!locks.TryGetValue(key, out var locker) || locker.Disposed)
         {
             locks[key] = locker = new STaskLocker() { key = key };
-            locker.timeout(timeout);
+            if (timeout > 0)
+                locker.timeout(timeout);
             return locker;
         }
         else
@@ -46,7 +49,8 @@ public class STaskLocker : IDisposable
             STask task = locker.next = new STask();
             locker = new STaskLocker() { key = key };
             locks[key] = locker;
-            locker.timeout(timeout);
+            if (timeout > 0)
+                locker.timeout(timeout);
             await task;
             return locker;
         }
@@ -58,10 +62,11 @@ public class STaskLocker : IDisposable
             Loger.Error("key不能为0");
             return null;
         }
-        if (!locks2.TryGetValue(key, out var locker) || locker.IsDisposed)
+        if (!locks2.TryGetValue(key, out var locker) || locker.Disposed)
         {
             locks2[key] = locker = new STaskLocker() { key2 = key };
-            locker.timeout(timeout);
+            if (timeout > 0)
+                locker.timeout(timeout);
             return locker;
         }
         else
@@ -69,7 +74,8 @@ public class STaskLocker : IDisposable
             STask task = locker.next = new STask();
             locker = new STaskLocker() { key2 = key };
             locks2[key] = locker;
-            locker.timeout(timeout);
+            if (timeout > 0)
+                locker.timeout(timeout);
             await task;
             return locker;
         }
@@ -95,8 +101,8 @@ public class STaskLocker : IDisposable
 
     public void Dispose()
     {
-        IsDisposed = true;
-        cts.Cancel();
+        Disposed = true;
+        cts?.Cancel();
         if (key != null && locks.TryGetValue(key, out var v) && v == this)
             locks.Remove(key);
         if (key2 != 0 && locks2.TryGetValue(key2, out var v2) && v2 == this)

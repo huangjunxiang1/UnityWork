@@ -38,10 +38,11 @@ public static class GameM
         long tick = DateTime.Now.Ticks;
         ThreadSynchronizationContext.Instance.Update();
         Net.Update(tick);
-        STimer.Update();
+        SObject.Update();
         SSystem.Update();
-        STimer.AfterUpdate();
+        STimer.Update();
         SSystem.AfterUpdate();
+        STimer.AfterUpdate();
         Profiler.EndSample();
     }
 

@@ -1,48 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Main;
-using UnityEngine;
 
 namespace Game
 {
-    public abstract class SObject : IDisposable, IAsyncCancel
+    public class SObject : IDispose, IEvent, ITimer
     {
-        public SObject() : this(0) { }
-        public SObject(long rpc)
+        public SObject(long rpc = 0)
         {
-            this.gid = ++generateId;
-            this.rpc = rpc;
+            this.gid = (((long)random.Next()) << 32) | (long)random.Next();
             gidMap.Add(gid, this);
-            if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredEventAttribute), true))
-                this.EventEnable = true;
+
+            this.rpc = rpc;
+            ((IEvent)this).RigisterEvent();
             if (rpc != 0)
             {
-                if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredRPCEventAttribute), true))
-                    this.RigisteRPCEvent(rpc);
+                ((IEvent)this).RigisterRPCEvent(rpc);
                 if (!rpcMap.TryGetValue(rpc, out var o))
                     rpcMap.Add(rpc, this);
                 else
                     Loger.Error($"已经创建rpc对象 rpc={rpc} obj={o}");
             }
-            if (!this.GetType().IsDefined(typeof(DisableAutoRegisteredTimerAttribute), true))
-                _timerRigisterd = STimer.AutoRigisterTimer(this);
-            GameM.Event.RunEvent(new EC_NewSObject { obj = this });
+            _timerRigisterd = ((ITimer)this).RigisterTimer();
+
+            newQueue.Enqueue(this);
         }
 
-        static long generateId = 0;
+        static Random random = new((int)DateTime.Now.Ticks);
+        static Queue<SObject> newQueue = ObjectPool<Queue<SObject>>.Get();
         static Dictionary<long, SObject> rpcMap = new();
         static Dictionary<long, SObject> gidMap = new();
 
-        bool _eventEnable = false;
-        bool _rpcEventEnable = false;
-        long _rpcid;
+        bool _eventEnable = true;
+        long _eventRpcid;
         bool _timerRigisterd = false;
-        internal Dictionary<Type, SComponent> components = new();
+        Dictionary<Type, SComponent> components = ObjectPool<Dictionary<Type, SComponent>>.Get();
 
-        public long value;
+        public double value;
         public object data;
 
         /// <summary>
@@ -68,25 +62,83 @@ namespace Game
             get => _eventEnable;
             set
             {
+                if (_eventEnable == value) return;
+                _eventEnable = value;
                 if (value)
                 {
-                    if (!_eventEnable)
-                    {
-                        _eventEnable = true;
-                        GameM.Event.RigisteEvent(this);
-                    }
-                }
-                else
-                {
-                    if (_eventEnable)
-                    {
-                        _eventEnable = false;
-                        GameM.Event.RemoveEvent(this);
-                    }
+                    foreach (var c in components.Values)
+                        c.Change();
                 }
             }
         }
 
+        public bool TimerEnable { get; set; } = true;
+
+        /// <summary>
+        /// 父节点
+        /// </summary>
+        public STree Parent { get; internal set; }
+
+        /// <summary>
+        /// 根
+        /// </summary>
+        public SObject Root
+        {
+            get
+            {
+                SObject root = this;
+                while (root.Parent != null)
+                    root = root.Parent;
+                return root;
+            }
+        }
+
+        /// <summary>
+        /// 节点层级
+        /// </summary>
+        public int Layer
+        {
+            get
+            {
+                int layer = 0;
+                STree parent = this.Parent;
+                while (parent != null)
+                {
+                    layer++;
+                    parent = parent.Parent;
+                }
+                return layer;
+            }
+        }
+
+        /// <summary>
+        /// 在父节点的下标
+        /// </summary>
+        public int SiblingIndex
+        {
+            get
+            {
+                if (Parent == null)
+                    return 0;
+                return Parent._children.IndexOf(this);
+            }
+        }
+
+        public void RigisterRPCEvent(long rpc)
+        {
+            if (rpc == 0)
+            {
+                Loger.Error($"rpc=0");
+                return;
+            }
+            if (_eventRpcid != 0)
+            {
+                Loger.Error($"已经注册了rpc监听 rpc={rpc}");
+                return;
+            }
+            _eventRpcid = rpc;
+            GameM.Event.RigisteRPCEvent(rpc, this);
+        }
 
         public T AddComponent<T>() where T : SComponent, new()
         {
@@ -113,7 +165,7 @@ namespace Game
             }
             if (SSystem.isAutoAddComponent(c.GetType()))
             {
-                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={c}");
+                Loger.Error($"有AddComponentIf标记的组件 不能手动修改 c={c}");
                 return null;
             }
             if (components.TryGetValue(typeof(T), out var cc))
@@ -121,14 +173,14 @@ namespace Game
                 Loger.Error($"已经包含 component={cc}");
                 return (T)cc;
             }
-            addComponent(c);
+            AddComponentInternal(c);
             return c;
         }
         public SComponent AddComponent(Type type)
         {
             if (SSystem.isAutoAddComponent(type))
             {
-                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={type}");
+                Loger.Error($"有AddComponentIf标记的组件 不能手动修改 c={type}");
                 return null;
             }
             return AddComponentInternal(type);
@@ -198,15 +250,14 @@ namespace Game
             }
             if (SSystem.isAutoAddComponent(typeof(T)))
             {
-                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={typeof(T)}");
+                Loger.Error($"有AddComponentIf标记的组件 不能手动修改 c={typeof(T)}");
                 return false;
             }
-            if (!components.TryGetValue(typeof(T), out var c))
+            if (!RemoveComponentInternal(typeof(T)))
             {
                 Loger.Error($"未包含 component={typeof(T)}");
                 return false;
             }
-            c.Dispose();
             return true;
         }
         public bool RemoveComponent(Type type)
@@ -218,7 +269,7 @@ namespace Game
             }
             if (SSystem.isAutoAddComponent(type))
             {
-                Loger.Error($"有AddComponentIf标记的组件 不能手动添加 c={type}");
+                Loger.Error($"有AddComponentIf标记的组件 不能手动修改 c={type}");
                 return false;
             }
             if (!RemoveComponentInternal(type))
@@ -247,12 +298,28 @@ namespace Game
             return components.ContainsKey(type);
         }
 
+        internal SComponent AddComponentInternal(SComponent c, bool isMove = false)
+        {
+            c.Entity = this;
+            components[c.GetType()] = c;
+            SSystem.RigisteComponent(c);
+            if (this.rpc != 0)
+                ((IEvent)c).RigisterRPCEvent(this.rpc);
+            if (!isMove)
+            {
+                ((IEvent)c).RigisterEvent();
+                c._timerRigisterd = ((ITimer)c).RigisterTimer();
+                SSystem.Awake(c);
+            }
+            c.Change();
+            return c;
+        }
         internal SComponent AddComponentInternal(Type type)
         {
             if (components.TryGetValue(type, out var c))
                 return c;
             c = (SComponent)Activator.CreateInstance(type);
-            return addComponent(c);
+            return AddComponentInternal(c);
         }
         internal bool RemoveComponentInternal(Type type)
         {
@@ -261,10 +328,7 @@ namespace Game
             c.Dispose();
             return true;
         }
-        internal void RemoveFromComponents(SComponent c)
-        {
-            components.Remove(c.GetType());
-        }
+        internal void RemoveFromComponents(SComponent c) => components.Remove(c.GetType());
 
         /// <summary>
         /// 释放
@@ -273,24 +337,43 @@ namespace Game
         {
             if (this.Disposed)
             {
-                Loger.Error("重复Dispose->" + this.GetType().FullName);
+                Loger.Error("重复Dispose->" + this);
                 return;
             }
 
             this.Disposed = true;
-            if (rpc > 0)
+            if (this.Parent != null)
+                this.Parent.Remove(this);
+            if (rpc != 0)
                 rpcMap.Remove(rpc);
             gidMap.Remove(gid);
-            foreach (var item in components.Values)
-                item.dispose(false);
-            components.Clear();
-            if (_eventEnable)
-                GameM.Event.RemoveEvent(this);
-            if (_rpcEventEnable)
-                GameM.Event.RemoveRPCEvent(_rpcid, this);
+
+            ((IEvent)this).RemoveAllEvent(_eventRpcid);
             if (_timerRigisterd)
-                STimer.AutoRemoveTimer(this);
-            GameM.Event.RunEvent(new EC_DisposeSObject { obj = this });
+                ((ITimer)this).RemoveTimer();
+
+            var tmp = components;
+            components = null;
+            foreach (var item in tmp.Values)
+                item.dispose(2);
+            tmp.Clear();
+            ObjectPool<Dictionary<Type, SComponent>>.Return(tmp);
+
+            var ps = ArrayCache<object>.Get(1);
+            var type = this.GetType();
+            do
+            {
+                ps[0] = this;
+                GameM.Event.RunEvent(Activator.CreateInstance(Types.GetGenericType(typeof(EC_DisposeSObject<>), type), ps));
+                if (this.Disposed || type == typeof(SObject)) break;
+                type = type.BaseType;
+            } while (true);
+        }
+
+        public override string ToString()
+        {
+            if (this.rpc != 0) return $"rpc={this.rpc} gid={this.gid} {this.GetType().FullName}";
+            else return $"gid={this.gid} {this.GetType().FullName}";
         }
 
         public static SObject GetWithRpc(long rpc)
@@ -312,30 +395,29 @@ namespace Game
             return gidMap.TryGetValue(gid, out obj);
         }
 
-        SComponent addComponent(SComponent c)
+        internal static void Update()
         {
-            c.Entity = this;
-            components[c.GetType()] = c;
-            SSystem.RigisteComponent(c);
-            SSystem.Run<AwakeAttribute>(c);
-            c.Change();
-            return c;
-        }
-        protected void RigisteRPCEvent(long rpc)
-        {
-            if (rpc == 0)
+            if (newQueue.Count > 0)
             {
-                Loger.Error($"key=0");
-                return;
+                var queue = newQueue;
+                newQueue = ObjectPool<Queue<SObject>>.Get();
+                var ps = ArrayCache<object>.Get(1);
+                while (queue.TryDequeue(out var item))
+                {
+                    if (item.Disposed) continue;
+
+                    var type = item.GetType();
+                    do
+                    {
+                        ps[0] = item;
+                        GameM.Event.RunEvent(Activator.CreateInstance(Types.GetGenericType(typeof(EC_NewSObject<>), type), ps));
+                        if (item.Disposed || type == typeof(SObject)) break;
+                        type = type.BaseType;
+                    } while (true);
+
+                }
+                ObjectPool<Queue<SObject>>.Return(queue);
             }
-            if (_rpcEventEnable)
-            {
-                Loger.Error($"已经注册了key监听 key={rpc}");
-                return;
-            }
-            _rpcid = rpc;
-            _rpcEventEnable = true;
-            GameM.Event.RigisteRPCEvent(rpc, this);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Game
                     _requestTask.Remove(type);
                     while (queue.Count > 0)
                         queue.Dequeue().TrySetResult(message);
-                    ObjectPool.Return(queue);
+                    ObjectPool<Queue<STask<PB.PBMessage>>>.Return(queue);
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace Game
                 return null;
             }
             if (!_requestTask.TryGetValue(v, out var queue))
-                _requestTask[v] = ObjectPool.Get<Queue<STask<PB.PBMessage>>>();
+                _requestTask[v] = ObjectPool<Queue<STask<PB.PBMessage>>>.Get();
             STask<PB.PBMessage> task = new();
             queue.Enqueue(task);
             Send(request);

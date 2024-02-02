@@ -7,22 +7,28 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    public abstract class SComponent
+    public abstract class SComponent : IDispose, IEvent, ITimer
     {
-        bool _enable = true;
+        bool _eventEnable = true;
+        bool _timerEnable = true;
+        internal bool _timerRigisterd = false;
+        internal bool _isChanged = false;
 
         public SObject Entity { get; internal set; }
         public bool Disposed { get; private set; }
-        public bool Enable
+
+        public bool EventEnable
         {
-            get => _enable;
+            get => _eventEnable && Entity != null && Entity.EventEnable;
             set
             {
-                if (value == _enable) return;
-                _enable = value;
-                this.Change();
+                if (_eventEnable == value) return;
+                _eventEnable = value;
+                if (value)
+                    this.Change();
             }
         }
+        public bool TimerEnable { get => _timerEnable && Entity != null && Entity.TimerEnable; set => _timerEnable = value; }
 
         public void MoveToEntity(SObject entity)
         {
@@ -31,43 +37,77 @@ namespace Game
                 Loger.Error($"组件已经销毁 ={this}");
                 return;
             }
-            if (entity.Disposed)
+            if (entity == null || entity.Disposed)
             {
                 Loger.Error($"实体已经销毁 ={entity}");
                 return;
             }
             if (Entity == null)
             {
-                Loger.Error($"组件已经不在实体 ={this}");
+                Loger.Error($"不在实体上 ={this}");
+                entity.AddComponentInternal(this);
+                return;
+            }
+            if (SSystem.isAutoAddComponent(this.GetType()))
+            {
+                Loger.Error($"有AddComponentIf标记的组件 不能手动修改 c={this.GetType()}");
                 return;
             }
             if (entity == Entity)
                 return;
-            this.dispose();
-            this.Entity = null;
-            this.Disposed = false;
-            entity.AddComponent(this);
+            var old = Entity;
+            this.dispose(1);
+            entity.AddComponentInternal(this, true);
+            SSystem.Move(this, old);
         }
         public void Change()
         {
+            if (_isChanged) return;
+            _isChanged = true;
             SSystem.SetChange(this);
         }
         public void Dispose()
         {
             if (this.Disposed)
             {
-                Loger.Error("重复Dispose->" + this.GetType().FullName);
+                Loger.Error("重复Dispose->" + this);
                 return;
             }
-            this.dispose();
+            this.dispose(0);
         }
-        internal void dispose(bool removeFromEntity = true)
+        public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type">0=主动dispose 1=move 2=entity dispose</param>
+        internal void dispose(int type)
         {
-            this.Disposed = true;
-            SSystem.UnRigisteComponent(this);
-            if (removeFromEntity)
+            if (type == 0)
+            {
+                this.Disposed = true;
+                SSystem.UnRigisteComponent(this);
+                ((IEvent)this).RemoveAllEvent(this.Entity.rpc);
+                if (this._timerRigisterd)
+                    ((ITimer)this).RemoveTimer();
                 Entity.RemoveFromComponents(this);
-            SSystem.Run<DisposeAttribute>(this);
+                SSystem.Dispose(this);
+            }
+            else if (type == 1)
+            {
+                SSystem.UnRigisteComponent(this);
+                if (this.Entity.rpc != 0)
+                    ((IEvent)this).RemoveRPCEvent(this.Entity.rpc);
+                Entity.RemoveFromComponents(this);
+            }
+            else if (type == 2)
+            {
+                this.Disposed = true;
+                ((IEvent)this).RemoveAllEvent(this.Entity.rpc);
+                if (this._timerRigisterd)
+                    ((ITimer)this).RemoveTimer();
+                SSystem.Dispose(this);
+            }
         }
     }
 }

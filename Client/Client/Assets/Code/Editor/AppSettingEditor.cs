@@ -4,6 +4,8 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.Build;
+using Game;
+using System.IO;
 
 [CustomEditor(typeof(GameStart))]
 public class AppSettingEditor : Editor
@@ -82,5 +84,14 @@ public class AppSettingEditor : Editor
         }
 
         AssetDatabase.Refresh();
+    }
+
+    [MenuItem("Tools/MyTool/热重载配置表")]
+    static void ReloadConfig()
+    {
+        if (!Application.isPlaying) return;
+        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabM.bytes"))), ConstDefM.Debug);
+        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabL.bytes"))), ConstDefM.Debug);
+        EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 }

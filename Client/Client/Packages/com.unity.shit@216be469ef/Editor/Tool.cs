@@ -185,6 +185,8 @@ public class Tool
         }
     }
 
+#if FairyGUI
+
     [MenuItem("Tools/MyTool/生成FGUI代码")]
     static void CreateFUICode()
     {
@@ -436,6 +438,8 @@ public class Tool
         }
     }
 
+#endif
+
     [MenuItem("Tools/MyTool/CopyTexture")]
     static void CopyTexture()
     {
@@ -560,12 +564,5 @@ public class Tool
         str.AppendLine(@"}");
     }
 
-    [MenuItem("Tools/MyTool/热重载配置表")]
-    static void ReloadConfig()
-    {
-        if (!Application.isPlaying) return;
-        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabM.bytes"))), ConstDefM.Debug);
-        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabL.bytes"))), ConstDefM.Debug);
-        EditorUtility.DisplayDialog("完成", "重载完成", "确定");
-    }
+   
 }

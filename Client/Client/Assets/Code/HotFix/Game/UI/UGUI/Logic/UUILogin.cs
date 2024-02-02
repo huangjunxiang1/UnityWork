@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 partial class UUILogin
 {
+
     protected override void OnEnter(params object[] data)
     {
         _loginButton.onClick.AddListener(login);
 
-        
         _GameTypeDropdown.ClearOptions();
         _GameTypeDropdown.AddOptions(new List<string>
         {

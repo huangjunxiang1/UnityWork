@@ -20,6 +20,18 @@ partial class G_Box_YesOrNo
         return new G_Box_YesOrNo(UIPackage.CreateObject("ComPkg", "Box_YesOrNo").asCom);
     }
 }
+partial class G_LogReporter
+{
+    public GComponent ui { get; }
+    public G_LogReporter(GComponent ui)
+    {
+        this.ui = ui;
+    }
+    public static G_LogReporter Create()
+    {
+        return new G_LogReporter(UIPackage.CreateObject("ComPkg", "LogReporter").asCom);
+    }
+}
 partial class G_test
 {
     public GComponent ui { get; }
@@ -108,16 +120,6 @@ partial class FUIFighting4 : FUI
         _rangeRoad = (GButton)ui.GetChildAt(1);
         _play = (GButton)ui.GetChildAt(2);
         _showCube = (GButton)ui.GetChildAt(3);
-    }
-}
-partial class FUIGlobal : FUI
-{
-    public sealed override string url => "FUIGlobal";
-    public GButton _log { get; private set; }
-    protected sealed override void Binding()
-    {
-        GComponent ui = this.UI;
-        _log = (GButton)ui.GetChildAt(0);
     }
 }
 partial class FUILoading : FUI

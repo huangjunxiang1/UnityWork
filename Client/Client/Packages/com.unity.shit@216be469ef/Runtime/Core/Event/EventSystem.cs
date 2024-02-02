@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -9,9 +10,6 @@ namespace Game
     {
         readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
-
-        static Type[] _parameterType1 = new Type[1];
-        static Type[] _parameterType2 = new Type[2];
 
         [Conditional("DebugEnable")]
         static void _checkAllMethod()
@@ -55,8 +53,8 @@ namespace Game
             _checkAllMethod();
             for (int i = 0; i < methods.Count; i++)
             {
-                MethodParseData dt = methods[i];
-                if (dt.attribute is EventAttribute ea)
+                MethodParseData m = methods[i];
+                if (m.attribute is EventAttribute ea)
                 {
                     if (ea.RPC)
                     {
@@ -65,15 +63,17 @@ namespace Game
                     }
 
                     EvtData e = new();
-                    e.key = dt.parameters != null ? dt.parameters[0].ParameterType : dt.property.PropertyType;
+                    e.key = m.mainKey;
+                    e.isPropertyOrField = m.property != null || m.field != null;
                     if (!_evtMap.TryGetValue(e.key, out var queue))
                         _evtMap[e.key] = queue = new();
 
                     e.sortOrder = ea.SortOrder;
                     e.isQueue = ea.Queue;
-                    e.method = dt.method;
-                    e.setHandler = dt.parameters != null && dt.parameters.Length == 2;
-                    e.returnType = dt.method.ReturnType;
+                    e.method = m.method;
+                    e.field = m.field;
+                    e.setHandler = m.parameters != null && m.parameters.Length == 2;
+                    e.returnType = m.method?.ReturnType;
                     createDelegate(e, null);
 
                     queue.Add(e);
@@ -107,18 +107,20 @@ namespace Game
                 {
                     if (ea.RPC) continue;
 
-                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
+                    Type key = m.mainKey;
                     if (!_evtMap.TryGetValue(key, out var queue))
                         _evtMap[key] = queue = new();
 
                     EvtData e = new();
                     e.key = key;
                     e.method = m.method;
+                    e.field = m.field;
+                    e.isPropertyOrField = m.property != null || m.field != null;
                     e.sortOrder = ea.SortOrder;
                     e.target = target;
                     e.isQueue = ea.Queue;
                     e.setHandler = m.parameters != null && m.parameters.Length == 2;
-                    e.returnType = m.method.ReturnType;
+                    e.returnType = m.method?.ReturnType;
                     createDelegate(e, target);
 
                     queue.Add(e);
@@ -150,18 +152,20 @@ namespace Game
                 {
                     if (!ea.RPC) continue;
 
-                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
+                    Type key = m.mainKey;
                     if (!map.TryGetValue(key, out var queue))
                         map[key] = queue = new();
 
                     EvtData e = new();
                     e.key = key;
                     e.method = m.method;
+                    e.field = m.field;
+                    e.isPropertyOrField = m.property != null || m.field != null;
                     e.sortOrder = ea.SortOrder;
                     e.target = target;
                     e.isQueue = ea.Queue;
                     e.setHandler = m.parameters != null && m.parameters.Length == 2;
-                    e.returnType = m.method.ReturnType;
+                    e.returnType = m.method?.ReturnType;
                     createDelegate(e, target);
 
                     queue.Add(e);
@@ -229,8 +233,7 @@ namespace Game
                 var m = ms[i];
                 if (m.attribute is EventAttribute)
                 {
-                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
-                    if (_evtMap.TryGetValue(key, out var queue))
+                    if (_evtMap.TryGetValue(m.mainKey, out var queue))
                         queue.Remove(target);
                 }
             }
@@ -255,8 +258,7 @@ namespace Game
                 var m = ms[i];
                 if (m.attribute is EventAttribute)
                 {
-                    Type key = m.parameters != null ? m.parameters[0].ParameterType : m.property.PropertyType;
-                    if (map.TryGetValue(key, out var queue))
+                    if (map.TryGetValue(m.mainKey, out var queue))
                         queue.Remove(target);
                 }
             }
@@ -274,6 +276,14 @@ namespace Game
         {
             return _runEventAsync(_evtMap, 0, data);
         }
+        public void RunEvent(object data)
+        {
+            _runEvent(_evtMap, 0, data);
+        }
+        public STask RunEventAsync(object data)
+        {
+            return _runEventAsync(_evtMap, 0, data);
+        }
         public STask<K> RunEventAsync<K>(object data)
         {
             return _runEventAsync<K>(_evtMap, 0, data);
@@ -285,6 +295,16 @@ namespace Game
             _runEvent(map, rpc, data);
         }
         public STask RunRPCEventAsync<T>(long rpc, T data)
+        {
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
+            return _runEventAsync(map, rpc, data);
+        }
+        public void RunRPCEvent(long rpc, object data)
+        {
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
+            _runEvent(map, rpc, data);
+        }
+        public STask RunRPCEventAsync(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
             return _runEventAsync(map, rpc, data);
@@ -307,21 +327,7 @@ namespace Game
             if (!evtMap.TryGetValue(key, out var queue)) return;
             if (queue.index > -1)
             {
-#if DebugEnable
-                var evt = queue.evts[queue.index];
-                if (evt.method != null)
-                {
-                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-                }
-                else
-                {
-
-                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
-                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
-                }
-                Loger.LogStackTrace();
-#endif
+                logErrorIfEventLoop(rpc, key, queue);
                 return;
             }
             queue.Run(data);
@@ -332,21 +338,29 @@ namespace Game
             if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
             if (queue.index > -1)
             {
-#if DebugEnable
-                var evt = queue.evts[queue.index];
-                if (evt.method != null)
-                {
-                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-                }
-                else
-                {
-
-                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
-                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
-                }
-                Loger.LogStackTrace();
-#endif
+                logErrorIfEventLoop(rpc, key, queue);
+                return STask.Completed;
+            }
+            return queue.RunAsync(data);
+        }
+        void _runEvent(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        {
+            var key = data.GetType();
+            if (!evtMap.TryGetValue(key, out var queue)) return;
+            if (queue.index > -1)
+            {
+                logErrorIfEventLoop(rpc, key, queue);
+                return;
+            }
+            queue.Run(data);
+        }
+        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        {
+            var key = data.GetType();
+            if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
+            if (queue.index > -1)
+            {
+                logErrorIfEventLoop(rpc, key, queue);
                 return STask.Completed;
             }
             return queue.RunAsync(data);
@@ -362,21 +376,7 @@ namespace Game
             }
             if (queue.index > -1)
             {
-#if DebugEnable
-                var evt = queue.evts[queue.index];
-                if (evt.method != null)
-                {
-                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-                }
-                else
-                {
-
-                    if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
-                    else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
-                }
-                Loger.LogStackTrace();
-#endif
+                logErrorIfEventLoop(rpc, key, queue);
                 return default;
             }
             var task = queue.RunAsync<K>(data);
@@ -395,41 +395,42 @@ namespace Game
             {
                 if (ed.setHandler)
                 {
-                    _parameterType2[0] = ed.key;
-                    _parameterType2[1] = typeof(EventHandler);
-                    ed.action = ed.method.CreateDelegate(typeof(Action<,>).MakeGenericType(_parameterType2), o);
+                    var ts = ArrayCache<Type>.Get(2);
+                    ts[0] = ed.key;
+                    ts[1] = typeof(EventHandler);
+                    ed.action = ed.method.CreateDelegate(typeof(Action<,>).MakeGenericType(ts), o);
                 }
                 else
-                {
-                    _parameterType1[0] = ed.key;
-                    ed.action = ed.method.CreateDelegate(typeof(Action<>).MakeGenericType(_parameterType1), o);
-                }
+                    ed.action = ed.method.CreateDelegate(Types.GetGenericType(typeof(Action<>), ed.key), o);
             }
-            /*else
+        }
+        [Conditional("DebugEnable")]
+        void logErrorIfEventLoop(long rpc, Type key, EvtQueue queue)
+        {
+            var evt = queue.evts[queue.index];
+            if (evt.method != null)
             {
-                if (ed.setHandler)
-                {
-                    _parameterType3[0] = ed.key;
-                    _parameterType3[1] = typeof(EventHandler);
-                    _parameterType3[2] = ed.returnType;
-                    ed.action = ed.method.CreateDelegate(typeof(Func<,,>).MakeGenericType(_parameterType3), o);
-                }
-                else
-                {
-                    _parameterType2[0] = ed.key;
-                    _parameterType2[1] = ed.returnType;
-                    ed.action = ed.method.CreateDelegate(typeof(Func<,>).MakeGenericType(_parameterType2), o);
-                }
-            }*/
+                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
+            }
+            else
+            {
+
+                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
+                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
+            }
+            Loger.LogStackTrace();
         }
 
         class EvtData
         {
             public Type key;
             public Type returnType;
+            public bool isPropertyOrField;
 
             public Delegate action;
             public MethodInfo method;
+            public FieldInfo field;
 
             public int sortOrder;
             public bool isOnece;
@@ -492,7 +493,7 @@ namespace Game
             }
             public async STask RunAsync<T>(T data)
             {
-                List<STask> ts = ObjectPool.Get<List<STask>>();
+                List<STask> ts = ObjectPool<List<STask>>.Get();
                 cnt = evts.Count;
                 EventHandler eh = new();
                 for (index = 0; index < cnt;)
@@ -512,9 +513,59 @@ namespace Game
                     }
                 }
                 index = -1;
-                await STask.All(ts);
-                ts.Clear();
-                ObjectPool.Return(ts);
+                if (ts.Count > 0)
+                {
+                    await STask.All(ts, false);
+                    ts.Clear();
+                    ObjectPool<List<STask>>.Return(ts);
+                }
+            }
+            public async void Run(object data)
+            {
+                cnt = evts.Count;
+                EventHandler eh = new();
+                for (index = 0; index < cnt;)
+                {
+                    EvtData e = evts[index];
+                    if (e.isOnece)
+                    {
+                        evts.RemoveAt(index);
+                        --cnt;
+                    }
+                    else ++index;
+                    object o = invoke(e, data, eh);
+                    if (o is STask t && e.isQueue) await t;
+                }
+                index = -1;
+            }
+            public async STask RunAsync(object data)
+            {
+                List<STask> ts = ObjectPool<List<STask>>.Get();
+                cnt = evts.Count;
+                EventHandler eh = new();
+                for (index = 0; index < cnt;)
+                {
+                    EvtData e = evts[index];
+                    if (e.isOnece)
+                    {
+                        evts.RemoveAt(index);
+                        --cnt;
+                    }
+                    else ++index;
+                    object o = invoke(e, data, eh);
+                    if (o is STask task)
+                    {
+                        if (e.isQueue) await task;
+                        else ts.Add(task);
+                    }
+                }
+                index = -1;
+                if (ts.Count > 0)
+                {
+                    await STask.All(ts, false);
+                    ts.Clear();
+                    ObjectPool<List<STask>>.Return(ts);
+                }
             }
             public async STask<K> RunAsync<K>(object data)
             {
@@ -532,7 +583,7 @@ namespace Game
                         --cnt;
                     }
                     else ++index;
-                    object o = invoke2(e, data, eh);
+                    object o = invoke(e, data, eh);
                     if (!get && o is K)
                     {
                         get = true;
@@ -553,6 +604,7 @@ namespace Game
             object invoke<T>(EvtData e, T data, EventHandler eh)
             {
                 object o = default;
+                if (e.target is IEvent evt && !evt.EventEnable) return o;
                 try
                 {
                     if (!e.setHandler)
@@ -561,16 +613,16 @@ namespace Game
                             ((Action<T>)e.action).Invoke(data);
                         else
                         {
-                            if (e.target is STask task)
+                           if (e.method != null)
                             {
-                                task.TrySetResult(data);
-                            }
-                            else
-                            {
-                                var ps = ParametersArrayCache.Get(1);
+                                var ps = ArrayCache<object>.Get(1);
                                 ps[0] = data;
                                 o = e.method.Invoke(e.target, ps);
                             }
+                            else if (e.field != null)
+                                e.field.SetValue(e.target, data);
+                            else
+                                ((STask)e.target).TrySetResult(data);
                         }
                     }
                     else
@@ -579,51 +631,54 @@ namespace Game
                             ((Action<T, EventHandler>)e.action).Invoke(data, eh);
                         else
                         {
-                            var ps = ParametersArrayCache.Get(2);
+                            var ps = ArrayCache<object>.Get(2);
                             ps[0] = data;
                             ps[1] = eh;
                             o = e.method.Invoke(e.target, ps);
                         }
+                        if (eh.isBreak) cnt = index;
                     }
                 }
                 catch (Exception ex)
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
-                if (eh.isBreak) cnt = index;
+                if (e.isPropertyOrField && e.target is SComponent c) c.Change();
                 return o;
             }
-            object invoke2(EvtData e, object data, EventHandler eh)
+            object invoke(EvtData e, object data, EventHandler eh)
             {
                 object o = default;
+                if (e.target is IEvent evt && !evt.EventEnable) return o;
                 try
                 {
                     if (!e.setHandler)
                     {
-                        if (e.target is STask task)
+                        if (e.method != null)
                         {
-                            task.TrySetResult(data);
-                        }
-                        else
-                        {
-                            var ps = ParametersArrayCache.Get(1);
+                            var ps = ArrayCache<object>.Get(1);
                             ps[0] = data;
                             o = e.method.Invoke(e.target, ps);
                         }
+                        else if (e.field != null)
+                            e.field.SetValue(e.target, data);
+                        else
+                            ((STask)e.target).TrySetResult(data);
                     }
                     else
                     {
-                        var ps = ParametersArrayCache.Get(2);
+                        var ps = ArrayCache<object>.Get(2);
                         ps[0] = data;
                         ps[1] = eh;
                         o = e.method.Invoke(e.target, ps);
+                        if (eh.isBreak) cnt = index;
                     }
                 }
                 catch (Exception ex)
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
-                if (eh.isBreak) cnt = index;
+                if (e.isPropertyOrField && e.target is SComponent c) c.Change();
                 return o;
             }
         }

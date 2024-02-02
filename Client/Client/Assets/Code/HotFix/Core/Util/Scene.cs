@@ -7,11 +7,8 @@ namespace Game
     {
         public int SceneID { get; private set; }
 
-        [Event]
-        async STask EC_GameStart(EC_GameStart e)
-        {
-            await InLoginScene();
-        }
+        [Event] STask EC_GameStart(EC_GameStart e) => InLoginScene();
+
         [Event]
         void QuitGame(EC_QuitGame e)
         {
@@ -19,47 +16,14 @@ namespace Game
                 GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
         }
 
-        public async STask InLoginScene(bool showLoading = true)
-        {
-            if (SceneID == 1) return;
-
-            if (showLoading) await GameL.UI.OpenAsync<FUILoading>();
-            GameL.UI.CloseAll();
-            GameM.World.DisposeAllChildren();
-
-            GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
-            SceneID = 1;
-
-            await SAsset.LoadScene($"Scene/{TabL.GetScene(SceneID).name}.unity");
-            await Task.Delay(100);//场景加载时 会有一帧延迟才能find场景的GameObject
-
-            if (showLoading) GameL.UI.Get<FUILoading>().max = 1;
-
-            GameM.Event.RunEvent(new EC_InScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
-        }
-        public async STask InMainScene(bool showLoading = true)
-        {
-            if (SceneID == 2) return;
-
-            if (showLoading) await GameL.UI.OpenAsync<FUILoading>();
-            GameL.UI.CloseAll();
-            GameM.World.DisposeAllChildren();
-
-            GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
-            SceneID = 2;
-
-            await SAsset.LoadScene($"Scene/{TabL.GetScene(SceneID).name}.unity");
-            await Task.Delay(100);//场景加载时 会有一帧延迟才能find场景的GameObject
-
-            await GameM.Event.RunEventAsync(new EC_InScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
-            if (showLoading) GameL.UI.Get<FUILoading>().max = 1;
-        }
+        public STask InLoginScene(bool showLoading = true) => InScene(1, showLoading);
+        public STask InMainScene(bool showLoading = true) => InScene(2, showLoading);
         public async STask InScene(int sceneId, bool showLoading = true)
         {
-            if (sceneId <= 1 || SceneID == sceneId) return;
+            if (SceneID == sceneId) return;
 
             if (showLoading) await GameL.UI.OpenAsync<FUILoading>();
-            GameL.UI.CloseAll();
+            GameL.UI.CloseAll(ui => ui.uiConfig.CloseIfChangeScene);
             GameM.World.DisposeAllChildren();
 
             GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });

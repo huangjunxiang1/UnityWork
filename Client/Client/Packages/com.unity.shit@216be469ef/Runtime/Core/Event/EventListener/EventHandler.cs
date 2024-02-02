@@ -12,13 +12,13 @@ public class EventHandler
     {
         this.Sender = sender;
     }
-    public EventHandler(object sender, int value, object data)
+    public EventHandler(object sender, double value, object data)
     {
         this.Sender = sender;
         this.Value = value;
         this.Data = data;
     }
-    public EventHandler(object sender, int value)
+    public EventHandler(object sender, double value)
     {
         this.Sender = sender;
         this.Value = value;
@@ -35,7 +35,7 @@ public class EventHandler
     public object Sender { get; }
     public bool isBreak { get; private set; }
     public object Data { get; private set; }
-    public long Value { get; private set; }
+    public double Value { get; private set; }
 
     public void BreakEvent()
     {
@@ -45,7 +45,7 @@ public class EventHandler
     {
         Data = data;
     }
-    public void SetValue(long v)
+    public void SetValue(double v)
     {
         Value = v;
     }

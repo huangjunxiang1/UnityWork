@@ -73,6 +73,6 @@ abstract class UUI : UUIBase
         if (this.Parent == null)
             this.canvas.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
         else
-            this.canvas.sortingOrder = Parent.sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
+            this.canvas.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
     }
 }

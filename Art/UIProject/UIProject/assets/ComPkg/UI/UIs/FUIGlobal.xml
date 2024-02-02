@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<component size="1334,750" opaque="false">
-  <displayList>
-    <component id="n0_rjgb" name="_log" src="qgu27" fileName="Common/btn/btn.xml" xy="0,315" size="100,119">
-      <relation target="" sidePair="middle-middle,right-right"/>
-      <Button title="Log" titleFontSize="30"/>
-    </component>
-  </displayList>
-</component>

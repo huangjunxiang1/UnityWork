@@ -64,14 +64,8 @@ abstract class FUI3D : FUIBase
     }
     public sealed override void Dispose()
     {
-        base.Dispose();
-
         if (this.goRoot != null)
-        {
-            this.Hide(true, () =>
-            {
-                SAsset.Release(this.goRoot);
-            });
-        }
+            this.Hide(true, () => SAsset.Release(this.goRoot));
+        base.Dispose();
     }
 }

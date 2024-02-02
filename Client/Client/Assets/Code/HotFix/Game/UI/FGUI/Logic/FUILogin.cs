@@ -9,6 +9,12 @@ using System;
 
 partial class FUILogin
 {
+    [Event]
+    static async void EC_InScene(EC_InScene e)
+    {
+        if (e.sceneId == 1)
+            await GameL.UI.OpenAsync<FUILogin>();
+    }
     static int demoIdx = 0;
 
     protected override async STask OnTask(params object[] data)

@@ -35,7 +35,7 @@ public class STask : ICriticalNotifyCompletion
     public object Tag { get; }
     public Task WarpTask { get; }
     public bool AutoCancel { get; private set; }
-    public IAsyncCancel Target { get; private set; }
+    public IDispose Target { get; private set; }
 
     public bool Disposed
     {
@@ -43,12 +43,7 @@ public class STask : ICriticalNotifyCompletion
         {
             if (_Disposed)
                 return true;
-            if (this.AutoCancel)
-            {
-                if (Target != null)
-                    return Target.Disposed;
-                return false;
-            }
+            if (this.AutoCancel && Target != null) return Target.Disposed;
             return false;
         }
     }
@@ -58,7 +53,6 @@ public class STask : ICriticalNotifyCompletion
     public bool IsCompleted { get; private set; }
 
     public static STask Completed { get; } = new STask() { IsCompleted = true };
-
 
     public STask GetAwaiter()
     {
@@ -106,7 +100,7 @@ public class STask : ICriticalNotifyCompletion
     /// <param name="e"></param>
     public void SetException(Exception e)
     {
-        Loger.Error("TaskAwaiter Error " + e);
+        Loger.Error("STask Error " + e);
         if (this.IsCompleted || this.Disposed) return;
 
         this._Disposed = true;
@@ -142,7 +136,7 @@ public class STask : ICriticalNotifyCompletion
             {
                 if (callBack.Target is IAsyncStateMachine)
                 {
-                    if (Types.GetStateMachineThisField(callBack.Target.GetType())?.GetValue(callBack.Target) is IAsyncCancel o)
+                    if (Types.GetStateMachineThisField(callBack.Target.GetType())?.GetValue(callBack.Target) is IDispose o)
                         Target = o;
                     else
                         this.AutoCancel = false;
@@ -150,7 +144,7 @@ public class STask : ICriticalNotifyCompletion
                 else if (callBack.Target.GetType() == runner)
                 {
                     var v = runnerField.GetValue(callBack.Target);
-                    if (Types.GetStateMachineThisField(v.GetType())?.GetValue(v) is IAsyncCancel o)
+                    if (Types.GetStateMachineThisField(v.GetType())?.GetValue(v) is IDispose o)
                         Target = o;
                     else
                         this.AutoCancel = false;
@@ -172,7 +166,7 @@ public class STask : ICriticalNotifyCompletion
             {
                 if (callBack.Target is IAsyncStateMachine)
                 {
-                    if (Types.GetStateMachineThisField(callBack.Target.GetType())?.GetValue(callBack.Target) is IAsyncCancel o)
+                    if (Types.GetStateMachineThisField(callBack.Target.GetType())?.GetValue(callBack.Target) is IDispose o)
                         Target = o;
                     else
                         this.AutoCancel = false;
@@ -180,7 +174,7 @@ public class STask : ICriticalNotifyCompletion
                 else if (callBack.Target.GetType() == runner)
                 {
                     var v = runnerField.GetValue(callBack.Target);
-                    if (Types.GetStateMachineThisField(v.GetType())?.GetValue(v) is IAsyncCancel o)
+                    if (Types.GetStateMachineThisField(v.GetType())?.GetValue(v) is IDispose o)
                         Target = o;
                     else
                         this.AutoCancel = false;
@@ -205,56 +199,72 @@ public class STask : ICriticalNotifyCompletion
     {
         return new STask(Task.Delay(millisecondsDelay));
     }
-    public static async STask All(IEnumerable<STask> itor)
+    public static async STask All(IEnumerable<STask> itor, bool toArray = true)
     {
         if (itor == null)
             await STask.Completed;
-        var ie = itor.GetEnumerator();
-        while (ie.MoveNext())
-            await ie.Current;
+        if (toArray) await All(itor.ToArray());
+        else
+        {
+            var ie = itor.GetEnumerator();
+            while (ie.MoveNext())
+                await ie.Current;
+        }
     }
     public static async STask All(params STask[] tasks)
     {
         for (int i = 0; i < tasks.Length; i++)
             await tasks[i];
     }
-    public static async STask<K[]> All<K>(IEnumerable<STask<K>> itor)
+    public static async STask<K[]> All<K>(IEnumerable<STask<K>> itor, bool toArray = true)
     {
         if (itor == null)
-            return new K[0];
+            return Array.Empty<K>();
         else
         {
-            K[] rs = new K[itor.Count()];
-            var ie = itor.GetEnumerator();
-            int i = 0;
-            while (ie.MoveNext())
-                rs[i++] = await ie.Current;
-            return rs;
+            int len = itor.Count();
+            if (len == 0) return Array.Empty<K>();
+            if (toArray) return await All(itor.ToArray());
+            else
+            {
+                K[] rs = new K[len];
+                var ie = itor.GetEnumerator();
+                int i = 0;
+                while (ie.MoveNext())
+                    rs[i++] = await ie.Current;
+                return rs;
+            }
         }
     }
     public static async STask<K[]> All<K>(params STask<K>[] tasks)
     {
+        if (tasks == null || tasks.Length == 0)
+            return Array.Empty<K>();
         K[] rs = new K[tasks.Length];
         for (int i = 0; i < tasks.Length; i++)
             rs[i] = await tasks[i];
         return rs;
     }
 
-    public static STask Any(IEnumerable<STask> itor)
+    public static STask Any(IEnumerable<STask> itor, bool toArray = true)
     {
         if (itor == null)
             return STask.Completed;
 
-        STask waiter = new();
-        async void wait(STask task)
+        if (toArray) return Any(itor.ToArray());
+        else
         {
-            await task;
-            waiter.TrySetResult();
+            STask waiter = new();
+            async void wait(STask task)
+            {
+                await task;
+                waiter.TrySetResult();
+            }
+            var ie = itor.GetEnumerator();
+            while (ie.MoveNext())
+                wait(ie.Current);
+            return waiter;
         }
-        var ie = itor.GetEnumerator();
-        while (ie.MoveNext())
-            wait(ie.Current);
-        return waiter;
     }
     public static STask Any(params STask[] tasks)
     {
@@ -269,23 +279,32 @@ public class STask : ICriticalNotifyCompletion
             wait(tasks[i]);
         return waiter;
     }
-    public static STask<K> Any<K>(IEnumerable<STask<K>> itor)
+    public static STask<K> Any<K>(IEnumerable<STask<K>> itor, bool toArray = true)
     {
-        STask<K> waiter = new();
-        if (itor == null) waiter.TrySetResult(default);
+        if (itor == null)
+        {
+            STask<K> waiter = new();
+            waiter.TrySetResult(default);
+            return waiter;
+        }
         else
         {
-            async void wait(STask<K> task)
+            if (toArray) return Any(itor.ToArray());
+            else
             {
-                await task;
-                waiter.TrySetResult(task.GetResult());
-            }
+                STask<K> waiter = new();
+                async void wait(STask<K> task)
+                {
+                    await task;
+                    waiter.TrySetResult(task.GetResult());
+                }
 
-            var ie = itor.GetEnumerator();
-            while (ie.MoveNext())
-                wait(ie.Current);
+                var ie = itor.GetEnumerator();
+                while (ie.MoveNext())
+                    wait(ie.Current);
+                return waiter;
+            }
         }
-        return waiter;
     }
     public static STask<K> Any<K>(params STask<K>[] tasks)
     {
@@ -303,26 +322,29 @@ public class STask : ICriticalNotifyCompletion
         return waiter;
     }
 
-    public static STask AnyAfterCancel(IEnumerable<STask> itor)
+    public static STask AnyAfterCancel(IEnumerable<STask> itor, bool toArray = true)
     {
         if (itor == null)
             return STask.Completed;
 
-        STask waiter = new();
-
-        async void wait(STask task)
+        if (toArray) return AnyAfterCancel(itor.ToArray());
+        else
         {
-            await task;
-            waiter.TrySetResult();
+            STask waiter = new();
+            async void wait(STask task)
+            {
+                await task;
+                waiter.TrySetResult();
 
+                var ie = itor.GetEnumerator();
+                while (ie.MoveNext())
+                    ie.Current.TryCancel();
+            }
             var ie = itor.GetEnumerator();
             while (ie.MoveNext())
-                ie.Current.TryCancel();
+                wait(ie.Current);
+            return waiter;
         }
-        var ie = itor.GetEnumerator();
-        while (ie.MoveNext())
-            wait(ie.Current);
-        return waiter;
     }
     public static STask AnyAfterCancel(params STask[] tasks)
     {
@@ -339,26 +361,35 @@ public class STask : ICriticalNotifyCompletion
             wait(tasks[i]);
         return waiter;
     }
-    public static STask<K> AnyAfterCancel<K>(IEnumerable<STask<K>> itor)
+    public static STask<K> AnyAfterCancel<K>(IEnumerable<STask<K>> itor, bool toArray = true)
     {
-        STask<K> waiter = new();
-        if (itor == null) waiter.TrySetResult(default);
+        if (itor == null)
+        {
+            STask<K> waiter = new();
+            waiter.TrySetResult(default);
+            return waiter;
+        }
         else
         {
-            async void wait(STask<K> task)
+            if (toArray) return AnyAfterCancel(itor.ToArray());
+            else
             {
-                await task;
-                waiter.TrySetResult(task.GetResult());
+                STask<K> waiter = new();
+                async void wait(STask<K> task)
+                {
+                    await task;
+                    waiter.TrySetResult(task.GetResult());
 
+                    var ie = itor.GetEnumerator();
+                    while (ie.MoveNext())
+                        ie.Current.TryCancel();
+                }
                 var ie = itor.GetEnumerator();
                 while (ie.MoveNext())
-                    ie.Current.TryCancel();
+                    wait(ie.Current);
+                return waiter;
             }
-            var ie = itor.GetEnumerator();
-            while (ie.MoveNext())
-                wait(ie.Current);
         }
-        return waiter;
     }
     public static STask<K> AnyAfterCancel<K>(params STask<K>[] tasks)
     {

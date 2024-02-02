@@ -1,26 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-public static class ObjectPool
+public static class ObjectPool<T> where T : class, new()
 {
-    static Dictionary<Type, List<object>> pool = new();
-    public static T Get<T>() where T : class, new()
+    static readonly Queue<T> pool = new();
+    public static T Get()
     {
-        if (pool.TryGetValue(typeof(T), out var value))
-        {
-            if (value.Count > 0)
-            {
-                var o = value[^1];
-                value.RemoveAt(value.Count - 1);
-                return (T)o;
-            }
-        }
+        if (pool.Count > 0) return pool.Dequeue();
         return new T();
     }
-    public static void Return<T>(T t) where T : class, new()
-    {
-        if (!pool.TryGetValue(typeof(T), out var value))
-            pool[typeof(T)] = value = new List<object>();
-        value.Add(t);
-    }
+    public static void Return(T t) => pool.Enqueue(t);
 }

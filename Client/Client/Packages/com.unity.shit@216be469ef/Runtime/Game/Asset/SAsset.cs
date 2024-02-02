@@ -100,12 +100,12 @@ namespace Game
             if (target is GameObject g)
             {
                 ReleaseTextureRef(g);
-                var list = ObjectPool.Get<List<UrlRef>>();
+                var list = ObjectPool<List<UrlRef>>.Get();
                 g.GetComponentsInChildren(list);
                 for (int i = list.Count - 1; i >= 0; i--)
                     ReleaseGameObject(list[i]);
                 list.Clear();
-                ObjectPool.Return(list);
+                ObjectPool<List<UrlRef>>.Return(list);
 
                 //debug模式检查一次Release的是不是加载对象
                 if (g && !g.GetComponent<UrlRef>())
@@ -153,8 +153,8 @@ namespace Game
             {
                 Loger.Error("Asset is null");
                 return;
-            }
-            var list = ObjectPool.Get<List<TextureRef>>();
+            }   
+            var list = ObjectPool<List<TextureRef>>.Get();
             target.GetComponentsInChildren(list);
             int len = list.Count;
             for (int i = 0; i < len; i++)
@@ -164,7 +164,7 @@ namespace Game
                     primitiveLoader.Release(r.texture);
             }
             list.Clear();
-            ObjectPool.Return(list);
+            ObjectPool<List<TextureRef>>.Return(list);
         }
 
         public static async STask SetTexture(this RawImage ri, string url)

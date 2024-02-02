@@ -1,4 +1,5 @@
 ﻿using Cinemachine;
+using FairyGUI;
 using Game;
 using Main;
 using System;
@@ -8,28 +9,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 static class Handler
 {
-    [Event]
-    static void EC_OutScene(EC_OutScene e)
-    {
-        BaseCamera.Current?.Dispose();
-    }
-    [Event]
-    static async void EC_InScene(EC_InScene e)
-    {
-        if (e.sceneId > 10000)
-        {
-            BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
-            GameObject cm = new("CMTarget");
-            cm.transform.position = new Vector3(0, 0, 0);
-            BaseCamera.Current.Init(cm);
-            BaseCamera.Current.EnableCamera();
-        }
-        if (e.sceneId == 1)
-            await GameL.UI.OpenAsync<FUILogin>();
-    }
     [Event(-2, Queue = true)]
     static async STask EC_GameInit(EC_GameInit e)
     {
@@ -52,9 +35,58 @@ static class Handler
             TabL.Init(buffL, ConstDefM.Debug);
     }
     [Event]
+    static void EC_GameStart(EC_GameStart e)
+    {
+        if (!Application.isEditor && AppSetting.Debug)
+        {
+            G_LogReporter log = G_LogReporter.Create();
+            log.ui.size = new Vector2(100, 120);
+            GRoot.inst.AddChild(log.ui);
+            log.ui.xy = new Vector2(0, (GRoot.inst.size.y - log.ui.size.y) / 2);
+            log.ui.sortingOrder = int.MaxValue - 10;
+            log.ui.onClick.Add(() => AppSetting.ShowReporter = !AppSetting.ShowReporter);
+        }
+        {
+            bool showExit = false;
+            var input = new ESCInput();
+            input.esc.Enable();
+            input.esconEsc.started += e =>
+            {
+                if (showExit)
+                    return;
+                if (e.ReadValueAsButton())
+                {
+                    showExit = true;
+                    Box.Op_YesOrNo("退出游戏", "是否退出游戏?", "确定", "取消", () =>
+                    {
+                        UnityEngine.Application.Quit();
+                        showExit = false;
+                    },
+                    () => showExit = false);
+                }
+            };
+        }
+    }
+    [Event]
+    static void EC_OutScene(EC_OutScene e)
+    {
+        BaseCamera.Current?.Dispose();
+    }
+    [Event]
+    static void EC_InScene(EC_InScene e)
+    {
+        if (e.sceneId > 10000)
+        {
+            BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
+            GameObject cm = new("CMTarget");
+            cm.transform.position = new Vector3(0, 0, 0);
+            BaseCamera.Current.Init(cm);
+            BaseCamera.Current.EnableCamera();
+        }
+    }
+    [Event]
     static void EC_QuitGame(EC_QuitGame e)
     {
         Game.ShareData.Dispose();
     }
-
 }

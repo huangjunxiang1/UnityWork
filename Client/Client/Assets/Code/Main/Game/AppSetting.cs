@@ -53,4 +53,9 @@ namespace Game
 
         static public CodeRuntime Runtime { get; set; }
     }
+    public enum CodeRuntime
+    {
+        Native,
+        Assembly,
+    }
 }

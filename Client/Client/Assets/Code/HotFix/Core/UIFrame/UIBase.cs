@@ -6,16 +6,17 @@ using System.Threading.Tasks;
 using Game;
 using Main;
 
-[DisableAutoRegisteredEvent]
-[DisableAutoRegisteredRPCEvent]
-[DisableAutoRegisteredTimer]
-abstract class UIBase : STree<UIBase>
+abstract class UIBase : STree
 {
+    public UIBase() : base()
+    {
+        this.EventEnable = false;
+        this.TimerEnable = false;
+    }
     SEventListener _onDispose;
 
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
-
 
     public abstract UIStates uiStates { get; }
     /// <summary>
@@ -43,7 +44,7 @@ abstract class UIBase : STree<UIBase>
     {
         this.uiConfig = config;
         this.EventEnable = true;
-        STimer.AutoRigisterTimer(this);
+        this.TimerEnable = true;
         onCompleted = completed;
         return STask.Completed;
     }
@@ -59,35 +60,34 @@ abstract class UIBase : STree<UIBase>
     }
     public virtual void Hide(bool playAnimation = true, Action callBack = null)
     {
-        List<UIBase> uis = this.GetChildren();
+        List<SObject> uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            uis[i].Hide(playAnimation);
+            ((UIBase)uis[i]).Hide(playAnimation);
     }
     public virtual STask HideAsync(bool playAnimation = true)
     {
-        List<UIBase> uis = this.GetChildren();
+        List<SObject> uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            uis[i].HideAsync(playAnimation);
+            ((UIBase)uis[i]).HideAsync(playAnimation);
         return STask.Completed;
     }
     public virtual void Show(bool playAnimation = true, Action callBack = null)
     {
-        List<UIBase> uis = this.GetChildren();
+        List<SObject> uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            uis[i].Show(playAnimation);
+            ((UIBase)uis[i]).Show(playAnimation);
     }
     public virtual STask ShowAsync(bool playAnimation = true)
     {
-        List<UIBase> uis = this.GetChildren();
+        List<SObject> uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            uis[i].ShowAsync(playAnimation);
+            ((UIBase)uis[i]).ShowAsync(playAnimation);
         return STask.Completed;
     }
     public override void Dispose()
     {  
         //先从列表移除
         GameL.UI.Remove(this);
-        STimer.AutoRemoveTimer(this);
         base.Dispose();
         //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
         //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI

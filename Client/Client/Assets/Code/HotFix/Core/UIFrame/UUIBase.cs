@@ -201,12 +201,9 @@ abstract class UUIBase : UIBase
     }
     public sealed override void Dispose()
     {
-        base.Dispose();
-
         //ui不做池管理
         if (this.UI)
-        {
             this.Hide(true, () => SAsset.Release(this.UI.gameObject));
-        }
+        base.Dispose();
     }
 }

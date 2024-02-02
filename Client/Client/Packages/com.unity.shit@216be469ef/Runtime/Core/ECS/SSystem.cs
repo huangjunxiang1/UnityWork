@@ -9,43 +9,33 @@ namespace Main
 {
     public static class SSystem
     {
-        static Dictionary<Type, Dictionary<Type, List<Delegate>>> handlerMap = new();
-        static Dictionary<Type, List<Delegate>> updateDelegates;
-        static Dictionary<Type, List<ChangeHandler>> compoundHandlerMap = new();
+        static Dictionary<Type, List<MethodHandler>> awakeHandler = new();
+        static Dictionary<Type, List<MethodHandler>> disposeHandler = new();
+        static Dictionary<Type, List<MethodHandler>> moveHandler = new();
+        static Dictionary<Type, List<ChangeHandler>> changeHandler = new();
 
         static Dictionary<Type, List<Type>> condition = new();
         static Dictionary<Type, AddComponentIfTemp> addIf = new();
-        static Dictionary<SObject, HashSet<Type>> checkComponents = ObjectPool.Get<Dictionary<SObject, HashSet<Type>>>();
+        static Dictionary<SObject, HashSet<Type>> checkComponents = ObjectPool<Dictionary<SObject, HashSet<Type>>>.Get();
 
-        static Dictionary<Type, List<SComponent>> updateComponents = new();
-        static Dictionary<Type, Delegate> runMis = new();
-        static MethodInfo runMi = typeof(SSystem).GetMethod(nameof(run), BindingFlags.Static | BindingFlags.NonPublic);
-        static HashSet<Type> removed = new();
-        static HashSet<SComponent> changeFlag = ObjectPool.Get<HashSet<SComponent>>();
+        static List<SComponent> changeFlag = ObjectPool<List<SComponent>>.Get();
 
         internal static void RigisteComponent(SComponent c)
         {
-            if (updateDelegates != null && updateDelegates.ContainsKey(c.GetType()))
-            {
-                if (!updateComponents.TryGetValue(c.GetType(), out var value))
-                    updateComponents[c.GetType()] = value = new();
-                value.Add(c);
-            }
             if (condition.TryGetValue(c.GetType(), out var lst))
             {
                 if (!checkComponents.TryGetValue(c.Entity, out var cs))
-                    checkComponents[c.Entity] = cs = ObjectPool.Get<HashSet<Type>>();
+                    checkComponents[c.Entity] = cs = ObjectPool<HashSet<Type>>.Get();
                 for (int i = 0; i < lst.Count; i++)
-                    cs.Add(lst[i]);
+                    cs.Add(lst[i]); 
             }
         }
         internal static void UnRigisteComponent(SComponent c)
         {
-            removed.Add(c.GetType());
             if (condition.TryGetValue(c.GetType(), out var lst))
             {
                 if (!checkComponents.TryGetValue(c.Entity, out var cs))
-                    checkComponents[c.Entity] = cs = ObjectPool.Get<HashSet<Type>>();
+                    checkComponents[c.Entity] = cs = ObjectPool<HashSet<Type>>.Get();
                 for (int i = 0; i < lst.Count; i++)
                     cs.Add(lst[i]);
             }
@@ -60,118 +50,157 @@ namespace Main
             {
                 if (addIf.TryGetValue(type, out var tmp))
                 {
-                    bool addit = false;
                     if (tmp.all != null)
                     {
                         for (int j = 0; j < tmp.all.Types.Length; j++)
                         {
                             if (!entity.HasComponent(tmp.all.Types[j]))
-                                goto here;
+                                goto remove;
                         }
                     }
                     if (tmp.any != null)
                     {
-                        bool has = false;
                         for (int j = 0; j < tmp.any.Types.Length; j++)
                         {
                             if (entity.HasComponent(tmp.any.Types[j]))
-                            {
-                                has = true;
-                                break;
-                            }
+                                goto check;
                         }
-                        if (!has)
-                            goto here;
+                        goto remove;
                     }
+                check:;
                     if (tmp.none != null)
                     {
                         for (int j = 0; j < tmp.none.Types.Length; j++)
                         {
                             if (entity.HasComponent(tmp.none.Types[j]))
-                                goto here;
+                                goto remove;
                         }
                     }
-                    addit = true;
-                here:;
-                    if (addit)
-                        entity.AddComponentInternal(type);
-                    else
-                        entity.RemoveComponentInternal(type);
+                    entity.AddComponentInternal(type);
+                    break;
+                remove: entity.RemoveComponentInternal(type);
                 }
             }
         }
         internal static bool isAutoAddComponent(Type type) => addIf.ContainsKey(type);
-        internal static void Run<T>(SComponent c) where T : SSystemAttribute
+        internal static void Awake(SComponent c)
         {
-            if (handlerMap.TryGetValue(typeof(T), out var map))
+            if (awakeHandler.TryGetValue(c.GetType(), out var value))
             {
-                if (map.TryGetValue(c.GetType(), out var value))
+                var ps = ArrayCache<object>.Get(1);
+                for (int i = 0; i < value.Count; i++)
                 {
-                    var ps = ParametersArrayCache.Get(1);
-                    ps[0] = c;
-                    for (int i = 0; i < value.Count; i++)
-                        try
-                        {
-                            value[i].DynamicInvoke(ps);
-                        }
-                        catch (Exception ex)
-                        {
-                            Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
-                        }
-                }
-            }
-        }
-
-        static void run<T>(List<SComponent> cs, List<Delegate> ds) where T : SComponent
-        {
-            for (int i = 0; i < ds.Count; i++)
-            {
-                Action<T> call = (Action<T>)ds[i];
-                for (int j = 0; j < cs.Count; j++)
-                {
-                    var c = cs[j];
-                    if (c.Disposed || !c.Enable) continue;
                     try
                     {
-                        call((T)c);
+                        ps[0] = c;
+                        value[i].method.Invoke(null, ps);
                     }
                     catch (Exception ex)
                     {
-                        Loger.Error($"{typeof(T)}事件执行出错 error:" + ex.ToString());
+                        Loger.Error($"Awake事件执行出错 error:" + ex.ToString());
                     }
+                    if (c.Disposed) return;
+                }
+            }
+        }
+        internal static void Dispose(SComponent c)
+        {
+            if (disposeHandler.TryGetValue(c.GetType(), out var value))
+            {
+                var ps = ArrayCache<object>.Get(1);
+                for (int i = 0; i < value.Count; i++)
+                    try
+                    {
+                        ps[0] = c;
+                        value[i].method.Invoke(null, ps);
+                    }
+                    catch (Exception ex)
+                    {
+                        Loger.Error($"Dispose事件执行出错 error:" + ex.ToString());
+                    }
+            }
+        }
+        internal static void Move(SComponent c, SObject old)
+        {
+            if (moveHandler.TryGetValue(c.GetType(), out var value))
+            {
+                var ps = ArrayCache<object>.Get(2);
+                for (int i = 0; i < value.Count; i++)
+                {
+                    try
+                    {
+                        ps[0] = c;
+                        ps[1] = old;
+                        value[i].method.Invoke(null, ps);
+                    }
+                    catch (Exception ex)
+                    {
+                        Loger.Error($"Move事件执行出错 error:" + ex.ToString());
+                    }
+                    if (c.Disposed) return;
                 }
             }
         }
 
         [Conditional("DebugEnable")]
-        static void _checkMethod(MethodParseData ma)
+        static void _checkMethod()
         {
-            if (ma.method.IsGenericMethod)
-                Loger.Error($"事件函数不能是泛型函数 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
-            if (ma.method.ReturnType != typeof(void))
-                Loger.Error($"事件函数返回值无效 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
+            for (int i = 0; i < Types.AllTypes.Count; i++)
+            {
+                var type = Types.AllTypes[i];
+                var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
-            List<Type> check = new();
-            for (int j = 0; j < ma.parameters.Length; j++)
-            {
-                var key = ma.parameters[j].ParameterType;
-                if (!typeof(SComponent).IsAssignableFrom(key))
-                    Loger.Error($"{key}不是ECS组件");
-                if (check.Contains(key))
-                    Loger.Error($"参数类型重复 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
-                check.Add(key);
-            }
+                for (int j = 0; j < methods.Length; j++)
+                {
+                    var method = methods[j];
+                    var atts = method.GetCustomAttributes<SSystemAttribute>();
+                    if (atts.Count() > 1)
+                        Loger.Error("SSystemAttribute 同一个函数最多一个");
+                    var att = atts.FirstOrDefault();
+                    if (att != null)
+                    {
+                        if (!method.IsStatic)
+                            Loger.Error("SSystemAttribute 只能标记在静态函数上");
+                        var ps = method.GetParameters();
+                        if (method.IsGenericMethod)
+                            Loger.Error($"事件函数不能是泛型函数 class:{method.ReflectedType.FullName} method:{method.Name}");
+                        if (method.ReturnType != typeof(void))
+                            Loger.Error($"事件函数返回值无效 class:{method.ReflectedType.FullName} method:{method.Name}");
 
-            //只有Change 可接受复合参数组件事件
-            if (ma.attribute is not ChangeAttribute)
-            {
-                if (ma.parameters.Length != 1)
-                    Loger.Error($"{ma.attribute}事件 参数个数不正确 class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
-            }
-            else
-            {
-                if (ma.parameters.Length > ParametersArrayCache.Max)
-                    Loger.Error($"Change事件 参数个数最多为{ParametersArrayCache.Max} class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
+                        if (att is not MoveAttribute)
+                        {
+                            List<Type> check = ObjectPool<List<Type>>.Get();
+                            for (int k = 0; k < ps.Length; k++)
+                            {
+                                var key = ps[k].ParameterType;
+                                if (!typeof(SComponent).IsAssignableFrom(key))
+                                    Loger.Error($"{key}不是ECS组件");
+                                if (check.Contains(key))
+                                    Loger.Error($"参数类型重复 class:{method.ReflectedType.FullName}  method: {method.Name}");
+                                check.Add(key);
+                            }
+                            check.Clear();
+                            ObjectPool<List<Type>>.Return(check);
+                        }
+
+                        //只有Change 可接受复合参数组件事件
+                        if (att is ChangeAttribute)
+                        {
+                            if (ps.Length > ArrayCache<object>.Max)
+                                Loger.Error($"Change事件 参数个数最多为{ArrayCache<object>.Max} class:{method.ReflectedType.FullName} method:{method.Name}");
+                        }
+                        else if (att is MoveAttribute)
+                        {
+                            if (ps.Length != 2 || !typeof(SComponent).IsAssignableFrom(ps[0].ParameterType) || typeof(SObject) != ps[1].ParameterType)
+                                Loger.Error($"{att}事件 参数为0=SComponent组件 1=SObject强类型实体(不可为SObject的子类型) class:{method.ReflectedType.FullName} method:{method.Name}");
+                        }
+                        else
+                        {
+                            if (ps.Length != 1)
+                                Loger.Error($"{att}事件 参数个数不正确 class:{method.ReflectedType.FullName} method:{method.Name}");
+                        }
+                    }
+                }
             }
         }
 
@@ -180,43 +209,46 @@ namespace Main
         /// </summary>
         internal static void Init(List<MethodParseData> methods)
         {
-            Type[] types = new Type[1];
-            var runDelegate = typeof(Action<,>).MakeGenericType(runMi.GetParameters().Select(t => t.ParameterType).ToArray());
+            _checkMethod();
             for (int i = 0; i < methods.Count; i++)
             {
                 MethodParseData ma = methods[i];
-                if (ma.attribute is SSystemAttribute ea)
+                if (ma.attribute is SSystemAttribute)
                 {
-                    _checkMethod(ma);
-
                     //只有Change 可接受复合参数组件事件
-                    if (ma.attribute is not ChangeAttribute)
+                    if (ma.attribute is ChangeAttribute)
                     {
-                        var key = ma.parameters[0].ParameterType;
-                        if (!handlerMap.TryGetValue(ea.GetType(), out var map))
-                            handlerMap[ea.GetType()] = map = new();
-                        if (!map.TryGetValue(key, out var ds))
-                            map[key] = ds = new();
-                        types[0] = key;
-                        ds.Add(ma.method.CreateDelegate(typeof(Action<>).MakeGenericType(types)));
-                        if (ma.attribute is UpdateAttribute && !runMis.ContainsKey(key))
-                            runMis[key] = runMi.MakeGenericMethod(types).CreateDelegate(runDelegate);
-                    }
-                    else
-                    {
-                        ChangeHandler h = new(ma.parameters.Select(t => t.ParameterType).ToArray(), ma.method);
+                        ChangeHandler h = new(ma.parameters.Select(t => t.ParameterType).ToArray(), new MethodHandler(ma.method, ((SSystemAttribute)ma.attribute).SortOrder));
                         for (int j = 0; j < ma.parameters.Length; j++)
                         {
                             var key = ma.parameters[j].ParameterType;
-
-                            if (!compoundHandlerMap.TryGetValue(key, out var hs))
-                                compoundHandlerMap[key] = hs = new();
+                            if (!changeHandler.TryGetValue(key, out var hs))
+                                changeHandler[key] = hs = new();
                             hs.Add(h);
                         }
                     }
+                    else 
+                    {
+                        Dictionary<Type, List<MethodHandler>> handler = default;
+                        if (ma.attribute is AwakeAttribute) handler = awakeHandler;
+                        else if (ma.attribute is DisposeAttribute) handler = disposeHandler;
+                        else if (ma.attribute is MoveAttribute) handler = moveHandler;
+                        else Loger.Error("未知类型 =" + ma.attribute);
+                        var key = ma.parameters[0].ParameterType;
+                        if (!handler.TryGetValue(key, out var ds))
+                            handler[key] = ds = new();
+                        ds.Add(new MethodHandler(ma.method, ((SSystemAttribute)ma.attribute).SortOrder));
+                    }
                 }
             }
-            handlerMap.TryGetValue(typeof(UpdateAttribute), out updateDelegates);
+            foreach (var item in changeHandler.Values)
+                item.Sort((x, y) => x.method.sortOrder - y.method.sortOrder);
+            foreach (var item in awakeHandler.Values)
+                item.Sort((x, y) => x.sortOrder - y.sortOrder);
+            foreach (var item in disposeHandler.Values)
+                item.Sort((x, y) => x.sortOrder - y.sortOrder);
+            foreach (var item in moveHandler.Values)
+                item.Sort((x, y) => x.sortOrder - y.sortOrder);
 
             for (int i = 0; i < Types.AllTypes.Count; i++)
             {
@@ -278,75 +310,55 @@ namespace Main
             if (checkComponents.Count > 0)
             {
                 var tmp = checkComponents;
-                checkComponents = ObjectPool.Get<Dictionary<SObject, HashSet<Type>>>();
+                checkComponents = ObjectPool<Dictionary<SObject, HashSet<Type>>>.Get();
                 foreach (var c in tmp)
                 {
                     if (c.Key.Disposed) continue;
                     CheckComponent(c.Key, c.Value);
                     c.Value.Clear();
-                    ObjectPool.Return(c.Value);
+                    ObjectPool<HashSet<Type>>.Return(c.Value);
                 }
                 tmp.Clear();
-                ObjectPool.Return(tmp);
+                ObjectPool<Dictionary<SObject, HashSet<Type>>>.Return(tmp);
             }
 
             if (changeFlag.Count > 0)
             {
                 var tmp = changeFlag;
-                changeFlag = ObjectPool.Get<HashSet<SComponent>>();
-                foreach (var c in tmp)
+                changeFlag = ObjectPool<List<SComponent>>.Get();
+                for (int i = 0; i < tmp.Count; i++)
                 {
+                    var c = tmp[i];
                     if (c.Disposed) continue;
-                    if (compoundHandlerMap.TryGetValue(c.GetType(), out var handlers))
+                    c._isChanged = false;
+                    if (changeHandler.TryGetValue(c.GetType(), out var handlers))
                     {
-                        for (int i = 0; i < handlers.Count; i++)
-                            handlers[i].TryInvoke(c.Entity);
+                        for (int j = 0; j < handlers.Count; j++)
+                            handlers[j].TryInvoke(c.Entity);
                     }
                 }
                 tmp.Clear();
-                ObjectPool.Return(tmp);
-            }
-
-            if (updateDelegates != null)
-            {
-                foreach (var kv in updateDelegates)
-                {
-                    if (updateComponents.TryGetValue(kv.Key, out var cs) && cs.Count > 0)
-                    {
-                        var ps = ParametersArrayCache.Get(2);
-                        ps[0] = cs;
-                        ps[1] = kv.Value;
-                        runMis[kv.Key].DynamicInvoke(ps);
-                    }
-                }
+                ObjectPool<List<SComponent>>.Return(tmp);
             }
         }
         internal static void AfterUpdate()
         {
-            if (removed.Count > 0)
-            {
-                foreach (var item in removed)
-                {
-                    if (updateComponents.TryGetValue(item, out var value))
-                        value.RemoveAll(t => t.Disposed);
-                }
-                removed.Clear();
-            }
+            
         }
 
         class ChangeHandler
         {
-            public ChangeHandler(Type[] types, MethodInfo method)
+            public ChangeHandler(Type[] types, MethodHandler method)
             {
                 this.types = types;
                 this.method = method;
             }
-            MethodInfo method;
-            Type[] types;
+            public MethodHandler method;
+            public Type[] types;
 
             public void TryInvoke(SObject obj)
             {
-                var ps = ParametersArrayCache.Get(types.Length);
+                var ps = ArrayCache<object>.Get(types.Length);
                 for (int i = 0; i < types.Length; i++)
                 {
                     if (!obj.TryGetComponent(types[i], out var c))
@@ -355,13 +367,23 @@ namespace Main
                 }
                 try
                 {
-                    method.Invoke(null, ps);
+                    method.method.Invoke(null, ps);
                 }
                 catch (Exception ex)
                 {
                     Loger.Error($"{method}事件执行出错 error:" + ex.ToString());
                 }
             }
+        }
+        class MethodHandler
+        {
+            public MethodHandler(MethodInfo mi,int sortOrder)
+            {
+                this.method = mi;
+                this.sortOrder = sortOrder;
+            }
+            public MethodInfo method;
+            public int sortOrder;
         }
         class AddComponentIfTemp
         {

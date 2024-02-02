@@ -5,7 +5,7 @@ using Game;
 using FairyGUI;
 using System;
 
-[Game.UIConfig(50, UIType = Game.UIType.GlobalUI)]
+[Game.UIConfig(50, CloseIfChangeScene = false, HideIfOpenOtherUI = false)]
 partial class FUILoading
 {
     float cur = 0;

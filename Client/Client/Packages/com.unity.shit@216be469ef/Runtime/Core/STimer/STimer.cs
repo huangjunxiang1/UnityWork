@@ -14,10 +14,10 @@ public static class STimer
     static readonly DateTime _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     static long _timeOffset;
 
-    static readonly List<Temp> _timerLst = new List<Temp>();
+    static readonly List<TimerItem> _timerLst = new List<TimerItem>();
 
     static long minUtc;
-    static readonly List<TempUtc> _utcTimerLst = new List<TempUtc>();
+    static readonly List<UTCTimerItem> _utcTimerLst = new List<UTCTimerItem>();
 
     static bool _isExcutingUTCTimer;
     static bool _isRemovedTimer;
@@ -33,23 +33,26 @@ public static class STimer
         get { return (DateTime.Now.Ticks - _dt1970.Ticks) / 10000; }
     }
 
-
     public static void Add(float time, int count, Action call, object target = null)
     {
-        if (AppSetting.Debug)
-        {
-            if (Contains(call))
-                Loger.Error("已经包含timer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
-        }
+#if DebugEnable
+        if (Contains(call))
+            Loger.Error("已经包含timer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
+#endif
 
         if (count == 0) return;
 
-        Temp t = new Temp();
+        TimerItem t = ObjectPool<TimerItem>.Get();
         t.time = time;
         t.count = count;
         t.isEveryFrame = time <= 0;
         t.action = call;
         t.target = target;
+
+        t.curTime = 0;
+        t.curCount = 0;
+        t.isDisposed = false;
+
         _timerLst.Add(t);
     }
     public static void Remove(Action call)
@@ -75,13 +78,12 @@ public static class STimer
 
     public static void AddUTC(long utc, Action call)
     {
-        if (AppSetting.Debug)
-        {
-            if (ContainsUTC(call))
-                Loger.Error("已经包含utcTimer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
-        }
+#if DebugEnable
+        if (ContainsUTC(call))
+            Loger.Error("已经包含utcTimer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
+#endif
 
-        TempUtc t = new TempUtc();
+        UTCTimerItem t = new UTCTimerItem();
         t.utc = utc;
         t.action = call;
         _utcTimerLst.Add(t);
@@ -118,8 +120,9 @@ public static class STimer
         int cnt = _timerLst.Count;
         for (int i = 0; i < cnt; i++)
         {
-            Temp t = _timerLst[i];
+            TimerItem t = _timerLst[i];
             if (t.isDisposed) continue;
+            if (t.target is ITimer timer && !timer.TimerEnable) continue;
 
             if (!t.isEveryFrame)
                 t.curTime += Time.deltaTime;
@@ -152,7 +155,7 @@ public static class STimer
             cnt = _utcTimerLst.Count;
             for (int i = 0; i < cnt; i++)
             {
-                TempUtc t = _utcTimerLst[i];
+                UTCTimerItem t = _utcTimerLst[i];
                 if (t.isDisposed) continue;
                 if (t.utc > minUtc) continue;
 
@@ -172,7 +175,17 @@ public static class STimer
     {
         if (_isRemovedTimer)
         {
-            _timerLst.RemoveAll(t => t.isDisposed);
+            _timerLst.RemoveAll(t =>
+            {
+                if (t.isDisposed || (t.target is IDispose tt && tt.Disposed))
+                {
+                    t.action = null;
+                    t.target = null;
+                    ObjectPool<TimerItem>.Return(t);
+                    return true;
+                }
+                return false;
+            });
             _isRemovedTimer = false;
         }
         if (_isRemovedUTCTimer)
@@ -222,17 +235,21 @@ public static class STimer
                 Add(ea.Time, ea.Count, (Action)ma.method.CreateDelegate(typeof(Action)));
         }
     }
-    public static bool AutoRigisterTimer(object target)
+    public static bool RigisterTimer(object target)
     {
+        bool ret = false;
         var methods = Types.GetInstanceMethodsAttribute(target.GetType());
         for (int i = 0; i < methods.Length; i++)
         {
             if (methods[i].attribute is STimerAttribute ta)
+            {
                 Add(ta.Time, ta.Count, (Action)methods[i].method.CreateDelegate(typeof(Action), target), target);
+                ret = true;
+            }
         }
-        return methods.Length > 0;
+        return ret;
     }
-    public static void AutoRemoveTimer(object target)
+    public static void RemoveTimer(object target)
     {
         if (target == null) return;
         for (int i = 0; i < _timerLst.Count; i++)
@@ -244,8 +261,9 @@ public static class STimer
             }
         }
     }
+    public static void SetRemovedTimerFlag() => _isRemovedTimer = true;
 
-    class Temp
+    class TimerItem
     {
         public float time;
         public int count;
@@ -258,7 +276,7 @@ public static class STimer
 
         public bool isDisposed;
     }
-    class TempUtc
+    class UTCTimerItem
     {
         public long utc;
         public Action action;
