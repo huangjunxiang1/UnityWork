@@ -12,13 +12,26 @@ public static class Types
     readonly static Dictionary<Type, uint> _typeCmd = new();
     readonly static Dictionary<uint, Type> _cmdType = new();
     readonly static Dictionary<Type, Type> _requestResponse = new();
-    readonly static Dictionary<Type, Dictionary<Type, Type>> _genericMap = new();
+    readonly static Dictionary<GEKey, ConstructorInfo> _ctors = new();
 
     static Dictionary<Type, Type[]> assignableTypesMap = new();
     static Dictionary<Type, FieldInfo> StateMachineThisFieldMap = new();
     static Dictionary<Type, bool> _asyncNeedCancel = new();
     static Dictionary<Type, MethodParseData[]> methodAttributeCache = new();
 
+#if UNITY_EDITOR
+    static void EditorClear()
+    {
+        AllTypes.Clear();
+        _typeCmd.Clear();
+        _cmdType.Clear();
+        _requestResponse.Clear();
+        assignableTypesMap.Clear();
+        StateMachineThisFieldMap.Clear();
+        _asyncNeedCancel.Clear();
+        methodAttributeCache.Clear();
+    }
+#endif
     public static void RigisterTypes(IEnumerable<Type> types)
     {
         AllTypes.AddRange(types);
@@ -69,11 +82,8 @@ public static class Types
                 if (asm != null)
                     _asyncNeedCancel[asm.StateMachineType] = m.GetCustomAttribute<AsynCancelIfCallerDisposedAttribute>() != null;
 
-                if (m.IsStatic)
-                {
-                    foreach (var item in m.GetCustomAttributes<SAttribute>())
-                        staticMethods.Add(new MethodParseData(m, item));
-                }
+                foreach (var item in m.GetCustomAttributes<SAttribute>())
+                    staticMethods.Add(new MethodParseData(m, item));
             }
         }
         return staticMethods;
@@ -205,17 +215,27 @@ public static class Types
         }
         return array;
     }
-    internal static Type GetGenericType(Type generic, Type element)
+    internal static object InstanceGenericObject(Type generic, Type element, object[] parameters)
     {
-        if (!_genericMap.TryGetValue(generic, out var value))
-            value = _genericMap[generic] = new();
-        if (!value.TryGetValue(element, out var value2))
+        GEKey k = new();
+        k.generic = generic;
+        k.element = element;
+        if (!_ctors.TryGetValue(k, out var ctor))
         {
             var ps = ArrayCache<Type>.Get(1);
             ps[0] = element;
-            value2 = value[element] = generic.MakeGenericType(ps);
+            _ctors[k] = ctor = generic.MakeGenericType(ps).GetConstructors().First();
         }
-        return value2;
+        return ctor.Invoke(parameters);
+    }
+
+    struct GEKey : IEquatable<GEKey>
+    {
+        public Type generic;
+        public Type element;
+
+        public bool Equals(GEKey other) => other.generic == this.generic && other.element == this.element;
+        public override int GetHashCode() => generic.GetHashCode() ^ element.GetHashCode();
     }
 }
 

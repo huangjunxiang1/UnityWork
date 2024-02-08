@@ -33,7 +33,16 @@ public static class STimer
         get { return (DateTime.Now.Ticks - _dt1970.Ticks) / 10000; }
     }
 
-    public static void Add(float time, int count, Action call, object target = null)
+#if UNITY_EDITOR
+    internal static void EditorClear()
+    {
+        _timerLst.Clear();
+        minUtc = 0;
+        _utcTimerLst.Clear();
+    }
+#endif
+
+    public static void Add(float time, int count, Action call, ITimer target = null)
     {
 #if DebugEnable
         if (Contains(call))
@@ -122,7 +131,7 @@ public static class STimer
         {
             TimerItem t = _timerLst[i];
             if (t.isDisposed) continue;
-            if (t.target is ITimer timer && !timer.TimerEnable) continue;
+            if (t.target != null && (!t.target.TimerEnable || t.target.Disposed)) continue;
 
             if (!t.isEveryFrame)
                 t.curTime += Time.deltaTime;
@@ -177,7 +186,7 @@ public static class STimer
         {
             _timerLst.RemoveAll(t =>
             {
-                if (t.isDisposed || (t.target is IDispose tt && tt.Disposed))
+                if (t.isDisposed || (t.target != null && t.target.Disposed))
                 {
                     t.action = null;
                     t.target = null;
@@ -231,14 +240,14 @@ public static class STimer
         for (int i = 0; i < methods.Count; i++)
         {
             MethodParseData ma = methods[i];
-            if (ma.attribute is STimerAttribute ea)
+            if (ma.attribute is STimerAttribute ea && ma.method.IsStatic)
                 Add(ea.Time, ea.Count, (Action)ma.method.CreateDelegate(typeof(Action)));
         }
     }
-    public static bool RigisterTimer(object target)
+    public static bool RigisterTimer(ITimer target)
     {
         bool ret = false;
-        var methods = Types.GetInstanceMethodsAttribute(target.GetType());
+        var methods = Types.                                                                                                                                                                                                                                                                                       GetInstanceMethodsAttribute(target.GetType());
         for (int i = 0; i < methods.Length; i++)
         {
             if (methods[i].attribute is STimerAttribute ta)
@@ -249,19 +258,7 @@ public static class STimer
         }
         return ret;
     }
-    public static void RemoveTimer(object target)
-    {
-        if (target == null) return;
-        for (int i = 0; i < _timerLst.Count; i++)
-        {
-            if (_timerLst[i].target == target)
-            {
-                _timerLst[i].isDisposed = true;
-                _isRemovedTimer = true;
-            }
-        }
-    }
-    public static void SetRemovedTimerFlag() => _isRemovedTimer = true;
+    public static void RemoveTimer() => _isRemovedTimer = true;
 
     class TimerItem
     {
@@ -269,7 +266,7 @@ public static class STimer
         public int count;
         public bool isEveryFrame;//每帧
         public Action action;
-        public object target;
+        public ITimer target;
 
         public float curTime;
         public int curCount;

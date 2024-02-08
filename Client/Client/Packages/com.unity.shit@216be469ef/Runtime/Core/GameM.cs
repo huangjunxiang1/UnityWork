@@ -18,6 +18,11 @@ public static class GameM
 
     public static void Init()
     {
+#if UNITY_EDITOR
+        //Types.EditorClear();//必须在Init之前调用 所以这里用的反射调用
+        SSystem.EditorClear();
+        STimer.EditorClear();
+#endif
         var methods = Types.Parse();
         Event = new EventSystem();
         Event.RigisteAllStaticEvent(methods);
@@ -26,11 +31,27 @@ public static class GameM
         Data = new SData();
         SSystem.Init(methods); 
         STimer.Init(methods);
-        GameObject.DontDestroyOnLoad(new GameObject($"[{nameof(Engine)}]").AddComponent<Engine>());
+        if (Application.isPlaying)
+            GameObject.DontDestroyOnLoad(new GameObject($"[{nameof(Engine)}]").AddComponent<Engine>());
+#if UNITY_EDITOR
+        else
+            UnityEditor.EditorApplication.update += Update;
+#endif
     }
     public static void Close()
     {
+#if UNITY_EDITOR
+        Event.Clear();
+        World.DisposeAllChildren();
+        Data.Clear();
+#endif
+
         Net.Dispose();
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            UnityEditor.EditorApplication.update -= Update;
+#endif
     }
     static void Update()
     {
@@ -41,6 +62,7 @@ public static class GameM
         SObject.Update();
         SSystem.Update();
         STimer.Update();
+        Event.AfterUpdate();
         SSystem.AfterUpdate();
         STimer.AfterUpdate();
         Profiler.EndSample();

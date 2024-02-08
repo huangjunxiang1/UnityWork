@@ -100,7 +100,7 @@ public static class AsyncUtil
 
         return task;
     }
-    public static STask AsTask(this SEventListener eventer)
+    public static STask AsTask(this Eventer eventer)
     {
         STask task = new();
 

@@ -50,7 +50,7 @@ namespace Game
                 if (!_childrenRMap.ContainsKey(child.rpc))
                     _childrenRMap[child.rpc] = child;
                 else
-                    Loger.Error($"已经包含子对象 this={this.GetType()} rpc={this.rpc}  child={child.GetType()} rpc={child.rpc}");
+                    Loger.Error($"已经包含子对象 this={this} child={child}");
             }
 
             _children.Add(child);
@@ -86,7 +86,7 @@ namespace Game
         /// <param name="child"></param>
         public void Remove(SObject child)
         {
-            if (!_childrenGMap.ContainsKey(gid))
+            if (!_childrenGMap.ContainsKey(child.gid))
                 return;
             _childrenGMap.Remove(child.gid);
             if (child.rpc != 0)

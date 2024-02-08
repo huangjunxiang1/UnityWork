@@ -13,16 +13,11 @@ abstract class UIBase : STree
         this.EventEnable = false;
         this.TimerEnable = false;
     }
-    SEventListener _onDispose;
 
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
     public abstract UIStates uiStates { get; }
-    /// <summary>
-    /// dispose 监听
-    /// </summary>
-    public SEventListener onDispose => _onDispose ??= new SEventListener(this);
     /// <summary>
     /// UI层级
     /// </summary>
@@ -96,7 +91,6 @@ abstract class UIBase : STree
         //先执行退出逻辑
         if (this.uiStates >= UIStates.OnTask)
             this.OnExit();
-        _onDispose?.Call();
     }
 
     protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用

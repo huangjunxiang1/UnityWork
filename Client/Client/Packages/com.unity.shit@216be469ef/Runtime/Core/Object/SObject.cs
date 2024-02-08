@@ -8,7 +8,7 @@ namespace Game
     {
         public SObject(long rpc = 0)
         {
-            this.gid = (((long)random.Next()) << 32) | (long)random.Next();
+            this.gid = (((long)random.Next()) << 32) | (random.Next() & 0xffffffff);
             gidMap.Add(gid, this);
 
             this.rpc = rpc;
@@ -34,6 +34,7 @@ namespace Game
         bool _eventEnable = true;
         long _eventRpcid;
         bool _timerRigisterd = false;
+        Eventer _onDispose;
         Dictionary<Type, SComponent> components = ObjectPool<Dictionary<Type, SComponent>>.Get();
 
         public double value;
@@ -67,7 +68,7 @@ namespace Game
                 if (value)
                 {
                     foreach (var c in components.Values)
-                        c.Change();
+                        c.SetChange();
                 }
             }
         }
@@ -123,6 +124,11 @@ namespace Game
                 return Parent._children.IndexOf(this);
             }
         }
+
+        /// <summary>
+        /// dispose 监听
+        /// </summary>
+        public Eventer onDispose => _onDispose ??= new Eventer(this);
 
         public void RigisterRPCEvent(long rpc)
         {
@@ -233,11 +239,8 @@ namespace Game
                 c = default;
                 return false;
             }
-            if (components.TryGetValue(type, out var cc))
-            {
-                c = cc;
+            if (components.TryGetValue(type, out c))
                 return true;
-            }
             c = default;
             return false;
         }
@@ -309,9 +312,11 @@ namespace Game
             {
                 ((IEvent)c).RigisterEvent();
                 c._timerRigisterd = ((ITimer)c).RigisterTimer();
-                SSystem.Awake(c);
+                var ps = ArrayCache<object>.Get(1);
+                ps[0] = c;
+                GameM.Event.RunEvent(Types.InstanceGenericObject(typeof(Awake<>), c.GetType(), ps));
             }
-            c.Change();
+            c.SetChange();
             return c;
         }
         internal SComponent AddComponentInternal(Type type)
@@ -359,21 +364,32 @@ namespace Game
             tmp.Clear();
             ObjectPool<Dictionary<Type, SComponent>>.Return(tmp);
 
-            var ps = ArrayCache<object>.Get(1);
+            var types = ObjectPool<List<Type>>.Get();
             var type = this.GetType();
+            types.Add(type);
             do
             {
-                ps[0] = this;
-                GameM.Event.RunEvent(Activator.CreateInstance(Types.GetGenericType(typeof(EC_DisposeSObject<>), type), ps));
-                if (this.Disposed || type == typeof(SObject)) break;
+                if (type == typeof(SObject)) break;
                 type = type.BaseType;
+                types.Add(type);
             } while (true);
+
+            var ps = ArrayCache<object>.Get(1);
+            for (int i = types.Count - 1; i >= 0; i--)
+            {
+                ps[0] = this;
+                GameM.Event.RunEvent(Types.InstanceGenericObject(typeof(Dispose<>), types[i], ps));
+            }
+            types.Clear();
+            ObjectPool<List<Type>>.Return(types);
+
+            _onDispose?.Call();
         }
 
         public override string ToString()
         {
-            if (this.rpc != 0) return $"rpc={this.rpc} gid={this.gid} {this.GetType().FullName}";
-            else return $"gid={this.gid} {this.GetType().FullName}";
+            if (this.rpc != 0) return $"{{rpc={this.rpc} gid={this.gid} {this.GetType().FullName}}}";
+            else return $"{{gid={this.gid} {this.GetType().FullName}}}";
         }
 
         public static SObject GetWithRpc(long rpc)
@@ -401,22 +417,37 @@ namespace Game
             {
                 var queue = newQueue;
                 newQueue = ObjectPool<Queue<SObject>>.Get();
+                var types = ObjectPool<List<Type>>.Get();
                 var ps = ArrayCache<object>.Get(1);
+                Type lastType = null;
                 while (queue.TryDequeue(out var item))
                 {
                     if (item.Disposed) continue;
 
                     var type = item.GetType();
-                    do
+                    if (lastType != type)
+                    {
+                        lastType = type;
+                        types.Clear();
+                        types.Add(type);
+                        do
+                        {
+                            if (type == typeof(SObject)) break;
+                            type = type.BaseType;
+                            types.Add(type);
+                        } while (true);
+                    }
+
+                    for (int i = types.Count - 1; i >= 0; i--)
                     {
                         ps[0] = item;
-                        GameM.Event.RunEvent(Activator.CreateInstance(Types.GetGenericType(typeof(EC_NewSObject<>), type), ps));
-                        if (item.Disposed || type == typeof(SObject)) break;
-                        type = type.BaseType;
-                    } while (true);
-
+                        GameM.Event.RunEvent(Types.InstanceGenericObject(typeof(Awake<>), types[i], ps));
+                        if (item.Disposed) break;
+                    }
                 }
                 ObjectPool<Queue<SObject>>.Return(queue);
+                types.Clear();
+                ObjectPool<List<Type>>.Return(types);
             }
         }
     }

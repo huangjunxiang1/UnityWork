@@ -7,7 +7,7 @@ using UnityEngine;
 using System.Reflection;
 
 [AsyncMethodBuilder(typeof(STaskBuilder))]
-public class STask : ICriticalNotifyCompletion
+public class STask : ICriticalNotifyCompletion, IDispose
 {
     static STask()
     {
@@ -81,7 +81,7 @@ public class STask : ICriticalNotifyCompletion
     public void TrySetResult()
     {
         if (this.IsCompleted || this.Disposed) return;
-       
+
         this._Disposed = true;
         this.IsCompleted = true;
 
@@ -93,6 +93,7 @@ public class STask : ICriticalNotifyCompletion
     {
         this.TrySetResult();
     }
+    public void Dispose() => this.TryCancel();
 
     /// <summary>
     /// 错误
@@ -408,4 +409,5 @@ public class STask : ICriticalNotifyCompletion
 
         return waiter;
     }
+
 }

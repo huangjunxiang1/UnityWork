@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 /// <summary>
 /// 事件监听类
 /// </summary>
-public class SEventListener
+public class Eventer
 {
-    public SEventListener() { }
-    public SEventListener(object creater)
+    public Eventer() { }
+    public Eventer(object creater)
     {
         this.Creater = creater;
     }

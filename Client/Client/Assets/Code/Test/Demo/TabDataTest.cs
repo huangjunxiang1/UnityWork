@@ -11,7 +11,7 @@ using System.Diagnostics;
 class TabDataTest
 {
     [Test]
-    public void testDBuffer()
+    public static void testDBuffer()
     {
         using DBuffer buffM = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes")));
         using DBuffer buffL = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes")));
@@ -29,7 +29,7 @@ class TabDataTest
         test_ST(buffM_ST);
     }
 
-    void test(DBuffer buffM, DBuffer buffL, DBuffer buff_cn, DBuffer buff_en, bool debug)
+    static void test(DBuffer buffM, DBuffer buffL, DBuffer buff_cn, DBuffer buff_en, bool debug)
     {
         if (!buffM.ReadHeaderInfo())
             throw new System.Exception("数据错误");
@@ -153,7 +153,7 @@ class TabDataTest
         if ("k3".ToLan() != "english3")
             throw new System.Exception("数据出错");
     }
-    void test_ST(DBuffer buffM)
+    static void test_ST(DBuffer buffM)
     {
         if (!buffM.ReadHeaderInfo())
             throw new System.Exception("不是TabM数据");

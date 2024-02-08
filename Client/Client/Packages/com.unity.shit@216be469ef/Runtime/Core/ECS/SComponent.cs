@@ -9,6 +9,7 @@ namespace Game
 {
     public abstract class SComponent : IDispose, IEvent, ITimer
     {
+        bool _enable = true;
         bool _eventEnable = true;
         bool _timerEnable = true;
         internal bool _timerRigisterd = false;
@@ -17,6 +18,20 @@ namespace Game
         public SObject Entity { get; internal set; }
         public bool Disposed { get; private set; }
 
+        public bool Enable
+        {
+            get => _enable && !Disposed;
+            set
+            {
+                if (_enable == value) return;
+                _enable = value;
+                if (value)
+                    this.SetChange();
+                var ps = ArrayCache<object>.Get(1);
+                ps[0] = this;
+                GameM.Event.RunEvent(Types.InstanceGenericObject(typeof(Enable<>), this.GetType(), ps));
+            }
+        }
         public bool EventEnable
         {
             get => _eventEnable && Entity != null && Entity.EventEnable;
@@ -25,7 +40,7 @@ namespace Game
                 if (_eventEnable == value) return;
                 _eventEnable = value;
                 if (value)
-                    this.Change();
+                    this.SetChange();
             }
         }
         public bool TimerEnable { get => _timerEnable && Entity != null && Entity.TimerEnable; set => _timerEnable = value; }
@@ -58,11 +73,14 @@ namespace Game
             var old = Entity;
             this.dispose(1);
             entity.AddComponentInternal(this, true);
-            SSystem.Move(this, old);
+            var ps = ArrayCache<object>.Get(2);
+            ps[0] = this;
+            ps[1] = old;
+            GameM.Event.RunEvent(Types.InstanceGenericObject(typeof(Move<>), this.GetType(), ps));
         }
-        public void Change()
+        public void SetChange()
         {
-            if (_isChanged) return;
+            if (_isChanged || !this.Enable) return;
             _isChanged = true;
             SSystem.SetChange(this);
         }
@@ -91,7 +109,9 @@ namespace Game
                 if (this._timerRigisterd)
                     ((ITimer)this).RemoveTimer();
                 Entity.RemoveFromComponents(this);
-                SSystem.Dispose(this);
+                var ps = ArrayCache<object>.Get(1);
+                ps[0] = this;
+                GameM.Event.RunEvent(Types.InstanceGenericObject(typeof(Dispose<>), this.GetType(), ps));
             }
             else if (type == 1)
             {
@@ -106,7 +126,9 @@ namespace Game
                 ((IEvent)this).RemoveAllEvent(this.Entity.rpc);
                 if (this._timerRigisterd)
                     ((ITimer)this).RemoveTimer();
-                SSystem.Dispose(this);
+                var ps = ArrayCache<object>.Get(1);
+                ps[0] = this;
+                GameM.Event.RunEvent(Types.InstanceGenericObject(typeof(Dispose<>), this.GetType(), ps));
             }
         }
     }

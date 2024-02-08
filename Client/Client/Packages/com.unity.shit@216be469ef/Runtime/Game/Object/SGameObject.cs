@@ -36,8 +36,6 @@ namespace Game
             }
         }
 
-        //缓存数据
-        SEventListener _onDispose;
         string _url;
         int _resVersion;
 
@@ -90,10 +88,6 @@ namespace Game
             }
         }
 
-        /// <summary>
-        /// dispose 监听
-        /// </summary>
-        public SEventListener OnDispose => _onDispose ??= new SEventListener(this);
 
         /// <summary>
         /// 设置加载的资源模型
@@ -225,8 +219,6 @@ namespace Game
                 default:
                     break;
             }
-
-            _onDispose?.Call();
         }
     }
 }

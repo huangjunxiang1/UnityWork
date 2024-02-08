@@ -62,6 +62,19 @@ namespace Game
                 net.Work();
             return b;
         }
+        /// <summary>
+        /// 重连
+        /// </summary>
+        /// <param name="_net"></param>
+        /// <returns></returns>
+        public async STask<bool> ReConnect(SBaseNet _net)
+        {
+            if (net == null) return false;
+            var b = await net.Connect();
+            if (b)
+                net.Work();
+            return b;
+        }
 
         /// <summary>
         /// 非返回的消息发送

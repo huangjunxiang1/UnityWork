@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Main;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using UnityEngine.tvOS;
 
 namespace Game
 {
@@ -10,6 +12,7 @@ namespace Game
     {
         readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
+        Queue<EvtQueue> removed = ObjectPool<Queue<EvtQueue>>.Get();
 
         [Conditional("DebugEnable")]
         static void _checkAllMethod()
@@ -44,7 +47,7 @@ namespace Game
                 }
             }
         }
-        
+
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
         /// </summary>
@@ -56,6 +59,7 @@ namespace Game
                 MethodParseData m = methods[i];
                 if (m.attribute is EventAttribute ea)
                 {
+                    if (m.method == null || !m.method.IsStatic) continue;
                     if (ea.RPC)
                     {
                         Loger.Error("rpc事件不支持静态");
@@ -85,7 +89,7 @@ namespace Game
         /// 注册消息和事件监听
         /// </summary>
         /// <param name="target"></param>
-        public void RigisteEvent(object target)
+        public void RigisteEvent(IEvent target)
         {
             if (target == null)
             {
@@ -127,7 +131,7 @@ namespace Game
                 }
             }
         }
-        public void RigisteRPCEvent(long rpc, object target)
+        public void RigisteRPCEvent(long rpc, IEvent target)
         {
             if (target == null)
             {
@@ -172,49 +176,12 @@ namespace Game
                 }
             }
         }
-        public STask<T> WaitEvent<T>(int sortOrder = 0)
-        {
-            STask<T> task = new();
-            var k = typeof(T);
-
-            if (!_evtMap.TryGetValue(k, out var queue))
-                _evtMap[k] = queue = new();
-
-            EvtData e = new();
-            e.key = k;
-            e.sortOrder = sortOrder;
-            e.isOnece = true;
-            e.target = task;
-
-            queue.Add(e);
-            return task;
-        }
-        public STask<T> WaitRPCEvent<T>(long rpc, int sortOrder = 0)
-        {
-            STask<T> task = new();
-            var k = typeof(T);
-
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
-                _rpcEvtMap[rpc] = map = new();
-
-            if (!map.TryGetValue(k, out var queue))
-                map[k] = queue = new();
-
-            EvtData e = new();
-            e.key = k;
-            e.sortOrder = sortOrder;
-            e.isOnece = true;
-            e.target = task;
-
-            queue.Add(e);
-            return task;
-        }
 
         /// <summary>
         /// 移除事件
         /// </summary>
         /// <param name="target"></param>
-        public void RemoveEvent(object target)
+        public void RemoveEvent(IEvent target)
         {
             if (target == null)
             {
@@ -234,11 +201,17 @@ namespace Game
                 if (m.attribute is EventAttribute)
                 {
                     if (_evtMap.TryGetValue(m.mainKey, out var queue))
-                        queue.Remove(target);
+                    {
+                        if (!queue.addToQueue)
+                        {
+                            queue.addToQueue = true;
+                            removed.Enqueue(queue);
+                        }
+                    }
                 }
             }
         }
-        public void RemoveRPCEvent(long rpc, object target)
+        public void RemoveRPCEvent(long rpc, IEvent target)
         {
             if (target == null)
             {
@@ -259,10 +232,19 @@ namespace Game
                 if (m.attribute is EventAttribute)
                 {
                     if (map.TryGetValue(m.mainKey, out var queue))
-                        queue.Remove(target);
+                    {
+                        if (!queue.addToQueue)
+                        {
+                            queue.addToQueue = true;
+                            removed.Enqueue(queue);
+                        }
+                    }
                 }
             }
         }
+
+        public bool HasEvent<T>() => _evtMap.TryGetValue(typeof(T), out var queue) && queue.evts.Count > 0;
+        public bool HasEvent(Type type) => _evtMap.TryGetValue(type, out var queue) && queue.evts.Count > 0;
 
         /// <summary>
         /// 执行事件
@@ -270,19 +252,19 @@ namespace Game
         /// <param name="data"></param>
         public void RunEvent<T>(T data)
         {
-            _runEvent(_evtMap, 0, data);
+            _runEvent(_evtMap, data);
         }
         public STask RunEventAsync<T>(T data)
         {
-            return _runEventAsync(_evtMap, 0, data);
+            return _runEventAsync(_evtMap, data);
         }
         public void RunEvent(object data)
         {
-            _runEvent(_evtMap, 0, data);
+            _runEvent(_evtMap, data);
         }
         public STask RunEventAsync(object data)
         {
-            return _runEventAsync(_evtMap, 0, data);
+            return _runEventAsync(_evtMap, data);
         }
         public STask<K> RunEventAsync<K>(object data)
         {
@@ -292,22 +274,22 @@ namespace Game
         public void RunRPCEvent<T>(long rpc, T data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            _runEvent(map, rpc, data);
+            _runEvent(map, data);
         }
         public STask RunRPCEventAsync<T>(long rpc, T data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
-            return _runEventAsync(map, rpc, data);
+            return _runEventAsync(map, data);
         }
         public void RunRPCEvent(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            _runEvent(map, rpc, data);
+            _runEvent(map, data);
         }
         public STask RunRPCEventAsync(long rpc, object data)
         {
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
-            return _runEventAsync(map, rpc, data);
+            return _runEventAsync(map, data);
         }
         public async STask<K> RunRPCEventAsync<K>(long rpc, object data)
         {
@@ -321,48 +303,48 @@ namespace Game
             _rpcEvtMap.Clear();
         }
 
-        void _runEvent<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, T data)
+        internal void AfterUpdate()
+        {
+            if (removed.Count > 0)
+            {
+                var tmp = removed;
+                removed = ObjectPool<Queue<EvtQueue>>.Get();
+                while (tmp.TryDequeue(out var queue))
+                {
+                    if (queue.counter != 0)
+                    {
+                        removed.Enqueue(queue);
+                        continue;
+                    }
+                    queue.RemoveAll();
+                    queue.addToQueue = false;
+                }
+                ObjectPool<Queue<EvtQueue>>.Return(tmp);
+            }
+        }
+
+        void _runEvent<T>(Dictionary<Type, EvtQueue> evtMap, T data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue)) return;
-            if (queue.index > -1)
-            {
-                logErrorIfEventLoop(rpc, key, queue);
-                return;
-            }
             queue.Run(data);
         }
-        STask _runEventAsync<T>(Dictionary<Type, EvtQueue> evtMap, long rpc, T data)
+        STask _runEventAsync<T>(Dictionary<Type, EvtQueue> evtMap, T data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
-            if (queue.index > -1)
-            {
-                logErrorIfEventLoop(rpc, key, queue);
-                return STask.Completed;
-            }
             return queue.RunAsync(data);
         }
-        void _runEvent(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        void _runEvent(Dictionary<Type, EvtQueue> evtMap, object data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue)) return;
-            if (queue.index > -1)
-            {
-                logErrorIfEventLoop(rpc, key, queue);
-                return;
-            }
             queue.Run(data);
         }
-        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
+        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, object data)
         {
             var key = data.GetType();
             if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
-            if (queue.index > -1)
-            {
-                logErrorIfEventLoop(rpc, key, queue);
-                return STask.Completed;
-            }
             return queue.RunAsync(data);
         }
         async STask<K> _runEventAsync<K>(Dictionary<Type, EvtQueue> evtMap, long rpc, object data)
@@ -372,11 +354,6 @@ namespace Game
             {
                 if (rpc == 0) Loger.Error($"没有此监听 key={key}");
                 else Loger.Error($"没有此监听 key={key} rpc={rpc}");
-                return default;
-            }
-            if (queue.index > -1)
-            {
-                logErrorIfEventLoop(rpc, key, queue);
                 return default;
             }
             var task = queue.RunAsync<K>(data);
@@ -401,25 +378,12 @@ namespace Game
                     ed.action = ed.method.CreateDelegate(typeof(Action<,>).MakeGenericType(ts), o);
                 }
                 else
-                    ed.action = ed.method.CreateDelegate(Types.GetGenericType(typeof(Action<>), ed.key), o);
+                {
+                    var ts = ArrayCache<Type>.Get(1);
+                    ts[0] = ed.key;
+                    ed.action = ed.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts), o);
+                }
             }
-        }
-        [Conditional("DebugEnable")]
-        void logErrorIfEventLoop(long rpc, Type key, EvtQueue queue)
-        {
-            var evt = queue.evts[queue.index];
-            if (evt.method != null)
-            {
-                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 class={evt.method.ReflectedType.FullName} method={evt.method.Name}");
-            }
-            else
-            {
-
-                if (rpc == 0) Loger.Error($"事件执行队列循环 key={key} 当前执行中 target={evt.target}");
-                else Loger.Error($"事件执行队列循环 key={key} rpc={rpc} 当前执行中 target={evt.target}");
-            }
-            Loger.LogStackTrace();
         }
 
         class EvtData
@@ -433,78 +397,48 @@ namespace Game
             public FieldInfo field;
 
             public int sortOrder;
-            public bool isOnece;
 
-            public object target;
+            public IEvent target;
             public bool isQueue;
             public bool setHandler;
         }
         class EvtQueue
         {
             public List<EvtData> evts = new List<EvtData>();
-            public int index = -1;//当前执行位置
-            int cnt;
+            public int counter = 0;
+            public bool addToQueue = false; 
 
             public void Add(EvtData evt)
             {
                 int inserIdx = evts.FindIndex(t => t.sortOrder > evt.sortOrder);
                 if (inserIdx != -1)
-                {
                     evts.Insert(inserIdx, evt);
-                    if (inserIdx < index) ++index;
-                    if (inserIdx < cnt) ++cnt;
-                }
                 else
                     evts.Add(evt);
             }
-            public void Remove(object target)
-            {
-                if (index == -1) evts.RemoveAll(t => t.target == target);
-                else
-                {
-                    for (int j = evts.Count - 1; j >= 0; j--)
-                    {
-                        if (evts[j].target == target)
-                        {
-                            evts.RemoveAt(j);
-                            if (j < index) --index;
-                            if (j < cnt) --cnt;
-                        }
-                    }
-                }
-            }
+            public void RemoveAll() => evts.RemoveAll(t => t.target != null && t.target.Disposed);
             public async void Run<T>(T data)
             {
-                cnt = evts.Count;
+                ++counter;
+                int cnt = evts.Count;
                 EventHandler eh = new();
-                for (index = 0; index < cnt;)
+                for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
-                    EvtData e = evts[index];
-                    if (e.isOnece)
-                    {
-                        evts.RemoveAt(index);
-                        --cnt;
-                    }
-                    else ++index;
+                    EvtData e = evts[i];
                     object o = invoke(e, data, eh);
                     if (o is STask t && e.isQueue) await t;
                 }
-                index = -1;
+                --counter;
             }
             public async STask RunAsync<T>(T data)
             {
+                ++counter;
                 List<STask> ts = ObjectPool<List<STask>>.Get();
-                cnt = evts.Count;
+                int cnt = evts.Count;
                 EventHandler eh = new();
-                for (index = 0; index < cnt;)
+                for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
-                    EvtData e = evts[index];
-                    if (e.isOnece)
-                    {
-                        evts.RemoveAt(index);
-                        --cnt;
-                    }
-                    else ++index;
+                    EvtData e = evts[i];
                     object o = invoke(e, data, eh);
                     if (o is STask task)
                     {
@@ -512,7 +446,7 @@ namespace Game
                         else ts.Add(task);
                     }
                 }
-                index = -1;
+                --counter;
                 if (ts.Count > 0)
                 {
                     await STask.All(ts, false);
@@ -522,36 +456,26 @@ namespace Game
             }
             public async void Run(object data)
             {
-                cnt = evts.Count;
+                ++counter;
+                int cnt = evts.Count;
                 EventHandler eh = new();
-                for (index = 0; index < cnt;)
+                for (int i = 0; i < cnt; ++i)
                 {
-                    EvtData e = evts[index];
-                    if (e.isOnece)
-                    {
-                        evts.RemoveAt(index);
-                        --cnt;
-                    }
-                    else ++index;
+                    EvtData e = evts[i];
                     object o = invoke(e, data, eh);
                     if (o is STask t && e.isQueue) await t;
                 }
-                index = -1;
+                --counter;
             }
             public async STask RunAsync(object data)
             {
+                ++counter;
                 List<STask> ts = ObjectPool<List<STask>>.Get();
-                cnt = evts.Count;
+                int cnt = evts.Count;
                 EventHandler eh = new();
-                for (index = 0; index < cnt;)
+                for (int i = 0; i < cnt; ++i)
                 {
-                    EvtData e = evts[index];
-                    if (e.isOnece)
-                    {
-                        evts.RemoveAt(index);
-                        --cnt;
-                    }
-                    else ++index;
+                    EvtData e = evts[i];
                     object o = invoke(e, data, eh);
                     if (o is STask task)
                     {
@@ -559,7 +483,7 @@ namespace Game
                         else ts.Add(task);
                     }
                 }
-                index = -1;
+                --counter;
                 if (ts.Count > 0)
                 {
                     await STask.All(ts, false);
@@ -569,20 +493,15 @@ namespace Game
             }
             public async STask<K> RunAsync<K>(object data)
             {
+                ++counter;
                 bool get = false;
                 K ret = default;
                 STask<K> task = default;
-                cnt = evts.Count;
+                int cnt = evts.Count;
                 EventHandler eh = new();
-                for (index = 0; index < cnt;)
+                for (int i = 0; i < cnt; ++i)
                 {
-                    EvtData e = evts[index];
-                    if (e.isOnece)
-                    {
-                        evts.RemoveAt(index);
-                        --cnt;
-                    }
-                    else ++index;
+                    EvtData e = evts[i];
                     object o = invoke(e, data, eh);
                     if (!get && o is K)
                     {
@@ -596,7 +515,7 @@ namespace Game
                     }
                     if (o is STask t && e.isQueue) await t;
                 }
-                index = -1;
+                --counter;
                 if (task != null) ret = await task;
                 return ret;
             }
@@ -604,7 +523,7 @@ namespace Game
             object invoke<T>(EvtData e, T data, EventHandler eh)
             {
                 object o = default;
-                if (e.target is IEvent evt && !evt.EventEnable) return o;
+                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return o;
                 try
                 {
                     if (!e.setHandler)
@@ -613,16 +532,14 @@ namespace Game
                             ((Action<T>)e.action).Invoke(data);
                         else
                         {
-                           if (e.method != null)
+                            if (e.method != null)
                             {
                                 var ps = ArrayCache<object>.Get(1);
                                 ps[0] = data;
                                 o = e.method.Invoke(e.target, ps);
                             }
-                            else if (e.field != null)
-                                e.field.SetValue(e.target, data);
                             else
-                                ((STask)e.target).TrySetResult(data);
+                                e.field.SetValue(e.target, data);
                         }
                     }
                     else
@@ -636,20 +553,19 @@ namespace Game
                             ps[1] = eh;
                             o = e.method.Invoke(e.target, ps);
                         }
-                        if (eh.isBreak) cnt = index;
                     }
                 }
                 catch (Exception ex)
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
-                if (e.isPropertyOrField && e.target is SComponent c) c.Change();
+                if (e.isPropertyOrField && e.target is SComponent c) c.SetChange();
                 return o;
             }
             object invoke(EvtData e, object data, EventHandler eh)
             {
                 object o = default;
-                if (e.target is IEvent evt && !evt.EventEnable) return o;
+                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return o;
                 try
                 {
                     if (!e.setHandler)
@@ -660,10 +576,8 @@ namespace Game
                             ps[0] = data;
                             o = e.method.Invoke(e.target, ps);
                         }
-                        else if (e.field != null)
-                            e.field.SetValue(e.target, data);
                         else
-                            ((STask)e.target).TrySetResult(data);
+                            e.field.SetValue(e.target, data);
                     }
                     else
                     {
@@ -671,14 +585,13 @@ namespace Game
                         ps[0] = data;
                         ps[1] = eh;
                         o = e.method.Invoke(e.target, ps);
-                        if (eh.isBreak) cnt = index;
                     }
                 }
                 catch (Exception ex)
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
-                if (e.isPropertyOrField && e.target is SComponent c) c.Change();
+                if (e.isPropertyOrField && e.target is SComponent c) c.SetChange();
                 return o;
             }
         }
