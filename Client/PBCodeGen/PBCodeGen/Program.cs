@@ -4,8 +4,7 @@ class Enter
     public static bool debug = true;
     static void Main(string[] args)
     {
-        if (args.Length > 1)
-            bool.TryParse(args[0], out debug);
+        debug = bool.Parse(args[0]);
 
         string protoPath;
         string outputPath;
@@ -16,8 +15,8 @@ class Enter
         }
         else
         {
-            protoPath = args[1];
-            outputPath = args[2];
+            protoPath = Environment.GetEnvironmentVariable(nameof(protoPath));
+            outputPath = Environment.GetEnvironmentVariable(nameof(outputPath));
         }
 
 
@@ -29,6 +28,6 @@ class Enter
             gen.gen();
         }
 
-        Console.WriteLine("生成结束");
+        Console.WriteLine($"生成结束");
     }
 }

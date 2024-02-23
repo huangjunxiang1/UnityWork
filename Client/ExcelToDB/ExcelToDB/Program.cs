@@ -8,30 +8,20 @@ using System.Text;
 class Program
 {
     public static bool debug = true;
+
     public static bool compress = true;
+    public static string assetPath = Environment.CurrentDirectory + "/../../../../../Client/Assets/";
+    public static string excelPath = Environment.CurrentDirectory + "/../../../../../../Excel/";
     static void Main(string[] args)
     {
-        if (args != null && args.Length > 0)
-            bool.TryParse(args[0], out debug);
-        else
-            debug = true;
+        debug = bool.Parse(args[0]);
 
-        if (args != null && args.Length > 1)
-            bool.TryParse(args[1], out compress);
-        else
-            compress = true;
-
-        string assetPath;
-        if (args != null && args.Length > 2)
-            assetPath = args[2];
-        else
-            assetPath = Environment.CurrentDirectory + "/../../../../../Client/Assets/";
-
-        string excelPath;
-        if (debug)
-            excelPath = Environment.CurrentDirectory + "/../../../../../../Excel/";
-        else
-            excelPath = Environment.CurrentDirectory + "/";
+        if (!debug)
+        {
+            compress = bool.Parse(Environment.GetEnvironmentVariable(nameof(compress)));
+            assetPath = Environment.GetEnvironmentVariable(nameof(assetPath));
+            excelPath = Environment.GetEnvironmentVariable(nameof(excelPath));
+        }
 
         foreach (var item in Directory.GetFiles(assetPath + "/Res/Config/Tabs/", "*.bytes"))
             File.Delete(item);
@@ -42,7 +32,7 @@ class Program
             CodeGen gen = new CodeGen();
             gen.name = "TabM";
             gen.excelPath = excelPath + "/main";
-            gen.codePath = assetPath + "/Code/Main/_Gen/TabM";
+            gen.codePath = assetPath + "/Code/Main/_Gen/Tab";
             gen.dataPath = assetPath + "/Res/Config/Tabs/TabM";
             gen.genMapping = true;
             gen.genEcs = true;
@@ -54,7 +44,7 @@ class Program
             CodeGen gen = new CodeGen();
             gen.name = "TabL";
             gen.excelPath = excelPath + "/hot";
-            gen.codePath = assetPath + "/Code/HotFix/_Gen/TabL";
+            gen.codePath = assetPath + "/Code/HotFix/_Gen/Tab";
             gen.dataPath = assetPath + "/Res/Config/Tabs/TabL";
             gen.Gen();
         }

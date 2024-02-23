@@ -6,9 +6,7 @@ public static class Init
     public static async void Main()
     {
         long tick = DateTime.Now.Ticks;
-        Types.RigisterTypes(typeof(GameM).Assembly.GetTypes());
-        Types.RigisterTypes(typeof(TabM).Assembly.GetTypes());
-        Types.RigisterTypes(typeof(GameL).Assembly.GetTypes());
+        Types.RigisterTypes(typeof(GameM).Assembly.GetTypes(), typeof(TabM).Assembly.GetTypes(), typeof(GameL).Assembly.GetTypes());
 
         GameM.Init();
         GameL.Init();

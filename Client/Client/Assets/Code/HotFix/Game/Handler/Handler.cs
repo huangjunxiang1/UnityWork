@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 static class Handler
 {
@@ -17,8 +16,8 @@ static class Handler
     static async STask EC_GameInit(EC_GameInit e)
     {
         DG.Tweening.DOTween.Init();
-        Setting.Languege = SystemLanguage.Chinese;
-        Setting.UIModel = UIModel.FGUI;
+        SettingL.Languege = SystemLanguage.Chinese;
+        SettingL.UIModel = UIModel.FGUI;
         Game.ShareData.Init();
         Application.targetFrameRate = -1;
 
@@ -49,7 +48,6 @@ static class Handler
         {
             bool showExit = false;
             var input = new ESCInput();
-            input.esc.Enable();
             input.esconEsc.started += e =>
             {
                 if (showExit)

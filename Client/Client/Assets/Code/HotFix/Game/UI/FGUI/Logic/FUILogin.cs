@@ -50,10 +50,10 @@ partial class FUILogin
     async void onUIModel()
     {
         if (_uiType.selectedIndex == 0)
-            Setting.UIModel = UIModel.FGUI;
+            SettingL.UIModel = UIModel.FGUI;
         else
         {
-            Setting.UIModel = UIModel.UGUI;
+            SettingL.UIModel = UIModel.UGUI;
             await GameL.UI.OpenAsync<UUILogin>();
             this.Dispose();
         }

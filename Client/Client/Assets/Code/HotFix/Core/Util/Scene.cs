@@ -29,7 +29,8 @@ namespace Game
             GameM.Event.RunEvent(new EC_OutScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });
             SceneID = sceneId;
 
-            await SAsset.LoadScene($"Scene/{TabL.GetScene(SceneID).name}.unity");
+            SAsset.ReleasePoolsGameObjects();
+            await SAsset.LoadSceneAsync($"Scene/{TabL.GetScene(SceneID).name}.unity");
             await Task.Delay(100);
 
             await GameM.Event.RunEventAsync(new EC_InScene { sceneId = SceneID, sceneType = TabL.GetScene(SceneID).type });

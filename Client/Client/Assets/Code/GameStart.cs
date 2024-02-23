@@ -1,7 +1,7 @@
 using UnityEngine;
-using Main;
 using Game;
 using System.Threading;
+using Main;
 
 public class GameStart : MonoBehaviour
 {

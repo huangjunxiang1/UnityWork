@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PBCodeGen": {
+      "commandName": "Project",
+      "commandLineArgs": "true"
+    }
+  }
+}

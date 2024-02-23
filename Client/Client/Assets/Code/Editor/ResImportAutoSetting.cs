@@ -1,6 +1,5 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using Main;
 using UnityEngine.U2D;
 using UnityEngine.Bindings;
 

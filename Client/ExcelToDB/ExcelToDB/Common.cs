@@ -685,8 +685,75 @@ static class Common
 
         throw new Exception("未识别类型=" + f.typeStr);
     }
-    public static void WriteFv(DField f, DFieldValue fv, DBuffer buffer, DBuffer arrTemp)
+    public static void WriteFv(DField f, DFieldValue fv, DBuffer buffer, DBuffer arrTemp = null, Dictionary<string, int> stringIndex = null, DBuffer stringData = null)
     {
+        void writeString()
+        {
+            string s = (string)fv.vo;
+            if (s == null) s = string.Empty;
+            if (!stringIndex.TryGetValue(s, out int index))
+            {
+                stringIndex[s] = index = stringIndex.Count;
+                stringData.Write(s);
+            }
+            buffer.Write(index);
+        }
+        void writeStrings()
+        {
+            arrTemp.Seek(0);
+            var ss = (string[])fv.vo;
+            if (ss == null)
+            {
+                arrTemp.Write(0);
+            }
+            else
+            {
+                arrTemp.Write(ss.Length);
+                for (int i = 0; i < ss.Length; i++)
+                {
+                    if (!stringIndex.TryGetValue(ss[i], out int index))
+                    {
+                        stringIndex[ss[i]] = index = stringIndex.Count;
+                        stringData.Write(ss[i]);
+                    }
+                    arrTemp.Write(index);
+                }
+            }
+        }
+        void writeStringss()
+        {
+            var sss = (string[][])fv.vo;
+            if (sss == null)
+            {
+                arrTemp.Write(0);
+            }
+            else
+            {
+                arrTemp.Seek(0);
+                arrTemp.Write(sss.Length);
+                for (int i = 0; i < sss.Length; i++)
+                {
+                    var ss = sss[i];
+                    if (ss == null)
+                        arrTemp.Write(0);
+                    else
+                    {
+                        arrTemp.Write(ss.Length);
+                        for (int j = 0; j < ss.Length; j++)
+                        {
+                            string s = ss[j];
+                            if (s == null) s = string.Empty;
+                            if (!stringIndex.TryGetValue(s, out int index))
+                            {
+                                stringIndex[s] = index = stringIndex.Count;
+                                stringData.Write(s);
+                            }
+                            arrTemp.Write(index);
+                        }
+                    }
+                }
+            }
+        }
         if (f.f2 == FType2.Value)
         {
             switch (f.f1)
@@ -710,7 +777,7 @@ static class Common
                     buffer.Write(fv.vf);
                     break;
                 case FType.fstring:
-                    buffer.Write((string)fv.vo);
+                    writeString();
                     break;
                 case FType.fv2i:
                     buffer.Write(fv.xi);
@@ -736,7 +803,7 @@ static class Common
         }
         else if (f.f2 == FType2.Array)
         {
-            if (arrTemp!=null)
+            if (arrTemp != null)
             {
                 arrTemp.Seek(0);
                 switch (f.f1)
@@ -760,7 +827,7 @@ static class Common
                         arrTemp.Write((float[])fv.vo);
                         break;
                     case FType.fstring:
-                        arrTemp.Write((string[])fv.vo);
+                        writeStrings();
                         break;
                     case FType.fv2i:
                         {
@@ -885,7 +952,7 @@ static class Common
                         arrTemp.Write((float[][])fv.vo);
                         break;
                     case FType.fstring:
-                        arrTemp.Write((string[][])fv.vo);
+                        writeStringss();
                         break;
                     case FType.fv2i:
                         {
@@ -1046,7 +1113,6 @@ static class Common
         else
             throw new($"写入值错误  类型：{f.f1} {f.f2}");
     }
-
 
     public static List<string> getFiles(string path)
     {

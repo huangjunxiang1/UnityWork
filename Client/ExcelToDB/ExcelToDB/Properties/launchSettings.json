@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ExcelToDB": {
+      "commandName": "Project",
+      "commandLineArgs": "true"
+    }
+  }
+}

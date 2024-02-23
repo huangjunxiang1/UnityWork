@@ -46,7 +46,7 @@ partial class UUILogin
     {
         if (v == 0)
         {
-            Setting.UIModel = UIModel.FGUI;
+            SettingL.UIModel = UIModel.FGUI;
             await GameL.UI.OpenAsync<FUILogin>();
             this.Dispose();
         }

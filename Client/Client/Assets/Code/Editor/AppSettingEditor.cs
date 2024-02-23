@@ -90,8 +90,8 @@ public class AppSettingEditor : Editor
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;
-        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabM.bytes"))), ConstDefM.Debug);
-        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/STabL.bytes"))), ConstDefM.Debug);
+        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes"))), ConstDefM.Debug);
+        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes"))), ConstDefM.Debug);
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 }

@@ -20,12 +20,10 @@ class FreedomCamera : BaseCamera
             input.CMEditorMouseClick.canceled += editorClickUp;
             input.CMEditorMouseMove.performed += editorMove;
             input.CMEditorMouseWheel.performed += editorWheel;
-            input.CMEditor.Enable();
         }
         else if (Application.platform == RuntimePlatform.Android
               || Application.platform == RuntimePlatform.IPhonePlayer)
         {
-            input.CMMobile.Enable();
         }
     }
 
@@ -47,7 +45,7 @@ class FreedomCamera : BaseCamera
         var m = Camera.main;
         if (!m) return;
         var v3 = Target.transform.position;
-        v3.y = Math.Clamp(Target.transform.position.y, Setting.FreedomCameraSetting.yMin, Setting.FreedomCameraSetting.yMax);
+        v3.y = Math.Clamp(Target.transform.position.y, SettingM.FreedomCameraSetting.yMin, SettingM.FreedomCameraSetting.yMax);
         Target.transform.position = v3;
     }
     public override void Dispose()
@@ -103,7 +101,7 @@ class FreedomCamera : BaseCamera
         if (!Mouse.current.leftButton.isPressed)
             return;
         var v2 = -e.ReadValue<Vector2>();
-        Target.transform.position += new Vector3(v2.x, 0, v2.y) * Setting.FreedomCameraSetting.moveSpeed;
+        Target.transform.position += new Vector3(v2.x, 0, v2.y) * SettingM.FreedomCameraSetting.moveSpeed;
     }
     void editorWheel(InputAction.CallbackContext e)
     {
@@ -114,13 +112,13 @@ class FreedomCamera : BaseCamera
 
         if (_wheel > 0)
         {
-            if (Target.transform.position.y > Setting.FreedomCameraSetting.yMin)
-                Target.transform.position += m.transform.forward * Setting.FreedomCameraSetting.wheelSpeed * _wheel;
+            if (Target.transform.position.y > SettingM.FreedomCameraSetting.yMin)
+                Target.transform.position += m.transform.forward * SettingM.FreedomCameraSetting.wheelSpeed * _wheel;
         }
         else if (_wheel < 0)
         {
-            if (Target.transform.position.y < Setting.FreedomCameraSetting.yMax)
-                Target.transform.position += m.transform.forward * Setting.FreedomCameraSetting.wheelSpeed * _wheel;
+            if (Target.transform.position.y < SettingM.FreedomCameraSetting.yMax)
+                Target.transform.position += m.transform.forward * SettingM.FreedomCameraSetting.wheelSpeed * _wheel;
         }
     }
     void mobileMove()
@@ -204,20 +202,20 @@ class FreedomCamera : BaseCamera
 
                     if (_wheel > 0)
                     {
-                        if (Target.transform.position.y > Setting.FreedomCameraSetting.yMin)
-                            Target.transform.position += _wheel * Setting.FreedomCameraSetting.wheelSpeed * m.transform.forward;
+                        if (Target.transform.position.y > SettingM.FreedomCameraSetting.yMin)
+                            Target.transform.position += _wheel * SettingM.FreedomCameraSetting.wheelSpeed * m.transform.forward;
                     }
                     else
                     {
-                        if (Target.transform.position.y < Setting.FreedomCameraSetting.yMax)
-                            Target.transform.position += _wheel * Setting.FreedomCameraSetting.wheelSpeed * m.transform.forward;
+                        if (Target.transform.position.y < SettingM.FreedomCameraSetting.yMax)
+                            Target.transform.position += _wheel * SettingM.FreedomCameraSetting.wheelSpeed * m.transform.forward;
                     }
                 }
             }
             else
             {
                 var v2 = -cmMoveDelta;
-                Target.transform.position += new Vector3(v2.x, 0, v2.y) * Setting.FreedomCameraSetting.moveSpeed;
+                Target.transform.position += new Vector3(v2.x, 0, v2.y) * SettingM.FreedomCameraSetting.moveSpeed;
             }
         }
     }

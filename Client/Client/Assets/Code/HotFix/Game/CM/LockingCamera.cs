@@ -17,12 +17,10 @@ class LockingCamera : BaseCamera
         if (Application.isEditor)
         {
             input.CMEditorMouseWheel.performed += editorWheel;
-            input.CMEditor.Enable();
         }
         else if (Application.platform == RuntimePlatform.Android
               || Application.platform == RuntimePlatform.IPhonePlayer)
         {
-            input.CMMobile.Enable();
         }
     }
 
@@ -79,17 +77,17 @@ class LockingCamera : BaseCamera
         Vector3 offset = ct.m_FollowOffset;
         if (_wheel > 0)
         {
-            if (offset.y > Setting.LockingCameraSetting.yMin)
+            if (offset.y > SettingL.LockingCameraSetting.yMin)
             {
-                offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
         else
         {
-            if (offset.y < Setting.LockingCameraSetting.yMax)
+            if (offset.y < SettingL.LockingCameraSetting.yMax)
             {
-                offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
                 ct.m_FollowOffset = offset;
             }
         }
@@ -173,17 +171,17 @@ class LockingCamera : BaseCamera
                     Vector3 offset = ct.m_FollowOffset;
                     if (_wheel > 0)
                     {
-                        if (offset.y > Setting.LockingCameraSetting.yMin)
+                        if (offset.y > SettingL.LockingCameraSetting.yMin)
                         {
-                            offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }
                     else
                     {
-                        if (offset.y < Setting.LockingCameraSetting.yMax)
+                        if (offset.y < SettingL.LockingCameraSetting.yMax)
                         {
-                            offset += _wheel * Setting.LockingCameraSetting.wheelSpeed * m.transform.forward;
+                            offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
                             ct.m_FollowOffset = offset;
                         }
                     }

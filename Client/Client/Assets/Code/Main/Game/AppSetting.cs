@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Game;
+using UnityEngine;
 
 namespace Game
 {
@@ -19,18 +20,22 @@ namespace Game
             get => _debug;
             set
             {
-                if (!_reporter)
-                    _reporter = UnityEngine.GameObject.Find("Reporter")?.GetComponent<Reporter>();
-                if (_reporter)
-                {
-#if UNITY_EDITOR
-                    _reporter.gameObject.SetActive(false);
-#else
-
-                    _reporter.gameObject.SetActive(value);
-#endif
-                }
                 _debug = value;
+                if (!_reporter)
+                    _reporter = UnityEngine.Object.FindFirstObjectByType<Reporter>();
+#if !UNITY_EDITOR
+                if (value)
+                {
+                    if (!_reporter)
+                    {
+                        var res = Resources.Load<GameObject>("Reporter");
+                        if (res)
+                            GameObject.DontDestroyOnLoad(_reporter = GameObject.Instantiate(res).GetComponent<Reporter>());
+                    }
+                }
+#endif
+                if (_reporter)
+                    _reporter.gameObject.SetActive(value);
             }
         }
         static public bool ShowReporter
@@ -46,7 +51,7 @@ namespace Game
                 if (_showReporter == value)
                     return;
                 _showReporter = value;
-                _reporter.doShow(value);
+                _reporter?.doShow(value);
 #endif
             }
         }

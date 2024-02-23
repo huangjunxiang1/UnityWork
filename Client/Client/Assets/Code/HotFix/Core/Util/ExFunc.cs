@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Game;
-using Main;
-using DG.Tweening;
 
 public static class ExFunc
 {
@@ -68,29 +66,6 @@ public static class ExFunc
                 parent.GetChild(i).gameObject.SetActive(true);
         }
     }
-    public static bool ContainsOnCL<T>(this IEnumerable<T> ie, Func<T, bool> test)
-    {
-        if (ie == null)
-            return false;
-        foreach (var item in ie)
-        {
-            if (test(item))
-                return true;
-        }
-        return false;
-    }
-    public static int FindCount<T>(this IEnumerable<T> ie, Func<T, bool> test)
-    {
-        if (ie == null)
-            return 0;
-        int count = 0;
-        foreach (var item in ie)
-        {
-            if (test(item))
-                count++;
-        }
-        return count;
-    }
     public static T FindOnCL<T>(this IEnumerable<T> ie, Func<T, bool> test)
     {
         if (ie == null)
@@ -126,45 +101,5 @@ public static class ExFunc
             }
         }
         return ret;
-    }
-    public static void RemoveOnCL<T>(this IList<T> lst, Func<T, bool> test)
-    {
-        if (lst == null)
-            return;
-        for (int i = lst.Count - 1; i >= 0; i--)
-        {
-            if (test(lst[i]))
-                lst.RemoveAt(i);
-        }
-    }
-    public static void SortOnCL<T>(this IList<T> lst, Func<T, T, bool> test)
-    {
-        if (lst == null)
-            return;
-        int cnt = lst.Count;
-
-        //使用有序排列
-        for (int j = 1; j < cnt; j++)
-        {
-            T item = lst[j];
-            int i = j - 1;
-            while (i >= 0 && test(lst[i], item))
-            {
-                lst[i + 1] = lst[i];
-                i--;
-            }
-            lst[i + 1] = item;
-        }
-    }
-
-
-    public static STask AsTask(this Tween tween)
-    {
-        if (tween.IsComplete())
-            return STask.Completed;
-
-        STask task = new();
-        tween.OnComplete(() => task.TrySetResult());
-        return task;
     }
 }

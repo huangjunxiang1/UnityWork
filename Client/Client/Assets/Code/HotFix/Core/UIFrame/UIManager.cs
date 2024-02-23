@@ -53,15 +53,15 @@ namespace Game
         {
             //ugui init
             {
-                UGUIRoot.gameObject.SetActive(Setting.UIModel == UIModel.UGUI);
-                UGUICamera.gameObject.SetActive(Setting.UIModel == UIModel.UGUI);
+                UGUIRoot.gameObject.SetActive(SettingL.UIModel == UIModel.UGUI);
+                UGUICamera.gameObject.SetActive(SettingL.UIModel == UIModel.UGUI);
             }
 
             //fgui init
             {
                 FairyGUI.UIConfig.defaultFont = "Impact";
-                GRoot.inst.visible = Setting.UIModel == UIModel.FGUI;
-                StageCamera.main.gameObject.SetActive(Setting.UIModel == UIModel.FGUI);
+                GRoot.inst.visible = SettingL.UIModel == UIModel.FGUI;
+                StageCamera.main.gameObject.SetActive(SettingL.UIModel == UIModel.FGUI);
                 UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
                 UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
                 UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);

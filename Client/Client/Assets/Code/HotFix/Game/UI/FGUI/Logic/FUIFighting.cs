@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
-using Main;
 using Game;
 using UnityEngine.Rendering;
-using Unity.Jobs;
-using Unity.Collections.LowLevel.Unsafe;
 
 [UIConfig(20)]
 partial class FUIFighting

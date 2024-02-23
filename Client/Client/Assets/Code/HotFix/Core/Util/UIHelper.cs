@@ -19,7 +19,7 @@ static partial class UIHelper
         if (!enable) EnableCounter++;
         else EnableCounter--;
 
-        if (Setting.UIModel == UIModel.UGUI)
+        if (SettingL.UIModel == UIModel.UGUI)
         {
             if (!eventSysCurrent)
                 eventSysCurrent = UnityEngine.EventSystems.EventSystem.current;
