@@ -49,6 +49,8 @@ namespace Game
         /// </summary>
         public GameObject GameObject { get; private set; }
 
+        public AttributeComponent Attribute { get; internal set; }
+
         public virtual string Name
         {
             get => GameRoot?.name;
@@ -163,7 +165,7 @@ namespace Game
         /// 主动加载资源
         /// </summary>
         /// <param name="url"></param>
-        public void LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        public void LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
             if (this.GameObjectType == SGameObjectType.Static)
             {
@@ -176,7 +178,7 @@ namespace Game
             ++_resVersion;
             SetGameObject(SAsset.LoadGameObject(_url, releaseMode));
         }
-        public async STask LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.Destroy)
+        public async STask LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
             if (this.GameObjectType == SGameObjectType.Static)
             {

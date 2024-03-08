@@ -482,6 +482,7 @@ MonoBehaviour:
         m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
         m_CameraMotionVectorsPS: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
         m_ColorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
+        m_ColorPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a, type: 3}
         m_DepthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
         m_MaxZCS: {fileID: 7200000, guid: e95abf8c7230c344595f41c4dd5ff517, type: 3}
         m_ApplyDistortionPS: {fileID: 4800000, guid: 02ae56f4306413c4a96dcf005cde1971, type: 3}
@@ -516,7 +517,6 @@ MonoBehaviour:
         m_DebugImageHistogramCS: {fileID: 7200000, guid: 52cc17ef5a5ffc443a5c142f9b745a85, type: 3}
         m_DebugHDRxyMappingCS: {fileID: 7200000, guid: f055d2983d992b64494f1a03fc725cde, type: 3}
         m_ProbeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 22de19bc461f84742857dd64c56b0397, type: 3}
-        m_DeferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
         m_PlanarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2, type: 3}
         m_ScreenSpaceGlobalIlluminationCS: {fileID: 7200000, guid: 96170a954eb538b40a5ff369552c3629, type: 3}
         m_ScreenSpaceReflectionsCS: {fileID: 7200000, guid: d1de9ac7d9016204da289affe9677942, type: 3}
@@ -530,11 +530,11 @@ MonoBehaviour:
         m_LightListClusterClearAtomicIndexCS: {fileID: 7200000, guid: 1e3472a94b14a334a93230bbc700d7b2, type: 3}
         m_BuildMaterialFlagsCS: {fileID: 7200000, guid: fb3eda953cd6e634e877fb777be2cd08, type: 3}
         m_DeferredCS: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
-        m_DeferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
         m_VolumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a, type: 3}
         m_VolumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97, type: 3}
         m_VolumetricLightingFilteringCS: {fileID: 7200000, guid: ef9a910d0ec6ebb41ae3f5c7a69daf46, type: 3}
         m_DefaultFogVolumeShader: {fileID: -6465566751694194690, guid: 95060fe3e070428418e64e6bed27b111, type: 3}
+        m_ScreenSpaceMultipleScatteringCS: {fileID: 7200000, guid: 29c79555731a206478f0ea448352340c, type: 3}
         m_SubsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
         m_SubsurfaceScatteringDownsampleCS: {fileID: 7200000, guid: 4f8aaf0160a259e499fdfac512ca2692, type: 3}
         m_CombineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}

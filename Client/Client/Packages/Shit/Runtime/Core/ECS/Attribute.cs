@@ -23,9 +23,8 @@ namespace Main
     {
         public AddComponentIfNone(params Type[] types) => this.Types = types;
     }
-    public class AddComponentIfIsSObject : SAttribute
+    public class AddComponentIfAnySObject : ConditionAttribute
     {
-        public Type Type { get; }
-        public AddComponentIfIsSObject(Type type) => this.Type = type;
+        public AddComponentIfAnySObject(params Type[] types) => this.Types = types;
     }
 }

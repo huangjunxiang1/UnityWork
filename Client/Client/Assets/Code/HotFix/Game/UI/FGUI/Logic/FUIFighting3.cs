@@ -13,6 +13,7 @@ using Main;
 using Game;
 using Unity.Jobs;
 using Unity.Burst;
+using Event;
 
 partial class FUIFighting3
 {

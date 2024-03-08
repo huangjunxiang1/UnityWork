@@ -86,8 +86,7 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
-                cfg = UIConfig.Default;
+            UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
             ui = new();
             _uiLst.Add(ui);
@@ -118,8 +117,7 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
-                        cfg = UIConfig.Default;
+                    UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -166,8 +164,7 @@ namespace Game
             if (ui != null)
                 return ui;
 
-            if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
-                cfg = UIConfig.Default;
+            UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
             ui = new();
             parent.AddChild(ui);
@@ -185,8 +182,7 @@ namespace Game
                 open();
                 async void open()
                 {
-                    if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
-                        cfg = UIConfig.Default;
+                    UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
                     UIHelper.EnableUIInput(false);
                     ui = new();
@@ -216,8 +212,7 @@ namespace Game
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
         {
-            if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
-                cfg = UIConfig.Default;
+            UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
             T ui = new();
             _3duiLst.Add(ui);
@@ -232,8 +227,7 @@ namespace Game
             open();
             async void open()
             {
-                if (typeof(T).GetCustomAttribute<UIConfig>() is not UIConfig cfg)
-                    cfg = UIConfig.Default;
+                UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
                 T ui = new();
                 _3duiLst.Add(ui);

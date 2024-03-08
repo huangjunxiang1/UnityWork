@@ -70,7 +70,7 @@ abstract class FUI : FUIBase
         });
         return loadTask;
     }
-    public sealed override void Dispose()
+    public override void Dispose()
     {
         if (this.ui != null && this.uiStates == UIStates.Success)
             this.Hide(true, this.ui.Dispose);

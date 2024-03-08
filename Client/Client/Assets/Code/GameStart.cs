@@ -26,7 +26,7 @@ public class GameStart : MonoBehaviour
 #if Assembly
             Loger.Error("当前Runtime宏定义不正确");
 #else
-            Init.Main();
+            Program.Main();
 #endif
         }
         else if (AppSetting.Runtime == CodeRuntime.Assembly)
@@ -46,7 +46,7 @@ public class GameStart : MonoBehaviour
                 byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll");
                 asm = System.Reflection.Assembly.Load(dll);
             }
-            asm.GetType("Init").GetMethod("Main").Invoke(null, null);
+            asm.GetType("Program").GetMethod("Main").Invoke(null, null);
 #endif
         }
     }

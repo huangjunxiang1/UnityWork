@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using UnityEngine;
 using Main;
 using PB;
 using System.Collections.Concurrent;
+using Event;
 
 namespace Game
 {
@@ -25,7 +24,7 @@ namespace Game
             uint cmd = Types.GetCMDCode(type);
 
             PrintField.Print($"<Color=#00FF00>收到消息</Color> cmd:[{(ushort)cmd},{cmd >> 16}]  content:{{0}}", message);
-            GameM.Event.RunEvent(new EC_ReceiveMessage { message = message });
+
             if (message.rpc > 0)
             {
                 //自动注册的事件一般是底层事件 所以先执行底层监听
@@ -33,6 +32,7 @@ namespace Game
             }
             else
             {
+                GameM.Data.Add(message);
                 //自动注册的事件一般是底层事件 所以先执行底层监听
                 GameM.Event.RunEvent(message);
 

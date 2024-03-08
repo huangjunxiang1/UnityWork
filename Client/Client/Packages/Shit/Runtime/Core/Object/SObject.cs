@@ -289,7 +289,7 @@ namespace Game
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            return components.ContainsKey(typeof(T));
+            return components.TryGetValue(typeof(T), out var c) && c.Enable;
         }
         public bool HasComponent(Type type)
         {
@@ -298,7 +298,7 @@ namespace Game
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            return components.ContainsKey(type);
+            return components.TryGetValue(type, out var c) && c.Enable;
         }
 
         internal SComponent AddComponentInternal(SComponent c, bool isMove = false)

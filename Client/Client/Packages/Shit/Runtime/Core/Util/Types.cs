@@ -1,15 +1,13 @@
-﻿using Main;
+﻿using Game;
+using Main;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using UnityEditorInternal;
 
 public static class Types
 {
-    public static List<Type> AllTypes { get; } = new(1000);
-
     readonly static Dictionary<Type, uint> _typeCmd = new();
     readonly static Dictionary<uint, Type> _cmdType = new();
     readonly static Dictionary<Type, Type> _requestResponse = new();
@@ -20,38 +18,29 @@ public static class Types
     static Dictionary<Type, bool> _asyncNeedCancel = new();
     static Dictionary<Type, MethodParseData[]> methodAttributeCache = new();
 
+    static Type[] behaviors;
+
 #if UNITY_EDITOR
-    static void EditorClear()
+    internal static void EditorClear()
     {
-        AllTypes.Clear();
         _typeCmd.Clear();
         _cmdType.Clear();
         _requestResponse.Clear();
+        _ctors.Clear();
+
         assignableTypesMap.Clear();
         StateMachineThisFieldMap.Clear();
         _asyncNeedCancel.Clear();
         methodAttributeCache.Clear();
     }
 #endif
-    public static void RigisterTypes(params IEnumerable<Type>[] types)
+    internal static List<MethodParseData> Parse(List<Type> types)
     {
-#if UNITY_EDITOR
-        EditorClear();
-#endif
-        int cnt = 0;
-        for (int i = 0; i < types.Length; i++)
-            cnt += types[i].Count();
-        AllTypes.Capacity = cnt;
-        for (int i = 0; i < types.Length; i++)
-            AllTypes.AddRange(types[i]);
-    }
-    internal static List<MethodParseData> Parse()
-    {
-        int len = AllTypes.Count;
+        int len = types.Count;
         List<MethodParseData> staticMethods = new(1000);
         for (int i = 0; i < len; i++)
         {
-            Type type = AllTypes[i];
+            Type type = types[i];
             var fs = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
             for (int j = 0; j < fs.Length; j++)
             {
@@ -68,9 +57,10 @@ public static class Types
                     staticMethods.Add(new MethodParseData(p, item));
             }
         }
+        var lst = ObjectPool<List<Type>>.Get();
         for (int i = 0; i < len; i++)
         {
-            Type type = AllTypes[i];
+            Type type = types[i];
 
             if (typeof(PB.PBMessage).IsAssignableFrom(type))
             {
@@ -83,7 +73,10 @@ public static class Types
                     if (m.ResponseType != null)
                         _requestResponse[type] = m.ResponseType;
                 }
+                continue;//协议类不需要进行下一步解析
             }
+            if (typeof(SBehavior).IsAssignableFrom(type) && type != typeof(SBehavior))
+                lst.Add(type);
 
             var ms = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             for (int j = 0; j < ms.Length; j++)
@@ -97,6 +90,9 @@ public static class Types
                     staticMethods.Add(new MethodParseData(m, item));
             }
         }
+        behaviors = lst.Count == 0 ? Array.Empty<Type>() : lst.ToArray();
+        lst.Clear();
+        ObjectPool<List<Type>>.Return(lst);
         return staticMethods;
     }
 
@@ -118,25 +114,7 @@ public static class Types
             Loger.Error("request没有Response  requestType:" + type.FullName);
         return type;
     }
-    public static Type[] GetAllAssignableTypes(Type t)
-    {
-        if (!assignableTypesMap.TryGetValue(t, out var arr))
-        {
-            var lst = ObjectPool<List<Type>>.Get();
-            int len = AllTypes.Count;
-            for (int i = 0; i < len; i++)
-            {
-                Type type = AllTypes[i];
-                if (!t.IsAssignableFrom(type) || t == type)
-                    continue;
-                lst.Add(type);
-            }
-            assignableTypesMap[t] = arr = lst.Count == 0 ? Array.Empty<Type>() : lst.ToArray();
-            lst.Clear();
-            ObjectPool<List<Type>>.Return(lst);
-        }
-        return arr;
-    }
+    internal static Type[] GetBehaviorTypes() => behaviors;
     public static FieldInfo GetStateMachineThisField(Type t)
     {
         if (!StateMachineThisFieldMap.TryGetValue(t, out var value))

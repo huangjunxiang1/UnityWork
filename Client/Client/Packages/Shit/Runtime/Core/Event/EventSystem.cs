@@ -15,11 +15,11 @@ namespace Game
         Queue<EvtQueue> removed = ObjectPool<Queue<EvtQueue>>.Get();
 
         [Conditional("DebugEnable")]
-        static void _checkAllMethod()
+        internal static void Check(List<Type> types)
         {
-            for (int i = 0; i < Types.AllTypes.Count; i++)
+            for (int i = 0; i < types.Count; i++)
             {
-                var type = Types.AllTypes[i];
+                var type = types[i];
                 var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
                 for (int j = 0; j < methods.Length; j++)
@@ -53,7 +53,6 @@ namespace Game
         /// </summary>
         internal void RigisteAllStaticEvent(List<MethodParseData> methods)
         {
-            _checkAllMethod();
             for (int i = 0; i < methods.Count; i++)
             {
                 MethodParseData m = methods[i];
@@ -104,10 +103,44 @@ namespace Game
                     if (!_evtMap.TryGetValue(m.mainKey, out var queue))
                         _evtMap[m.mainKey] = queue = new();
 
-                    EvtData e = new(m,target);
+                    EvtData e = new(m, target);
                     queue.Add(e);
                 }
             }
+        }
+        public void RigisteEvent<T>(Action<T> callBack, int sortOrder = 0)
+        {
+            if (!_evtMap.TryGetValue(typeof(T), out var queue))
+                _evtMap[typeof(T)] = queue = new();
+
+            EvtData e = new();
+            e.action = callBack;
+            e.sortOrder = sortOrder;
+            e.returnType = typeof(void);
+            queue.Add(e);
+        }
+        public void RigisteEvent(Delegate callBack, int sortOrder = 0)
+        {
+            if (!callBack.GetType().IsGenericType || callBack.GetType().GetGenericTypeDefinition() == typeof(Func<>))
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type[] gs = callBack.GetType().GetGenericArguments();
+            if (gs.Length != 1)
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type type = gs[0];
+            if (!_evtMap.TryGetValue(type, out var queue))
+                _evtMap[type] = queue = new();
+
+            EvtData e = new();
+            e.action = callBack;
+            e.sortOrder = sortOrder;
+            e.returnType = typeof(void);
+            queue.Add(e);
         }
         public void RigisteRPCEvent(long rpc, IEvent target)
         {
@@ -141,6 +174,44 @@ namespace Game
                     queue.Add(e);
                 }
             }
+        }
+        public void RigisteRPCEvent<T>(long rpc, Action<T> callBack, int sortOrder = 0)
+        {
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
+                _rpcEvtMap[rpc] = map = new();
+            if (!map.TryGetValue(typeof(T), out var queue))
+                map[typeof(T)] = queue = new();
+
+            EvtData e = new();
+            e.action = callBack;
+            e.sortOrder = sortOrder;
+            e.returnType = typeof(void);
+            queue.Add(e);
+        }
+        public void RigisteRPCEvent(long rpc, Delegate callBack, int sortOrder = 0)
+        {
+            if (!callBack.GetType().IsGenericType || callBack.GetType().GetGenericTypeDefinition() == typeof(Func<>))
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type[] gs = callBack.GetType().GetGenericArguments();
+            if (gs.Length != 1)
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type type = gs[0];
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
+                _rpcEvtMap[rpc] = map = new();
+            if (!map.TryGetValue(type, out var queue))
+                map[type] = queue = new();
+
+            EvtData e = new();
+            e.action = callBack;
+            e.sortOrder = sortOrder;
+            e.returnType = typeof(void);
+            queue.Add(e);
         }
 
         /// <summary>
@@ -177,6 +248,46 @@ namespace Game
                 }
             }
         }
+        public void RemoveEvent<T>(Action<T> callBack)
+        {
+            if (!_evtMap.TryGetValue(typeof(T), out var queue))
+                return;
+
+            if (queue.Remove(callBack))
+            {
+                if (!queue.addToQueue)
+                {
+                    queue.addToQueue = true;
+                    removed.Enqueue(queue);
+                }
+            }
+        }
+        public void RemoveEvent(Delegate callBack)
+        {
+            if (!callBack.GetType().IsGenericType || callBack.GetType().GetGenericTypeDefinition() == typeof(Func<>))
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type[] gs = callBack.GetType().GetGenericArguments();
+            if (gs.Length != 1)
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type type = gs[0];
+            if (!_evtMap.TryGetValue(type, out var queue))
+                return;
+
+            if (queue.Remove(callBack))
+            {
+                if (!queue.addToQueue)
+                {
+                    queue.addToQueue = true;
+                    removed.Enqueue(queue);
+                }
+            }
+        }
         public void RemoveRPCEvent(long rpc, IEvent target)
         {
             if (target == null)
@@ -208,6 +319,50 @@ namespace Game
                 }
             }
         }
+        public void RemoveRPCEvent<T>(long rpc, Action<T> callBack)
+        {
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
+                return;
+            if (!map.TryGetValue(typeof(T), out var queue))
+                return;
+
+            if (queue.Remove(callBack))
+            {
+                if (!queue.addToQueue)
+                {
+                    queue.addToQueue = true;
+                    removed.Enqueue(queue);
+                }
+            }
+        }
+        public void RemoveRPCEvent(long rpc, Delegate callBack)
+        {
+            if (!callBack.GetType().IsGenericType || callBack.GetType().GetGenericTypeDefinition() == typeof(Func<>))
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type[] gs = callBack.GetType().GetGenericArguments();
+            if (gs.Length != 1)
+            {
+                Loger.Error("参数错误");
+                return;
+            }
+            Type type = gs[0];
+            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
+                return;
+            if (!map.TryGetValue(type, out var queue))
+                return;
+
+            if (queue.Remove(callBack))
+            {
+                if (!queue.addToQueue)
+                {
+                    queue.addToQueue = true;
+                    removed.Enqueue(queue);
+                }
+            }
+        }
 
         public bool HasEvent<T>() => _evtMap.TryGetValue(typeof(T), out var queue) && queue.evts.Count > 0;
         public bool HasEvent(Type type) => _evtMap.TryGetValue(type, out var queue) && queue.evts.Count > 0;
@@ -218,22 +373,27 @@ namespace Game
         /// <param name="data"></param>
         public void RunEvent<T>(T data)
         {
+            GameM.Data.Add(data);
             _runEvent(_evtMap, data);
         }
         public STask RunEventAsync<T>(T data)
         {
+            GameM.Data.Add(data);
             return _runEventAsync(_evtMap, data);
         }
         public void RunEvent(object data)
         {
+            GameM.Data.Add(data);
             _runEvent(_evtMap, data);
         }
         public STask RunEventAsync(object data)
         {
+            GameM.Data.Add(data);
             return _runEventAsync(_evtMap, data);
         }
         public STask<K> RunEventAsync<K>(object data)
         {
+            GameM.Data.Add(data);
             return _runEventAsync<K>(_evtMap, 0, data);
         }
 
@@ -335,6 +495,7 @@ namespace Game
 
         class EvtData
         {
+            public EvtData() { }
             public EvtData(MethodParseData m, IEvent target)
             {
                 this.returnType = m.method?.ReturnType;
@@ -364,6 +525,8 @@ namespace Game
                 }
             }
 
+            public bool disposed;
+
             public Type returnType;
             public bool isPropertyOrField;
             public MethodInfo method;
@@ -379,7 +542,7 @@ namespace Game
         {
             public List<EvtData> evts = new List<EvtData>();
             public int counter = 0;
-            public bool addToQueue = false; 
+            public bool addToQueue = false;
 
             public void Add(EvtData evt)
             {
@@ -389,7 +552,19 @@ namespace Game
                 else
                     evts.Add(evt);
             }
-            public void RemoveAll() => evts.RemoveAll(t => t.target != null && t.target.Disposed);
+            public bool Remove(Delegate callBack)
+            {
+                for (int i = 0; i < evts.Count; i++)
+                {
+                    if (evts[i].action == callBack)
+                    {
+                        evts[i].disposed = true;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            public void RemoveAll() => evts.RemoveAll(t => t.disposed || (t.target != null && t.target.Disposed));
             public async void Run<T>(T data)
             {
                 ++counter;
@@ -549,8 +724,14 @@ namespace Game
                             ps[0] = data;
                             o = e.method.Invoke(e.target, ps);
                         }
-                        else
+                        else if (e.field != null)
                             e.field.SetValue(e.target, data);
+                        else
+                        {
+                            var ps = ArrayCache<object>.Get(1);
+                            ps[0] = data;
+                            o = e.action.DynamicInvoke(ps);
+                        }
                     }
                     else
                     {

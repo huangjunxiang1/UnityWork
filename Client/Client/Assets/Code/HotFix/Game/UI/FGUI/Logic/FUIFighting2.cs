@@ -12,6 +12,7 @@ using UnityEngine;
 using Main;
 using Game;
 using Unity.Jobs;
+using Event;
 
 partial class FUIFighting2
 {

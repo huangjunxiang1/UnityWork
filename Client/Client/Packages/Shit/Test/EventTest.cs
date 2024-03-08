@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-class Event
+class EventTest
 {
     public static void test()
     {
@@ -21,6 +21,7 @@ class Event
         o2.ss = new();
         GameM.World.AddChild(o);
         GameM.World.AddChild(o2);
+        GameM.Event.RigisteEvent<EC_Event>(t0, 2);
 
         GameM.Event.RunEvent(new EC_Event());
         GameM.Event.RunEvent(new Awake<int>(1));
@@ -62,6 +63,11 @@ class Event
     static int testValue;
     static bool isEnd;
 
+    static void t0(EC_Event e)
+    {
+        if (e.value != 4) throw new System.Exception();
+        e.value++;
+    }
     [Event(1)]
     static void t1(EC_Event e)
     {

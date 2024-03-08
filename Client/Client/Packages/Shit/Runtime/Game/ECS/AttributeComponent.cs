@@ -8,11 +8,16 @@ namespace Game
 {
     public class AttributeComponent : SComponent
     {
-        public Dictionary<int, long> Values = new();
+        Dictionary<int, long> Values = new();
 
         public void Set(int id, long v)
         {
             Values[id] = v;
+            this.SetChange();
+        }
+        public void Remove(int id)
+        {
+            Values.Remove(id);
             this.SetChange();
         }
         public void Clear()
@@ -25,5 +30,7 @@ namespace Game
             Values.TryGetValue(id, out long v);
             return v;
         }
+
+        [Event] static void Awake(Awake<SGameObject> t) => t.target.Attribute = t.target.AddComponent<AttributeComponent>();
     }
 }

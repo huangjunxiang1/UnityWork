@@ -6,6 +6,7 @@ using FairyGUI;
 using Main;
 using System.Threading.Tasks;
 using System;
+using Event;
 
 partial class FUILogin
 {

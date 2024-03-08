@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Event;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Game

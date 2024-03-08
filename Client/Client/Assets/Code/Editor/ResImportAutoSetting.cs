@@ -7,7 +7,7 @@ public class ResImportAutoSetting : AssetPostprocessor
 {
     void OnPreprocessAsset()
     {
-        if (this.assetPath.StartsWith("Assets/Art/UI/uui"))
+        if (this.assetPath.StartsWith("Assets/Art/UI/uui") || this.assetPath.StartsWith("Assets/Art/UI/items"))
         {
             if (this.assetImporter is TextureImporter ti)
                 uiSprite(ti);

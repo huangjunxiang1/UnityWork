@@ -4,4 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-class EC_LanguageChange { }
+namespace Event
+{
+    class EC_LanguageChange : IData { }
+}

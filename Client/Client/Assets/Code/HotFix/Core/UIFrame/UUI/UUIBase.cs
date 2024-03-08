@@ -199,7 +199,7 @@ abstract class UUIBase : UIBase
         }
         return STask.Completed;
     }
-    public sealed override void Dispose()
+    public override void Dispose()
     {
         //ui不做池管理
         if (this.UI)

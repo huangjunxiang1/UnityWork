@@ -17,6 +17,7 @@
     <text id="n3_qgu2" name="title" xy="0,0" size="100,120" fontSize="30" align="center" vAlign="middle" autoSize="none" text="Log">
       <relation target="" sidePair="width-width,height-height,center-center,middle-middle"/>
     </text>
+    <text id="n5_p3lf" name="_yy_b" xy="-473,-227" size="40,19" fontSize="12" text=""/>
   </displayList>
   <Button/>
 </component>

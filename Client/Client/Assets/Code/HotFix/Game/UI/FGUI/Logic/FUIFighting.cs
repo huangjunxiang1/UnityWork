@@ -6,6 +6,7 @@ using Unity.Rendering;
 using UnityEngine;
 using Game;
 using UnityEngine.Rendering;
+using Event;
 
 [UIConfig(20)]
 partial class FUIFighting

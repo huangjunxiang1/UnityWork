@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using UnityEngine.EventSystems;
-using UnityEngine;
 using System.Runtime.InteropServices;
 
 namespace Main
@@ -70,9 +68,14 @@ namespace Main
                 {
                     if (tmp.isObj != null)
                     {
-                        if (!tmp.isObj.Type.IsAssignableFrom(entity.GetType()))
-                            goto remove;
+                        for (int j = 0; j < tmp.isObj.Types.Length; j++)
+                        {
+                            if (tmp.isObj.Types[j].IsAssignableFrom(entity.GetType()))
+                                goto check1;
+                        }
+                        goto remove;
                     }
+                check1:;
                     if (tmp.all != null)
                     {
                         for (int j = 0; j < tmp.all.Types.Length; j++)
@@ -86,11 +89,11 @@ namespace Main
                         for (int j = 0; j < tmp.any.Types.Length; j++)
                         {
                             if (entity.HasComponent(tmp.any.Types[j]))
-                                goto check;
+                                goto check2;
                         }
                         goto remove;
                     }
-                check:;
+                check2:;
                     if (tmp.none != null)
                     {
                         for (int j = 0; j < tmp.none.Types.Length; j++)
@@ -110,13 +113,13 @@ namespace Main
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
         /// </summary>
-        internal static void Init(List<MethodParseData> methods)
+        internal static void Init(List<MethodParseData> methods, List<Type> types)
         {
             Dictionary<Type, ChangeHandler> map = new();
             for (int i = 0; i < methods.Count; i++)
             {
                 MethodParseData ma = methods[i];
-                if (ma.attribute is EventAttribute && ma.method != null && typeof(__Change).IsAssignableFrom(ma.mainKey))
+                if (ma.attribute is EventAttribute && typeof(__Change).IsAssignableFrom(ma.mainKey))
                 {
                     if (!map.TryGetValue(ma.mainKey, out var handler))
                     {
@@ -131,18 +134,18 @@ namespace Main
                     }
                 }
             }
-            for (int i = 0; i < Types.AllTypes.Count; i++)
+            for (int i = 0; i < types.Count; i++)
             {
-                Type t = Types.AllTypes[i];
+                Type t = types[i];
                 if (typeof(SComponent).IsAssignableFrom(t))
                 {
                     var all = t.GetCustomAttribute<AddComponentIfAll>();
                     var any = t.GetCustomAttribute<AddComponentIfAny>();
                     var none = t.GetCustomAttribute<AddComponentIfNone>();
-                    var isObj = t.GetCustomAttribute<AddComponentIfIsSObject>();
-                    if (none != null && all == null && any == null)
+                    var isObj = t.GetCustomAttribute<AddComponentIfAnySObject>();
+                    if ((none != null || isObj != null) && all == null && any == null)
                     {
-                        Loger.Error($"{nameof(AddComponentIfNone)}不能单独存在");
+                        Loger.Error($"{nameof(AddComponentIfNone)}和{nameof(AddComponentIfAnySObject)}不能单独存在");
                         continue;
                     }
                     if (all != null || any != null || none != null)
@@ -262,7 +265,7 @@ namespace Main
             public AddComponentIfAll all;
             public AddComponentIfAny any;
             public AddComponentIfNone none;
-            public AddComponentIfIsSObject isObj;
+            public AddComponentIfAnySObject isObj;
         }
     }
 }

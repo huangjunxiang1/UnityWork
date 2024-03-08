@@ -1,4 +1,5 @@
-﻿using Game;
+﻿using Event;
+using Game;
 using Main;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,8 @@ partial class UUILogin
             "UGUI",
         });
         _UITypeDropdown.value = 1;
+
+        _sceneIDText.Binding<EC_InScene>(t => t.sceneId.ToString());
     }
 
     protected override void OnExit()
@@ -51,8 +54,10 @@ partial class UUILogin
             this.Dispose();
         }
     }
+    int v = 5;
     void login()
     {
+        GameM.Event.RunEvent(new EC_InScene() { sceneId = ++v });
         //ugui 只做个展示  实际使用fgui
     }
 }

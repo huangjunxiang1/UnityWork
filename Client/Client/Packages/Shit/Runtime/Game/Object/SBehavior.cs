@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Event;
+using System;
 using System.Reflection;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Game
         {
             int sceneID = e.sceneId;
             int sceneType = e.sceneType;
-            var types = Types.GetAllAssignableTypes(typeof(SBehavior));
+            var types = Types.GetBehaviorTypes();
             int len = types.Length;
             for (int i = 0; i < len; i++)
             {

@@ -1,4 +1,5 @@
 ﻿using Cinemachine;
+using Event;
 using FairyGUI;
 using Game;
 using Main;
@@ -12,13 +13,12 @@ using UnityEngine;
 
 static class Handler
 {
-    [Event(-2, Queue = true)]
-    static async STask EC_GameInit(EC_GameInit e)
+    [Init(-1)]
+    static async STask Init()
     {
         DG.Tweening.DOTween.Init();
         SettingL.Languege = SystemLanguage.Chinese;
         SettingL.UIModel = UIModel.FGUI;
-        Game.ShareData.Init();
         Application.targetFrameRate = -1;
 
         DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>($"Config/Tabs/{nameof(TabM_ST)}.bytes")).bytes));
@@ -38,7 +38,7 @@ static class Handler
     {
         if (!Application.isEditor && AppSetting.Debug)
         {
-            G_LogReporter log = G_LogReporter.Create();
+            G_LogReporter log = new G_LogReporter();
             log.ui.size = new Vector2(100, 120);
             GRoot.inst.AddChild(log.ui);
             log.ui.xy = new Vector2(0, (GRoot.inst.size.y - log.ui.size.y) / 2);

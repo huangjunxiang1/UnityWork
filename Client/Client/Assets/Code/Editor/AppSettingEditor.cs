@@ -86,12 +86,4 @@ public class AppSettingEditor : Editor
         AssetDatabase.Refresh();
     }
 
-    [MenuItem("Tools/MyTool/热重载配置表")]
-    static void ReloadConfig()
-    {
-        if (!Application.isPlaying) return;
-        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes"))), ConstDefM.Debug);
-        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes"))), ConstDefM.Debug);
-        EditorUtility.DisplayDialog("完成", "重载完成", "确定");
-    }
 }

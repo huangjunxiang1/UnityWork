@@ -98,7 +98,6 @@ abstract class UIBase : STree
     {
         return STask.Completed;
     }
-    protected virtual void VMBinding() { }//显示绑定
     protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用
     protected virtual void OnExit() { }//UI关闭调用
     protected virtual void OnShow() { }//UI每次重显示调用 包括第一次打开

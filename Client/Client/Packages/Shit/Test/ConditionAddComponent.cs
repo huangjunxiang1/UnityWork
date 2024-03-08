@@ -27,9 +27,14 @@ static class ConditionAddComponent
             if (!o1.HasComponent<tc>())
                 throw new Exception();
 
-            o1.AddComponent<AttributeComponent>();
+            var att = o1.AddComponent<AttributeComponent>();
             EditorApplication.update?.Invoke();
             if (o1.HasComponent<tc>())
+                throw new Exception();
+
+            att.Enable = false;
+            EditorApplication.update?.Invoke();
+            if (!o1.HasComponent<tc>())
                 throw new Exception();
 
             o1.Dispose();
@@ -77,7 +82,7 @@ static class ConditionAddComponent
     [AddComponentIfNone(typeof(AttributeComponent))]
     class tc : SComponent { }
 
-    [AddComponentIfIsSObject(typeof(o1))]
+    [AddComponentIfAnySObject(typeof(o1))]
     [AddComponentIfAll(typeof(c1))]
     class tc2 : SComponent { }
 }

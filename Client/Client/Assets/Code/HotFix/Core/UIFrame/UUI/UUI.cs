@@ -1,13 +1,13 @@
-﻿using Game;
-using Main;
+﻿using Main;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Game;
 
-abstract class UUI3D : UUIBase
+abstract class UUI : UUIBase
 {
     RectTransform ui;
     Canvas canvas;
@@ -25,14 +25,10 @@ abstract class UUI3D : UUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        this.ui = (RectTransform)SAsset.LoadGameObject(url).transform;
-        this.ui.SetParent(GameL.UI.UGUIRoot);
-        this.ui.localScale = Vector3.one;
-        this.ui.rotation = default;
-        this.ui.anchoredPosition = default;
-        this.canvas = this.ui.GetComponentInChildren<Canvas>();
-
+        this.ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
+        this.canvas = this.ui.GetComponent<Canvas>();
         this.Binding();
+        this.setConfig();
         this.states = UIStates.OnTask;
         task = this.OnTask(data);
         this.states = UIStates.Success;
@@ -45,18 +41,38 @@ abstract class UUI3D : UUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        GameObject ui = await SAsset.LoadGameObjectAsync(url);
-        this.ui = (RectTransform)ui.transform;
+        GameObject g = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
+        g.SetActive(false);
+        this.ui = (RectTransform)g.transform;
+        this.canvas = this.ui.GetComponent<Canvas>();
+        this.Binding();
+        this.setConfig();
+        this.states = UIStates.OnTask;
+        task = this.OnTask(data);
+        task.AddEvent(() =>
+        {
+            this.states = UIStates.Success;
+            g.SetActive(true);
+        });
+        this.OnEnter(data);
+    }
+
+    void setConfig()
+    {
         this.ui.SetParent(GameL.UI.UGUIRoot);
         this.ui.localScale = Vector3.one;
         this.ui.rotation = default;
+        this.ui.sizeDelta = GameL.UI.UGUIRoot.sizeDelta;
+        this.ui.anchorMin = default;
+        this.ui.anchorMax = Vector2.one;
         this.ui.anchoredPosition = default;
-        this.canvas = this.ui.GetComponentInChildren<Canvas>();
 
-        this.Binding();
-        this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() => this.states = UIStates.Success);
-        this.OnEnter(data);
+        int layer = this.Layer;
+        if (layer > 3)
+            Loger.Error("层级太深");
+        if (this.Parent == null)
+            this.canvas.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
+        else
+            this.canvas.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
     }
 }

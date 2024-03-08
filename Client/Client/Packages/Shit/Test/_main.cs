@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Main;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,14 @@ static class _main
     [Test]
     public static void test()
     {
-        Types.RigisterTypes(typeof(GameM).Assembly.GetTypes(), typeof(_main).Assembly.GetTypes());
+        Types.EditorClear();
+        SSystem.EditorClear();
+        STimer.EditorClear();
 
-        GameM.Init();
+        _ = GameM.Init(typeof(_main).Assembly.GetTypes());
 
         ConditionAddComponent.test();
         ECSEvent.test();
-        Event.test();
+        EventTest.test();
     }
 }

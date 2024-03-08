@@ -1,18 +1,16 @@
+using Event;
 using System;
-using System.Collections.Generic;
 
-public static class Init
+public static class Program
 {
     public static async void Main()
     {
         long tick = DateTime.Now.Ticks;
-        Types.RigisterTypes(typeof(GameM).Assembly.GetTypes(), typeof(TabM).Assembly.GetTypes(), typeof(GameL).Assembly.GetTypes());
 
-        GameM.Init();
+        await GameM.Init(typeof(TabM).Assembly.GetTypes(), typeof(GameL).Assembly.GetTypes());
         GameL.Init();
 
         long tick2 = DateTime.Now.Ticks;
-        await GameM.Event.RunEventAsync(new EC_GameInit());
         await GameL.UI.Init();
 
         long tick3 = DateTime.Now.Ticks;

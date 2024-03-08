@@ -35,7 +35,7 @@ abstract class FUI3D : FUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        this.goRoot = SAsset.LoadGameObject(url);
+        this.goRoot = SAsset.LoadGameObject(url, ReleaseMode.Destroy);
         this.goRoot.transform.SetParent(GameM.World.GameRoot.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
@@ -52,7 +52,7 @@ abstract class FUI3D : FUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        this.goRoot = await SAsset.LoadGameObjectAsync(url);
+        this.goRoot = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
         this.goRoot.transform.SetParent(GameM.World.GameRoot.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
@@ -62,7 +62,7 @@ abstract class FUI3D : FUIBase
         task.AddEvent(() => this.states = UIStates.Success);
         this.OnEnter(data);
     }
-    public sealed override void Dispose()
+    public override void Dispose()
     {
         if (this.goRoot != null)
             this.Hide(true, () => SAsset.Release(this.goRoot));

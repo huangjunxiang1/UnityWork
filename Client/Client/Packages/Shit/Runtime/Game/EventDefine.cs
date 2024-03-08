@@ -1,36 +1,31 @@
 ﻿using Game;
 using System;
+using System.Collections.Generic;
 
-public class EC_GameInit { }
-public class EC_GameStart { }
-public class EC_NetError
+public interface IData { }
+namespace Event
 {
-    public int code;
+    public class EC_GameStart : IData { }
+    public class EC_NetError : IData { public int code; }
+    public class EC_QuitGame : IData { }
+    public class EC_InScene : IData
+    {
+        public int sceneId;
+        public int sceneType;
+    }
+    public class EC_OutScene : IData
+    {
+        public int sceneId;
+        public int sceneType;
+    }
 }
-public class EC_QuitGame
-{
 
-}
-public class EC_InScene
-{
-    public int sceneId;
-    public int sceneType;
-}
-public class EC_OutScene
-{
-    public int sceneId;
-    public int sceneType;
-}
-public class EC_ReceiveMessage
-{
-    public PB.PBMessage message;
-}
 public class Awake<T>
 {
     public Awake(T o) => target = o;
     public T target { get; }
 }
-public class Dispose<T> 
+public class Dispose<T>
 {
     public Dispose(T o) => target = o;
     public T target { get; }

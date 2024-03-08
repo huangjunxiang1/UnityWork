@@ -212,11 +212,11 @@ public static class STimer
     }
 
     [Conditional("DebugEnable")]
-    static void _checkAllMethod()
+    internal static void Check(List<Type> types)
     {
-        for (int i = 0; i < Types.AllTypes.Count; i++)
+        for (int i = 0; i < types.Count; i++)
         {
-            var type = Types.AllTypes[i];
+            var type = types[i];
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
             for (int j = 0; j < methods.Length; j++)
@@ -236,7 +236,6 @@ public static class STimer
     }
     internal static void Init(List<MethodParseData> methods)
     {
-        _checkAllMethod();
         for (int i = 0; i < methods.Count; i++)
         {
             MethodParseData ma = methods[i];
