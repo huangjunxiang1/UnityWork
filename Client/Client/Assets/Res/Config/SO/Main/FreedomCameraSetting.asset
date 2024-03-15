@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64dd51ff1a4807e4eaa39140165fb25a, type: 3}
   m_Name: FreedomCameraSetting
   m_EditorClassIdentifier: 
-  yMin: -100
-  yMax: 200
+  yMin: 1
+  yMax: 100
   wheelSpeed: 1
   moveSpeed: 0.05

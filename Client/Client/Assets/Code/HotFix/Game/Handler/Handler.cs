@@ -2,7 +2,6 @@
 using Event;
 using FairyGUI;
 using Game;
-using Main;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,11 +26,11 @@ static class Handler
 
         DBuffer buffM = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/{nameof(TabM)}.bytes")).bytes));
         if (buffM.ReadHeaderInfo())
-            TabM.Init(buffM, ConstDefM.Debug);
+            TabM.Init(buffM, ConstDefCore.Debug);
 
         DBuffer buffL = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/{nameof(TabL)}.bytes")).bytes));
         if (buffL.ReadHeaderInfo())
-            TabL.Init(buffL, ConstDefM.Debug);
+            TabL.Init(buffL, ConstDefCore.Debug);
     }
     [Event]
     static void EC_GameStart(EC_GameStart e)

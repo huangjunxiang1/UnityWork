@@ -16,6 +16,18 @@
       },
       "hash": "5dbdcb330d99b99ada8a3bae2feade3616b1be47"
     },
+    "com.shit.core": {
+      "version": "file:Shit.Core",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.shit.game.unity": {
+      "version": "file:Shit.Game.Unity",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
@@ -50,7 +62,7 @@
       "dependencies": {}
     },
     "com.unity.burst": {
-      "version": "1.8.12",
+      "version": "1.8.13",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -150,7 +162,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
-      "version": "1.8.0-pre.2",
+      "version": "1.8.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -321,12 +333,6 @@
         "com.unity.render-pipelines.core": "17.0.2",
         "com.unity.searcher": "4.9.2"
       }
-    },
-    "com.unity.shit": {
-      "version": "file:Shit",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
     },
     "com.unity.test-framework": {
       "version": "1.4.3",

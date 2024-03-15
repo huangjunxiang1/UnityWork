@@ -582,8 +582,8 @@ public class Tool
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;
-        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes"))), ConstDefM.Debug);
-        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes"))), ConstDefM.Debug);
+        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes"))), ConstDefCore.Debug);
+        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes"))), ConstDefCore.Debug);
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 

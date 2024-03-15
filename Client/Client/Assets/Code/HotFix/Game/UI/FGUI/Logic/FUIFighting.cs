@@ -62,12 +62,14 @@ partial class FUIFighting
     {
         _ = GameL.Scene.InLoginScene();
     }
+
+
     int lastRange = -1;
     BatchMaterialID[] mat = new BatchMaterialID[2];
     BatchMeshID[] mesh = new BatchMeshID[2];
     BatchID[] bid = new BatchID[2];
     float3x4[] arr2;
-    unsafe void _onPlay()
+    void _onPlay()
     {
         /*BatchRendererGroup brg = new(job, default);
         brg.SetEnabledViewTypes(new BatchCullingViewType[]

@@ -46,7 +46,7 @@ class LockingCamera : BaseCamera
         base.EnableCamera();
         if (Application.platform == RuntimePlatform.Android
              || Application.platform == RuntimePlatform.IPhonePlayer)
-            STimer.Add(0, -1, mobileMove);
+            GameM.Timer.Add(0, -1, mobileMove);
         input.Asset.Enable();
     }
     public override void DisableCamera()
@@ -56,7 +56,7 @@ class LockingCamera : BaseCamera
         base.DisableCamera();
         if (Application.platform == RuntimePlatform.Android
             || Application.platform == RuntimePlatform.IPhonePlayer)
-            STimer.Remove(mobileMove);
+            GameM.Timer.Remove(mobileMove);
         input.Asset.Disable();
     }
     public override void SetFilterZone(Vector2 pos, Vector2 size)
@@ -68,29 +68,13 @@ class LockingCamera : BaseCamera
         var m = Camera.main;
         if (!m) return;
 
-        float _wheel = e.ReadValue<Vector2>().y;
+        float _wheel = -e.ReadValue<Vector2>().y;
         if (_wheel == 0)
             return;
 
         CinemachineVirtualCamera cvc = (CinemachineVirtualCamera)Brain.ActiveVirtualCamera;
-        CinemachineTransposer ct = cvc.GetCinemachineComponent<CinemachineTransposer>();
-        Vector3 offset = ct.m_FollowOffset;
-        if (_wheel > 0)
-        {
-            if (offset.y > SettingL.LockingCameraSetting.yMin)
-            {
-                offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
-                ct.m_FollowOffset = offset;
-            }
-        }
-        else
-        {
-            if (offset.y < SettingL.LockingCameraSetting.yMax)
-            {
-                offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
-                ct.m_FollowOffset = offset;
-            }
-        }
+        cvc.m_Lens.FieldOfView += _wheel * SettingL.LockingCameraSetting.wheelSpeed;
+        cvc.m_Lens.FieldOfView = Mathf.Clamp(cvc.m_Lens.FieldOfView, SettingL.LockingCameraSetting.yMin, SettingL.LockingCameraSetting.yMax);
     }
     void mobileMove()
     {

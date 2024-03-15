@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine.UI;
 using UnityEngine;
-using Game;
 using FairyGUI;
-using Main;
 using System.Reflection;
 
 public enum UIModel
@@ -109,53 +103,53 @@ namespace Game
 
             return ui;
         }
-        public STask<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
+        public async STask<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
         {
             T ui = Get<T>();
-            if (ui == null)
+            if (ui != null)
             {
-                open();
-                async void open()
-                {
-                    UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
-
-                    UIHelper.EnableUIInput(false);
-                    ui = new();
-                    //在执行异步的过程中有可能会关闭这个UI
-                    ui.onDispose.Add(() =>
-                    {
-                        if (ui.uiStates < UIStates.Success)
-                            UIHelper.EnableUIInput(true);
-                    });
-                    _uiLst.Add(ui);
-                    STask loadTask = ui.LoadConfigAsync(cfg, new STask<T>(), data);
-                    _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
-                    await loadTask;
-                    await ui.onTask;
-                    if (ui.Disposed)
-                        return;
-
-                    for (int i = _uiLst.Count - 1; i >= 0; i--)
-                    {
-                        UIBase tmp = _uiLst[i];
-                        if (tmp == ui)
-                            continue;
-                        if (tmp.uiConfig.HideIfOpenOtherUI && tmp.isShow)
-                        {
-                            tmp.Hide();
-                            break;
-                        }
-                    }
-                    ui.EventEnable = true;
-                    ui.TimerEnable = true;
-                    ui.Show();
-                    UIHelper.EnableUIInput(true);
-
-                    ui.onCompleted.TrySetResult(ui);
-                }
+                await ui.onCompleted;
+                return ui;
             }
-          
-            return (STask<T>)ui.onCompleted;
+            using (await STaskLocker.Lock(this))
+            {
+                UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
+
+                UIHelper.EnableUIInput(false);
+                ui = new();
+                //在执行异步的过程中有可能会关闭这个UI
+                ui.onDispose.Add(() =>
+                {
+                    if (ui.uiStates < UIStates.Success)
+                        UIHelper.EnableUIInput(true);
+                });
+                _uiLst.Add(ui);
+                STask loadTask = ui.LoadConfigAsync(cfg, new STask<T>(), data);
+                _uiLst.Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
+                await loadTask;
+                await ui.onTask;
+                if (ui.Disposed)
+                    return ui;
+
+                for (int i = _uiLst.Count - 1; i >= 0; i--)
+                {
+                    UIBase tmp = _uiLst[i];
+                    if (tmp == ui)
+                        continue;
+                    if (tmp.uiConfig.HideIfOpenOtherUI && tmp.isShow)
+                    {
+                        tmp.Hide();
+                        break;
+                    }
+                }
+                ui.EventEnable = true;
+                ui.TimerEnable = true;
+                ui.Show();
+                UIHelper.EnableUIInput(true);
+
+                ui.onCompleted.TrySetResult(ui);
+                return ui;
+            }
         }
 
         public T OpenSubUI<T>(UIBase parent, params object[] data) where T : UIBase, new()
@@ -174,40 +168,40 @@ namespace Game
 
             return ui;
         }
-        public STask<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
+        public async STask<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
         {
-            T ui = parent.GetSubUI<T>();
-            if (ui == null)
+            T ui = parent.GetSubUI<T>(); 
+            if (ui != null)
             {
-                open();
-                async void open()
-                {
-                    UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
-
-                    UIHelper.EnableUIInput(false);
-                    ui = new();
-                    //在执行异步的过程中有可能会关闭这个UI
-                    ui.onDispose.Add(() =>
-                    {
-                        if (ui.uiStates < UIStates.Success)
-                            UIHelper.EnableUIInput(true);
-                    });
-                    parent.AddChild(ui);
-                    await ui.LoadConfigAsync(cfg, new STask<T>(), data);
-                    await ui.onTask;
-                    if (ui.Disposed)
-                        return;
-
-                    ui.EventEnable = true;
-                    ui.TimerEnable = true;
-                    ui.Show();
-                    UIHelper.EnableUIInput(true);
-
-                    ui.onCompleted.TrySetResult(ui);
-                }
+                await ui.onCompleted;
+                return ui;
             }
-           
-            return (STask<T>)ui.onCompleted;
+            using (await STaskLocker.Lock(this))
+            {
+                UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
+
+                UIHelper.EnableUIInput(false);
+                ui = new();
+                //在执行异步的过程中有可能会关闭这个UI
+                ui.onDispose.Add(() =>
+                {
+                    if (ui.uiStates < UIStates.Success)
+                        UIHelper.EnableUIInput(true);
+                });
+                parent.AddChild(ui);
+                await ui.LoadConfigAsync(cfg, new STask<T>(), data);
+                await ui.onTask;
+                if (ui.Disposed)
+                    return ui;
+
+                ui.EventEnable = true;
+                ui.TimerEnable = true;
+                ui.Show();
+                UIHelper.EnableUIInput(true);
+
+                ui.onCompleted.TrySetResult(ui);
+                return ui;
+            }
         }
 
         public T Open3D<T>(params object[] data) where T : UIBase, new()
@@ -221,27 +215,25 @@ namespace Game
 
             return ui;
         }
-        public STask<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
+        public async STask<T> Open3DAsync<T>(params object[] data) where T : UIBase, new()
         {
-            STask<T> task = new();
-            open();
-            async void open()
+            using (await STaskLocker.Lock(this))
             {
                 UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
                 T ui = new();
                 _3duiLst.Add(ui);
-                await ui.LoadConfigAsync(cfg, task, data);
+                await ui.LoadConfigAsync(cfg, new STask<T>(), data);
                 await ui.onTask;
                 if (ui.Disposed)
-                    return;
+                    return ui;
 
                 ui.EventEnable = true;
                 ui.TimerEnable = true;
 
-                task.TrySetResult(ui);  
+                ui.onCompleted.TrySetResult(ui);
+                return ui;
             }
-            return task;
         }
 
         public T Get<T>() where T : UIBase
@@ -274,7 +266,7 @@ namespace Game
             for (; len > 0; len--)
                 _3duiLst[len - 1].Dispose();
         }
-        public void CloseAll(Func<UIBase,bool> test)
+        public void CloseAll(Func<UIBase, bool> test)
         {
             int len = _uiLst.Count;
             for (; len > 0; len--)

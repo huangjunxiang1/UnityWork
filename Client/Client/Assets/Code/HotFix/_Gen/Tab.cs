@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using Unity.Mathematics;
 
 public static class TabL
 {
@@ -79,11 +80,11 @@ public class TabL_test1
     /// <summary>
     /// xxxx
     /// </summary>
-    public Vector2Int v2t { get; }
+    public int2 v2t { get; }
     /// <summary>
     /// xxxx
     /// </summary>
-    public Vector2Int[] v2t2 => getv2t2();
+    public int2[] v2t2 => getv2t2();
     /// <summary>
     /// xxxx
     /// </summary>
@@ -105,7 +106,7 @@ public class TabL_test1
     int _value2Idx; int[] _value2Tmp; int[] getvalue2() { if (_value2Tmp == null) { dbuff.Seek(_value2Idx); _value2Tmp = dbuff.Readints(); } return _value2Tmp; }
     int _desIdx;
     int _des2Idx; string[] _des2Tmp; string[] getdes2() => _des2Tmp ??= TabL.__getstrings(_des2Idx);
-    int _v2t2Idx; Vector2Int[] _v2t2Tmp; Vector2Int[] getv2t2() { if (_v2t2Tmp == null) { dbuff.Seek(_v2t2Idx); _v2t2Tmp = dbuff.ReadVector2Ints(); } return _v2t2Tmp; }
+    int _v2t2Idx; int2[] _v2t2Tmp; int2[] getv2t2() { if (_v2t2Tmp == null) { dbuff.Seek(_v2t2Idx); _v2t2Tmp = dbuff.Readint2s(); } return _v2t2Tmp; }
     int _f2Idx; float[] _f2Tmp; float[] getf2() { if (_f2Tmp == null) { dbuff.Seek(_f2Idx); _f2Tmp = dbuff.Readfloats(); } return _f2Tmp; }
     int _b2Idx; bool[] _b2Tmp; bool[] getb2() { if (_b2Tmp == null) { dbuff.Seek(_b2Idx); _b2Tmp = dbuff.Readbools(); } return _b2Tmp; }
 
@@ -116,7 +117,7 @@ public class TabL_test1
         buffer.Seek(buffer.Readint() + (this._value2Idx = buffer.Position));
         this._desIdx = buffer.Readint();
         buffer.Seek(buffer.Readint() + (this._des2Idx = buffer.Position));
-        this.v2t = buffer.ReadVector2Int();
+        this.v2t = buffer.Readint2();
         buffer.Seek(buffer.Readint() + (this._v2t2Idx = buffer.Position));
         this.f1 = buffer.Readfloat();
         buffer.Seek(buffer.Readint() + (this._f2Idx = buffer.Position));

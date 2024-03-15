@@ -10,9 +10,6 @@
       <relation target="" sidePair="left-left,top-top"/>
       <Button title="播放"/>
     </component>
-    <component id="n5_p3lf" name="_tt_b" src="qgu27" fileName="Common/btn/btn.xml" xy="113,-49"/>
-    <text id="n6_p3lf" name="_jj_b" xy="409,-68" size="40,19" fontSize="12" text=""/>
-    <component id="n7_85m5" name="_ii" src="oxwqn" fileName="UI/Box/test.xml" xy="-102,-47"/>
   </displayList>
   <transition name="open">
     <item time="0" type="XY" target="n2_n68q" tween="true" startValue="-,-114" endValue="-,50" duration="6"/>

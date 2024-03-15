@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
-using Main;
 using Game;
 abstract class UUIBase : UIBase
 {
@@ -50,7 +48,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    STimer.Add(ani["close"].length + 0.1f, 1, () =>
+                    GameM.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -67,7 +65,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
+                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -102,7 +100,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    STimer.Add(ani["close"].length + 0.1f, 1, () =>
+                    GameM.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -118,7 +116,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
+                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -155,7 +153,7 @@ abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     UIHelper.EnableUIInput(false);
-                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
+                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isShowing = false;
                         UIHelper.EnableUIInput(true);
@@ -187,7 +185,7 @@ abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     UIHelper.EnableUIInput(false);
-                    STimer.Add(ani["open"].length + 0.1f, 1, () =>
+                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         UIHelper.EnableUIInput(true);
                         this.isShow = true;

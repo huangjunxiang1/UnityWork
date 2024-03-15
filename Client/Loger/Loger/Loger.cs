@@ -1,42 +1,33 @@
 ﻿using System;
-using UnityEngine;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
 public static class Loger
 {
-    public static int MainThreadID;
-    public static Action<Action> PostToMainThread;
+    public static Action<object> __get__log;
+    public static Action<object> __get__warning;
+    public static Action<object> __get__error;
 
     [Conditional("DebugEnable")]
     [DebuggerHidden]
     public static void Log(object o)
     {
-        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
-            UnityEngine.Debug.Log(o);
-        else
-            PostToMainThread?.Invoke(() => UnityEngine.Debug.Log(o));
+        __get__log?.Invoke(o);
     }
 
     [Conditional("DebugEnable")]
     [DebuggerHidden]
     public static void Warning(object o)
     {
-        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
-            UnityEngine.Debug.LogWarning(o);
-        else
-            PostToMainThread?.Invoke(() => UnityEngine.Debug.LogWarning(o));
+        __get__warning?.Invoke(o);
     }
 
     [Conditional("DebugEnable")]
     [DebuggerHidden]
     public static void Error(object o)
     {
-        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
-            UnityEngine.Debug.LogError(o);
-        else
-            PostToMainThread?.Invoke(() => UnityEngine.Debug.LogError(o));
+        __get__error?.Invoke(o);
     }
 
     [Conditional("DebugEnable")]
@@ -52,11 +43,7 @@ public static class Loger
             str.Append("::");
             str.AppendLine(method.Name);
         }
-
-        if (MainThreadID == 0 || MainThreadID == Thread.CurrentThread.ManagedThreadId)
-            UnityEngine.Debug.Log(str);
-        else
-            PostToMainThread?.Invoke(() => UnityEngine.Debug.Log(str));
+        Log(str);
     }
 
     public static string GetStackTrace()

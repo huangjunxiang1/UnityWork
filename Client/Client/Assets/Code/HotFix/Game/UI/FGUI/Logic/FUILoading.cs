@@ -29,7 +29,7 @@ partial class FUILoading
             _loadingBar.value = cur;
             if (cur >= 1)
             {
-                STimer.Add(1, 1, this.Dispose);
+                GameM.Timer.Add(1, 1, this.Dispose);
             }
         }
     }

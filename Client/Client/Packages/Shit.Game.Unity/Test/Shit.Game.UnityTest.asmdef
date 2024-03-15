@@ -1,0 +1,23 @@
+{
+    "name": "Shit.Game.UnityTest",
+    "rootNamespace": "",
+    "references": [
+        "Shit.Core",
+        "Shit.Game.Unity",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

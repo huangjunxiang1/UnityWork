@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Event;
 using FairyGUI;
 using Game;
-using Main;
 using UnityEngine;
 
 static partial class SettingL
@@ -54,7 +53,7 @@ static partial class SettingL
         }
 
         if (buff.ReadHeaderInfo())
-            LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefM.Debug);
+            LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefCore.Debug);
         GameM.Event.RunEvent(new EC_LanguageChange());
     }
 }

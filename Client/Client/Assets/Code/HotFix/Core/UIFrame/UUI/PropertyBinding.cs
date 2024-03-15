@@ -47,7 +47,7 @@ class ImagePropertyBinding : UIPropertyBinding<Image, string>
 
     protected override void View(string v)
     {
-        ui.sprite = v.ToUUIItemUrl();
+        ui.sprite = v.ToUUIResUrl();
     }
 }
 class RawImagePropertyBinding : UIPropertyBinding<RawImage, string>

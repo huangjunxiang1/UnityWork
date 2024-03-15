@@ -60,7 +60,7 @@ class FreedomCamera : BaseCamera
         base.EnableCamera();
         if (Application.platform == RuntimePlatform.Android
              || Application.platform == RuntimePlatform.IPhonePlayer)
-            STimer.Add(0, -1, mobileMove);
+            GameM.Timer.Add(0, -1, mobileMove);
         input.Asset.Enable();
     }
     public override void DisableCamera()
@@ -70,7 +70,7 @@ class FreedomCamera : BaseCamera
         base.DisableCamera();
         if (Application.platform == RuntimePlatform.Android
             || Application.platform == RuntimePlatform.IPhonePlayer)
-            STimer.Remove(mobileMove);
+            GameM.Timer.Remove(mobileMove);
         input.Asset.Disable();
     }
     public override void SetFilterZone(Vector2 pos, Vector2 size)
@@ -108,18 +108,13 @@ class FreedomCamera : BaseCamera
         var m = Camera.main;
         if (!m) return;
 
-        float _wheel = e.ReadValue<Vector2>().y;
+        float _wheel = -e.ReadValue<Vector2>().y;
+        if (_wheel == 0)
+            return;
 
-        if (_wheel > 0)
-        {
-            if (Target.transform.position.y > SettingM.FreedomCameraSetting.yMin)
-                Target.transform.position += m.transform.forward * SettingM.FreedomCameraSetting.wheelSpeed * _wheel;
-        }
-        else if (_wheel < 0)
-        {
-            if (Target.transform.position.y < SettingM.FreedomCameraSetting.yMax)
-                Target.transform.position += m.transform.forward * SettingM.FreedomCameraSetting.wheelSpeed * _wheel;
-        }
+        CinemachineVirtualCamera cvc = (CinemachineVirtualCamera)Brain.ActiveVirtualCamera;
+        cvc.m_Lens.FieldOfView += _wheel * SettingM.FreedomCameraSetting.wheelSpeed;
+        cvc.m_Lens.FieldOfView = Mathf.Clamp(cvc.m_Lens.FieldOfView, SettingM.FreedomCameraSetting.yMin, SettingM.FreedomCameraSetting.yMax);
     }
     void mobileMove()
     {

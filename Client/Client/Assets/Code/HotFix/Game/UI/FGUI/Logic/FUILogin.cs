@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Game;
 using FairyGUI;
-using Main;
 using System.Threading.Tasks;
 using System;
 using Event;
@@ -71,6 +70,8 @@ partial class FUILogin
             await GameL.UI.OpenAsync<FUIFighting3>();
         else if (_demo.selectedIndex == 3)
             await GameL.UI.OpenAsync<FUIFighting4>();
+        else if (_demo.selectedIndex == 4)
+            await GameL.UI.OpenAsync<FUIFighting5>();
 
         /*//链接服务器演示
         if (_gameTypeCB.selectedIndex == 0)

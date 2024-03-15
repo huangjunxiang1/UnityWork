@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core;
 using Game;
-using Main;
 
-abstract class UIBase : STree
+abstract class UIBase : SUnityObject
 {
     public UIBase() : base()
     {

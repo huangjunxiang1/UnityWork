@@ -1,5 +1,4 @@
 ﻿using FairyGUI;
-using Main;
 using System;
 using Game;
 

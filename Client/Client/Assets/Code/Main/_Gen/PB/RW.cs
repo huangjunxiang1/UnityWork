@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Main;
-
 namespace main
 {
     public partial class TestPBmain : PB.PBMessage

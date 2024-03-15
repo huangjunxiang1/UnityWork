@@ -1,12 +1,7 @@
-using Main;
 using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.TestTools;
 using System.IO;
 using Unity.Mathematics;
-using System.Diagnostics;
 
 class TabDataTest
 {
@@ -66,11 +61,11 @@ class TabDataTest
             throw new System.Exception("数据出错");
         if (TabM.Get_test2(key).des2[1] != "款到发货")
             throw new System.Exception("数据出错");
-        if (TabM.Get_test2(key).v2t != new Vector2Int(5, 5))
+        if (math.all(TabM.Get_test2(key).v2t != new int2(5, 5)))
             throw new System.Exception("数据出错");
-        if (TabM.Get_test2(key).v2t2[0] != new Vector2Int(9, 82))
+        if (math.all(TabM.Get_test2(key).v2t2[0] != new int2(9, 82)))
             throw new System.Exception("数据出错");
-        if (TabM.Get_test2(key).v2t2[1] != new Vector2Int(45, 65))
+        if (math.all(TabM.Get_test2(key).v2t2[1] != new int2(45, 65)))
             throw new System.Exception("数据出错");
         if (math.abs(TabM.Get_test2(key).f1 - 5.122) >= 0.0001f)
             throw new System.Exception("数据出错");

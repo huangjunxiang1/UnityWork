@@ -8,7 +8,8 @@
     ".NETCoreApp,Version=v6.0": {
       "ExcelToDB/1.0.0": {
         "dependencies": {
-          "EPPlus": "6.0.6"
+          "EPPlus": "6.0.6",
+          "Unity.Mathematics": "0.0.0.0"
         },
         "runtime": {
           "ExcelToDB.dll": {}
@@ -225,6 +226,14 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "5.0.0"
         }
+      },
+      "Unity.Mathematics/0.0.0.0": {
+        "runtime": {
+          "Unity.Mathematics.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
       }
     }
   },
@@ -366,6 +375,11 @@
       "sha512": "sha512-NyscU59xX6Uo91qvhOs2Ccho3AR2TnZPomo1Z0K6YpyztBPM/A5VbkzOO19sy3A3i1TtEnTxA7bCe3Us+r5MWg==",
       "path": "system.text.encoding.codepages/5.0.0",
       "hashPath": "system.text.encoding.codepages.5.0.0.nupkg.sha512"
+    },
+    "Unity.Mathematics/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

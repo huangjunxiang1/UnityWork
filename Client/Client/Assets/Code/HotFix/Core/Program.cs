@@ -7,7 +7,7 @@ public static class Program
     {
         long tick = DateTime.Now.Ticks;
 
-        await GameM.Init(typeof(TabM).Assembly.GetTypes(), typeof(GameL).Assembly.GetTypes());
+        await GameM.Init();
         GameL.Init();
 
         long tick2 = DateTime.Now.Ticks;

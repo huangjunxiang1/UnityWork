@@ -28,9 +28,6 @@ partial class FUIFighting : FUI
     public sealed override string url => "FUIFighting";
     public GButton _btnBack { get; private set; }
     public GButton _play { get; private set; }
-    public GButtonPropertyBinding _tt { get; private set; }
-    public GTextFieldPropertyBinding _jj { get; private set; }
-    public G_test _ii { get; private set; }
     public Controller _c2 { get; private set; }
     public Transition _t1 { get; private set; }
 
@@ -39,18 +36,12 @@ partial class FUIFighting : FUI
         GComponent ui = this.UI;
         _btnBack = (GButton)ui.GetChildAt(0);
         _play = (GButton)ui.GetChildAt(1);
-        _tt = new((GButton)ui.GetChildAt(2));
-        _jj = new((GTextField)ui.GetChildAt(3));
-        _ii = new G_test((GComponent)ui.GetChildAt(4));
         _c2 = ui.GetControllerAt(1);
         _t1 = ui.GetTransitionAt(1);
     }
     public override void Dispose()
     {
         base.Dispose();
-        _tt.Dispose();
-        _jj.Dispose();
-        _ii.Dispose();
     }
 }
 partial class FUIFighting2 : FUI
@@ -106,6 +97,25 @@ partial class FUIFighting4 : FUI
         _rangeRoad = (GButton)ui.GetChildAt(1);
         _play = (GButton)ui.GetChildAt(2);
         _showCube = (GButton)ui.GetChildAt(3);
+    }
+    public override void Dispose()
+    {
+        base.Dispose();
+    }
+}
+partial class FUIFighting5 : FUI
+{
+    public sealed override string url => "FUIFighting5";
+    public GButton _btnBack { get; private set; }
+    public GComboBox _demo { get; private set; }
+    public GButton _reversion { get; private set; }
+
+    protected sealed override void Binding()
+    {
+        GComponent ui = this.UI;
+        _btnBack = (GButton)ui.GetChildAt(0);
+        _demo = (GComboBox)ui.GetChildAt(1);
+        _reversion = (GButton)ui.GetChildAt(2);
     }
     public override void Dispose()
     {

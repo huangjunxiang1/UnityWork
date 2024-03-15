@@ -1,7 +1,7 @@
 using UnityEngine;
 using Game;
 using System.Threading;
-using Main;
+using Core;
 
 public class GameStart : MonoBehaviour
 {
@@ -12,6 +12,7 @@ public class GameStart : MonoBehaviour
     void Start()
     {
         _ = ThreadSynchronizationContext.Instance;
+
         DontDestroyOnLoad(this.gameObject);
 
         AppSetting.Runtime = Runtime;

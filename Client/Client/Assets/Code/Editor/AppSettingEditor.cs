@@ -65,11 +65,11 @@ public class AppSettingEditor : Editor
 
             if (setting.Debug)
             {
-                if (!defs.Contains("DebugEnable"))
-                    defs.Add("DebugEnable");
+                if (!defs.Contains(ConstDefCore.DebugEnableString))
+                    defs.Add(ConstDefCore.DebugEnableString);
             }
             else
-                defs.RemoveAll(t => t == "DebugEnable");
+                defs.RemoveAll(t => t == ConstDefCore.DebugEnableString);
 
             StringBuilder str1 = new StringBuilder();
             for (int j = 0; j < defs.Count; j++)

@@ -29,7 +29,7 @@ partial class UUILoading
             //_fillImage.fillAmount = cur;
             if (cur >= 1)
             {
-                STimer.Add(2, 1, () =>
+                GameM.Timer.Add(2, 1, () =>
                 {
                     this.Dispose();
                 });

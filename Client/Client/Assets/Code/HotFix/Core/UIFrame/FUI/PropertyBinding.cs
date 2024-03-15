@@ -30,7 +30,7 @@ class GLoaderPropertyBinding : UIPropertyBinding<GLoader, string>
 
     protected override void View(string v)
     {
-        _ = this.ui.SetTexture(v);
+        this.ui.url = v.ToFUIResUrl();
     }
 }
 class GLoader3DPropertyBinding : UIPropertyBinding<GLoader3D, string>

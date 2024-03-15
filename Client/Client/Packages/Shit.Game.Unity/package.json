@@ -1,0 +1,12 @@
+{
+  "name": "com.shit.game.unity",
+  "displayName": "Shit.Game.Unity",
+  "version": "1.0.0",
+  "unity": "2020.1",
+  "dependencies": {
+  },
+  "description": "This is Shit.Game.Unity",
+  "keywords": [],
+  "upmCi": {},
+  "repository": {}
+}

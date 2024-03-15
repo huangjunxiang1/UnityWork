@@ -13,11 +13,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Serialized\DBuffer.cs" Link="DBuffer.cs" />
+    <Compile Include="..\..\Client\Packages\Shit.Core\Core\Serialized\DBuffer.cs" Link="DBuffer.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="6.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\..\Client\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

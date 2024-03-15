@@ -1,5 +1,4 @@
 ﻿using Game;
-using Main;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,7 +56,7 @@ partial class FUIFighting4
     protected override void OnExit()
     {
         base.OnExit();
-        STimer.Remove(draw);
+        GameM.Timer.Remove(draw);
         pCb.Dispose();
         roadCb.Dispose();
         mark.Dispose();
@@ -98,9 +97,9 @@ partial class FUIFighting4
             Box.Tips("未初始化障碍");
             return;
         }    
-        if (!STimer.Contains(draw))
+        if (!GameM.Timer.Contains(draw))
         {
-            STimer.Add(0, -1, draw);
+            GameM.Timer.Add(0, -1, draw);
 
             mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
 

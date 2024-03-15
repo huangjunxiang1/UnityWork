@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5965f68ca05ec094bbfcb8c003439ac3, type: 3}
   m_Name: LockingCameraSetting
   m_EditorClassIdentifier: Main::LockingCameraSetting
-  yMin: 0
-  yMax: 10
+  yMin: 1
+  yMax: 100
   wheelSpeed: 1

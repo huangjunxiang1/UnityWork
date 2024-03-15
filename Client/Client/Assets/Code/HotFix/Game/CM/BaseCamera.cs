@@ -44,7 +44,6 @@ abstract class BaseCamera
     public virtual void EnableCamera()
     {
         if (this.Enable)
-            return;
         this.Enable = true;
     }
     public virtual void DisableCamera()

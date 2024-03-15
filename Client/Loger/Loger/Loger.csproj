@@ -4,14 +4,8 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\..\unity\2023.3.0b3\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy $(TargetPath) $(ProjectPath)\..\..\..\Client\Packages\com.unity.shit@216be469ef\Plugins\$(ProjectName).dll" />
+    <Exec Command="copy $(TargetPath) $(ProjectPath)\..\..\..\Client\Packages\Shit.Core\Plugins\$(ProjectName).dll" />
   </Target>
 
 </Project>

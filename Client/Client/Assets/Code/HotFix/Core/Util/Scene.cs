@@ -1,4 +1,5 @@
-﻿using Event;
+﻿using Core;
+using Event;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -6,6 +7,9 @@ namespace Game
 {
     class Scene : SObject
     {
+        public Scene() : base(GameM.World)
+        {
+        }
         public int SceneID { get; private set; }
 
         [Event] STask EC_GameStart(EC_GameStart e) => InLoginScene();

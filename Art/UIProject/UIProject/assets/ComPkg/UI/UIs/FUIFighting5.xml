@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1334,750" opaque="false">
+  <controller name="c1" pages="0,,1,,2,,3,,4," selected="0"/>
+  <displayList>
+    <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
+      <relation target="" sidePair="right-right,top-top"/>
+    </component>
+    <component id="n8_be98" name="_demo" src="qgu25" fileName="Common/comBox/CB.xml" xy="52,47" size="133,56">
+      <ComboBox title="demo" visibleItemCount="10" selectionController="c1">
+        <item title="0_清空"/>
+        <item title="1_角色控制"/>
+        <item title="2_角色+摄像机跟随"/>
+      </ComboBox>
+    </component>
+    <component id="n9_be98" name="_reversion" src="qgu27" fileName="Common/btn/btn.xml" xy="51,149" size="123,45">
+      <gearDisplay controller="c1" pages="1"/>
+      <Button title="逆转方向"/>
+    </component>
+  </displayList>
+  <transition name="open">
+    <item time="0" type="XY" target="n2_n68q" value="1071,-"/>
+    <item time="0" type="XY" target="n2_n68q" tween="true" startValue="1722,-" endValue="1067,-" duration="8"/>
+  </transition>
+</component>

@@ -195,10 +195,10 @@ class CodeGen
             rw.AppendLine($"using UnityEngine;");
             rw.AppendLine($"using System.Linq;");
             rw.AppendLine($"using System;");
+            rw.AppendLine($"using Unity.Mathematics;");
             if (genEcs)
             {
                 rw.AppendLine($"using Unity.Collections;");
-                rw.AppendLine($"using Unity.Mathematics;");
                 rw.AppendLine($"using Unity.Collections.LowLevel.Unsafe;");
                 rw.AppendLine($"using Unity.Burst;");
             }
@@ -437,24 +437,13 @@ class CodeGen
                             var f = c.ecs[j];
                             if (f.f2 == FType2.Value)
                             {
-                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
-                                    erw.AppendLine($"        this.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}());");
-                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
-                                    erw.AppendLine($"        this.{f.name} = new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}());");
-                                else
-                                    erw.AppendLine($"        this.{f.name} = buffer.Read{f.realType}();");
+                                erw.AppendLine($"        this.{f.name} = buffer.Read{f.realType}();");
                             }
                             else if (f.f2 == FType2.Array)
                             {
                                 erw.Append($"        len = buffer.Readint();");
                                 erw.Append($" this.{f.name} = new UnsafeList<{f.typeStrECS}>(len, AllocatorManager.Persistent);");
-
-                                if (f.f1 == FType.fv2i || f.f1 == FType.fv2f)
-                                    erw.AppendLine($" for (int i = 0; i < len; i++) this.{f.name}.Add(new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}()));");
-                                else if (f.f1 == FType.fv3i || f.f1 == FType.fv3f)
-                                    erw.AppendLine($" for (int i = 0; i < len; i++) this.{f.name}.Add(new {f.typeStrECS}(buffer.Read{f.realType}(), buffer.Read{f.realType}(), buffer.Read{f.realType}()));");
-                                else
-                                    erw.AppendLine($" for (int i = 0; i < len; i++) this.{f.name}.Add(buffer.Read{f.realType}());");
+                                erw.AppendLine($" for (int i = 0; i < len; i++) this.{f.name}.Add(buffer.Read{f.realType}());");
                             }
                         }
                         erw.AppendLine($"    }}");

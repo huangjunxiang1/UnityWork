@@ -1,4 +1,5 @@
-﻿using Game;
+﻿using Core;
+using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,4 +8,7 @@ using System.Threading.Tasks;
 
 partial class Data : SObject
 {
+    public Data() : base(GameM.World)
+    {
+    }
 }

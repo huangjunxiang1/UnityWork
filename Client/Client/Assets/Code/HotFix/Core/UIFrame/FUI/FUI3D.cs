@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using Main;
 using FairyGUI;
 using Game;
 
@@ -36,7 +35,7 @@ abstract class FUI3D : FUIBase
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this.goRoot = SAsset.LoadGameObject(url, ReleaseMode.Destroy);
-        this.goRoot.transform.SetParent(GameM.World.GameRoot.transform);
+        this.goRoot.transform.SetParent(GameM.World.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
@@ -53,7 +52,7 @@ abstract class FUI3D : FUIBase
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this.goRoot = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
-        this.goRoot.transform.SetParent(GameM.World.GameRoot.transform);
+        this.goRoot.transform.SetParent(GameM.World.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();

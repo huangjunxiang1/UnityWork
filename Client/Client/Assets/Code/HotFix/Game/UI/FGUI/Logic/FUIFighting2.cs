@@ -9,7 +9,6 @@ using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
-using Main;
 using Game;
 using Unity.Jobs;
 using Event;

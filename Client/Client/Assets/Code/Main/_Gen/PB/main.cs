@@ -1,5 +1,6 @@
+using Core;
+using Game;
 using System.Collections.Generic;
-using Main;
 
 namespace main
 {

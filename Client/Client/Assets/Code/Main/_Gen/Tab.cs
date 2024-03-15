@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
-using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
 
@@ -64,11 +64,11 @@ public class TabM_test2
     /// <summary>
     /// xxxx
     /// </summary>
-    public Vector2Int v2t { get; }
+    public int2 v2t { get; }
     /// <summary>
     /// xxxx
     /// </summary>
-    public Vector2Int[] v2t2 => getv2t2();
+    public int2[] v2t2 => getv2t2();
     /// <summary>
     /// xxxx
     /// </summary>
@@ -99,7 +99,7 @@ public class TabM_test2
     int _longValue2Idx; long[] _longValue2Tmp; long[] getlongValue2() { if (_longValue2Tmp == null) { dbuff.Seek(_longValue2Idx); _longValue2Tmp = dbuff.Readlongs(); } return _longValue2Tmp; }
     int _desIdx;
     int _des2Idx; string[] _des2Tmp; string[] getdes2() => _des2Tmp ??= TabM.__getstrings(_des2Idx);
-    int _v2t2Idx; Vector2Int[] _v2t2Tmp; Vector2Int[] getv2t2() { if (_v2t2Tmp == null) { dbuff.Seek(_v2t2Idx); _v2t2Tmp = dbuff.ReadVector2Ints(); } return _v2t2Tmp; }
+    int _v2t2Idx; int2[] _v2t2Tmp; int2[] getv2t2() { if (_v2t2Tmp == null) { dbuff.Seek(_v2t2Idx); _v2t2Tmp = dbuff.Readint2s(); } return _v2t2Tmp; }
     int _f2Idx; float[] _f2Tmp; float[] getf2() { if (_f2Tmp == null) { dbuff.Seek(_f2Idx); _f2Tmp = dbuff.Readfloats(); } return _f2Tmp; }
     int _b2Idx; bool[] _b2Tmp; bool[] getb2() { if (_b2Tmp == null) { dbuff.Seek(_b2Idx); _b2Tmp = dbuff.Readbools(); } return _b2Tmp; }
     int _arrsIdx; int[][] _arrsTmp; int[][] getarrs() { if (_arrsTmp == null) { dbuff.Seek(_arrsIdx); _arrsTmp = dbuff.Readintss(); } return _arrsTmp; }
@@ -114,7 +114,7 @@ public class TabM_test2
         buffer.Seek(buffer.Readint() + (this._longValue2Idx = buffer.Position));
         this._desIdx = buffer.Readint();
         buffer.Seek(buffer.Readint() + (this._des2Idx = buffer.Position));
-        this.v2t = buffer.ReadVector2Int();
+        this.v2t = buffer.Readint2();
         buffer.Seek(buffer.Readint() + (this._v2t2Idx = buffer.Position));
         this.f1 = buffer.Readfloat();
         buffer.Seek(buffer.Readint() + (this._f2Idx = buffer.Position));
@@ -204,8 +204,8 @@ public readonly struct _test2_ST
         len = buffer.Readint(); this.value2 = new UnsafeList<int>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) this.value2.Add(buffer.Readint());
         this.longValue = buffer.Readlong();
         len = buffer.Readint(); this.longValue2 = new UnsafeList<long>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) this.longValue2.Add(buffer.Readlong());
-        this.v2t = new int2(buffer.Readint(), buffer.Readint());
-        len = buffer.Readint(); this.v2t2 = new UnsafeList<int2>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) this.v2t2.Add(new int2(buffer.Readint(), buffer.Readint()));
+        this.v2t = buffer.Readint2();
+        len = buffer.Readint(); this.v2t2 = new UnsafeList<int2>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) this.v2t2.Add(buffer.Readint2());
         this.f1 = buffer.Readfloat();
         len = buffer.Readint(); this.f2 = new UnsafeList<float>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) this.f2.Add(buffer.Readfloat());
         this.b1 = buffer.Readbool();

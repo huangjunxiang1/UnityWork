@@ -15,6 +15,10 @@ static class Common
 
     public static FType GetFtype1(string s)
     {
+        if (s.Contains("int2")) return FType.fv2i;
+        if (s.Contains("int3")) return FType.fv3i;
+        if (s.Contains("float2")) return FType.fv2f;
+        if (s.Contains("float3")) return FType.fv3f;
         if (s.Contains("bool")) return FType.fbool;
         if (s.Contains("int")) return FType.fint;
         if (s.Contains("uint")) return FType.fuint;
@@ -22,10 +26,6 @@ static class Common
         if (s.Contains("ulong")) return FType.fulong;
         if (s.Contains("float")) return FType.ffloat;
         if (s.Contains("str")) return FType.fstring;
-        if (s.Contains("v2i")) return FType.fv2i;
-        if (s.Contains("v3i")) return FType.fv3i;
-        if (s.Contains("v2f")) return FType.fv2f;
-        if (s.Contains("v3f")) return FType.fv3f;
 
         throw new Exception("未识别类型=" + s);
     }
@@ -37,28 +37,16 @@ static class Common
     }
     public static string GetFTypeStr(string s)
     {
-        return s.Replace("str", "string")
-            .Replace("v2i", "Vector2Int")
-            .Replace("v3i", "Vector3Int")
-            .Replace("v2f", "Vector2")
-            .Replace("v3f", "Vector3");
+        return s.Replace("str", "string");
     }
     public static string GetFTypeStrECS(string s)
     {
         return s.Replace("str", "string")
-            .Replace("v2i", "int2")
-            .Replace("v3i", "int3")
-            .Replace("v2f", "float2")
-            .Replace("v3f", "float3")
             .Replace("[]", "");
     }
     public static string GetFRealType(string s)
     {
         return s.Replace("str", "string")
-            .Replace("v2i", "int")
-            .Replace("v3i", "int")
-            .Replace("v2f", "float")
-            .Replace("v3f", "float")
             .Replace("[]", "");
     }
     public static bool GetFv(DField f, string s, out DFieldValue fv)
