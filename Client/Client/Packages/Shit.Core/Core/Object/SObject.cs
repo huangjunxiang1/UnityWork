@@ -1,28 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Core
 {
     public class SObject : IDispose, IEvent, ITimer
     {
-        public SObject(World world, long rpc = 0)
+        public SObject(long rpc = 0)
         {
-            this.world = world;
-            this.gid = (((long)random.Next()) << 32) | (random.Next() & 0xffffffff);
+            this.gid = Util.RandomLong();
             this.rpc = rpc;
-
-            if (world != null)
-            {
-                world.ObjectManager.Add(this);
-                world.Event.RigisteEvent(this);
-                if (rpc != 0)
-                    world.Event.RigisteRPCEvent(rpc, this);
-                _timerRigisterd = world.Timer.RigisterTimer(this);
-            }
         }
 
-        static Random random = new((int)DateTime.Now.Ticks);
+        CoreWorld _world;
         bool _eventEnable = true;
         bool _timerRigisterd = false;
         Eventer _onDispose;
@@ -32,7 +24,45 @@ namespace Core
         public double value;
         public object data;
 
-        public World world { get; }
+        public virtual CoreWorld World
+        {
+            get => _world;
+            set
+            {
+                if (_world == value || this.Disposed) return;
+                if (_world != null)
+                {
+                    Loger.Error("所属世界不能切换");
+                    return;
+                }
+                _world = value;
+                if (value != null)
+                {
+                    value.Event.RigisteEvent(this);
+                    if (rpc != 0)
+                        value.Event.RigisteRPCEvent(rpc, this);
+                    _timerRigisterd = value.Timer.RigisterTimer(this);
+
+                    var types = ObjectPool.Get<List<Type>>();
+                    var type = this.GetType();
+                    types.Add(type);
+                    do
+                    {
+                        if (type == typeof(SObject)) break;
+                        type = type.BaseType;
+                        types.Add(type);
+                    } while (true);
+
+                    for (int i = types.Count - 1; i >= 0; i--)
+                    {
+                        value.System.Awake(types[i], this);
+                        if (this.Disposed) break;
+                    }
+                    types.Clear();
+                    ObjectPool.Return(types);
+                }
+            }
+        }
         /// <summary>
         /// 自增生成的ID
         /// </summary>
@@ -71,7 +101,7 @@ namespace Core
         /// <summary>
         /// 父节点
         /// </summary>
-        public STree Parent { get; internal set; }
+        public SObject Parent { get; internal set; }
 
         /// <summary>
         /// 根
@@ -95,7 +125,7 @@ namespace Core
             get
             {
                 int layer = 0;
-                STree parent = this.Parent;
+                SObject parent = this.Parent;
                 while (parent != null)
                 {
                     layer++;
@@ -113,8 +143,8 @@ namespace Core
             get
             {
                 if (Parent == null)
-                    return 0;
-                return Parent._children.IndexOf(this);
+                    return -1;
+                return Parent.GetChildIndex(this);
             }
         }
 
@@ -122,6 +152,22 @@ namespace Core
         /// dispose 监听
         /// </summary>
         public Eventer onDispose => _onDispose ??= new Eventer(this);
+
+        public virtual void Remove(SObject child) { }
+        public virtual int GetChildIndex(SObject child) => -1;
+        public T GetSibling<T>() where T : SObject
+        {
+            if (Parent is STree tree) return tree._children.Find(t => t is T) as T;
+            if (Parent is STree<T> tree2) return tree2._children.FirstOrDefault();
+            return default;
+        }
+        public T GetSibling<T>(Func<T, bool> test) where T : SObject
+        {
+            if (Parent is STree tree) return tree._children.Find(t => t is T t1 && test(t1)) as T;
+            if (Parent is STree<T> tree2) return tree2._children.Find(t => t is T t1 && test(t1));
+            return default;
+        }
+        public T As<T>() where T : SObject => this as T;
 
         public T AddComponent<T>() where T : SComponent, new()
         {
@@ -258,18 +304,18 @@ namespace Core
             return components.ContainsKey(type);
         }
 
-        protected SComponent AddComponentInternal(SComponent c)
+        internal SComponent AddComponentInternal(SComponent c)
         {
             c.Entity = this;
             components[c.GetType()] = c;
 
-            c.Entity.world.Event.RigisteEvent(c);
+            World.Event.RigisteEvent(c);
             if (this.rpc != 0)
-                c.Entity.world.Event.RigisteRPCEvent(rpc, c);
+                World.Event.RigisteRPCEvent(rpc, c);
 
-            SSystem.TryAddChangeHandler(c);
-            SSystem.TryAddUpdateHandler(c);
-            this.world.System.Awake(c.GetType(), this);
+            World.System.TryAddChangeHandler(c);
+            World.System.TryAddUpdateHandler(c);
+            World.System.Awake(c.GetType(), this);
             c.SetChange();
             return c;
         }
@@ -303,12 +349,11 @@ namespace Core
                 return;
             }
 
-            world.ObjectManager.Remove(this);
-            world.Event.RemoveEvent(this);
+            World.Event.RemoveEvent(this);
             if (this.rpc != 0)
-                world.Event.RemoveRPCEvent(this.rpc, this);
+                World.Event.RemoveRPCEvent(this.rpc, this);
             if (this._timerRigisterd)
-                world.Timer.RemoveTimer();
+                World.Timer.RemoveTimer();
 
             this.Disposed = true;
             if (this.Parent != null)
@@ -332,7 +377,7 @@ namespace Core
             } while (true);
 
             for (int i = types.Count - 1; i >= 0; i--)
-                this.world.System.Dispose(types[i], this);
+                World.System.Dispose(types[i], this);
             types.Clear();
             ObjectPool.Return(types);
 

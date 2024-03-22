@@ -1,25 +1,17 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 public static class ObjectPool
 {
     static class Pool<T> where T : class, new()
     {
-        static readonly Queue<T> pool = new();
+        static readonly ConcurrentQueue<T> pool = new();
         public static T Get()
         {
-            if (pool.Count > 0) return pool.Dequeue();
-            return new T();
-        }
-        public static void Return(T t) => pool.Enqueue(t);
-    }
-    class Pool2<T> where T : IList, new()
-    {
-        static readonly Queue<T> pool = new();
-        public static T Get()
-        {
-            if (pool.Count > 0) return pool.Dequeue();
+            if (pool.TryDequeue(out var t))
+                return t;
             return new T();
         }
         public static void Return(T t) => pool.Enqueue(t);

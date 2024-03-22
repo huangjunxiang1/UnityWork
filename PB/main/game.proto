@@ -1,0 +1,13 @@
+
+
+//MsgID=50@0
+message C2S_SyncTransform
+{
+   float2 dir=1;
+}
+//MsgID=50@1
+message S2C_SyncTransform
+{
+   float3 p = 1;
+   float4 r=2;
+}

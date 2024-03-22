@@ -7,30 +7,30 @@ using System.Runtime.InteropServices;
 
 namespace Core
 {
-    public class SSystem
+    internal class SSystem
     {
-        public SSystem(World world) => this.world = world;
+        public SSystem(CoreWorld world) => this.world = world;
 
-        static Dictionary<Type, List<Action<object, World>>> awakeHandle = new();
-        static Dictionary<Type, List<Action<object, World>>> disposeHandle = new();
-        static Dictionary<Type, List<Action<SComponent, World>>> enableHandle = new();
+        CoreWorld world;
+        Dictionary<Type, List<Action<object, CoreWorld>>> awakeHandle = new();
+        Dictionary<Type, List<Action<object, CoreWorld>>> disposeHandle = new();
+        Dictionary<Type, List<Action<SComponent, CoreWorld>>> enableHandle = new();
+        Dictionary<Type, List<Action<SObject>>> changeHandle = new();
 
-        static Dictionary<Type, List<Action<SObject>>> changeHandlerCreater = new();
-        static Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
+        Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
 
-        World world;
         HashSet<__ChangeHandle> changeHandles = ObjectPool.Get<HashSet<__ChangeHandle>>();
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
 
-        internal static void TryAddChangeHandler(SComponent c)
+        internal void TryAddChangeHandler(SComponent c)
         {
-            if (changeHandlerCreater.TryGetValue(c.GetType(), out var list))
+            if (changeHandle.TryGetValue(c.GetType(), out var list))
             {
                 for (int i = 0; i < list.Count; i++)
                     list[i].Invoke(c.Entity);
             }
         }
-        internal static void TryAddUpdateHandler(SComponent c)
+        internal void TryAddUpdateHandler(SComponent c)
         {
             if (updateHandlerCreater.TryGetValue(c.GetType(), out var list))
             {
@@ -38,16 +38,8 @@ namespace Core
                 {
                     var v = list[i].Invoke(c.Entity);
                     if (v != null)
-                        c.Entity.world.System.updateHandles.Enqueue(v);
+                        updateHandles.Enqueue(v);
                 }
-            }
-        }
-        internal void SetChange(SComponent c)
-        {
-            if (c._changeHandles != null)
-            {
-                for (int i = 0; i < c._changeHandles.Count; i++)
-                    changeHandles.Add(c._changeHandles[i]);
             }
         }
 
@@ -69,27 +61,35 @@ namespace Core
                 catch (Exception e) { Loger.Error("Dispose 出错 " + e); }
             }
         }
-        internal void Enable(Type type, SComponent c)
+        internal void Enable(SComponent c)
         {
-            if (!enableHandle.TryGetValue(type, out var list)) return;
+            if (!enableHandle.TryGetValue(c.GetType(), out var list)) return;
             for (int i = 0; i < list.Count; i++)
             {
                 try { list[i](c, world); }
                 catch (Exception e) { Loger.Error("Enable 出错 " + e); }
             }
         }
+        internal void Change(SComponent c)
+        {
+            for (int i = 0; i < c._changeHandles.Count; i++)
+                changeHandles.Add(c._changeHandles[i]);
+        }
 
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
         /// </summary>
-        public static void Init(List<MethodParseData> methods, List<Type> types)
+        internal void Load(List<MethodParseData> methods)
         {
             awakeHandle.Clear();
             disposeHandle.Clear();
             enableHandle.Clear();
+            changeHandle.Clear();
 
-            changeHandlerCreater.Clear();
             updateHandlerCreater.Clear();
+
+            changeHandles.Clear();
+            updateHandles.Clear();
 
             HashSet<Type> awake = new();
             HashSet<Type> dispose = new();
@@ -141,7 +141,7 @@ namespace Core
             foreach (var item in awake)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<object, World>)item.GetMethod(nameof(Awake<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, World>));
+                var action = (Action<object, CoreWorld>)item.GetMethod(nameof(Awake<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, CoreWorld>));
                 if (!awakeHandle.TryGetValue(ts[0], out var lst))
                     awakeHandle[ts[0]] = lst = new();
                 lst.Add(action);
@@ -149,7 +149,7 @@ namespace Core
             foreach (var item in dispose)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<object, World>)item.GetMethod(nameof(Dispose<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, World>));
+                var action = (Action<object, CoreWorld>)item.GetMethod(nameof(Dispose<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, CoreWorld>));
                 if (!disposeHandle.TryGetValue(ts[0], out var lst))
                     disposeHandle[ts[0]] = lst = new();
                 lst.Add(action);
@@ -157,7 +157,7 @@ namespace Core
             foreach (var item in enable)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<SComponent, World>)item.GetMethod(nameof(Enable<SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SComponent, World>));
+                var action = (Action<SComponent, CoreWorld>)item.GetMethod(nameof(Enable<SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SComponent, CoreWorld>));
                 if (!enableHandle.TryGetValue(ts[0], out var lst))
                     enableHandle[ts[0]] = lst = new();
                 lst.Add(action);
@@ -165,12 +165,12 @@ namespace Core
             foreach (var item in change)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<SObject>)item.GetMethod(nameof(Change<SComponent>.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
+                var action = (Action<SObject>)item.GetMethod(nameof(AnyChange<SComponent, SComponent>.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
                 for (int j = 0; j < ts.Length; j++)
                 {
                     var key = ts[j];
-                    if (!changeHandlerCreater.TryGetValue(key, out var lst))
-                        changeHandlerCreater[key] = lst = new();
+                    if (!changeHandle.TryGetValue(key, out var lst))
+                        changeHandle[key] = lst = new();
                     lst.Add(action);
                 }
             }

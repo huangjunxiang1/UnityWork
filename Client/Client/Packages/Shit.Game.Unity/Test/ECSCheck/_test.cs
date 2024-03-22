@@ -15,6 +15,7 @@ static class _test
         Dispose.test();
         Enable.test();
         Change.test();
+        AnyChange.test();
         Update.test();
     }
 }

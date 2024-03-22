@@ -34,12 +34,14 @@ MonoBehaviour:
   m_RedirectLimit: -1
   m_RetryCount: 0
   m_BuildPath:
-    m_Id: 2528147e4a09eae40b411883f7db7bc7
+    m_Id: 5255b81bf661b5243af6384eb62d437c
   m_LoadPath:
-    m_Id: 0c5d26daf710df047975bc4d3c3f849f
+    m_Id: fa057cb587f75284991520db9c60718c
   m_BundleMode: 0
   m_AssetBundleProviderType:
     m_AssemblyName: Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     m_ClassName: UnityEngine.ResourceManagement.ResourceProviders.AssetBundleProvider
+  m_UseDefaultSchemaSettings: 0
+  m_SelectedPathPairIndex: 0
   m_BundleNaming: 0
   m_AssetLoadMode: 0

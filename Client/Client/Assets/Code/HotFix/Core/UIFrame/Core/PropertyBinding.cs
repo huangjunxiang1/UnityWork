@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Core;
+using Game;
+using System;
 
 public abstract class UIPropertyBinding<T, V>
 {
@@ -20,13 +22,13 @@ public abstract class UIPropertyBinding<T, V>
         void Event(K k) => this.View(getter(k));
         var act = new Action<K>(Event);
         this.getter = act;
-        GameM.Event.RigisteEvent(act);
-        act(GameM.Data.Get<K>());
+        GameWorld.World.Event.RigisteEvent(act);
+        act(GameWorld.World.Data.Get<K>());
     }
     protected virtual void View(V v) { }
     public virtual void Dispose()
     {
         if (getter != null)
-            GameM.Event.RemoveEvent(getter);
+            GameWorld.World.Event.RemoveEvent(getter);
     }
 }

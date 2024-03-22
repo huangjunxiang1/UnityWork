@@ -1,20 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component size="1334,750" opaque="false">
-  <controller name="c1" pages="0,,1,,2,,3,,4," selected="0"/>
   <displayList>
-    <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
+    <component id="n2_n68q" name="Close" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
       <relation target="" sidePair="right-right,top-top"/>
     </component>
-    <component id="n8_be98" name="_demo" src="qgu25" fileName="Common/comBox/CB.xml" xy="52,47" size="133,56">
-      <ComboBox title="demo" visibleItemCount="10" selectionController="c1">
-        <item title="0_清空"/>
-        <item title="1_角色控制"/>
-        <item title="2_角色+摄像机跟随"/>
-      </ComboBox>
+    <list id="n10_ir2n" name="_rooms" xy="58,60" size="227,540" overflow="scroll" lineGap="5" defaultItem="ui://zvziziwiqgu27">
+      <item/>
+      <item/>
+      <item/>
+    </list>
+    <text id="n11_uhb6" name="n11" xy="93,20" size="157,32" fontSize="12" align="center" vAlign="middle" autoSize="none" text="房间"/>
+    <component id="n12_uhb6" name="_create" src="qgu27" fileName="Common/btn/btn.xml" xy="590,206" size="135,42">
+      <Button title="创建房间"/>
     </component>
-    <component id="n9_be98" name="_reversion" src="qgu27" fileName="Common/btn/btn.xml" xy="51,149" size="123,45">
-      <gearDisplay controller="c1" pages="1"/>
-      <Button title="逆转方向"/>
+    <graph id="n14_uhb6" name="n14" xy="565,266" size="181,53" type="rect"/>
+    <text id="n13_uhb6" name="_name" xy="565,266" size="181,53" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true" prompt="房间名字"/>
+    <component id="n16_uhb6" name="_server" src="qgu27" fileName="Common/btn/btn.xml" xy="336,200" size="154,47">
+      <Button title="作为服务器"/>
+    </component>
+    <component id="n17_uhb6" name="_cServer" src="qgu27" fileName="Common/btn/btn.xml" xy="337,298" size="154,47">
+      <Button title="链接服务器"/>
+    </component>
+    <component id="n18_uhb6" name="_ref" src="qgu27" fileName="Common/btn/btn.xml" xy="302,60" size="121,30">
+      <Button title="刷新服务器列表"/>
     </component>
   </displayList>
   <transition name="open">

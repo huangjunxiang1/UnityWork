@@ -1,8 +1,9 @@
 {
-    "name": "Shit.Game.Unity",
+    "name": "Shit.Game.UnityRuntime",
     "rootNamespace": "Shit",
     "references": [
         "GUID:518372cc3fa78094fb8293a6ad882b10",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
         "GUID:ececc46d025df4f498fdf7bec5957489",
         "GUID:2fbd3b3a606f3f0428d332f56568d6f3",
         "GUID:84651a3751eca9349aac36a66bba901b",

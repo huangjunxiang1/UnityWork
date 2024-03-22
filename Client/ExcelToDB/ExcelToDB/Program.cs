@@ -10,7 +10,13 @@ class Program
     public static bool debug = true;
 
     public static bool compress = true;
-    public static string assetPath = Environment.CurrentDirectory + "/../../../../../Client/Assets/";
+
+    public static string mainCodePath = Environment.CurrentDirectory + "/../../../../../Client/Assets/Code/Main/_Gen/";
+    public static string hotCodePath = Environment.CurrentDirectory + "/../../../../../Client/Assets/Code/HotFix/_Gen/";
+
+    public static string assetsPath = Environment.CurrentDirectory + "/../../../../../Client/Assets/Res/Config/Tabs/";
+    public static string assetsPath2 = Environment.CurrentDirectory + "/../../../../../../Server/Tabs/";
+
     public static string excelPath = Environment.CurrentDirectory + "/../../../../../../Excel/";
     static void Main(string[] args)
     {
@@ -19,11 +25,16 @@ class Program
         if (!debug)
         {
             compress = bool.Parse(Environment.GetEnvironmentVariable(nameof(compress)));
-            assetPath = Environment.GetEnvironmentVariable(nameof(assetPath));
+            mainCodePath = Environment.GetEnvironmentVariable(nameof(mainCodePath));
+            hotCodePath = Environment.GetEnvironmentVariable(nameof(hotCodePath));
+            assetsPath = Environment.GetEnvironmentVariable(nameof(assetsPath));
+            assetsPath2 = Environment.GetEnvironmentVariable(nameof(assetsPath2));
             excelPath = Environment.GetEnvironmentVariable(nameof(excelPath));
         }
 
-        foreach (var item in Directory.GetFiles(assetPath + "/Res/Config/Tabs/", "*.bytes"))
+        foreach (var item in Directory.GetFiles(assetsPath, "*.bytes"))
+            File.Delete(item);
+        foreach (var item in Directory.GetFiles(assetsPath2, "*.bytes"))
             File.Delete(item);
 
         ExcelPackage.LicenseContext = LicenseContext.Commercial;
@@ -32,8 +43,9 @@ class Program
             CodeGen gen = new CodeGen();
             gen.name = "TabM";
             gen.excelPath = excelPath + "/main";
-            gen.codePath = assetPath + "/Code/Main/_Gen/Tab";
-            gen.dataPath = assetPath + "/Res/Config/Tabs/TabM";
+            gen.codePath = mainCodePath;
+            gen.dataPath = assetsPath;
+            gen.dataPath2 = assetsPath2;
             gen.genMapping = true;
             gen.genEcs = true;
             gen.Gen();
@@ -44,8 +56,9 @@ class Program
             CodeGen gen = new CodeGen();
             gen.name = "TabL";
             gen.excelPath = excelPath + "/hot";
-            gen.codePath = assetPath + "/Code/HotFix/_Gen/Tab";
-            gen.dataPath = assetPath + "/Res/Config/Tabs/TabL";
+            gen.codePath = hotCodePath;
+            gen.dataPath = assetsPath;
+            gen.dataPath2 = assetsPath2;
             gen.Gen();
         }
 
@@ -133,7 +146,7 @@ class Program
                     buffer.Write(item.kv2[i].v);
                 }
 
-                File.WriteAllBytes(assetPath + $"/Res/Config/Tabs/Language_{item.name}.bytes", buffer.ToBytes());
+                File.WriteAllBytes(assetsPath + $"/Language_{item.name}.bytes", buffer.ToBytes());
             }
         }
 

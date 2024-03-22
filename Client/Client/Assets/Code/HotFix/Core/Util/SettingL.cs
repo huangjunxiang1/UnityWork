@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core;
 using Event;
 using FairyGUI;
 using Game;
@@ -21,8 +22,8 @@ static partial class SettingL
             {
                 _uiModel = value;
 
-                GameL.UI.UGUIRoot.gameObject.SetActive(value == UIModel.UGUI);
-                GameL.UI.UGUICamera.gameObject.SetActive(value == UIModel.UGUI);
+                UI.Inst.UGUIRoot.gameObject.SetActive(value == UIModel.UGUI);
+                UI.Inst.UGUICamera.gameObject.SetActive(value == UIModel.UGUI);
 
                 GRoot.inst.visible = value == UIModel.FGUI;
                 StageCamera.main.gameObject.SetActive(value == UIModel.FGUI);
@@ -54,6 +55,6 @@ static partial class SettingL
 
         if (buff.ReadHeaderInfo())
             LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefCore.Debug);
-        GameM.Event.RunEvent(new EC_LanguageChange());
+        GameWorld.World.Event.RunEvent(new EC_LanguageChange());
     }
 }

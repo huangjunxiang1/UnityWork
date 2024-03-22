@@ -11,31 +11,37 @@ internal class Change
     public static void test()
     {
         change_TestObj o = new();
+        GameWorld.Root.AddChild(o);
 
         o.AddComponent<c_1>();
-        GameM.Update();
+        GameWorld.World.Update(0);
         if (o.v != 1) throw new System.Exception();
 
         o.AddComponent<c_2>();
-        GameM.Update();
-        if (o.v != 3) throw new System.Exception();
+        GameWorld.World.Update(0);
+        if (o.v != 2) throw new System.Exception();
 
         o.GetComponent<c_1>().SetChange();
-        GameM.Update();
+        GameWorld.World.Update(0);
+        if (o.v != 4) throw new System.Exception();
+
+        o.GetComponent<c_2>().SetChange();
+        GameWorld.World.Update(0);
         if (o.v != 5) throw new System.Exception();
 
         o.RemoveComponent<c_1>();
-        GameM.Update();
-        if (o.v != 5) throw new System.Exception();
+        o.GetComponent<c_2>().SetChange();
+        GameWorld.World.Update(0);
+        if (o.v != 6) throw new System.Exception();
 
         o.Dispose();
-        GameM.Update();
-        if (o.v != 5) throw new System.Exception();
+        GameWorld.World.Update(0);
+        if (o.v != 6) throw new System.Exception();
     }
 
     class c_1 : SComponent { }
     class c_2 : SComponent { }
-    class change_TestObj : SUnityObject
+    class change_TestObj : SObject
     {
         public int v = 0;
         [Event]
@@ -47,5 +53,4 @@ internal class Change
         [Event]
         void change_obj(Change<c_1, c_2, AttributeComponent> a) => v++;
     }
-
 }

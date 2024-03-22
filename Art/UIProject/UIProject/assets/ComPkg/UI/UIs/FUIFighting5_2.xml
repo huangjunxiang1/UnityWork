@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1334,750" opaque="false">
+  <displayList>
+    <component id="n2_n68q" name="Close" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
+      <relation target="" sidePair="right-right,top-top"/>
+    </component>
+  </displayList>
+  <transition name="open">
+    <item time="0" type="XY" target="n2_n68q" value="1071,-"/>
+    <item time="0" type="XY" target="n2_n68q" tween="true" startValue="1722,-" endValue="1067,-" duration="8"/>
+  </transition>
+</component>

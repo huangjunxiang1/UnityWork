@@ -5,17 +5,37 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using DG.Tweening;
+using Event;
+using Game;
+using Core;
 
-[Game.UIConfig(50, CloseIfChangeScene = false, HideIfOpenOtherUI = false)]
+[UIConfig(50, CloseIfChangeScene = false, HideIfOpenOtherUI = false)]
 partial class UUILoading
 {
+    [Event(-100, Queue = true)]
+    static async STask EC_OutScene(EC_OutScene e)
+    {
+        if (SettingL.UIModel == UIModel.UGUI)
+            await UI.Inst.OpenAsync<UUILoading>();
+    }
+    [Event(100, Queue = true)]
+    static async STask EC_InScene(EC_InScene e)
+    {
+        var ui = UI.Inst.GetChild<UUILoading>();
+        if (ui != null)
+        {
+            ui.cur = ui.max;
+            //ui._fillImage.fi = 1;
+            await STask.Delay(1000);
+            ui.Dispose();
+        }
+    }
+
     float cur = 0;
-    float max = 0.1f;
+    float max = 0.7f;
 
     protected override void OnEnter(params object[] data)
     {
-        max = Convert.ToSingle(data[0]);
-
         refView();
     }
 
@@ -29,7 +49,7 @@ partial class UUILoading
             //_fillImage.fillAmount = cur;
             if (cur >= 1)
             {
-                GameM.Timer.Add(2, 1, () =>
+                World.Timer.Add(2, 1, () =>
                 {
                     this.Dispose();
                 });

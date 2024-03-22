@@ -12,12 +12,15 @@ class EventTest
         var o = new ObjTest();
         var o2 = new ObjTest2();
         o2.ss = new();
-        GameM.World.AddChild(o);
-        GameM.World.AddChild(o2);
-        GameM.Event.RigisteEvent<EC_Event>(t0, 2);
 
-        GameM.Event.RunEvent(new EC_Event());
-        GameM.Event.RunEvent(new Awake<int>(1));
+        GameWorld.Root.AddChild(o);
+        GameWorld.Root.AddChild(o2);
+        GameWorld.Root.AddChild(o2.ss);
+
+        GameWorld.World.Event.RigisteEvent<EC_Event>(t0, 2);
+
+        GameWorld.World.Event.RunEvent(new EC_Event());
+        GameWorld.World.Event.RunEvent(new Awake<int>(1));
 
         o2.test();
 
@@ -26,10 +29,10 @@ class EventTest
             try
             {
                 var e2 = new EC_Event2();
-                await GameM.Event.RunEventAsync(e2);
+                await GameWorld.World.Event.RunEventAsync(e2);
                 if (e2.v1 != 1) throw new System.Exception();
                 var e3 = new EC_Event3();
-                await GameM.Event.RunEventAsync(e3);
+                await GameWorld.World.Event.RunEventAsync(e3);
                 if (e3.v1 != 3) throw new System.Exception();
                 isEnd = true;
             }
@@ -40,8 +43,7 @@ class EventTest
             finally
             {
                 await Task.Delay(100);
-                GameM.World.DisposeAllChildren();
-                GameM.Close();
+                GameWorld.World.Dispose();
             }
         }
         test();
@@ -83,7 +85,7 @@ class EventTest
         e.value++;
         testValue++;
     }
-    class ObjTest : SUnityObject
+    class ObjTest : SObject
     {
         [Event(1)]
         void t1(EC_Event e)
@@ -100,7 +102,7 @@ class EventTest
             testValue++;
         }
     }
-    class ObjTest2_b : SUnityObject
+    class ObjTest2_b : SObject
     {
         [Event] private EC_Event e11;
         [Event] public EC_Event e22 { get; private set; }

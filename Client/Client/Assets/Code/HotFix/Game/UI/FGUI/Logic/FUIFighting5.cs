@@ -1,178 +1,100 @@
 ﻿using Cinemachine;
 using Core;
+using FairyGUI;
 using Game;
+using main;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Mathematics;
 using UnityEngine;
 
 partial class FUIFighting5
 {
+    bool connected = false;
     protected override void OnEnter(params object[] data)
     {
         base.OnEnter(data);
 
-        this._demo.onChanged.Add(demo);
-        _btnBack.onClick.Add(_clickBack);
-        _reversion.onClick.Add(_revesion);
-    }
-    void _clickBack()
-    {
-        _ = GameL.Scene.InLoginScene();
-    }
+        this._create.onClick.Add(on_create);
+        this._rooms.onClickItem.Add(on_click);
+        this._server.onClick.Add(on_server);
+        this._cServer.onClick.Add(on_cServer);
+        this._ref.onClick.Add(on_ref);
 
-    List<PlayerCTRCompnent> list = new();
-    SGameObject s2;
-    int last = -1;
-    async void demo()
+        this._rooms.numItems = 0;
+    }
+    protected override void OnExit()
     {
-        if (this._demo.selectedIndex == 1)
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                var s = new SGameObject();
-                s.Transform.position = new Vector3(UnityEngine.Random.Range(0f, 5f), 0, UnityEngine.Random.Range(0f, 5f));
-                list.Add(s.AddComponent<PlayerCTRCompnent>());
-                await s.GameObject.LoadGameObjectAsync("3D/Model/Unit/chan.prefab");
-                await STask.Delay(5000);
-            }
-            for (int i = 0; i < list.Count; i++)
-            {
-                list[i].Dispose();
-                await STask.Delay(5000);
-            }
-        }
-        else if (last == 1)
-        {
-            for (int i = 0; i < list.Count; i++)
-                list[i].Entity.Dispose();
-            list.Clear();
-        }
-
-        if (this._demo.selectedIndex == 2)
-        {
-            s2 = new SGameObject();
-            await s2.GameObject.LoadGameObjectAsync("3D/Model/Unit/chan.prefab");
-            s2.AddComponent<PlayerCTRCompnent>();
-            s2.AddComponent<CameraFollowComponent>();
-        }
-        else if (last == 2)
-        {
-            s2.Dispose();
-            PlayerCTRCompnent.code?.Dispose();
-            PlayerCTRCompnent.code = new PlayerCTRCompnent.move1();
-        }
-        last = this._demo.selectedIndex;
+        base.OnExit();
     }
 
-    void _revesion()
+    void review()
     {
-        PlayerCTRCompnent.code?.Dispose();
+        var info = GameWorld.World.Data.Get<S2C_RoomList>();
+        this._rooms.numItems = info.lst.Count;
+        for (int i = 0; i < this._rooms.numItems; i++)
+        {
+            var c = this._rooms.GetChildAt(i);
+            var d = info.lst[i];
 
-        if (PlayerCTRCompnent.code is PlayerCTRCompnent.move1)
-            PlayerCTRCompnent.code = new PlayerCTRCompnent.move2();
-        else
-            PlayerCTRCompnent.code = new PlayerCTRCompnent.move1();
-    }
-
-    class PlayerCTRCompnent : SComponent
-    {
-        const float speed = 20;
-        public static SObject code = new move1();
-        public class move1 : SUnityObject
-        {
-            [Event]
-            void update(Update<TransformComponent, PlayerCTRCompnent> a)
-            {
-                if (Input.GetKey(KeyCode.W))
-                {
-                    a.t.position += Vector3.forward * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, Vector3.forward, Time.deltaTime * speed);
-                }
-                if (Input.GetKey(KeyCode.S))
-                {
-                    a.t.position -= Vector3.forward * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, -Vector3.forward, Time.deltaTime * speed);
-                }
-                if (Input.GetKey(KeyCode.D))
-                {
-                    a.t.position += Vector3.right * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, Vector3.right, Time.deltaTime * speed);
-                }
-                if (Input.GetKey(KeyCode.A))
-                {
-                    a.t.position -= Vector3.right * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, -Vector3.right, Time.deltaTime * speed);
-                }
-            }
-        }
-        public class move2 : SUnityObject
-        {
-            [Event]
-            void update(Update<TransformComponent, PlayerCTRCompnent> a)
-            {
-                if (Input.GetKey(KeyCode.W))
-                {
-                    a.t.position += -Vector3.forward * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, Vector3.forward, Time.deltaTime * speed);
-                }
-                if (Input.GetKey(KeyCode.S))
-                {
-                    a.t.position -= -Vector3.forward * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, -Vector3.forward, Time.deltaTime * speed);
-                }
-                if (Input.GetKey(KeyCode.D))
-                {
-                    a.t.position += -Vector3.right * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, Vector3.right, Time.deltaTime * speed);
-                }
-                if (Input.GetKey(KeyCode.A))
-                {
-                    a.t.position -= -Vector3.right * 2 * Time.deltaTime;
-                    a.t.forward = Vector3.Lerp(a.t.forward, -Vector3.right, Time.deltaTime * speed);
-                }
-            }
-        }
-        [Event]
-        static void awake(Awake<PlayerCTRCompnent, PlayingComponent> a)
-        {
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
-            {
-                a.t2.Play("RUN00_F");
-                return;
-            }
-            a.t2.Play("WAIT01");
-        }
-        [Event]
-        static void dispose(Dispose<PlayerCTRCompnent, PlayingComponent> a)
-        {
-            a.t2.Play("WAIT01");
-        }
-        [Event]
-        static void update(Update<PlayingComponent, PlayerCTRCompnent> a)
-        {
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.D))
-            {
-                a.t.Play("RUN00_F");
-                return;
-            }
-            if (!Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.D))
-            {
-                a.t.Play("WAIT01");
-                return;
-            }
+            c.text = d.name + " 人数:" + d.infos.Count;
         }
     }
-    class CameraFollowComponent : SComponent
+    async void on_create()
     {
-        [Event]
-        static void awake(Awake<CameraFollowComponent, GameObjectComponent> t)
+        if (string.IsNullOrEmpty(this._name.text)|| !connected) return;
+        C2S_CreateRoom c = new();
+        c.name = this._name.text;
+        await GameWorld.World.Net.SendAsync(c);
+        on_ref();
+    }
+    async void on_click(EventContext e)
+    {
+        int index = this._rooms.GetChildIndex((GObject)e.data);
+        var d = GameWorld.World.Data.Get<S2C_RoomList>().lst[index];
+        var c = new C2S_JoinRoom();
+        c.id = d.id;
+        var s = (S2C_JoinRoom)await GameWorld.World.Net.SendAsync(c);
+        int id = 10001;
+        await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+        for (int i = 0; i < s.units.Count; i++)
         {
-            BaseCamera.SetCamera(new LockingCamera(Camera.main.GetComponent<CinemachineBrain>()));
-            BaseCamera.Current.Init(t.t2.gameRoot);
-            BaseCamera.Current.EnableCamera();
+            var v = s.units[i];
+            SGameObject go = new(v.id);
+            GameWorld.World.Scene.AddChild(go);
+            _ = go.GameObject.LoadGameObjectAsync("3D/Model/Unit/chan.prefab");
+            go.Transform.position = v.t.p;
+            go.Transform.rotation = v.t.r;
+            if (go.rpc == s.myid)
+                go.AddComponent<TransformClientInputComponent>();
+            go.Attribute.Values = v.attribute;
         }
+        await UI.Inst.OpenAsync<FUIFighting5_2>();
+    }
+    async void on_server()
+    {
+        GameWorldServer.Close();
+        await GameWorldServer.Init();
+        var net = new STCP(Util.ToIPEndPoint("127.0.0.1", SettingM.serverPort));
+        await GameWorld.World.Net.Connect(net);
+        connected = true;
+        on_ref();
+    }
+    async void on_cServer()
+    {
+        var net = new STCP(Util.ToIPEndPoint("127.0.0.1", SettingM.serverPort));
+        await GameWorld.World.Net.Connect(net);
+        connected = true;
+        on_ref();
+    }
+    async void on_ref()
+    {
+        await GameWorld.World.Net.SendAsync(new C2S_RoomList());
+        this._server.enabled = false;
+        this._cServer.enabled = false;
+        this.review();
     }
 }

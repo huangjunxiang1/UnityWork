@@ -31,7 +31,7 @@ public struct STaskBuilder
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
         this._task = new();
-        this._task.MakeAutoCancel(CoreTypes.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
+        //this._task.MakeAutoCancel(CoreTypes.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
         stateMachine.MoveNext();
     }
     public void SetStateMachine(IAsyncStateMachine stateMachine)

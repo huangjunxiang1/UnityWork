@@ -1,4 +1,4 @@
-using UnityEngine;
+锘縰sing UnityEngine;
 using Game;
 using System.Threading;
 using Core;
@@ -11,7 +11,11 @@ public class GameStart : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _ = ThreadSynchronizationContext.Instance;
+        var tsc = ThreadSynchronizationContext.GetOrCreate(Thread.CurrentThread.ManagedThreadId);
+        ThreadSynchronizationContext.SetMainThread(tsc);
+        Loger.__get__log += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.Log(o + Loger.GetStackTrace()));
+        Loger.__get__warning += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogWarning(o + Loger.GetStackTrace()));
+        Loger.__get__error += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogError(o + Loger.GetStackTrace()));
 
         DontDestroyOnLoad(this.gameObject);
 
@@ -25,7 +29,7 @@ public class GameStart : MonoBehaviour
         if (AppSetting.Runtime == CodeRuntime.Native)
         {
 #if Assembly
-            Loger.Error("当前Runtime宏定义不正确");
+            Loger.Error("褰撳墠Runtime瀹忓畾涔変笉姝ｇ‘");
 #else
             Program.Main();
 #endif
@@ -33,7 +37,7 @@ public class GameStart : MonoBehaviour
         else if (AppSetting.Runtime == CodeRuntime.Assembly)
         {
 #if !Assembly
-            Loger.Error("当前Runtime宏定义不正确");
+            Loger.Error("褰撳墠Runtime瀹忓畾涔変笉姝ｇ‘");
 #else
             System.Reflection.Assembly asm;
             if (AppSetting.Debug)

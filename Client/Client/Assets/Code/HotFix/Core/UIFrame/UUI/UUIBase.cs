@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Game;
+using Core;
 abstract class UUIBase : UIBase
 {
     bool isShowing = false;
@@ -13,7 +14,7 @@ abstract class UUIBase : UIBase
     STask hideTask;
 
     public abstract Canvas Canvas { get; }
-    public abstract RectTransform UI { get; }
+    public abstract RectTransform ui { get; }
     public sealed override int sortOrder
     {
         get { return this.Canvas.sortingOrder; }
@@ -21,8 +22,8 @@ abstract class UUIBase : UIBase
     }
     public sealed override bool isShow
     {
-        get { return this.UI.gameObject.activeSelf; }
-        set { this.UI.gameObject.SetActive(value); }
+        get { return this.ui.gameObject.activeSelf; }
+        set { this.ui.gameObject.SetActive(value); }
     }
 
     public sealed override async void Hide(bool playAnimation = true, Action callBack = null)
@@ -38,7 +39,7 @@ abstract class UUIBase : UIBase
         base.Hide(playAnimation,callBack);
         if (playAnimation)
         {
-            Animation ani = this.UI.GetComponent<Animation>();
+            Animation ani = this.ui.GetComponent<Animation>();
             if (ani)
             {
                 if (ani.GetClip("close") != null)
@@ -48,7 +49,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    GameM.Timer.Add(ani["close"].length + 0.1f, 1, () =>
+                    World.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -65,7 +66,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -89,7 +90,7 @@ abstract class UUIBase : UIBase
         base.HideAsync(playAnimation);
         if (playAnimation)
         {
-            Animation ani = this.UI.GetComponent<Animation>();
+            Animation ani = this.ui.GetComponent<Animation>();
             if (ani)
             {
                 ani.Stop();
@@ -100,7 +101,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    GameM.Timer.Add(ani["close"].length + 0.1f, 1, () =>
+                    World.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -116,7 +117,7 @@ abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     UIHelper.EnableUIInput(false);
-                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         UIHelper.EnableUIInput(true);
@@ -144,7 +145,7 @@ abstract class UUIBase : UIBase
         base.Show(playAnimation,callBack);
         if (playAnimation)
         {
-            Animation ani = this.UI.GetComponent<Animation>();
+            Animation ani = this.ui.GetComponent<Animation>();
             if (ani)
             {
                 ani.Stop();
@@ -153,7 +154,7 @@ abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     UIHelper.EnableUIInput(false);
-                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isShowing = false;
                         UIHelper.EnableUIInput(true);
@@ -176,7 +177,7 @@ abstract class UUIBase : UIBase
         base.ShowAsync(playAnimation);
         if (playAnimation)
         {
-            Animation ani = this.UI.GetComponent<Animation>();
+            Animation ani = this.ui.GetComponent<Animation>();
             if (ani)
             {
                 ani.Stop();
@@ -185,7 +186,7 @@ abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     UIHelper.EnableUIInput(false);
-                    GameM.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         UIHelper.EnableUIInput(true);
                         this.isShow = true;
@@ -200,8 +201,8 @@ abstract class UUIBase : UIBase
     public override void Dispose()
     {
         //ui不做池管理
-        if (this.UI)
-            this.Hide(true, () => SAsset.Release(this.UI.gameObject));
+        if (this.ui)
+            this.Hide(true, () => SAsset.Release(this.ui.gameObject));
         base.Dispose();
     }
 }

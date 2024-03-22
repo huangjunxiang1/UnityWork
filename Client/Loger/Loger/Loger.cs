@@ -10,6 +10,7 @@ public static class Loger
     public static Action<object> __get__error;
 
     [Conditional("DebugEnable")]
+    [Conditional("DEBUG")]
     [DebuggerHidden]
     public static void Log(object o)
     {
@@ -17,6 +18,7 @@ public static class Loger
     }
 
     [Conditional("DebugEnable")]
+    [Conditional("DEBUG")]
     [DebuggerHidden]
     public static void Warning(object o)
     {
@@ -24,6 +26,7 @@ public static class Loger
     }
 
     [Conditional("DebugEnable")]
+    [Conditional("DEBUG")]
     [DebuggerHidden]
     public static void Error(object o)
     {
@@ -31,6 +34,7 @@ public static class Loger
     }
 
     [Conditional("DebugEnable")]
+    [Conditional("DEBUG")]
     [DebuggerHidden]
     public static void LogStackTrace()
     {

@@ -33,4 +33,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: InternalsVisibleTo("Shit.Game.UnityTest")]
 [assembly: InternalsVisibleTo("Shit.Game.UnityEditor")]
-[assembly: AssemblyIncludedToRuntimeShit(-50)]
+[assembly: AssemblyIncludedToShitRuntime(-50)]

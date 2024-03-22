@@ -12,26 +12,28 @@ internal class Update
     {
         update_value = 0;
 
-        var update_o = new SUnityObject();
-        update_o.AddComponent<update_c1>();
-        GameM.Update();
+        var o = new SObject();
+        GameWorld.Root.AddChild(o);
+
+        o.AddComponent<update_c1>();
+        GameWorld.World.Update(0);
         if (update_value != 1) throw new System.Exception();
 
-        update_o.AddComponent<update_c2>();
-        GameM.Update();
+        o.AddComponent<update_c2>();
+        GameWorld.World.Update(0);
         if (update_value != 4) throw new System.Exception();
 
-        update_o.GetComponent<update_c1>().Enable = false;
-        GameM.Update();
+        o.GetComponent<update_c1>().Enable = false;
+        GameWorld.World.Update(0);
         if (update_value != 5) throw new System.Exception();
 
-        update_o.GetComponent<update_c1>().Enable = true;
-        update_o.RemoveComponent<update_c2>();
-        GameM.Update();
+        o.GetComponent<update_c1>().Enable = true;
+        o.RemoveComponent<update_c2>();
+        GameWorld.World.Update(0);
         if (update_value != 6) throw new System.Exception();
 
-        update_o.Dispose();
-        GameM.Update();
+        o.Dispose();
+        GameWorld.World.Update(0);
         if (update_value != 6) throw new System.Exception();
     }
 

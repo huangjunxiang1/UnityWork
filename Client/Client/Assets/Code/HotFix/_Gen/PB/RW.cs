@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Core;
+using Unity.Mathematics;
 
 namespace hot
 {

@@ -12,7 +12,6 @@ using System;
 using TMPro;
 using UnityEngine.InputSystem;
 using static UnityEditor.Progress;
-using Unity.Sentis.Layers;
 using Unity.Entities.UniversalDelegates;
 using UnityEngine.Rendering;
 using Mono.Cecil.Cil;
@@ -101,7 +100,7 @@ public class Tool
                 code.AppendLine(@"");
                 code.AppendLine(@"    protected sealed override void Binding()");
                 code.AppendLine(@"    {");
-                code.AppendLine(@"        UnityEngine.RectTransform ui = this.UI;");
+                code.AppendLine(@"        UnityEngine.RectTransform ui = this.ui;");
                 code.AppendLine($"        UnityEngine.Transform c;");
                 code.Append(getUICode.ToString());
                 code.AppendLine(@"    }");
@@ -276,7 +275,7 @@ public class Tool
 
                     code.AppendLine($"    protected sealed override void Binding()");
                     code.AppendLine("    {");
-                    code.AppendLine("        GComponent ui = this.UI;");
+                    code.AppendLine("        GComponent ui = this.ui;");
                     code.Append(bindingCode.ToString());
                     code.AppendLine("    }");
                     code.AppendLine("    public override void Dispose()");
@@ -421,7 +420,7 @@ public class Tool
 
             code.AppendLine($"    protected sealed override void Binding()");
             code.AppendLine("    {");
-            code.AppendLine("        GComponent ui = this.UI;");
+            code.AppendLine("        GComponent ui = this.ui;");
             code.Append(bindingCode.ToString());
             code.AppendLine("    }");
             code.AppendLine("    public override void Dispose()");

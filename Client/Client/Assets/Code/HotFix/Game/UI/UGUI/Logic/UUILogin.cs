@@ -1,4 +1,5 @@
-﻿using Event;
+﻿using Core;
+using Event;
 using Game;
 using System;
 using System.Collections.Generic;
@@ -49,14 +50,14 @@ partial class UUILogin
         if (v == 0)
         {
             SettingL.UIModel = UIModel.FGUI;
-            await GameL.UI.OpenAsync<FUILogin>();
+            await UI.Inst.OpenAsync<FUILogin>();
             this.Dispose();
         }
     }
     int v = 5;
     void login()
     {
-        GameM.Event.RunEvent(new EC_InScene() { sceneId = ++v });
+        World.Event.RunEvent(new EC_InScene() { sceneId = ++v });
         //ugui 只做个展示  实际使用fgui
     }
 }

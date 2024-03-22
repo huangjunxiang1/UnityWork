@@ -33,7 +33,8 @@ internal class Gen
         string[] cmdSplitStr = new string[] { "=", "@" };
 
         rw.AppendLine("using System.Collections.Generic;");
-        rw.AppendLine("using Main;");
+        rw.AppendLine("using Core;");
+        rw.AppendLine("using Unity.Mathematics;");
         rw.AppendLine();
 
         HashSet<string> enums = new HashSet<string>();
@@ -108,7 +109,8 @@ internal class Gen
 
             df.Clear();
             df.AppendLine("using System.Collections.Generic;");
-            df.AppendLine("using Main;");
+            df.AppendLine("using Core;");
+            df.AppendLine("using Unity.Mathematics;");
             df.AppendLine();
             df.AppendLine($"namespace {nameSpece}");
             df.AppendLine("{");
@@ -224,7 +226,7 @@ internal class Gen
                             var arr = ss.Split("//", StringSplitOptions.RemoveEmptyEntries);
                             string des = arr.Length > 1 ? arr[1] : null;
 
-                            var arr2 = arr[0].Split(new char[] { '=', ';', ' ', '<', '>', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                            var arr2 = arr[0].Split(new char[] { '\t', '=', ';', ' ', '<', '>', ',' }, StringSplitOptions.RemoveEmptyEntries);
                             if (arr2.Length < 3 || arr2.Length > 5)
                             {
                                 Console.WriteLine($"无法识别协议定义 {fiName} {className} {ss}");
@@ -384,6 +386,12 @@ internal class Gen
                                     wStr.AppendLine($"                writer.WriteTag({tag});");
                                     wStr.AppendLine($"                writer.Write{rowType}(this.{fieldName});");
                                     wStr.AppendLine("            }");
+                                }
+                                else if (realType == "float2"
+                                    || realType == "float3"
+                                    || realType == "float4")
+                                {
+                                    wStr.AppendLine($"            writer.Write{rowType}({tag}, this.{fieldName});");
                                 }
                                 else if (realType == "double")
                                 {
@@ -564,7 +572,7 @@ internal class Gen
                             var arr = ss.Split("//", StringSplitOptions.RemoveEmptyEntries);
                             string des = arr.Length > 1 ? arr[1] : null;
 
-                            var arr2 = arr[0].Split(new char[] { '=', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            var arr2 = arr[0].Split(new char[] { '\t', '=', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             if (arr2.Length != 2)
                             {
                                 Console.WriteLine($"无法识别协议定义 {fiName} {enumName} {ss}");
@@ -623,7 +631,10 @@ internal class Gen
               || type == "double")
             return 1;
         else if (type == "string"
-              || type == "bytes")
+              || type == "bytes"
+              || type == "float2"
+              || type == "float3"
+              || type == "float4")
             return 2;
         else if (type == "float"
             || type == "fixed32"
@@ -670,6 +681,9 @@ internal class Gen
             || type == "sfixed64"
             || type == "double"
             || type == "float"
+            || type == "float2"
+            || type == "float3"
+            || type == "float4"
             || type == "string")
             return fieldType.Value;
         return fieldType.Msg;

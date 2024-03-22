@@ -5,15 +5,11 @@ public class SAttribute : Attribute
 {
 }
 [AttributeUsage(AttributeTargets.Assembly)]
-public abstract class AssemblyIncludedToShit : SAttribute
+public sealed class AssemblyIncludedToShitRuntime : SAttribute
 {
     public int SortOrder { get; }
-    public AssemblyIncludedToShit(int sortOrder = 0)
+    public AssemblyIncludedToShitRuntime(int sortOrder = 0)
     {
         this.SortOrder = sortOrder;
     }
-}
-public sealed class AssemblyIncludedToRuntimeShit : AssemblyIncludedToShit
-{
-    public AssemblyIncludedToRuntimeShit(int sortOrder = 0) : base(sortOrder) { }
 }

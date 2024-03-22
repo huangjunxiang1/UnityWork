@@ -51,8 +51,12 @@ namespace Core
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
         /// </summary>
-        public void RigisteAllStaticEvent(List<MethodParseData> methods)
+        internal void Load(List<MethodParseData> methods)
         {
+            _evtMap.Clear();
+            _rpcEvtMap.Clear();
+            removed.Clear();
+            getEvent = null;
             for (int i = 0; i < methods.Count; i++)
             {
                 MethodParseData m = methods[i];
@@ -92,7 +96,7 @@ namespace Core
                 return;
             }
 
-            var ms = CoreTypes.GetInstanceMethodsAttribute(t);
+            var ms = Types.GetInstanceMethodsAttribute(t);
             for (int i = 0; i < ms.Length; i++)
             {
                 var m = ms[i];
@@ -151,7 +155,7 @@ namespace Core
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 _rpcEvtMap[rpc] = map = new();
 
-            var ms = CoreTypes.GetInstanceMethodsAttribute(t);
+            var ms = Types.GetInstanceMethodsAttribute(t);
             for (int i = 0; i < ms.Length; i++)
             {
                 var m = ms[i];
@@ -215,7 +219,7 @@ namespace Core
                 Loger.Error("只能在class注册事件");
                 return;
             }
-            var ms = CoreTypes.GetInstanceMethodsAttribute(t);
+            var ms = Types.GetInstanceMethodsAttribute(t);
             for (int i = 0; i < ms.Length; i++)
             {
                 var m = ms[i];
@@ -277,7 +281,7 @@ namespace Core
                 return;
             }
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            var ms = CoreTypes.GetInstanceMethodsAttribute(t);
+            var ms = Types.GetInstanceMethodsAttribute(t);
             for (int i = 0; i < ms.Length; i++)
             {
                 var m = ms[i];

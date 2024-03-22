@@ -1,4 +1,5 @@
-﻿using Game;
+﻿using Core;
+using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +10,19 @@ internal class EventTest2
 {
     public static void test()
     {
-        GameM.Event.RigisteEvent(new Action<Event1>(e1));
-        GameM.Event.RigisteEvent(new Action<Event1, EventHandler>(e1));
-        GameM.Event.RigisteEvent(new Func<Event1, STask>(e11));
-        GameM.Event.RigisteEvent(new Func<Event1, EventHandler, STask>(e11));
+        GameWorld.World.Event.RigisteEvent(new Action<Event1>(e1));
+        GameWorld.World.Event.RigisteEvent(new Action<Event1, EventHandler>(e1));
+        GameWorld.World.Event.RigisteEvent(new Func<Event1, STask>(e11));
+        GameWorld.World.Event.RigisteEvent(new Func<Event1, EventHandler, STask>(e11));
 
         var a = new a();
-        GameM.Event.RigisteEvent((Delegate)new Action<Event1>(a.e1));
-        GameM.Event.RigisteEvent((Delegate)new Action<Event1, EventHandler>(a.e1));
-        GameM.Event.RigisteEvent((Delegate)new Func<Event1, STask>(a.e11));
-        GameM.Event.RigisteEvent((Delegate)new Func<Event1, EventHandler, STask>(a.e11));
+        GameWorld.World.Event.RigisteEvent((Delegate)new Action<Event1>(a.e1));
+        GameWorld.World.Event.RigisteEvent((Delegate)new Action<Event1, EventHandler>(a.e1));
+        GameWorld.World.Event.RigisteEvent((Delegate)new Func<Event1, STask>(a.e11));
+        GameWorld.World.Event.RigisteEvent((Delegate)new Func<Event1, EventHandler, STask>(a.e11));
 
         Event1 e = new();
-        GameM.Event.RunEvent(e);
+        GameWorld.World.Event.RunEvent(e);
 
         if (e.v != 8)
             throw new Exception();

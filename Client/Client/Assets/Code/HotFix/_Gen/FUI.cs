@@ -33,7 +33,7 @@ partial class FUIFighting : FUI
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
+        GComponent ui = this.ui;
         _btnBack = (GButton)ui.GetChildAt(0);
         _play = (GButton)ui.GetChildAt(1);
         _c2 = ui.GetControllerAt(1);
@@ -52,7 +52,7 @@ partial class FUIFighting2 : FUI
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
+        GComponent ui = this.ui;
         _btnBack = (GButton)ui.GetChildAt(0);
         _play = (GButton)ui.GetChildAt(1);
     }
@@ -71,7 +71,7 @@ partial class FUIFighting3 : FUI
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
+        GComponent ui = this.ui;
         _btnBack = (GButton)ui.GetChildAt(0);
         _rangeRoad = (GButton)ui.GetChildAt(1);
         _play = (GButton)ui.GetChildAt(2);
@@ -92,7 +92,7 @@ partial class FUIFighting4 : FUI
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
+        GComponent ui = this.ui;
         _btnBack = (GButton)ui.GetChildAt(0);
         _rangeRoad = (GButton)ui.GetChildAt(1);
         _play = (GButton)ui.GetChildAt(2);
@@ -106,16 +106,35 @@ partial class FUIFighting4 : FUI
 partial class FUIFighting5 : FUI
 {
     public sealed override string url => "FUIFighting5";
-    public GButton _btnBack { get; private set; }
-    public GComboBox _demo { get; private set; }
-    public GButton _reversion { get; private set; }
+    public GList _rooms { get; private set; }
+    public GButton _create { get; private set; }
+    public GTextInput _name { get; private set; }
+    public GButton _server { get; private set; }
+    public GButton _cServer { get; private set; }
+    public GButton _ref { get; private set; }
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
-        _btnBack = (GButton)ui.GetChildAt(0);
-        _demo = (GComboBox)ui.GetChildAt(1);
-        _reversion = (GButton)ui.GetChildAt(2);
+        GComponent ui = this.ui;
+        _rooms = (GList)ui.GetChildAt(1);
+        _create = (GButton)ui.GetChildAt(3);
+        _name = (GTextInput)ui.GetChildAt(5);
+        _server = (GButton)ui.GetChildAt(6);
+        _cServer = (GButton)ui.GetChildAt(7);
+        _ref = (GButton)ui.GetChildAt(8);
+    }
+    public override void Dispose()
+    {
+        base.Dispose();
+    }
+}
+partial class FUIFighting5_2 : FUI
+{
+    public sealed override string url => "FUIFighting5_2";
+
+    protected sealed override void Binding()
+    {
+        GComponent ui = this.ui;
     }
     public override void Dispose()
     {
@@ -129,7 +148,7 @@ partial class FUILoading : FUI
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
+        GComponent ui = this.ui;
         _loadingBar = (GProgressBar)ui.GetChildAt(1);
     }
     public override void Dispose()
@@ -150,7 +169,7 @@ partial class FUILogin : FUI
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
+        GComponent ui = this.ui;
         _bg = (GLoader)ui.GetChildAt(0);
         _uiType = (GComboBox)ui.GetChildAt(3);
         _gameTypeCB = (GComboBox)ui.GetChildAt(4);
@@ -228,7 +247,7 @@ partial class FUI3DHeader : FUI3D
 
     protected sealed override void Binding()
     {
-        GComponent ui = this.UI;
+        GComponent ui = this.ui;
         _title = (GTextField)ui.GetChildAt(0);
     }
     public override void Dispose()

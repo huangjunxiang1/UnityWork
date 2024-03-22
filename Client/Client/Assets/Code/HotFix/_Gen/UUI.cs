@@ -57,7 +57,7 @@ partial class UUILoading : UUI
 
     protected sealed override void Binding()
     {
-        UnityEngine.RectTransform ui = this.UI;
+        UnityEngine.RectTransform ui = this.ui;
         UnityEngine.Transform c;
         c = ui.GetChild(0);
         this._fillImage = new((UnityEngine.UI.Image)c.GetComponent(typeof(UnityEngine.UI.Image)));
@@ -84,7 +84,7 @@ partial class UUILogin : UUI
 
     protected sealed override void Binding()
     {
-        UnityEngine.RectTransform ui = this.UI;
+        UnityEngine.RectTransform ui = this.ui;
         UnityEngine.Transform c;
         c = ui.GetChild(0);
         this._acInputField = (UnityEngine.UI.InputField)c.GetComponent(typeof(UnityEngine.UI.InputField));

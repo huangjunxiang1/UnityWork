@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Unity.Entities.UniversalDelegates;
 using UnityEngine.UI;
 
 class TextPropertyBinding : UIPropertyBinding<Text, string>

@@ -13,12 +13,16 @@ internal class Dispose
         v = 0;
 
         var o = new o1();
+        GameWorld.Root.AddChild(o);
+
         o.Dispose();
-        GameM.Update();
+        GameWorld.World.Update(0);
         if (v != 2)
             throw new Exception();
 
         o = new();
+        GameWorld.Root.AddChild(o);
+
         var c = o.AddComponent<c_1>();
         c.Dispose();
         if (c.v != 1)
@@ -43,7 +47,7 @@ internal class Dispose
         public int v;
     }
     class c_2 : SComponent { }
-    class o1 : SUnityObject { }
+    class o1 : SObject { }
 
 
     static int v = 0;

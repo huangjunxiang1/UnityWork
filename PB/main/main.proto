@@ -63,6 +63,10 @@ message TestPBmain
   repeated fixed64 test31 =31;
   repeated sfixed64 test32 =32;
   repeated double test33 =33;
+
+  float2 test34 =34;
+  float3 test35 =35;
+  float4 test36 =36;
 }
 message TestPB2
 {
@@ -72,3 +76,71 @@ message TestPB2
 
 //测试空行 跳行不被认为是注释
 
+
+message RoomInfo
+{
+  int64 id=1;
+  string name=2;
+  repeated UnitInfo infos= 3;//玩家
+}
+message UnitInfo{
+	int64 id=1;
+	string name=2;
+}
+message UnitInfo2{
+	int64 id=1;
+	game.S2C_SyncTransform t=2;
+	map<int32,int64> attribute=3;
+}
+//MsgID=100@0
+message UnitAttribute{
+	int32 id=1;
+	int64 v=2;
+}
+//MsgID=100@1
+message C2S_RoomList
+{
+
+}
+//MsgID=100@2
+message S2C_RoomList
+{
+   repeated RoomInfo lst=1;
+}
+
+//MsgID=100@3
+message C2S_CreateRoom
+{
+	string name=1;
+}
+//MsgID=100@4
+message S2C_CreateRoom{
+	RoomInfo info=1;
+}
+
+//MsgID=100@5
+message C2S_JoinRoom
+{
+	int64 id=1;
+}
+//MsgID=100@6
+message S2C_JoinRoom{
+	RoomInfo info=1;
+	repeated UnitInfo2 units=2;
+	int64 myid=3;
+}
+//MsgID=100@7
+message S2C_PlayerJoinRoom{
+	UnitInfo2 info=1;
+}
+
+//MsgID=100@8
+message C2S_DisRoom
+{
+	int64 id=1;
+}
+//MsgID=100@9
+message S2C_DisRoom
+{
+	int64 id=1;
+}

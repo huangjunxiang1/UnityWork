@@ -6,13 +6,28 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    public class STree : SObject
+    public class STree : STree<SObject>
     {
-        public STree(World world, long rpc = 0) : base(world, rpc) { }
+        public STree(long rpc = 0) : base(rpc) { }
+    }
+    public class STree<T> : SObject where T : SObject
+    {
+        public STree(long rpc = 0) : base(rpc) { }
 
-        Dictionary<long, SObject> _childrenGMap = ObjectPool.Get<Dictionary<long, SObject>>();
-        Dictionary<long, SObject> _childrenRMap = ObjectPool.Get<Dictionary<long, SObject>>();
-        internal List<SObject> _children = ObjectPool.Get<List<SObject>>();
+        Dictionary<long, T> _childrenGMap = ObjectPool.Get<Dictionary<long, T>>();
+        Dictionary<long, T> _childrenRMap = ObjectPool.Get<Dictionary<long, T>>();
+        internal List<T> _children = ObjectPool.Get<List<T>>();
+
+        public override CoreWorld World
+        {
+            get => base.World;
+            set
+            {
+                base.World = value;
+                for (int i = 0; i < _children.Count; i++)
+                    _children[i].World = value;
+            }
+        }
 
         public override void Dispose()
         {
@@ -24,7 +39,7 @@ namespace Core
         /// 子添加
         /// </summary>
         /// <param name="child"></param>
-        public virtual void AddChild(SObject child)
+        public virtual void AddChild(T child)
         {
             if (child.Parent == this)
                 return;
@@ -55,68 +70,85 @@ namespace Core
 
             _children.Add(child);
             child.Parent = this;
+            child.World = this.World;
         }
+        public override int GetChildIndex(SObject child) => _children.IndexOf((T)child);
 
         /// <summary>
         /// 子获取
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public SObject GetChildGid(long gid)
+        public T GetChildGid(long gid)
         {
-            _childrenGMap.TryGetValue(gid, out SObject child);
+            _childrenGMap.TryGetValue(gid, out T child);
             return child;
         }
-        public SObject GetChildRpc(long rpc)
+        public T GetChildRpc(long rpc)
         {
             if (rpc == 0)
             {
                 Loger.Error("无效rpc");
                 return null;
             }
-            _childrenRMap.TryGetValue(rpc, out SObject child);
+            _childrenRMap.TryGetValue(rpc, out T child);
             return child;
         }
-        public List<SObject> ToChildren() => new(_children);
-        public List<SObject> GetChildren() => _children;
+        public bool TryGetChildGid(long gid, out T child) => _childrenGMap.TryGetValue(gid, out child);
+        public bool TryGetChildRpc(long rpc, out T child)
+        {
+            if (rpc == 0)
+            {
+                Loger.Error("无效rpc");
+                child = null;
+                return false;
+            }
+            return _childrenRMap.TryGetValue(rpc, out child);
+        }
+        public List<T> ToChildren() => new(_children);
+        public List<T> GetChildren() => _children;
+        public K GetChild<K>() where K : T => _children.Find(t => t is K) as K;
 
         /// <summary>
         /// 子移除
         /// </summary>
         /// <param name="child"></param>
-        public void Remove(SObject child)
+        public override void Remove(SObject child)
         {
             if (!_childrenGMap.ContainsKey(child.gid))
                 return;
             _childrenGMap.Remove(child.gid);
             if (child.rpc != 0)
                 _childrenRMap.Remove(child.rpc);
-            _children.Remove(child);
+            _children.Remove((T)child);
             child.Parent = null;
         }
-        public virtual void RemoveGid(long gid)
+        public virtual void RemoveGid(long gid, bool dispose = true)
         {
-            if (!_childrenGMap.TryGetValue(gid, out SObject child))
+            if (!_childrenGMap.TryGetValue(gid, out T child))
                 return;
-            _childrenGMap.Remove(gid);
-            if (child.rpc != 0)
-                _childrenRMap.Remove(child.rpc);
-            _children.Remove(child);
-            child.Parent = null;
+            if (dispose)
+            {
+                child.Dispose();
+                return;
+            }
+            this.Remove(child);
         }
-        public virtual void RemoveRpc(long rpc)
+        public virtual void RemoveRpc(long rpc, bool dispose = true)
         {
             if (rpc == 0)
             {
                 Loger.Error("无效rpc");
                 return;
             }
-            if (!_childrenRMap.TryGetValue(rpc, out SObject child))
+            if (!_childrenRMap.TryGetValue(rpc, out T child))
                 return;
-            _childrenGMap.Remove(child.gid);
-            _childrenRMap.Remove(rpc);
-            _children.Remove(child);
-            child.Parent = null;
+            if (dispose)
+            {
+                child.Dispose();
+                return;
+            }
+            this.Remove(child);
         }
         public void DisposeAllChildren() => this._disposeAllChildren(false);
 
@@ -132,7 +164,7 @@ namespace Core
                 ObjectPool.Return(_childrenRMap);
                 _childrenRMap = null;
 
-                List<SObject> tmp = _children;
+                List<T> tmp = _children;
                 _children = null;
                 for (int i = tmp.Count - 1; i >= 0; i--)
                 {
@@ -151,8 +183,8 @@ namespace Core
                 _childrenGMap.Clear();
                 _childrenRMap.Clear();
 
-                List<SObject> tmp = _children;
-                _children = ObjectPool.Get<List<SObject>>();
+                List<T> tmp = _children;
+                _children = ObjectPool.Get<List<T>>();
                 for (int i = tmp.Count - 1; i >= 0; i--)
                 {
                     if (!tmp[i].Disposed)

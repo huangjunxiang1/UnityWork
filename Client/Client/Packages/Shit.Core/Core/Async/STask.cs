@@ -8,11 +8,11 @@ using System.Reflection;
 [AsyncMethodBuilder(typeof(STaskBuilder))]
 public class STask : ICriticalNotifyCompletion, IDispose
 {
-    static STask()
+    /*static STask()
     {
         runner = typeof(AsyncVoidMethodBuilder).Assembly.GetTypes().First(t => t.FullName == "System.Runtime.CompilerServices.AsyncMethodBuilderCore+MoveNextRunner");
         runnerField = runner.GetField("m_stateMachine", BindingFlags.NonPublic | BindingFlags.Instance);
-    }
+    }*/
     public STask()
     {
     }
@@ -26,8 +26,8 @@ public class STask : ICriticalNotifyCompletion, IDispose
         waitTask(this, warpTask);
     }
 
-    static Type runner;
-    static FieldInfo runnerField;
+    //static Type runner;
+    //static FieldInfo runnerField;
     Action _event;
     bool _Disposed = false;
 
@@ -130,7 +130,7 @@ public class STask : ICriticalNotifyCompletion, IDispose
 
     void INotifyCompletion.OnCompleted(Action callBack)
     {
-        if (this.AutoCancel)
+        /*if (this.AutoCancel)
         {
             if (Target == null)
             {
@@ -154,13 +154,13 @@ public class STask : ICriticalNotifyCompletion, IDispose
             }
             else
                 this.AutoCancel = false;
-        }
+        }*/
 
         this._event += callBack;
     }
     void ICriticalNotifyCompletion.UnsafeOnCompleted(Action callBack)
     {
-        if (this.AutoCancel)
+        /*if (this.AutoCancel)
         {
             if (Target == null)
             {
@@ -184,7 +184,7 @@ public class STask : ICriticalNotifyCompletion, IDispose
             }
             else
                 this.AutoCancel = false;
-        }
+        }*/
 
         this._event += callBack;
     }

@@ -12,6 +12,7 @@ namespace Core
         internal List<__ChangeHandle> _changeHandles;
         internal bool _setChanged = false;
 
+        public CoreWorld World => Entity.World;
         public SObject Entity { get; internal set; }
         public bool Disposed { get; private set; }
 
@@ -24,7 +25,7 @@ namespace Core
                 _enable = value;
                 if (value)
                     this.SetChange();
-                Entity.world.System.Enable(this.GetType(), this);
+                World.System.Enable(this);
             }
         }
         public bool EventEnable
@@ -46,9 +47,9 @@ namespace Core
 
         public void SetChange()
         {
-            if (_setChanged || !_enable) return;
+            if (_changeHandles == null || _setChanged || !_enable) return;
             _setChanged = true;
-            Entity.world.System.SetChange(this);
+            World.System.Change(this);
         }
         public void Dispose()
         {
@@ -77,15 +78,15 @@ namespace Core
                 ObjectPool.Return(_changeHandles);
             }
 
-            this.Entity.world.Event.RemoveEvent(this);
+            World.Event.RemoveEvent(this);
             if (this.Entity.rpc != 0)
-                this.Entity.world.Event.RemoveRPCEvent(this.Entity.rpc, this);
+                World.Event.RemoveRPCEvent(this.Entity.rpc, this);
 
             if (!isDisposeObject)
             {
                 Entity.RemoveFromComponents(this);
             }
-            Entity.world.System.Dispose(this.GetType(), this);
+            World.System.Dispose(this.GetType(), this);
         }
     }
 }

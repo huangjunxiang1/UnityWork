@@ -2,10 +2,10 @@
     "name": "Shit.Game.UnityTest",
     "rootNamespace": "",
     "references": [
-        "Shit.Core",
-        "Shit.Game.Unity",
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "GUID:518372cc3fa78094fb8293a6ad882b10",
+        "GUID:d8f23ede77696194da3ecb38376f20bd",
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:0acc523941302664db1f4e527237feb3"
     ],
     "includePlatforms": [
         "Editor"

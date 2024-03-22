@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Default Local Group
   m_EditorClassIdentifier: 
   m_GroupName: Default Local Group
-  m_GUID: 00ecc932f800ec64d8f9847d02953481
+  m_GUID: ad1a6849454212140814d45fb5272122
   m_SerializeEntries:
   - m_GUID: f21a39a140e84a447b68ee33be38082c
     m_Address: Assets/Res

@@ -15,7 +15,7 @@ abstract class FUIBase : UIBase
     bool isHiding = false;
     STask hideTask;
 
-    public abstract GComponent UI { get; }
+    public abstract GComponent ui { get; }
 
     public sealed override async void Hide(bool playAnimation = true, Action callBack = null)
     {
@@ -30,7 +30,7 @@ abstract class FUIBase : UIBase
         base.Hide(playAnimation, callBack);
         if (playAnimation)
         {
-            Transition close = this.UI.GetTransition("close");
+            Transition close = this.ui.GetTransition("close");
             if (close != null)
             {
                 isHiding = true;
@@ -48,7 +48,7 @@ abstract class FUIBase : UIBase
             }
             else
             {
-                Transition open = this.UI.GetTransition("open");
+                Transition open = this.ui.GetTransition("open");
                 if (open != null)
                 {
                     isHiding = true;
@@ -79,7 +79,7 @@ abstract class FUIBase : UIBase
         base.HideAsync(playAnimation);
         if (playAnimation)
         {
-            Transition close = this.UI.GetTransition("close");
+            Transition close = this.ui.GetTransition("close");
             if (close != null)
             {
                 isHiding = true;
@@ -96,7 +96,7 @@ abstract class FUIBase : UIBase
             }
             else
             {
-                Transition open = this.UI.GetTransition("open");
+                Transition open = this.ui.GetTransition("open");
                 if (open != null)
                 {
                     isHiding = true;
@@ -131,7 +131,7 @@ abstract class FUIBase : UIBase
         base.Show(playAnimation, callBack);
         if (playAnimation)
         {
-            Transition open = this.UI.GetTransition("open");
+            Transition open = this.ui.GetTransition("open");
             if (open != null)
             {
                 isShowing = true;
@@ -160,7 +160,7 @@ abstract class FUIBase : UIBase
         base.ShowAsync(playAnimation);
         if (playAnimation)
         {
-            Transition open = this.UI.GetTransition("open");
+            Transition open = this.ui.GetTransition("open");
             if (open != null)
             {
                 isShowing = true;

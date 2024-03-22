@@ -13,7 +13,7 @@ partial class FUILogin
     static async void EC_InScene(EC_InScene e)
     {
         if (e.sceneId == 1)
-            await GameL.UI.OpenAsync<FUILogin>();
+            await UI.Inst.OpenAsync<FUILogin>();
     }
     static int demoIdx = 0;
 
@@ -54,33 +54,40 @@ partial class FUILogin
         else
         {
             SettingL.UIModel = UIModel.UGUI;
-            await GameL.UI.OpenAsync<UUILogin>();
+            await UI.Inst.OpenAsync<UUILogin>();
             this.Dispose();
         }
     }
    
     async void login()
     {
-        await GameL.Scene.InScene(10001);
         if (_demo.selectedIndex == 0)
-            await GameL.UI.OpenAsync<FUIFighting>();
-        else if (_demo.selectedIndex == 1)
-            await GameL.UI.OpenAsync<FUIFighting2>();
-        else if (_demo.selectedIndex == 2)
-            await GameL.UI.OpenAsync<FUIFighting3>();
-        else if (_demo.selectedIndex == 3)
-            await GameL.UI.OpenAsync<FUIFighting4>();
-        else if (_demo.selectedIndex == 4)
-            await GameL.UI.OpenAsync<FUIFighting5>();
-
-        /*//链接服务器演示
-        if (_gameTypeCB.selectedIndex == 0)
         {
-            await GameM.Net.Connect(ServerType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressInner));
+            int id = 10001;
+            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await UI.Inst.OpenAsync<FUIFighting>();
         }
-        else if (_gameTypeCB.selectedIndex == 1)
+        else if (_demo.selectedIndex == 1)
         {
-            await GameM.Net.Connect(ServerType.TCP, Util.ToIPEndPoint(ConstDefM.LoginAddressOuter));
-        }*/
+            int id = 10001;
+            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await UI.Inst.OpenAsync<FUIFighting2>();
+        }
+        else if (_demo.selectedIndex == 2)
+        {
+            int id = 10001;
+            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await UI.Inst.OpenAsync<FUIFighting3>();
+        }
+        else if (_demo.selectedIndex == 3)
+        {
+            int id = 10001;
+            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await UI.Inst.OpenAsync<FUIFighting4>();
+        }
+        else if (_demo.selectedIndex == 4)
+        {
+            await UI.Inst.OpenAsync<FUIFighting5>();
+        }
     }
 }

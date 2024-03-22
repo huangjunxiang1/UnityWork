@@ -4,14 +4,14 @@ using Game;
 
 abstract class UUI : UUIBase
 {
-    RectTransform ui;
+    RectTransform _ui;
     Canvas canvas;
     STask task;
     UIStates states;
 
     public sealed override UIStates uiStates => states;
     public sealed override Canvas Canvas => this.canvas;
-    public sealed override RectTransform UI => this.ui;
+    public sealed override RectTransform ui => this.ui;
     public sealed override STask onTask => task;
 
     public sealed override STask LoadConfig(UIConfig config, STask completed, params object[] data)
@@ -20,14 +20,17 @@ abstract class UUI : UUIBase
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        this.ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
-        this.canvas = this.ui.GetComponent<Canvas>();
+        this._ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
+        this.canvas = this._ui.GetComponent<Canvas>();
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
         task = this.OnTask(data);
-        this.states = UIStates.Success;
-        this.OnEnter(data);
+        task.AddEvent(() =>
+        {
+            this.states = UIStates.Success;
+            this.OnEnter(data);
+        });
         return STask.Completed;
     }
     public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
@@ -38,8 +41,8 @@ abstract class UUI : UUIBase
         this.states = UIStates.Loading;
         GameObject g = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
         g.SetActive(false);
-        this.ui = (RectTransform)g.transform;
-        this.canvas = this.ui.GetComponent<Canvas>();
+        this._ui = (RectTransform)g.transform;
+        this.canvas = this._ui.GetComponent<Canvas>();
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
@@ -48,24 +51,24 @@ abstract class UUI : UUIBase
         {
             this.states = UIStates.Success;
             g.SetActive(true);
+            this.OnEnter(data);
         });
-        this.OnEnter(data);
     }
 
     void setConfig()
     {
-        this.ui.SetParent(GameL.UI.UGUIRoot);
-        this.ui.localScale = Vector3.one;
-        this.ui.rotation = default;
-        this.ui.sizeDelta = GameL.UI.UGUIRoot.sizeDelta;
-        this.ui.anchorMin = default;
-        this.ui.anchorMax = Vector2.one;
-        this.ui.anchoredPosition = default;
+        this._ui.SetParent(UI.Inst.UGUIRoot);
+        this._ui.localScale = Vector3.one;
+        this._ui.rotation = default;
+        this._ui.sizeDelta = UI.Inst.UGUIRoot.sizeDelta;
+        this._ui.anchorMin = default;
+        this._ui.anchorMax = Vector2.one;
+        this._ui.anchoredPosition = default;
 
-        int layer = this.Layer;
+        int layer = this.Layer - 2;
         if (layer > 3)
             Loger.Error("层级太深");
-        if (this.Parent == null)
+        if (this.Parent is not UIBase)
             this.canvas.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
         else
             this.canvas.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);

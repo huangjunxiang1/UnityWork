@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Core;
 using Game;
 
-abstract class UIBase : SUnityObject
+abstract class UIBase : STree<UIBase>
 {
     public UIBase() : base()
     {
@@ -55,39 +55,37 @@ abstract class UIBase : SUnityObject
     }
     public virtual void Hide(bool playAnimation = true, Action callBack = null)
     {
-        List<SObject> uis = this.GetChildren();
+        var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).Hide(playAnimation);
+            uis[i].Hide(playAnimation);
     }
     public virtual STask HideAsync(bool playAnimation = true)
     {
-        List<SObject> uis = this.GetChildren();
+        var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).HideAsync(playAnimation);
+            uis[i].HideAsync(playAnimation);
         return STask.Completed;
     }
     public virtual void Show(bool playAnimation = true, Action callBack = null)
     {
-        List<SObject> uis = this.GetChildren();
+        var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).Show(playAnimation);
+            uis[i].Show(playAnimation);
     }
     public virtual STask ShowAsync(bool playAnimation = true)
     {
-        List<SObject> uis = this.GetChildren();
+        var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).ShowAsync(playAnimation);
+            uis[i].ShowAsync(playAnimation);
         return STask.Completed;
     }
     public override void Dispose()
     {  
-        //先从列表移除
-        GameL.UI.Remove(this);
         base.Dispose();
         //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
         //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
         if (this.uiStates == UIStates.Success)
-            GameL.UI.ShowLastUI();
+            this.GetSibling<UIBase>(t => t is UUI || t is FUI)?.Show();
         //先执行退出逻辑
         if (this.uiStates >= UIStates.OnTask)
             this.OnExit();

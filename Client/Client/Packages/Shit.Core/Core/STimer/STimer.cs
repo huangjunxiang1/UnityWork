@@ -219,7 +219,7 @@ public class STimer
             }
         }
     }
-    public void Init(List<MethodParseData> methods)
+    internal void Load(List<MethodParseData> methods)
     {
         _timerLst.Clear();
         minUtc = 0;
@@ -234,7 +234,7 @@ public class STimer
     public bool RigisterTimer(ITimer target)
     {
         bool ret = false;
-        var methods = CoreTypes.GetInstanceMethodsAttribute(target.GetType());
+        var methods = Types.GetInstanceMethodsAttribute(target.GetType());
         for (int i = 0; i < methods.Length; i++)
         {
             if (methods[i].attribute is STimerAttribute ta)

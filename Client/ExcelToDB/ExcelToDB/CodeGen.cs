@@ -98,6 +98,7 @@ class CodeGen
     public string excelPath;
     public string codePath;
     public string dataPath;
+    public string dataPath2;
     public bool genMapping = false;
     public bool genEcs = false;
 
@@ -192,15 +193,18 @@ class CodeGen
             Console.WriteLine("写入数据");
 
             rw.AppendLine($"using System.Collections.Generic;");
-            rw.AppendLine($"using UnityEngine;");
             rw.AppendLine($"using System.Linq;");
             rw.AppendLine($"using System;");
             rw.AppendLine($"using Unity.Mathematics;");
             if (genEcs)
             {
-                rw.AppendLine($"using Unity.Collections;");
-                rw.AppendLine($"using Unity.Collections.LowLevel.Unsafe;");
-                rw.AppendLine($"using Unity.Burst;");
+                erw.AppendLine($"using System.Collections.Generic;");
+                erw.AppendLine($"using System.Linq;");
+                erw.AppendLine($"using System;");
+                erw.AppendLine($"using Unity.Mathematics;");
+                erw.AppendLine($"using Unity.Collections;");
+                erw.AppendLine($"using Unity.Collections.LowLevel.Unsafe;");
+                erw.AppendLine($"using Unity.Burst;");
             }
             rw.AppendLine($"");
             if (genMapping)
@@ -476,15 +480,18 @@ class CodeGen
 
             if (genEcs)
             {
-                File.WriteAllBytes(dataPath + ".bytes", buffer.ToBytes());
-                File.WriteAllBytes(dataPath + "_ST.bytes", bufferEcs.ToBytes());
+                File.WriteAllBytes(dataPath + name + ".bytes", buffer.ToBytes());
+                File.WriteAllBytes(dataPath2 + name + ".bytes", buffer.ToBytes());
+                File.WriteAllBytes(dataPath + name + "_ST.bytes", bufferEcs.ToBytes());
 
-                File.WriteAllText(codePath + ".cs", rw.ToString() + erw.ToString());
+                File.WriteAllText(codePath + name + ".cs", rw.ToString());
+                File.WriteAllText(codePath + name + "_ST.cs", erw.ToString());
             }
             else
             {
-                File.WriteAllBytes(dataPath + ".bytes", buffer.ToBytes());
-                File.WriteAllText(codePath + ".cs", rw.ToString());
+                File.WriteAllBytes(dataPath + name + ".bytes", buffer.ToBytes());
+                File.WriteAllBytes(dataPath2 + name + ".bytes", buffer.ToBytes());
+                File.WriteAllText(codePath + name + ".cs", rw.ToString());
             }
 
             Console.WriteLine("写入完成");

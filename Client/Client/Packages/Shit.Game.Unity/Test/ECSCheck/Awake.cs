@@ -6,17 +6,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-internal class Awake : SUnityObject
+internal class Awake : STree
 {
     public static void test()
     {
         Awake a = new();
-        GameM.Update();
+        GameWorld.Root.AddChild(a);
+
+        a.World.Update(0);
         a.v = 0;
 
         var o = new o1();
         a.AddChild(o);
-        GameM.Update();
+        a.World.Update(0);
 
         if (a.v != 2)
             throw new System.Exception();
@@ -43,7 +45,7 @@ internal class Awake : SUnityObject
     {
         public int v;
     }
-    class o1 : SUnityObject { }
+    class o1 : SObject { }
 
     int v = 0;
     [Event]

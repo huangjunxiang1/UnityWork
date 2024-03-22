@@ -31,6 +31,7 @@ using UnityEditor.PackageManager.UI;
 using UnityEditor.Compilation;
 using DG.Tweening.Plugins.Core.PathCore;
 using System.Text;
+using Core;
 
 class ABCode
 {
@@ -139,7 +140,7 @@ public class TextEditor2 : UnityEditor.UI.TextEditor
         types = list.ToArray();
 
         List<Type> ds = new();
-        foreach (var item in typeof(GameM).Assembly.GetTypes())
+        foreach (var item in typeof(CoreWorld).Assembly.GetTypes())
         {
             if (typeof(IData).IsAssignableFrom(item) && typeof(IData) != item && item != typeof(PB.PBMessage))
                 ds.Add(item);

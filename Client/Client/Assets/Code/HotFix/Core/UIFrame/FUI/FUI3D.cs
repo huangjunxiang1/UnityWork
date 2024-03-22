@@ -13,7 +13,7 @@ abstract class FUI3D : FUIBase
     UIStates states;
 
     public sealed override UIStates uiStates => states;
-    public sealed override GComponent UI => this.Panel.ui;
+    public sealed override GComponent ui => this.Panel.ui;
     public sealed override int sortOrder
     {
         get { return this.Panel.sortingOrder; }
@@ -35,14 +35,17 @@ abstract class FUI3D : FUIBase
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this.goRoot = SAsset.LoadGameObject(url, ReleaseMode.Destroy);
-        this.goRoot.transform.SetParent(GameM.World.transform);
+        this.goRoot.transform.SetParent(GameWorld.World.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
         this.states = UIStates.OnTask;
         task = this.OnTask(data);
-        this.states = UIStates.Success;
-        this.OnEnter(data);
+        task.AddEvent(() =>
+        {
+            this.states = UIStates.Success;
+            this.OnEnter(data);
+        });
         return STask.Completed;
     }
     public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
@@ -52,14 +55,17 @@ abstract class FUI3D : FUIBase
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this.goRoot = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
-        this.goRoot.transform.SetParent(GameM.World.transform);
+        this.goRoot.transform.SetParent(GameWorld.World.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
         this.states = UIStates.OnTask;
         task = this.OnTask(data);
-        task.AddEvent(() => this.states = UIStates.Success);
-        this.OnEnter(data);
+        task.AddEvent(() =>
+        {
+            this.states = UIStates.Success;
+            this.OnEnter(data);
+        });
     }
     public override void Dispose()
     {

@@ -56,7 +56,7 @@ partial class FUIFighting4
     protected override void OnExit()
     {
         base.OnExit();
-        GameM.Timer.Remove(draw);
+        World.Timer.Remove(draw);
         pCb.Dispose();
         roadCb.Dispose();
         mark.Dispose();
@@ -73,7 +73,7 @@ partial class FUIFighting4
     }
     void _clickBack()
     {
-        _ = GameL.Scene.InLoginScene();
+        _ = GameWorld.World.Scene.InLoginScene();
     }
     void _click_rangeRoad()
     {
@@ -97,9 +97,9 @@ partial class FUIFighting4
             Box.Tips("未初始化障碍");
             return;
         }    
-        if (!GameM.Timer.Contains(draw))
+        if (!World.Timer.Contains(draw))
         {
-            GameM.Timer.Add(0, -1, draw);
+            World.Timer.Add(0, -1, draw);
 
             mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
 
