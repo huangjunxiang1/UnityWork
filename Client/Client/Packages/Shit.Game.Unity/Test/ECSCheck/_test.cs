@@ -16,6 +16,9 @@ static class _test
         Enable.test();
         Change.test();
         AnyChange.test();
-        Update.test();
+        EventWatcher.test();
+        KVWatcherTest.test();
+        TimerCheck.test();
+        UpdateCheck.test();
     }
 }

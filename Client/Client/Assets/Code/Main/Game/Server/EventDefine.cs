@@ -6,8 +6,5 @@ using System.Threading.Tasks;
 
 namespace Event
 {
-    public class EC_PlayerExit
-    {
-        public long rpc;
-    }
+  
 }

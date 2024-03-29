@@ -9,46 +9,69 @@ namespace Core
 {
     internal class SSystem
     {
-        public SSystem(CoreWorld world) => this.world = world;
+        public SSystem(World world) => this.world = world;
 
-        CoreWorld world;
-        Dictionary<Type, List<Action<object, CoreWorld>>> awakeHandle = new();
-        Dictionary<Type, List<Action<object, CoreWorld>>> disposeHandle = new();
-        Dictionary<Type, List<Action<SComponent, CoreWorld>>> enableHandle = new();
+        World world;
+        Dictionary<Type, List<Action<SObject>>> awakeHandle = new();
+        Dictionary<Type, List<Action<object>>> disposeHandle = new();
+        Dictionary<Type, List<Action<SComponent>>> enableHandle = new();
         Dictionary<Type, List<Action<SObject>>> changeHandle = new();
+        Dictionary<Type, List<Action<object, SObject>>> eventWatcherHandle = new();
+        Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
+        Dictionary<Type, List<Action<SObject>>> timerHandle = new();
 
         Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
 
-        HashSet<__ChangeHandle> changeHandles = ObjectPool.Get<HashSet<__ChangeHandle>>();
+        HashSet<SComponent> changeWaitInvoke = ObjectPool.Get<HashSet<SComponent>>();
+        HashSet<SComponent> changeWaitRemove = new();
+        HashSet<SComponent> kvWaitRemove = new();
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
+        internal Queue<__Timer> timerHandles = ObjectPool.Get<Queue<__Timer>>();
 
-        internal void TryAddChangeHandler(SComponent c)
+        internal void RigisterHandler(SComponent c)
         {
-            if (changeHandle.TryGetValue(c.GetType(), out var list))
             {
-                for (int i = 0; i < list.Count; i++)
-                    list[i].Invoke(c.Entity);
-            }
-        }
-        internal void TryAddUpdateHandler(SComponent c)
-        {
-            if (updateHandlerCreater.TryGetValue(c.GetType(), out var list))
-            {
-                for (int i = 0; i < list.Count; i++)
+                if (changeHandle.TryGetValue(c.GetType(), out var list))
                 {
-                    var v = list[i].Invoke(c.Entity);
-                    if (v != null)
-                        updateHandles.Enqueue(v);
+                    for (int i = 0; i < list.Count; i++)
+                        list[i].Invoke(c.Entity);
+                }
+            }
+            {
+                if (c is KVComponent || c.Entity._components.ContainsKey(typeof(KVComponent)))
+                {
+                    if (kvWatcherHandle.TryGetValue(c.GetType(), out var list))
+                    {
+                        for (int i = 0; i < list.Count; i++)
+                            list[i].Invoke(c.Entity);
+                    }
+                }
+            }
+            {
+                if (timerHandle.TryGetValue(c.GetType(), out var list))
+                {
+                    for (int i = 0; i < list.Count; i++)
+                        list[i].Invoke(c.Entity);
+                }
+            }
+            {
+                if (updateHandlerCreater.TryGetValue(c.GetType(), out var list))
+                {
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var v = list[i].Invoke(c.Entity);
+                        if (v != null)
+                            updateHandles.Enqueue(v);
+                    }
                 }
             }
         }
-
-        internal void Awake(Type type, object o)
+        internal void Awake(Type type, SObject o)
         {
             if (!awakeHandle.TryGetValue(type, out var list)) return;
             for (int i = 0; i < list.Count; i++)
             {
-                try { list[i](o, world); }
+                try { list[i](o); }
                 catch (Exception e) { Loger.Error("Awake 出错 " + e); }
             }
         }
@@ -57,7 +80,7 @@ namespace Core
             if (!disposeHandle.TryGetValue(type, out var list)) return;
             for (int i = 0; i < list.Count; i++)
             {
-                try { list[i](o, world); }
+                try { list[i](o); }
                 catch (Exception e) { Loger.Error("Dispose 出错 " + e); }
             }
         }
@@ -66,14 +89,28 @@ namespace Core
             if (!enableHandle.TryGetValue(c.GetType(), out var list)) return;
             for (int i = 0; i < list.Count; i++)
             {
-                try { list[i](c, world); }
+                try { list[i](c); }
                 catch (Exception e) { Loger.Error("Enable 出错 " + e); }
             }
         }
-        internal void Change(SComponent c)
+        internal void Change(SComponent c) => changeWaitInvoke.Add(c);
+        internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
+        internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
+        internal void EventWatcher(long rpc, object e)
         {
-            for (int i = 0; i < c._changeHandles.Count; i++)
-                changeHandles.Add(c._changeHandles[i]);
+            if (!world.ObjectManager.TryGetByRpc(rpc, out var lst))
+                return;
+            if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
+                return;
+            for (int i = 0; i < acts.Count; i++)
+            {
+                int len = lst.Count;
+                for (int j = 0; j < len; j++)
+                {
+                    if (lst[j].Disposed) continue;
+                    acts[i].Invoke(e, lst[j]);
+                }
+            }
         }
 
         /// <summary>
@@ -85,16 +122,26 @@ namespace Core
             disposeHandle.Clear();
             enableHandle.Clear();
             changeHandle.Clear();
+            eventWatcherHandle.Clear();
+            kvWatcherHandle.Clear();
+            timerHandle.Clear();
 
             updateHandlerCreater.Clear();
 
-            changeHandles.Clear();
+            changeWaitInvoke.Clear();
+            changeWaitRemove.Clear();
+            kvWaitRemove.Clear();
             updateHandles.Clear();
+            timerHandles.Clear();
 
             HashSet<Type> awake = new();
             HashSet<Type> dispose = new();
             HashSet<Type> enable = new();
             HashSet<Type> change = new();
+            HashSet<Type> eventWatcher = new();
+            HashSet<Type> kvWatcher = new();
+            HashSet<Type> timer = new();
+            Dictionary<Type, List<TimerItem>> timerItems = new();
             HashSet<Type> update = new();
             for (int i = 0; i < methods.Count; i++)
             {
@@ -118,21 +165,34 @@ namespace Core
                     }
                     if (typeof(__ChangeHandle).IsAssignableFrom(ma.mainKey))
                     {
-                        if (ma.method != null && ma.method.ReturnType == typeof(STask))
-                        {
-                            Loger.Error($"change处理事件不可使用task class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
-                            continue;
-                        }
                         change.Add(ma.mainKey);
+                        continue;
+                    }
+                    if (typeof(__EventWatcher).IsAssignableFrom(ma.mainKey))
+                    {
+                        eventWatcher.Add(ma.mainKey);
+                        continue;
+                    }
+                    if (typeof(__KVWatcher).IsAssignableFrom(ma.mainKey))
+                    {
+                        kvWatcher.Add(ma.mainKey);
+                        continue;
+                    }
+                    if (typeof(__Timer).IsAssignableFrom(ma.mainKey))
+                    {
+                        TimerItem ti = new();
+                        ti.attribute = (TimerAttribute)ma.attribute;
+                        var ts = ArrayCache.Get<Type>(1);
+                        ts[0] = ma.mainKey;
+                        ti.action = ma.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts));
+                        if (!timerItems.TryGetValue(ma.mainKey, out var lst))
+                            timerItems[ma.mainKey] = lst = new();
+                        lst.Add(ti);
+                        timer.Add(ma.mainKey);
                         continue;
                     }
                     if (typeof(__UpdateHandle).IsAssignableFrom(ma.mainKey))
                     {
-                        if (ma.method != null && ma.method.ReturnType == typeof(STask))
-                        {
-                            Loger.Error($"update处理事件不可使用task class:{ma.method.ReflectedType.FullName} method:{ma.method.Name}");
-                            continue;
-                        }
                         update.Add(ma.mainKey);
                         continue;
                     }
@@ -141,7 +201,7 @@ namespace Core
             foreach (var item in awake)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<object, CoreWorld>)item.GetMethod(nameof(Awake<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, CoreWorld>));
+                var action = (Action<SObject>)item.GetMethod(nameof(Awake<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
                 if (!awakeHandle.TryGetValue(ts[0], out var lst))
                     awakeHandle[ts[0]] = lst = new();
                 lst.Add(action);
@@ -149,7 +209,7 @@ namespace Core
             foreach (var item in dispose)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<object, CoreWorld>)item.GetMethod(nameof(Dispose<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, CoreWorld>));
+                var action = (Action<object>)item.GetMethod(nameof(Dispose<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object>));
                 if (!disposeHandle.TryGetValue(ts[0], out var lst))
                     disposeHandle[ts[0]] = lst = new();
                 lst.Add(action);
@@ -157,7 +217,7 @@ namespace Core
             foreach (var item in enable)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<SComponent, CoreWorld>)item.GetMethod(nameof(Enable<SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SComponent, CoreWorld>));
+                var action = (Action<SComponent>)item.GetMethod(nameof(Enable<SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SComponent>));
                 if (!enableHandle.TryGetValue(ts[0], out var lst))
                     enableHandle[ts[0]] = lst = new();
                 lst.Add(action);
@@ -174,6 +234,51 @@ namespace Core
                     lst.Add(action);
                 }
             }
+            foreach (var item in eventWatcher)
+            {
+                var ts = item.GetGenericArguments();
+                var action = (Action<object, SObject>)item.GetMethod(nameof(EventWatcher<object, SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, SObject>));
+                if (!eventWatcherHandle.TryGetValue(ts[0], out var lst))
+                    eventWatcherHandle[ts[0]] = lst = new();
+                lst.Add(action);
+            }
+            var kvs = kvWatcherHandle[typeof(KVComponent)] = new();
+            var kvAction = (Action<SObject>)KVWatcher.TryCreateHandle;
+            kvs.Add(kvAction);
+            foreach (var item in kvWatcher)
+            {
+                if (item != typeof(KVWatcher))
+                {
+                    var action = (Action<SObject>)item.GetMethod(nameof(KVWatcher.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
+                    kvs.Add(action);
+                    var ts = item.GetGenericArguments();
+                    for (int j = 0; j < ts.Length; j++)
+                    {
+                        var key = ts[j];
+                        if (!kvWatcherHandle.TryGetValue(key, out var lst))
+                            kvWatcherHandle[key] = lst = new();
+                        lst.Add(action);
+                    }
+                }
+            }
+            foreach (var item in timer)
+            {
+                var ts = item.GetGenericArguments();
+                var action = (Action<SObject>)item.GetMethod(nameof(Timer<SComponent>.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
+                for (int j = 0; j < ts.Length; j++)
+                {
+                    var key = ts[j];
+                    if (!timerHandle.TryGetValue(key, out var lst))
+                        timerHandle[key] = lst = new();
+                    lst.Add(action);
+                }
+            }
+            var ps = ArrayCache.Get<object>(1);
+            foreach (var item in timerItems)
+            {
+                ps[0] = item.Value;
+                item.Key.GetMethod(nameof(Timer<SComponent>.SetTimerList), BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, ps);
+            }
             foreach (var item in update)
             {
                 var ts = item.GetGenericArguments();
@@ -187,35 +292,82 @@ namespace Core
                 }
             }
         }
-        internal void Update()
+        internal void update()
         {
-            if (changeHandles.Count > 0)
+            if (changeWaitInvoke.Count > 0)
             {
-                var tmp = changeHandles;
-                changeHandles = ObjectPool.Get<HashSet<__ChangeHandle>>();
+                var tmp = changeWaitInvoke;
+                changeWaitInvoke = ObjectPool.Get<HashSet<SComponent>>();
                 foreach (var c in tmp)
                 {
-                    if (!c.Disposed)
-                        c.Invoke(world);
+                    int len = c._changeHandles.Count;
+                    for (int i = 0; i < len; i++)
+                        c._changeHandles[i].Invoke();
                 }
                 tmp.Clear();
                 ObjectPool.Return(tmp);
             }
 
+            Update.Invoke(world);
             var update = updateHandles;
             updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
             while (update.TryDequeue(out var u))
             {
                 if (!u.IsValid())
                     continue;
-                u.Invoke(world);
+                u.Invoke();
                 updateHandles.Enqueue(u);
             }
             ObjectPool.Return(update);
+
+            var timer = timerHandles;
+            timerHandles = ObjectPool.Get<Queue<__Timer>>();
+            while (timer.TryDequeue(out var t))
+            {
+                if (t.Disposed)
+                    continue;
+                t.Update();
+                timerHandles.Enqueue(t);
+            }
+            ObjectPool.Return(timer);
         }
         internal void AfterUpdate()
         {
-
+            if (changeWaitRemove.Count > 0)
+            {
+                foreach (var c in changeWaitRemove)
+                {
+                    if (c.Disposed)
+                    {
+                        c._changeHandles.Clear();
+                        ObjectPool.Return(c._changeHandles);
+                        c._changeHandles = null;
+                    }
+                    else
+                        c._changeHandles.RemoveAll(t => t.Disposed);
+                }
+                changeWaitRemove.Clear();
+            }
+            if (kvWaitRemove.Count > 0)
+            {
+                foreach (var c in kvWaitRemove)
+                {
+                    if (c.Disposed)
+                    {
+                        c._kvWatcherHandles.Clear();
+                        ObjectPool.Return(c._kvWatcherHandles);
+                        c._kvWatcherHandles = null;
+                    }
+                    else
+                        c._kvWatcherHandles.RemoveAll(t => t.Disposed);
+                }
+                kvWaitRemove.Clear();
+            }
         }
+    }
+    internal class TimerItem
+    {
+        public TimerAttribute attribute;
+        public Delegate action;
     }
 }

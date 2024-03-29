@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core;
+using Game;
 using Unity.Mathematics;
 
 namespace main
@@ -23,7 +23,7 @@ namespace main
     /// <summary>
     /// 类定义注释
     /// </summary>
-    [Message(1 | 2 << 16)]
+    [Message(354306413)]
     public partial class TestPBmain
     {
         /// <summary>
@@ -69,12 +69,14 @@ namespace main
         public float4 test36 { get; set; }
     }
 
+    [Message(1950426884)]
     public partial class TestPB2
     {
         public int test2 { get; set; }
         public List<int> test22 { get; set; } = new List<int>();
     }
 
+    [Message(34144539)]
     public partial class RoomInfo
     {
         public long id { get; set; }
@@ -85,12 +87,14 @@ namespace main
         public List<UnitInfo> infos { get; set; } = new List<UnitInfo>();
     }
 
+    [Message(453967900)]
     public partial class UnitInfo
     {
         public long id { get; set; }
         public string name { get; set; }
     }
 
+    [Message(453967918)]
     public partial class UnitInfo2
     {
         public long id { get; set; }
@@ -98,43 +102,51 @@ namespace main
         public Dictionary<int, long> attribute { get; set; } = new Dictionary<int, long>();
     }
 
-    [Message(100 | 0 << 16)]
+    [Message(1919449112)]
     public partial class UnitAttribute
     {
         public int id { get; set; }
         public long v { get; set; }
     }
 
-    [Message(100 | 1 << 16, typeof(S2C_RoomList))]
+    /// <summary>
+    /// 表明我是udp链接
+    /// </summary>
+    [Message(2037214234)]
+    public partial class C2S_UDPConnect
+    {
+    }
+
+    [Message(1179595869, typeof(S2C_RoomList))]
     public partial class C2S_RoomList
     {
     }
 
-    [Message(100 | 2 << 16)]
+    [Message(1180644429)]
     public partial class S2C_RoomList
     {
         public List<RoomInfo> lst { get; set; } = new List<RoomInfo>();
     }
 
-    [Message(100 | 3 << 16, typeof(S2C_CreateRoom))]
+    [Message(1365526555, typeof(S2C_CreateRoom))]
     public partial class C2S_CreateRoom
     {
         public string name { get; set; }
     }
 
-    [Message(100 | 4 << 16)]
+    [Message(1366575115)]
     public partial class S2C_CreateRoom
     {
         public RoomInfo info { get; set; } = new RoomInfo();
     }
 
-    [Message(100 | 5 << 16, typeof(S2C_JoinRoom))]
+    [Message(1549087323, typeof(S2C_JoinRoom))]
     public partial class C2S_JoinRoom
     {
         public long id { get; set; }
     }
 
-    [Message(100 | 6 << 16)]
+    [Message(1548038731)]
     public partial class S2C_JoinRoom
     {
         public RoomInfo info { get; set; } = new RoomInfo();
@@ -142,19 +154,19 @@ namespace main
         public long myid { get; set; }
     }
 
-    [Message(100 | 7 << 16)]
+    [Message(641347424)]
     public partial class S2C_PlayerJoinRoom
     {
         public UnitInfo2 info { get; set; } = new UnitInfo2();
     }
 
-    [Message(100 | 8 << 16, typeof(S2C_DisRoom))]
+    [Message(223163496, typeof(S2C_DisRoom))]
     public partial class C2S_DisRoom
     {
         public long id { get; set; }
     }
 
-    [Message(100 | 9 << 16)]
+    [Message(224212088)]
     public partial class S2C_DisRoom
     {
         public long id { get; set; }

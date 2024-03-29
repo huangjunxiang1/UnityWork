@@ -11,7 +11,7 @@ internal class Awake : STree
     public static void test()
     {
         Awake a = new();
-        GameWorld.Root.AddChild(a);
+        Client.World.Root.AddChild(a);
 
         a.World.Update(0);
         a.v = 0;

@@ -1,18 +1,18 @@
 ﻿using System;
 
-namespace Core
+namespace Game
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class MessageAttribute : Attribute
     {
-        public uint cmd { get; }
+        public int cmd { get; }
         public Type ResponseType { get; }
 
-        public MessageAttribute(uint cmd)
+        public MessageAttribute(int cmd)
         {
             this.cmd = cmd;
         }
-        public MessageAttribute(uint cmd, Type ResponseType)
+        public MessageAttribute(int cmd, Type ResponseType)
         {
             this.cmd = cmd;
             this.ResponseType = ResponseType;

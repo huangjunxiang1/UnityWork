@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Core
 {
-    public class SObject : IDispose, IEvent, ITimer
+    public class SObject : IEvent, ITimer
     {
         public SObject(long rpc = 0)
         {
@@ -14,17 +14,16 @@ namespace Core
             this.rpc = rpc;
         }
 
-        CoreWorld _world;
+        World _world;
         bool _eventEnable = true;
         bool _timerRigisterd = false;
         Eventer _onDispose;
-        Dictionary<Type, SComponent> components = ObjectPool.Get<Dictionary<Type, SComponent>>();
-
+        internal Dictionary<Type, SComponent> _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
 
         public double value;
         public object data;
 
-        public virtual CoreWorld World
+        public virtual World World
         {
             get => _world;
             set
@@ -38,6 +37,7 @@ namespace Core
                 _world = value;
                 if (value != null)
                 {
+                    value.ObjectManager.Add(this);
                     value.Event.RigisteEvent(this);
                     if (rpc != 0)
                         value.Event.RigisteRPCEvent(rpc, this);
@@ -63,19 +63,17 @@ namespace Core
                 }
             }
         }
+
+        /// <summary>
+        /// 服务器生成的ID
+        /// </summary>
+        public long rpc { get; }
+
         /// <summary>
         /// 自增生成的ID
         /// </summary>
         public long gid { get; }
 
-        /// <summary>
-        /// 单位ID
-        /// </summary>
-        public long rpc { get; }
-
-        /// <summary>
-        /// 是否已被销毁
-        /// </summary>
         public bool Disposed { get; private set; }
 
         /// <summary>
@@ -90,7 +88,7 @@ namespace Core
                 _eventEnable = value;
                 if (value)
                 {
-                    foreach (var c in components.Values)
+                    foreach (var c in _components.Values)
                         c.SetChange();
                 }
             }
@@ -171,7 +169,7 @@ namespace Core
 
         public T AddComponent<T>() where T : SComponent, new()
         {
-            if (components.TryGetValue(typeof(T), out var c))
+            if (_components.TryGetValue(typeof(T), out var c))
                 return (T)c;
             return AddComponent(new T());
         }
@@ -192,7 +190,7 @@ namespace Core
                 Loger.Error($"实体已经销毁 ={this}");
                 return default;
             }
-            if (components.TryGetValue(typeof(T), out var cc))
+            if (_components.TryGetValue(typeof(T), out var cc))
             {
                 Loger.Error($"已经包含 component={cc}");
                 return (T)cc;
@@ -202,7 +200,15 @@ namespace Core
         }
         public SComponent AddComponent(Type type)
         {
-            return AddComponentInternal(type);
+            if (typeof(SComponent).IsAssignableFrom(type))
+            {
+                Loger.Error($"{type}不是{nameof(SComponent)}组件");
+                return null;
+            }
+            if (_components.TryGetValue(type, out var c))
+                return c;
+            c = (SComponent)Activator.CreateInstance(type);
+            return AddComponentInternal(c);
         }
         public T GetComponent<T>() where T : SComponent
         {
@@ -211,7 +217,7 @@ namespace Core
                 Loger.Error($"实体已经销毁 entity={this}");
                 return default;
             }
-            if (components.TryGetValue(typeof(T), out var c))
+            if (_components.TryGetValue(typeof(T), out var c))
                 return (T)c;
             Loger.Error($"未包含 component={typeof(T)}");
             return default;
@@ -223,7 +229,7 @@ namespace Core
                 Loger.Error($"实体已经销毁 entity={this}");
                 return default;
             }
-            if (components.TryGetValue(type, out var c))
+            if (_components.TryGetValue(type, out var c))
                 return c;
             Loger.Error($"未包含 component={type}");
             return default;
@@ -236,7 +242,7 @@ namespace Core
                 c = default;
                 return false;
             }
-            if (components.TryGetValue(typeof(T), out var cc))
+            if (_components.TryGetValue(typeof(T), out var cc))
             {
                 c = (T)cc;
                 return true;
@@ -252,7 +258,7 @@ namespace Core
                 c = default;
                 return false;
             }
-            if (components.TryGetValue(type, out c))
+            if (_components.TryGetValue(type, out c))
                 return true;
             c = default;
             return false;
@@ -292,7 +298,7 @@ namespace Core
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            return components.ContainsKey(typeof(T));
+            return _components.ContainsKey(typeof(T));
         }
         public bool HasComponent(Type type)
         {
@@ -301,41 +307,29 @@ namespace Core
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            return components.ContainsKey(type);
+            return _components.ContainsKey(type);
         }
 
         internal SComponent AddComponentInternal(SComponent c)
         {
             c.Entity = this;
-            components[c.GetType()] = c;
+            _components[c.GetType()] = c;
 
-            World.Event.RigisteEvent(c);
-            if (this.rpc != 0)
-                World.Event.RigisteRPCEvent(rpc, c);
-
-            World.System.TryAddChangeHandler(c);
-            World.System.TryAddUpdateHandler(c);
+            World.System.RigisterHandler(c);
             World.System.Awake(c.GetType(), this);
             c.SetChange();
             return c;
         }
-        internal SComponent AddComponentInternal(Type type)
-        {
-            if (components.TryGetValue(type, out var c))
-                return c;
-            c = (SComponent)Activator.CreateInstance(type);
-            return AddComponentInternal(c);
-        }
         internal bool RemoveComponentInternal(Type type)
         {
-            if (!components.TryGetValue(type, out var c))
+            if (!_components.TryGetValue(type, out var c))
                 return false;
             c.Dispose();
             return true;
         }
         internal void RemoveFromComponents(SComponent c)
         {
-            components.Remove(c.GetType());
+            _components.Remove(c.GetType());
         }
 
         /// <summary>
@@ -349,6 +343,7 @@ namespace Core
                 return;
             }
 
+            World.ObjectManager.Remove(this);
             World.Event.RemoveEvent(this);
             if (this.rpc != 0)
                 World.Event.RemoveRPCEvent(this.rpc, this);
@@ -359,8 +354,8 @@ namespace Core
             if (this.Parent != null)
                 this.Parent.Remove(this);
 
-            var tmp = components;
-            components = null;
+            var tmp = _components;
+            _components = null;
             foreach (var item in tmp.Values)
                 item.dispose(true);
             tmp.Clear();

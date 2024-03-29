@@ -5,16 +5,27 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    public abstract class SComponent : IDispose, IEvent
+    public abstract class SComponent : IDispose
     {
         bool _enable = true;
-        bool _eventEnable = true;
         internal List<__ChangeHandle> _changeHandles;
+        internal List<__KVWatcher> _kvWatcherHandles;
         internal bool _setChanged = false;
 
-        public CoreWorld World => Entity.World;
         public SObject Entity { get; internal set; }
-        public bool Disposed { get; private set; }
+        public bool Disposed { get; internal set; }
+
+        public World World => this.Entity.World;
+        /// <summary>
+        /// 服务器生成的ID
+        /// </summary>
+        public long rpc => this.Entity.rpc;
+
+        /// <summary>
+        /// 自增生成的ID
+        /// </summary>
+        public long gid => this.Entity.gid;
+        public STree Root => this.Entity.World.Root;
 
         public bool Enable
         {
@@ -27,22 +38,6 @@ namespace Core
                     this.SetChange();
                 World.System.Enable(this);
             }
-        }
-        public bool EventEnable
-        {
-            get => _eventEnable && Entity != null && Entity.EventEnable;
-            set
-            {
-                if (_eventEnable == value) return;
-                _eventEnable = value;
-                if (value)
-                    this.SetChange();
-            }
-        }
-        void IEvent.AcceptEventHandler(bool isInvokeMethod)
-        {
-            if (!isInvokeMethod)
-                this.SetChange();
         }
 
         public void SetChange()
@@ -73,19 +68,17 @@ namespace Core
             if (_changeHandles != null)
             {
                 for (int i = 0; i < _changeHandles.Count; i++)
-                    _changeHandles[i].Dispose();
-                _changeHandles.Clear();
-                ObjectPool.Return(_changeHandles);
+                    _changeHandles[i].AddToRemoveWait();
             }
-
-            World.Event.RemoveEvent(this);
-            if (this.Entity.rpc != 0)
-                World.Event.RemoveRPCEvent(this.Entity.rpc, this);
+            if (_kvWatcherHandles != null)
+            {
+                for (int i = 0; i < _kvWatcherHandles.Count; i++)
+                    _kvWatcherHandles[i].Dispose();
+            }
 
             if (!isDisposeObject)
-            {
                 Entity.RemoveFromComponents(this);
-            }
+            
             World.System.Dispose(this.GetType(), this);
         }
     }

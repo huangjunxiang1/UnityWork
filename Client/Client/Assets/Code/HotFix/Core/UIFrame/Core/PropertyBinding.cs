@@ -22,13 +22,13 @@ public abstract class UIPropertyBinding<T, V>
         void Event(K k) => this.View(getter(k));
         var act = new Action<K>(Event);
         this.getter = act;
-        GameWorld.World.Event.RigisteEvent(act);
-        act(GameWorld.World.Data.Get<K>());
+        Client.World.Event.RigisteEvent(act);
+        act(Client.Data.Get<K>());
     }
     protected virtual void View(V v) { }
     public virtual void Dispose()
     {
         if (getter != null)
-            GameWorld.World.Event.RemoveEvent(getter);
+            Client.World.Event.RemoveEvent(getter);
     }
 }

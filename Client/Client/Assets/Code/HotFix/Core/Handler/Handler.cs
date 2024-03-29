@@ -7,12 +7,13 @@ static class CoreHandler
     [Event]
     static void Quit(EC_QuitGame e)
     {
-        GameWorld.Close();
+        Client.Close(); 
+        Server.Close();
         TabM_ST.Tab.Data.Dispose();
     }
     [Event]
     static void GameStart(EC_GameStart e)
     {
-        GameWorld.World.Data.Clear();
+        Client.Data.Clear();
     }
 }

@@ -196,29 +196,6 @@ public class STimer
         }
     }
 
-    [Conditional(ConstDefCore.DebugEnableString)]
-    internal static void Check(List<Type> types)
-    {
-        for (int i = 0; i < types.Count; i++)
-        {
-            var type = types[i];
-            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-
-            for (int j = 0; j < methods.Length; j++)
-            {
-                var method = methods[j];
-                if (method.IsDefined(typeof(STimerAttribute)))
-                {
-                    if(method.IsGenericMethod)
-                        Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数不能是泛型函数");
-                    if (method.GetParameters().Length != 0)
-                        Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数必须没有参数");
-                    if (method.ReturnType != typeof(void))
-                        Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数必须没有返回值");
-                }
-            }
-        }
-    }
     internal void Load(List<MethodParseData> methods)
     {
         _timerLst.Clear();
@@ -227,8 +204,8 @@ public class STimer
         for (int i = 0; i < methods.Count; i++)
         {
             MethodParseData ma = methods[i];
-            if (ma.attribute is STimerAttribute ea && ma.method.IsStatic)
-                Add(ea.Time, ea.Count, (Action)ma.method.CreateDelegate(typeof(Action)));
+            if (ma.attribute is TimerAttribute ea && ma.method.IsStatic && ma.parameters.Length == 0)
+                Add(ea.delay, ea.count, (Action)ma.method.CreateDelegate(typeof(Action)));
         }
     }
     public bool RigisterTimer(ITimer target)
@@ -237,9 +214,9 @@ public class STimer
         var methods = Types.GetInstanceMethodsAttribute(target.GetType());
         for (int i = 0; i < methods.Length; i++)
         {
-            if (methods[i].attribute is STimerAttribute ta)
+            if (methods[i].attribute is TimerAttribute ta)
             {
-                Add(ta.Time, ta.Count, (Action)methods[i].method.CreateDelegate(typeof(Action), target), target);
+                Add(ta.delay, ta.count, (Action)methods[i].method.CreateDelegate(typeof(Action), target), target);
                 ret = true;
             }
         }

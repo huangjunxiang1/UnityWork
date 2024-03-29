@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core;
+using Game;
 using Unity.Mathematics;
 
 namespace game
@@ -619,6 +619,25 @@ namespace main
                     case 16:
                         this.v = reader.Readint64();
                         break;
+                    default:
+                        reader.SeekNext(tag);
+                        break;
+                }
+            }
+        }
+    }
+    public partial class C2S_UDPConnect : PB.PBMessage
+    {
+        public override void Write(PB.PBWriter writer)
+        {
+        }
+        public override void Read(PB.PBReader reader)
+        {
+            int tag;
+            while ((tag = reader.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
                     default:
                         reader.SeekNext(tag);
                         break;

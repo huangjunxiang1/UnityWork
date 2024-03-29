@@ -11,10 +11,10 @@ namespace Game
         static SBehavior()
         {
             var lst = ObjectPool.Get<List<Type>>();
-            for (int i = 0; i < GameWorld.World.Types.types.Count; i++)
+            for (int i = 0; i < Client.World.Types.types.Count; i++)
             {
-                if (typeof(SBehavior).IsAssignableFrom(GameWorld.World.Types.types[i]) && GameWorld.World.Types.types[i] != typeof(SBehavior))
-                    lst.Add(GameWorld.World.Types.types[i]);
+                if (typeof(SBehavior).IsAssignableFrom(Client.World.Types.types[i]) && Client.World.Types.types[i] != typeof(SBehavior))
+                    lst.Add(Client.World.Types.types[i]);
             }
             behaviors = lst.Count == 0 ? Array.Empty<Type>() : lst.ToArray();
         }
@@ -33,7 +33,7 @@ namespace Game
                 if (o != null && (o.type == 0 || o.type == sceneType) && (o.ID == 0 || o.ID == sceneID))
                 {
                     var s = (SBehavior)Activator.CreateInstance(behaviors[i]); 
-                    GameWorld.World.Scene.AddChild(s);
+                    Client.Scene.AddChild(s);
                     s.OnCreate();
                 }
             }

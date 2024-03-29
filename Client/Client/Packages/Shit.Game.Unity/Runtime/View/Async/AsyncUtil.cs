@@ -60,11 +60,11 @@ namespace Game
             {
                 if (ie.MoveNext())
                 {
-                    GameWorld.World.Timer.Remove(update);
+                    Client.World.Timer.Remove(update);
                     task.TrySetResult();
                 }
             }
-            GameWorld.World.Timer.Add(0.1f, -1, update);
+            Client.World.Timer.Add(0.1f, -1, update);
             return task;
         }
 #if FairyGUI

@@ -23,12 +23,12 @@ namespace Game
         }
 
         [Event]
-        static void move(Update<MoveComponent, TransformComponent, AttributeComponent> t)
+        static void move(Update<MoveComponent, TransformComponent, KVComponent> t)
         {
             if (math.any(t.t.Direction != 0) && math.all(!math.isnan(t.t.Direction)))
             {
-                var speed = t.t3.Get((int)AttributeID.MoveSpeed);
-                var speed2 = t.t3.Get((int)AttributeID.RotateSpeed);
+                var speed = t.t3.Get((int)KType.MoveSpeed);
+                var speed2 = t.t3.Get((int)KType.RotateSpeed);
                 t.t2.position += t.t.Direction * speed * t.t.World.DeltaTime;
                 t.t2.rotation = math.slerp(t.t2.rotation, quaternion.LookRotation(t.t.Direction, math.up()), t.t.World.DeltaTime * speed2);
             }

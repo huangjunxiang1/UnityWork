@@ -40,7 +40,7 @@ partial class FUILoading
         _loadingBar.max = 1;
     }
 
-    [STimer(0, -1)]
+    [Timer(0, -1)]
     void timer()
     {
         if (cur < max)

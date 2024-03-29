@@ -39,7 +39,7 @@ partial class UUILoading
         refView();
     }
 
-    [STimer(0, -1)]
+    [Timer(0, -1)]
     void timer()
     {
         if (cur < max)

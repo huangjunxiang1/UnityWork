@@ -11,9 +11,21 @@ public class EventAttribute : SAttribute
     public bool RPC { get; set; }
     public bool Queue { get; set; }
 
-    public EventAttribute() { }
-    public EventAttribute(int sortOrder)
+    public int Type { get; set; }
+
+    public EventAttribute(int sortOrder = 0) => this.SortOrder = sortOrder;
+
+    public virtual bool Test(int type) => this.Type == type;
+
+    public readonly static EventAttribute Default = new();
+}
+public class TimerAttribute : SAttribute
+{
+    public float delay { get; }
+    public int count { get; }
+    public TimerAttribute(float delay, int count)
     {
-        SortOrder = sortOrder;
+        this.delay = delay;
+        this.count = count;
     }
 }

@@ -22,7 +22,7 @@ namespace Game
             if (style == SGameObjectType.LogicRoot)
             {
                 this.gameRoot = new GameObject();
-                this.gameRoot.transform.SetParent(GameWorld.World.transform);
+                this.gameRoot.transform.SetParent(Client.transform);
             }
         }
 
@@ -77,13 +77,13 @@ namespace Game
                         if (release)
                             SAsset.Release(this.gameObject);
                         else
-                            this.gameObject.transform.parent = GameWorld.World.transform;
+                            this.gameObject.transform.parent = Client.transform;
                     }
                     else
                     {
                         if (res)
                         {
-                            res.transform.SetParent(GameWorld.World.transform);
+                            res.transform.SetParent(Client.transform);
                             res.transform.SetPositionAndRotation(default, Quaternion.identity);
                         }
                     }
@@ -107,7 +107,7 @@ namespace Game
                         if (release)
                             SAsset.Release(this.gameObject);
                         else
-                            this.gameObject.transform.parent = GameWorld.World.transform;
+                            this.gameObject.transform.parent = Client.transform;
                     }
                     this.gameObject = res;
                     this.SetChange();
@@ -116,6 +116,7 @@ namespace Game
                     break;
             }
         }
+        public void SetGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool) => _ = LoadGameObjectAsync(url, releaseMode);
 
         /// <summary>
         /// 主动加载资源
@@ -160,8 +161,8 @@ namespace Game
             if (a.t.gameObjectType == SGameObjectType.Static) return;
             a.t.gameRoot.SetActive(a.t.Enable);
 #if UNITY_EDITOR
-            if (a.t.Entity.rpc != 0)
-                a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}_rpc={a.t.Entity.rpc}";
+            if (a.t.rpc != 0)
+                a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}_rpc={a.t.rpc}";
             else
                 a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}";
 #endif

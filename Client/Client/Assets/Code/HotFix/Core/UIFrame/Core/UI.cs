@@ -36,7 +36,7 @@ namespace Game
             NTexture.CustomDestroyMethod += t => SAsset.Release(t);
             NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
 
-            GameWorld.Root.AddChild(this);
+            Client.World.Root.AddChild(this);
         }
 
         /// <summary>

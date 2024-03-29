@@ -17,7 +17,7 @@ namespace Game
 {
     class Room : STree<RoomItem>
     {
-        public IPEndPoint ip = new(IPAddress.Any, 9528);
+        public IPEndPoint ip;
 
         public List<RoomInfo> GetLst()
         {
@@ -33,6 +33,64 @@ namespace Game
             this.AddChild(ri);
             return ri;
         }
+
+        [Event]
+        static async void awake(Awake<Room> t)
+        {
+            TcpListener tcp = new(t.t.ip);
+            tcp.Start();
+            while (true)
+            {
+                var client = await tcp.AcceptTcpClientAsync();
+                SObject o = new((uint)Util.RandomInt());
+                Server.World.Root.AddChild(o);
+                o.AddComponent<NetComponent>().SetSession(new STCP(client)).Session.Work();
+            }
+        }
+        [Event]
+        void C2S_RoomList(EventWatcher<C2S_RoomList, NetComponent> t)
+        {
+            S2C_RoomList s = new();
+            s.lst = this.GetLst();
+            t.t2.Send(s);
+        }
+        [Event]
+        void create(EventWatcher<C2S_CreateRoom, NetComponent> t)
+        {
+            S2C_CreateRoom s = new();
+
+            var room = this.CreateRoom(t.t.name);
+            s.info = room.GetRoomInfo();
+
+            t.t2.Send(s);
+        }
+        [Event]
+        void join(EventWatcher<C2S_JoinRoom, NetComponent> t)
+        {
+            if (!this.TryGetChildGid(t.t.id, out var room)) return;
+
+            room.AddUnit(t.t2.rpc, t.t2.Session);
+
+            S2C_JoinRoom s = new();
+            s.info = room.GetRoomInfo();
+            s.units = room.GetUnitInfo2s();
+            s.myid = t.t2.rpc;
+            t.t2.Send(s);
+
+            t.t2.Session = null;//不断开链接 将就现在的用
+            t.t2.Entity.Dispose();
+        }
+        [Event]
+        void dis(EventWatcher<C2S_DisRoom, NetComponent> t)
+        {
+            if (!this.TryGetChildGid(t.t.id, out var room)) return;
+
+            S2C_DisRoom s = new();
+            s.id = room.gid;
+
+            t.t2.Send(s);
+            room.Dispose();
+        }
     }
     class RoomItem : STree<Unit>
     {
@@ -47,14 +105,14 @@ namespace Game
 
                 c.AddComponent<TransformComponent>();
 
-                var att = c.AddComponent<AttributeComponent>();
-                att.Set((int)AttributeID.MoveSpeed, 5);
-                att.Set((int)AttributeID.RotateSpeed, 20);
+                var att = c.AddComponent<KVComponent>();
+                att.Set((int)KType.MoveSpeed, 5);
+                att.Set((int)KType.RotateSpeed, 20);
 
                 c.AddComponent<NetComponent>().Session = session;
 
                 c.AddComponent<MoveComponent>();
-                c.AddComponent<UnitComponent>();
+                c.AddComponent<BelongRoom>().room = this;
             }
             S2C_PlayerJoinRoom join = new();
             join.info = c.GetUnitInfo2();
@@ -89,15 +147,11 @@ namespace Game
 
             return lst;
         }
-
-        [Event]
-        void exit(EC_PlayerExit e)
-        {
-            if (this.TryGetChildRpc(e.rpc, out var c))
-                c.Dispose();
-        }
     }
-    class UnitComponent : SComponent { }
+    class BelongRoom : SComponent
+    {
+        public RoomItem room;
+    }
     class Unit : SObject
     {
         public string name;
@@ -119,27 +173,27 @@ namespace Game
             ui.t.p = t.position;
             ui.t.r = t.rotation.value;
 
-            var att = this.GetComponent<AttributeComponent>();
+            var att = this.GetComponent<KVComponent>();
             ui.attribute = new(att.Values);
 
             return ui;
         }
 
-        [Event(RPC = true)]
-        void get(C2S_SyncTransform t)
+        [Event]
+        static void get(EventWatcher<C2S_SyncTransform, MoveComponent> t)
         {
-            var f2 = math.normalize(t.dir);
-            this.GetComponent<MoveComponent>().Direction = new float3(f2.x, 0, f2.y);
+            var f2 = math.normalize(t.t.dir);
+            t.t2.Direction = new float3(f2.x, 0, f2.y);
         }
 
         [Event]
-        static void change(Change<TransformComponent, UnitComponent> t)
+        static void change(Change<TransformComponent, BelongRoom> t)
         {
             S2C_SyncTransform sync = new();
-            sync.rpc = (uint)t.t.Entity.rpc;
+            sync.rpc = (uint)t.t.rpc;
             sync.p = t.t.position;
             sync.r = t.t.rotation.value;
-            foreach (var item in t.t.Entity.Parent.As<RoomItem>().GetChildren())
+            foreach (var item in t.t2.room.GetChildren())
             {
                 item.GetComponent<NetComponent>().Send(sync);
             }

@@ -12,104 +12,92 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    class Players : STree
+    class Players : STree<Player>
     {
-        static uint _gen_rpc = 0;
-        Dictionary<IPEndPoint, long> players = new();
+        public IPEndPoint ip;
 
-        [Event]
-        static void playerDispose(Dispose<Player> t)
-        {
-            t.t.Parent.As<Players>().players.Remove(t.t.tcp.IP);
-
-            t.t.World.Event.RunRPCEvent(t.t.rpc, new EC_PlayerExit { rpc = t.t.rpc });
-            t.t.World.Event.RunEvent(new EC_PlayerExit { rpc = t.t.rpc });
-        }
-        [Event]
+        /*[Event]
         static async void awake(Awake<Players> t)
         {
-            TcpListener tcp = new(IPAddress.Any, SettingM.serverPort);
+            TcpListener tcp = new(t.t.ip);
             tcp.Start();
             while (true)
             {
                 var client = await tcp.AcceptTcpClientAsync();
+
+                uint rpc = (uint)Util.RandomInt();
+
+                var p = new Player(rpc);
+                t.t.AddChild(p);
+                p.AddComponent<NetComponent>().SetSession(new STCP(client)).Session.Work();
+            }
+        }*/
+        [Event]
+        static void awake2(Awake<Players> t)
+        {
+            new SUDP(t.t.ip).Work();
+            /*UdpClient udp = new(t.t.ip);
+            //while (true)
+            {
+                var client = await tcp.AcceptTcpClientAsync();
                 var ip = (IPEndPoint)client.Client.RemoteEndPoint;
 
-                if (t.t.players.TryGetValue(ip, out var rpcID))
-                    t.t.RemoveRpc(rpcID);
+                uint rpc = (uint)Util.RandomInt();
 
-                uint rpc = ++_gen_rpc;
-                STCP s = new(client, t.t.World.Thread.threadId, rpc);
-                s.Work();
-                s.onDisconnect += n =>
-                {
-                    if (t.t.players.TryGetValue(n.IP, out var rpcID))
-                        t.t.RemoveRpc(rpcID);
-                };
-                GameWorldServer.World.Net.Add(s);
-
-                t.t.AddChild(new Player(s, rpc));
-                t.t.players[ip] = rpc;
-            }
+                var p = new Player(rpc);
+                t.t.AddChild(p);
+                p.AddComponent<NetComponent>().SetSession(new SUDP(t.t.ip)).Session.Work();
+            }*/
         }
     }
     class Player : SObject
     {
-        public Player(STCP tcp, long rpc) : base(rpc)
-        {
-            this.tcp = tcp;
-        }
-        public STCP tcp { get; }
+        public Player(long rpc) : base(rpc) { }
 
-        public override void Dispose()
-        {
-            tcp.DisConnect();
-            base.Dispose();
-        }
-
-        [Event(RPC = true)]
-        void get(C2S_RoomList e)
+        /*[Event]
+        static void C2S_RoomList(EventWatcher<C2S_RoomList, NetComponent> t)
         {
             S2C_RoomList s = new();
-            s.lst = this.Parent.GetSibling<Room>().GetLst();
-            tcp.Send(s);
+            s.lst = t.t2.Entity.Parent.GetSibling<Room>().GetLst();
+            t.t2.Send(s);
         }
-        [Event(RPC = true)]
-        void create(C2S_CreateRoom e)
+        [Event]
+        static void create(EventWatcher<C2S_CreateRoom, NetComponent> t)
         {
             S2C_CreateRoom s = new();
 
-            var room = this.Parent.GetSibling<Room>().CreateRoom(e.name);
+            var room = t.t2.Entity.Parent.GetSibling<Room>().CreateRoom(t.t.name);
             s.info = room.GetRoomInfo();
 
-            tcp.Send(s);
+            t.t2.Send(s);
         }
-        [Event(RPC = true)]
-        void join(C2S_JoinRoom e)
+        [Event]
+        static void join(EventWatcher<C2S_JoinRoom, NetComponent> t)
         {
-            if (!this.Parent.GetSibling<Room>().TryGetChildGid(e.id, out var room)) return;
+            if (!t.t2.Entity.Parent.GetSibling<Room>().TryGetChildGid(t.t.id, out var room)) return;
 
-            room.AddUnit(this.rpc, tcp);
+            room.AddUnit(t.t2.rpc, t.t2.Session);
 
             S2C_JoinRoom s = new();
             s.info = room.GetRoomInfo();
             s.units = room.GetUnitInfo2s();
-            s.myid = this.rpc;
-            tcp.Send(s);
+            s.myid = t.t2.rpc;
+            t.t2.Send(s);
 
+            t.t2.Session = null;//不断开链接 将就现在的用
+            t.t2.Entity.Dispose();
         }
-        [Event(RPC = true)]
-        void dis(C2S_DisRoom e)
+        [Event]
+        static void dis(EventWatcher<C2S_DisRoom, NetComponent> t)
         {
-            if (!this.Parent.GetSibling<Room>().TryGetChildGid(e.id, out var room)) return;
+            if (!t.t2.Entity.Parent.GetSibling<Room>().TryGetChildGid(t.t.id, out var room)) return;
 
-            room.AddUnit(this.rpc, tcp);
             room.Dispose();
 
             S2C_DisRoom s = new();
             s.id = room.gid;
 
-            tcp.Send(s);
-        }
+            t.t2.Send(s);
+        }*/
     }
 }

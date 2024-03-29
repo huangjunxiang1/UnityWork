@@ -24,13 +24,13 @@ internal class Enable
         public static void test()
         {
             var o = new SObject();
-            GameWorld.Root.AddChild(o);
+            Client.World.Root.AddChild(o);
 
             var obj = o.AddComponent<a>();
             obj.Enable = false;
             if (obj.v != 1) throw new Exception();
             obj.Enable = true;
-            GameWorld.World.Update(0);
+            Client.World.Update(0);
             if (obj.v != 3) throw new Exception();
             obj.Entity.Dispose();
         }

@@ -18,7 +18,7 @@ namespace Core
         Dictionary<long, T> _childrenRMap = ObjectPool.Get<Dictionary<long, T>>();
         internal List<T> _children = ObjectPool.Get<List<T>>();
 
-        public override CoreWorld World
+        public sealed override World World
         {
             get => base.World;
             set

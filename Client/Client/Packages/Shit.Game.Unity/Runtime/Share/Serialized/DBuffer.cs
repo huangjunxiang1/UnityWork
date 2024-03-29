@@ -1045,7 +1045,7 @@ public class DBuffer : IDisposable
         }
         return ret | (((ulong)stream.ReadByte()) << (7 * 9));
     }
-    [Conditional("DebugEnable")]
+    [Conditional(ConstDefCore.DebugEnableString)]
     void checkArrayLengthLimit(int len)
     {
         if (len > ushort.MaxValue)

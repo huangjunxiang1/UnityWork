@@ -140,7 +140,7 @@ public class TextEditor2 : UnityEditor.UI.TextEditor
         types = list.ToArray();
 
         List<Type> ds = new();
-        foreach (var item in typeof(CoreWorld).Assembly.GetTypes())
+        foreach (var item in typeof(World).Assembly.GetTypes())
         {
             if (typeof(IData).IsAssignableFrom(item) && typeof(IData) != item && item != typeof(PB.PBMessage))
                 ds.Add(item);

@@ -13,15 +13,15 @@ internal class Dispose
         v = 0;
 
         var o = new o1();
-        GameWorld.Root.AddChild(o);
+        Client.World.Root.AddChild(o);
 
         o.Dispose();
-        GameWorld.World.Update(0);
+        Client.World.Update(0);
         if (v != 2)
             throw new Exception();
 
         o = new();
-        GameWorld.Root.AddChild(o);
+        Client.World.Root.AddChild(o);
 
         var c = o.AddComponent<c_1>();
         c.Dispose();

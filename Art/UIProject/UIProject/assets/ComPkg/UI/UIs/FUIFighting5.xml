@@ -10,20 +10,28 @@
       <item/>
     </list>
     <text id="n11_uhb6" name="n11" xy="93,20" size="157,32" fontSize="12" align="center" vAlign="middle" autoSize="none" text="房间"/>
-    <component id="n12_uhb6" name="_create" src="qgu27" fileName="Common/btn/btn.xml" xy="590,206" size="135,42">
+    <component id="n12_uhb6" name="_create" src="qgu27" fileName="Common/btn/btn.xml" xy="734,212" size="135,42">
       <Button title="创建房间"/>
     </component>
-    <graph id="n14_uhb6" name="n14" xy="565,266" size="181,53" type="rect"/>
-    <text id="n13_uhb6" name="_name" xy="565,266" size="181,53" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true" prompt="房间名字"/>
-    <component id="n16_uhb6" name="_server" src="qgu27" fileName="Common/btn/btn.xml" xy="336,200" size="154,47">
+    <graph id="n14_uhb6" name="n14" xy="711,276" size="181,53" type="rect"/>
+    <text id="n13_uhb6" name="_name" xy="711,276" size="181,53" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true" prompt="房间名字"/>
+    <component id="n16_uhb6" name="_server" src="qgu27" fileName="Common/btn/btn.xml" xy="331,217" size="154,47">
       <Button title="作为服务器"/>
     </component>
-    <component id="n17_uhb6" name="_cServer" src="qgu27" fileName="Common/btn/btn.xml" xy="337,298" size="154,47">
+    <component id="n17_uhb6" name="_cServer" src="qgu27" fileName="Common/btn/btn.xml" xy="333,307" size="154,47">
       <Button title="链接服务器"/>
     </component>
     <component id="n18_uhb6" name="_ref" src="qgu27" fileName="Common/btn/btn.xml" xy="302,60" size="121,30">
       <Button title="刷新服务器列表"/>
     </component>
+    <component id="n20_mf3f" name="_serverLst" src="qgu25" fileName="Common/comBox/CB.xml" xy="481,151" size="138,34">
+      <ComboBox visibleItemCount="10">
+        <item title="139.155.0.67:9527"/>
+        <item title="127.0.0.1:9527"/>
+      </ComboBox>
+    </component>
+    <graph id="n22_mf3f" name="n22" xy="334,151" size="139,36" type="rect"/>
+    <text id="n21_mf3f" name="_ip" xy="334,151" size="139,36" fontSize="12" align="center" vAlign="middle" autoSize="none" text="" input="true"/>
   </displayList>
   <transition name="open">
     <item time="0" type="XY" target="n2_n68q" value="1071,-"/>

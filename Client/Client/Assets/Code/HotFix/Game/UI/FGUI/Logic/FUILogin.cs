@@ -64,25 +64,25 @@ partial class FUILogin
         if (_demo.selectedIndex == 0)
         {
             int id = 10001;
-            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
             await UI.Inst.OpenAsync<FUIFighting>();
         }
         else if (_demo.selectedIndex == 1)
         {
             int id = 10001;
-            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
             await UI.Inst.OpenAsync<FUIFighting2>();
         }
         else if (_demo.selectedIndex == 2)
         {
             int id = 10001;
-            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
             await UI.Inst.OpenAsync<FUIFighting3>();
         }
         else if (_demo.selectedIndex == 3)
         {
             int id = 10001;
-            await GameWorld.World.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
             await UI.Inst.OpenAsync<FUIFighting4>();
         }
         else if (_demo.selectedIndex == 4)

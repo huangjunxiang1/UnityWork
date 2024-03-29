@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Core
+namespace Game
 {
     public class STCP : SBaseNet
     {
@@ -19,7 +19,7 @@ namespace Core
             _client.SendTimeout = 3000;
             _client.SendBufferSize = ushort.MaxValue;
         }
-        public STCP(TcpClient tcp, int threadID, uint rpc) : base((IPEndPoint)tcp.Client.RemoteEndPoint, threadID, rpc)
+        public STCP(TcpClient tcp) : base((IPEndPoint)tcp.Client.RemoteEndPoint)
         {
             _client = tcp;
             _client.NoDelay = true;
@@ -27,7 +27,7 @@ namespace Core
             _client.ReceiveBufferSize = ushort.MaxValue;
             _client.SendTimeout = 3000;
             _client.SendBufferSize = ushort.MaxValue;
-            states = NetStates.Connect;
+            states = tcp.Connected ? NetStates.Connect : NetStates.None;
         }
 
         bool _sendHeart = false;
@@ -97,10 +97,10 @@ namespace Core
                         break;
                     }
 
-                    uint cmd = _rBuffer[4]
-                        | (uint)_rBuffer[5] << 8
-                        | (uint)_rBuffer[6] << 16
-                        | (uint)_rBuffer[7] << 24;
+                    int cmd = _rBuffer[4]
+                        | (int)_rBuffer[5] << 8
+                        | (int)_rBuffer[6] << 16
+                        | (int)_rBuffer[7] << 24;
 
                     byte checkCode = _rBuffer[2];
                     for (int i = 3; i < len; i++)
@@ -151,7 +151,7 @@ namespace Core
                     break;
                 }
             }
-            onDisconnect?.Invoke(this);
+            onDisconnect.Invoke();
         }
 
         protected override async void SendBuffer()
@@ -201,7 +201,7 @@ namespace Core
                             continue;
                         }
 
-                        uint cmd = MessageParser.GetCMDCode(message.GetType());
+                        int cmd = MessageParser.GetCMDCode(message.GetType());
                         _sBuffer[0] = (byte)(len - 2);
                         _sBuffer[1] = (byte)((len - 2) >> 8);
                         _sBuffer[3] = (byte)(message.rpc > 0 ? 1 : 0);
@@ -234,6 +234,7 @@ namespace Core
                 }
                 Thread.Sleep(1);
             }
+            onDisconnect.Invoke();
         }
     }
 }

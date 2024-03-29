@@ -19,12 +19,12 @@ namespace Game
         Dictionary<UnityEngine.SceneManagement.Scene, SceneInstance> sceneMap = new();
         public override GameObject LoadGameObject(string url)
         {
-            var wait = Addressables.InstantiateAsync(url, parent: GameWorld.World.transform);
+            var wait = Addressables.InstantiateAsync(url, parent: Client.transform);
             wait.WaitForCompletion();
             return wait.Result;
         }
 
-        public override STask<GameObject> LoadGameObjectAsync(string url) => Addressables.InstantiateAsync(url, parent: GameWorld.World.transform).AsTask();
+        public override STask<GameObject> LoadGameObjectAsync(string url) => Addressables.InstantiateAsync(url, parent: Client.transform).AsTask();
 
         public override UnityEngine.Object LoadObject(string url)
         {

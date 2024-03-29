@@ -12,19 +12,21 @@ public static class Program
     {
         long tick = DateTime.Now.Ticks;
 
-        await GameWorld.Init();
+        List<Type> types = Types.ReflectionAllTypes();
+        MessageParser.Parse(types);
+        Client.Load(types);
 
         long tick2 = DateTime.Now.Ticks;
         UnityEngine.Debug.Log("框架初始化成功");
         UnityEngine.Debug.Log($"耗时:{(tick2 - tick) / 10000}ms");
 
         await UI.Inst.Load();
-        await GameWorld.World.Event.RunEventAsync(new EC_GameStart());
+        await Client.World.Event.RunEventAsync(new EC_GameStart());
 
         long tick3 = DateTime.Now.Ticks;
         UnityEngine.Debug.Log("游戏初始化成功");
         UnityEngine.Debug.Log($"耗时:{(tick3 - tick2) / 10000}ms");
 
-        await GameWorld.World.Scene.InLoginScene();
+        await Client.Scene.InLoginScene();
     }
 }

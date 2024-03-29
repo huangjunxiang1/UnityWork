@@ -21,6 +21,7 @@ abstract class FUI : FUIBase
         set { this._ui.visible = value; }
     }
     public sealed override STask onTask => task;
+    public GObject Close { get; private set; }
 
     public sealed override STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
     {
@@ -29,7 +30,7 @@ abstract class FUI : FUIBase
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this._ui = UIPkg.ComPkg.CreateObject(this.url).asCom;
-        this._ui.GetChild("Close")?.onClick.Add(this.Dispose);
+        (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
@@ -56,7 +57,7 @@ abstract class FUI : FUIBase
                 return;
             }
             this._ui = obj.asCom;
-            this._ui.GetChild("Close")?.onClick.Add(this.Dispose);
+            (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
             this._ui.visible = false;
             this.Binding();
             this.setConfig();

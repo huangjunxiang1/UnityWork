@@ -13,6 +13,12 @@ public class Types
     //static Dictionary<Type, bool> _asyncNeedCancel = new();
     static Dictionary<Type, MethodParseData[]> methodAttributeCache = new();
 
+    public static List<Type> ReflectionAllTypes()
+    {
+        List<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(t => t.IsDefined(typeof(AssemblyIncludedToShitRuntime))).ToList();
+        assemblies.Sort((x, y) => x.GetCustomAttribute<AssemblyIncludedToShitRuntime>().SortOrder - y.GetCustomAttribute<AssemblyIncludedToShitRuntime>().SortOrder);
+        return new(assemblies.SelectMany(t => t.GetTypes()));
+    }
     internal List<MethodParseData> Parse(List<Type> ts)
     {
         this.types = ts;
@@ -139,7 +145,7 @@ public class Types
     internal static MethodParseData[] GetInstanceMethodsAttribute(Type type) => methodAttributeCache.TryGetValue(type, out var arr) ? arr : Array.Empty<MethodParseData>();
 }
 
-public class MethodParseData
+class MethodParseData
 {
     public MethodParseData(MethodInfo method, Attribute attribute)
     {

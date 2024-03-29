@@ -1,52 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 
 namespace Core
 {
     public class EventSystem
     {
+        internal EventSystem(World world) => this.world = world;
+
+        World world;
         readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
         Queue<EvtQueue> removed = ObjectPool.Get<Queue<EvtQueue>>();
         public Action<object> getEvent;
-
-        [Conditional(ConstDefCore.DebugEnableString)]
-        internal static void Check(List<Type> types)
-        {
-            for (int i = 0; i < types.Count; i++)
-            {
-                var type = types[i];
-                var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-
-                for (int j = 0; j < methods.Length; j++)
-                {
-                    var method = methods[j];
-                    if (method.IsDefined(typeof(EventAttribute)))
-                        Check(method);
-                }
-            }
-        }
-        [Conditional(ConstDefCore.DebugEnableString)]
-        static void Check(MethodInfo method)
-        {
-            var ps = method.GetParameters();
-
-            if (method.IsGenericMethod)
-                Loger.Error($"事件函数不能是泛型函数  class:{method.ReflectedType.FullName} method:{method.Name}");
-            if (ps.Length == 0 || ps.Length > 2)
-                Loger.Error($"无法解析的参数类型 class:{method.ReflectedType.FullName} method:{method.Name}");
-            if (ps.Length == 2)
-            {
-                if (ps[1].ParameterType != typeof(EventHandler))
-                    Loger.Error($"无法解析的参数类型 class:{method.ReflectedType.FullName} method:{method.Name}");
-            }
-            if (ps[0].ParameterType.IsPrimitive)
-                Loger.Error($"不要使用系统值类型作为事件参数类型  class:{method.ReflectedType.FullName} method:{method.Name}");
-            if (method.ReturnType != typeof(void) && method.ReturnType != typeof(STask))
-                Loger.Error($"事件函数的返回类型只能是void或者{nameof(STask)} class:{method.ReflectedType.FullName} method:{method.Name}");
-        }
 
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
@@ -114,7 +82,7 @@ namespace Core
         }
         public void RigisteEvent<T>(Action<T> callBack, int sortOrder = 0)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             if (!_evtMap.TryGetValue(typeof(T), out var queue))
                 _evtMap[typeof(T)] = queue = new();
 
@@ -125,7 +93,7 @@ namespace Core
         }
         public void RigisteEvent(Delegate callBack, int sortOrder = 0)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             Type[] gs = callBack.GetType().GetGenericArguments();
             Type type = gs[0];
             if (!_evtMap.TryGetValue(type, out var queue))
@@ -173,7 +141,7 @@ namespace Core
         }
         public void RigisteRPCEvent<T>(long rpc, Action<T> callBack, int sortOrder = 0)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 _rpcEvtMap[rpc] = map = new();
             if (!map.TryGetValue(typeof(T), out var queue))
@@ -186,7 +154,7 @@ namespace Core
         }
         public void RigisteRPCEvent(long rpc, Delegate callBack, int sortOrder = 0)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             Type[] gs = callBack.GetType().GetGenericArguments();
             Type type = gs[0];
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
@@ -238,7 +206,7 @@ namespace Core
         }
         public void RemoveEvent<T>(Action<T> callBack)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             if (!_evtMap.TryGetValue(typeof(T), out var queue))
                 return;
 
@@ -253,7 +221,7 @@ namespace Core
         }
         public void RemoveEvent(Delegate callBack)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             Type type = callBack.GetType().GetGenericArguments()[0];
             if (!_evtMap.TryGetValue(type, out var queue))
                 return;
@@ -300,7 +268,7 @@ namespace Core
         }
         public void RemoveRPCEvent<T>(long rpc, Action<T> callBack)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 return;
             if (!map.TryGetValue(typeof(T), out var queue))
@@ -317,7 +285,7 @@ namespace Core
         }
         public void RemoveRPCEvent(long rpc, Delegate callBack)
         {
-            Check(callBack.Method);
+            Checker.Check(callBack.Method);
             Type type = callBack.GetType().GetGenericArguments()[0];
             if (!_rpcEvtMap.TryGetValue(rpc, out var map))
                 return;
@@ -341,50 +309,55 @@ namespace Core
         /// 执行事件
         /// </summary>
         /// <param name="data"></param>
-        public void RunEvent<T>(T data)
+        public void RunEvent<T>(T data, int testParam = 0)
         {
             getEvent?.Invoke(data);
-            _runEvent(_evtMap, data);
+            _runEvent(_evtMap, data, testParam);
         }
-        public STask RunEventAsync<T>(T data)
+        public STask RunEventAsync<T>(T data, int testParam = 0)
         {
             getEvent?.Invoke(data);
-            return _runEventAsync(_evtMap, data);
+            return _runEventAsync(_evtMap, data, testParam);
         }
-        public void RunEvent(object data)
+        public void RunEvent(object data, int testParam = 0)
         {
             getEvent?.Invoke(data);
-            _runEvent(_evtMap, data);
+            _runEvent(_evtMap, data, testParam);
         }
-        public STask RunEventAsync(object data)
+        public STask RunEventAsync(object data, int testParam = 0)
         {
             getEvent?.Invoke(data);
-            return _runEventAsync(_evtMap, data);
+            return _runEventAsync(_evtMap, data, testParam);
         }
-        internal void RunEventNoGC<T>(T data)
+        internal void RunEventNoGCAndFaster<T>(T data)
         {
-            _runEventNoGC(_evtMap, data);
+            if (!_evtMap.TryGetValue(data.GetType(), out var queue)) return;
+            queue.RunNoGCAndFaster(data);
         }
 
-        public void RunRPCEvent<T>(long rpc, T data)
+        public void RunRPCEvent<T>(long rpc, T data, int testParam = 0)
         {
+            world.System.EventWatcher(rpc, data);
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            _runEvent(map, data);
+            _runEvent(map, data, testParam);
         }
-        public STask RunRPCEventAsync<T>(long rpc, T data)
+        public STask RunRPCEventAsync<T>(long rpc, T data, int testParam = 0)
         {
+            world.System.EventWatcher(rpc, data);
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
-            return _runEventAsync(map, data);
+            return _runEventAsync(map, data, testParam);
         }
-        public void RunRPCEvent(long rpc, object data)
+        public void RunRPCEvent(long rpc, object data, int testParam = 0)
         {
+            world.System.EventWatcher(rpc, data);
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            _runEvent(map, data);
+            _runEvent(map, data, testParam);
         }
-        public STask RunRPCEventAsync(long rpc, object data)
+        public STask RunRPCEventAsync(long rpc, object data, int testParam = 0)
         {
+            world.System.EventWatcher(rpc, data);
             if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
-            return _runEventAsync(map, data);
+            return _runEventAsync(map, data, testParam);
         }
 
         public void Clear()
@@ -413,50 +386,44 @@ namespace Core
             }
         }
 
-        void _runEvent<T>(Dictionary<Type, EvtQueue> evtMap, T data)
+        void _runEvent<T>(Dictionary<Type, EvtQueue> evtMap, T data, int testParam = 0)
         {
-            var key = data.GetType();
-            if (!evtMap.TryGetValue(key, out var queue)) return;
-            queue.Run(data);
+            if (!evtMap.TryGetValue(typeof(T), out var queue)) return;
+            queue.Run(data, testParam);
         }
-        STask _runEventAsync<T>(Dictionary<Type, EvtQueue> evtMap, T data)
+        STask _runEventAsync<T>(Dictionary<Type, EvtQueue> evtMap, T data, int testParam = 0)
         {
-            var key = data.GetType();
-            if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
-            return queue.RunAsync(data);
+            if (!evtMap.TryGetValue(typeof(T), out var queue)) return STask.Completed;
+            return queue.RunAsync(data, testParam);
         }
-        void _runEvent(Dictionary<Type, EvtQueue> evtMap, object data)
+        void _runEvent(Dictionary<Type, EvtQueue> evtMap, object data, int testParam = 0)
         {
-            var key = data.GetType();
-            if (!evtMap.TryGetValue(key, out var queue)) return;
-            queue.Run(data);
+            if (!evtMap.TryGetValue(data.GetType(), out var queue)) return;
+            queue.Run(data, testParam);
         }
-        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, object data)
+        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, object data, int testParam = 0)
         {
-            var key = data.GetType();
-            if (!evtMap.TryGetValue(key, out var queue)) return STask.Completed;
-            return queue.RunAsync(data);
-        }
-        void _runEventNoGC<T>(Dictionary<Type, EvtQueue> evtMap, T data)
-        {
-            var key = data.GetType();
-            if (!evtMap.TryGetValue(key, out var queue)) return;
-            queue.RunNoGC(data);
+            if (!evtMap.TryGetValue(data.GetType(), out var queue)) return STask.Completed;
+            return queue.RunAsync(data, testParam);
         }
 
         class EvtData
         {
-            public EvtData() { }
+            public EvtData()
+            {
+                this.Attribute = EventAttribute.Default;
+            }
             public EvtData(MethodParseData m, IEvent target)
             {
+                this.Attribute = (EventAttribute)m.attribute;
                 this.isTask = m.method?.ReturnType == typeof(STask);
                 this.isProperty = m.property != null;
                 this.isField = m.field != null;
                 this.method = m.method;
                 this.field = m.field;
-                this.sortOrder = ((EventAttribute)m.attribute).SortOrder;
+                this.sortOrder = this.Attribute.SortOrder;
                 this.target = target;
-                this.isQueue = ((EventAttribute)m.attribute).Queue;
+                this.isQueue = this.Attribute.Queue;
                 this.setHandler = m.parameters != null && m.parameters.Length == 2;
 
                 if (!this.isTask)
@@ -498,6 +465,7 @@ namespace Core
                 }
             }
 
+            public EventAttribute Attribute;
             public bool disposed;
 
             public bool isTask;
@@ -539,7 +507,7 @@ namespace Core
                 return false;
             }
             public void RemoveAll() => evts.RemoveAll(t => t.disposed || (t.target != null && t.target.Disposed));
-            public async void Run<T>(T data)
+            public async void Run<T>(T data, int testParam = 0)
             {
                 ++counter;
                 int cnt = evts.Count;
@@ -547,12 +515,13 @@ namespace Core
                 for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
                     EvtData e = evts[i];
+                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null && e.isQueue) await task;
                 }
                 --counter;
             }
-            public async STask RunAsync<T>(T data)
+            public async STask RunAsync<T>(T data, int testParam = 0)
             {
                 ++counter;
                 List<STask> ts = ObjectPool.Get<List<STask>>();
@@ -561,6 +530,7 @@ namespace Core
                 for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
                     EvtData e = evts[i];
+                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null)
                     {
@@ -576,7 +546,7 @@ namespace Core
                     ObjectPool.Return(ts);
                 }
             }
-            public async void Run(object data)
+            public async void Run(object data, int testParam = 0)
             {
                 ++counter;
                 int cnt = evts.Count;
@@ -584,12 +554,13 @@ namespace Core
                 for (int i = 0; i < cnt; ++i)
                 {
                     EvtData e = evts[i];
+                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null && e.isQueue) await task;
                 }
                 --counter;
             }
-            public async STask RunAsync(object data)
+            public async STask RunAsync(object data, int testParam = 0)
             {
                 ++counter;
                 List<STask> ts = ObjectPool.Get<List<STask>>();
@@ -598,6 +569,7 @@ namespace Core
                 for (int i = 0; i < cnt; ++i)
                 {
                     EvtData e = evts[i];
+                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null)
                     {
@@ -613,16 +585,13 @@ namespace Core
                     ObjectPool.Return(ts);
                 }
             }
-            public void RunNoGC<T>(T data)
+            public void RunNoGCAndFaster<T>(T data)
             {
                 ++counter;
                 int cnt = evts.Count;
                 EventHandler eh = ObjectPool.Get<EventHandler>();
                 for (int i = 0; i < cnt && !eh.isBreak; ++i)
-                {
-                    EvtData e = evts[i];
-                    invokeNoGC(e, data, eh);
-                }
+                    invokeNoGCAndFaster(evts[i], data, eh);
                 eh.Reset();
                 ObjectPool.Return(eh);
                 --counter;
@@ -630,7 +599,7 @@ namespace Core
 
             STask invoke<T>(EvtData e, T data, EventHandler eh)
             {
-                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return null;
+                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return default;
                 try
                 {
                     if (!e.setHandler)
@@ -657,13 +626,12 @@ namespace Core
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
-                e.target?.AcceptEventHandler(!e.isField && !e.isProperty);
-                return null;
+                return default;
             }
             STask invoke(EvtData e, object data, EventHandler eh)
             {
                 STask task = default;
-                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return null;
+                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return task;
                 try
                 {
                     if (!e.setHandler)
@@ -695,39 +663,22 @@ namespace Core
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
-                e.target?.AcceptEventHandler(!e.isField && !e.isProperty);
                 return task;
             }
-            void invokeNoGC<T>(EvtData e, T data, EventHandler eh)
+            void invokeNoGCAndFaster<T>(EvtData e, T data, EventHandler eh)
             {
                 if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return;
                 try
                 {
                     if (!e.setHandler)
-                    {
-                        if (e.isTask)
-                            ((Func<T, STask>)e.action).Invoke(data);
-                        else
-                        {
-                            if (e.isField)
-                                e.field.SetValue(e.target, data);
-                            else
-                                ((Action<T>)e.action).Invoke(data);
-                        }
-                    }
+                        ((Action<T>)e.action).Invoke(data);
                     else
-                    {
-                        if (e.isTask)
-                            ((Func<T, EventHandler, STask>)e.action).Invoke(data, eh);
-                        else
-                            ((Action<T, EventHandler>)e.action).Invoke(data, eh);
-                    }
+                        ((Action<T, EventHandler>)e.action).Invoke(data, eh);
                 }
                 catch (Exception ex)
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
-                e.target?.AcceptEventHandler(!e.isField && !e.isProperty);
             }
         }
     }

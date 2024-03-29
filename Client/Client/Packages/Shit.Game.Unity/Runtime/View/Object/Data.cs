@@ -10,7 +10,7 @@ namespace Game
 {
     public class Data
     {
-        internal Data(CoreWorld world)
+        internal Data(World world)
         {
             world.Event.getEvent += Add;
         }

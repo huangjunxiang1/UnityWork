@@ -61,7 +61,7 @@ class FreedomCamera : BaseCamera
         base.EnableCamera();
         if (Application.platform == RuntimePlatform.Android
              || Application.platform == RuntimePlatform.IPhonePlayer)
-            GameWorld.World.Timer.Add(0, -1, mobileMove);
+            Client.World.Timer.Add(0, -1, mobileMove);
         input.Asset.Enable();
     }
     public override void DisableCamera()
@@ -71,7 +71,7 @@ class FreedomCamera : BaseCamera
         base.DisableCamera();
         if (Application.platform == RuntimePlatform.Android
             || Application.platform == RuntimePlatform.IPhonePlayer)
-            GameWorld.World.Timer.Remove(mobileMove);
+            Client.World.Timer.Remove(mobileMove);
         input.Asset.Disable();
     }
     public override void SetFilterZone(Vector2 pos, Vector2 size)

@@ -55,6 +55,6 @@ static partial class SettingL
 
         if (buff.ReadHeaderInfo())
             LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefCore.Debug);
-        GameWorld.World.Event.RunEvent(new EC_LanguageChange());
+        Client.World.Event.RunEvent(new EC_LanguageChange());
     }
 }

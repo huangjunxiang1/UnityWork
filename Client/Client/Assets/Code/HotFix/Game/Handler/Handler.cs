@@ -12,8 +12,8 @@ using UnityEngine;
 
 static class Handler
 {
-    [Init(-1)]
-    static async STask Init()
+    [Event(-1)]
+    static async STask Init(EC_ClientLanucher e)
     {
         DG.Tweening.DOTween.Init();
         SettingL.Languege = SystemLanguage.Chinese;

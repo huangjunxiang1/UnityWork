@@ -112,6 +112,8 @@ partial class FUIFighting5 : FUI
     public GButton _server { get; private set; }
     public GButton _cServer { get; private set; }
     public GButton _ref { get; private set; }
+    public GComboBox _serverLst { get; private set; }
+    public GTextInput _ip { get; private set; }
 
     protected sealed override void Binding()
     {
@@ -122,6 +124,8 @@ partial class FUIFighting5 : FUI
         _server = (GButton)ui.GetChildAt(6);
         _cServer = (GButton)ui.GetChildAt(7);
         _ref = (GButton)ui.GetChildAt(8);
+        _serverLst = (GComboBox)ui.GetChildAt(9);
+        _ip = (GTextInput)ui.GetChildAt(11);
     }
     public override void Dispose()
     {

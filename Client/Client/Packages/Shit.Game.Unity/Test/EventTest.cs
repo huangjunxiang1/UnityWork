@@ -13,14 +13,14 @@ class EventTest
         var o2 = new ObjTest2();
         o2.ss = new();
 
-        GameWorld.Root.AddChild(o);
-        GameWorld.Root.AddChild(o2);
-        GameWorld.Root.AddChild(o2.ss);
+        Client.World.Root.AddChild(o);
+        Client.World.Root.AddChild(o2);
+        Client.World.Root.AddChild(o2.ss);
 
-        GameWorld.World.Event.RigisteEvent<EC_Event>(t0, 2);
+        Client.World.Event.RigisteEvent<EC_Event>(t0, 2);
 
-        GameWorld.World.Event.RunEvent(new EC_Event());
-        GameWorld.World.Event.RunEvent(new Awake<int>(1));
+        Client.World.Event.RunEvent(new EC_Event());
+        Client.World.Event.RunEvent(new Awake<int>(1));
 
         o2.test();
 
@@ -29,10 +29,10 @@ class EventTest
             try
             {
                 var e2 = new EC_Event2();
-                await GameWorld.World.Event.RunEventAsync(e2);
+                await Client.World.Event.RunEventAsync(e2);
                 if (e2.v1 != 1) throw new System.Exception();
                 var e3 = new EC_Event3();
-                await GameWorld.World.Event.RunEventAsync(e3);
+                await Client.World.Event.RunEventAsync(e3);
                 if (e3.v1 != 3) throw new System.Exception();
                 isEnd = true;
             }
@@ -43,7 +43,7 @@ class EventTest
             finally
             {
                 await Task.Delay(100);
-                GameWorld.World.Dispose();
+                Client.World.Dispose();
             }
         }
         test();

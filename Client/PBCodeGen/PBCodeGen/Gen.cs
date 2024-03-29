@@ -33,7 +33,7 @@ internal class Gen
         string[] cmdSplitStr = new string[] { "=", "@" };
 
         rw.AppendLine("using System.Collections.Generic;");
-        rw.AppendLine("using Core;");
+        rw.AppendLine("using Game;");
         rw.AppendLine("using Unity.Mathematics;");
         rw.AppendLine();
 
@@ -109,7 +109,7 @@ internal class Gen
 
             df.Clear();
             df.AppendLine("using System.Collections.Generic;");
-            df.AppendLine("using Core;");
+            df.AppendLine("using Game;");
             df.AppendLine("using Unity.Mathematics;");
             df.AppendLine();
             df.AppendLine($"namespace {nameSpece}");
@@ -135,41 +135,24 @@ internal class Gen
 
                         if (i > 1)
                         {
-                            if (strs[i - 1].Replace(" ", null).StartsWith("//"))
+                            //if (strs[i - 1].Replace(" ", null).StartsWith("//"))
                             {
-                                if (strs[i - 1].Contains("MsgID"))
+                                string ss = strs[i - 1];
+                                string ss2 = ss.Replace(" ", null);
+                                if (ss2.StartsWith("//"))
                                 {
-                                    if (i > 2)
-                                    {
-                                        string ss = strs[i - 2];
-                                        string ss2 = ss.Replace(" ", null);
-                                        if (ss2.StartsWith("//"))
-                                        {
-                                            df.AppendLine($"    /// <summary>");
-                                            df.AppendLine($"    /// " + ss.Split("//", options: StringSplitOptions.RemoveEmptyEntries).LastOrDefault());
-                                            df.AppendLine($"    /// </summary>");
-                                        }
-                                    }
-
-                                    string[] cmdStr = strs[i - 1].Split(cmdSplitStr, options: StringSplitOptions.RemoveEmptyEntries);
-                                    int mainCmd = int.Parse(cmdStr[1]);
-                                    int subCmd = int.Parse(cmdStr[2]);
-                                    if (ret.TryGetValue(className, out var resp))
-                                        df.AppendLine($"    [Message({mainCmd} | {subCmd} << 16, typeof({resp}))]");
-                                    else
-                                        df.AppendLine($"    [Message({mainCmd} | {subCmd} << 16)]");
+                                    df.AppendLine($"    /// <summary>");
+                                    df.AppendLine($"    /// " + ss.Split("//", options: StringSplitOptions.RemoveEmptyEntries).LastOrDefault());
+                                    df.AppendLine($"    /// </summary>");
                                 }
+                                int cmd = 0;
+                                for (int j = 0; j < className.Length; j++)
+                                    cmd ^= (int)className[j] << (j % 4 * 8);
+                                
+                                if (ret.TryGetValue(className, out var resp))
+                                    df.AppendLine($"    [Message({cmd}, typeof({resp}))]");
                                 else
-                                {
-                                    string ss = strs[i - 1];
-                                    string ss2 = ss.Replace(" ", null);
-                                    if (ss2.StartsWith("//"))
-                                    {
-                                        df.AppendLine($"    /// <summary>");
-                                        df.AppendLine($"    /// " + ss.Split("//", options: StringSplitOptions.RemoveEmptyEntries).LastOrDefault());
-                                        df.AppendLine($"    /// </summary>");
-                                    }
-                                }
+                                    df.AppendLine($"    [Message({cmd})]");
                             }
                         }
                        

@@ -73,7 +73,7 @@ partial class FUIFighting4
     }
     void _clickBack()
     {
-        _ = GameWorld.World.Scene.InLoginScene();
+        _ = Client.Scene.InLoginScene();
     }
     void _click_rangeRoad()
     {

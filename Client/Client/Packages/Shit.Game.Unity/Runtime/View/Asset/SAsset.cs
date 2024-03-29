@@ -42,7 +42,7 @@ namespace Game
             if (_pool.TryGetValue(path, out var pool) && pool.Count > 0)
             {
                 g = pool.Dequeue();
-                g.transform.parent = GameWorld.World.transform;
+                g.transform.parent = Client.transform;
             }
             else
                 g = Loader.LoadGameObject(path);
@@ -62,7 +62,7 @@ namespace Game
                 if (_pool.TryGetValue(path, out var pool) && pool.Count > 0)
                 {
                     g = pool.Dequeue();
-                    g.transform.parent = GameWorld.World.transform;
+                    g.transform.parent = Client.transform;
                 }
                 else
                     g = await Loader.LoadGameObjectAsync(path);
@@ -77,7 +77,7 @@ namespace Game
                 }
                 task.TrySetResult(g);
             }
-            GameWorld.World.Timer.Add(0, 1, run);
+            Client.World.Timer.Add(0, 1, run);
             return task.MakeAutoCancel();
         }
         public static UnityEngine.SceneManagement.Scene LoadScene(string url, LoadSceneMode mode = LoadSceneMode.Single)
@@ -121,7 +121,7 @@ namespace Game
                 }
                 task.TrySetResult(ret);
             }
-            GameWorld.World.Timer.Add(0, 1, run);
+            Client.World.Timer.Add(0, 1, run);
             return task.MakeAutoCancel();
         }
 

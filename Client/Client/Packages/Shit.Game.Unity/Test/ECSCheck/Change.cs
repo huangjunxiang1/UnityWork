@@ -11,32 +11,41 @@ internal class Change
     public static void test()
     {
         change_TestObj o = new();
-        GameWorld.Root.AddChild(o);
+        Client.World.Root.AddChild(o);
 
         o.AddComponent<c_1>();
-        GameWorld.World.Update(0);
+        Client.World.Update(0);
         if (o.v != 1) throw new System.Exception();
 
         o.AddComponent<c_2>();
-        GameWorld.World.Update(0);
+        Client.World.Update(0);
         if (o.v != 2) throw new System.Exception();
 
         o.GetComponent<c_1>().SetChange();
-        GameWorld.World.Update(0);
+        Client.World.Update(0);
         if (o.v != 4) throw new System.Exception();
 
         o.GetComponent<c_2>().SetChange();
-        GameWorld.World.Update(0);
+        Client.World.Update(0);
         if (o.v != 5) throw new System.Exception();
 
         o.RemoveComponent<c_1>();
         o.GetComponent<c_2>().SetChange();
-        GameWorld.World.Update(0);
+        Client.World.Update(0);
         if (o.v != 6) throw new System.Exception();
 
+        o.AddComponent<c_1>();
+        Client.World.Update(0);
+        if (o.v != 8) throw new System.Exception();
+
+        o.GetComponent<c_1>().SetChange();
+        o.RemoveComponent<c_2>();
+        Client.World.Update(0);
+        if (o.v != 9) throw new System.Exception();
+
         o.Dispose();
-        GameWorld.World.Update(0);
-        if (o.v != 6) throw new System.Exception();
+        Client.World.Update(0);
+        if (o.v != 9) throw new System.Exception();
     }
 
     class c_1 : SComponent { }
@@ -51,6 +60,6 @@ internal class Change
         [Event]
         void change_obj(Change<c_1, c_2> a) => v++;
         [Event]
-        void change_obj(Change<c_1, c_2, AttributeComponent> a) => v++;
+        void change_obj(Change<c_1, c_2, KVComponent> a) => v++;
     }
 }

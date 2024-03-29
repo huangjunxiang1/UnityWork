@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Core
+namespace Game
 {
     public static class MessageParser
     {
         readonly static Dictionary<Type, MessageAttribute> _typeCmd = new();
-        readonly static Dictionary<uint, Type> _cmdType = new();
+        readonly static Dictionary<int, Type> _cmdType = new();
 
         public static void Parse(List<Type> types)
         {
@@ -24,7 +24,7 @@ namespace Core
                     var m = type.GetCustomAttribute<MessageAttribute>();
                     if (m != null)
                     {
-                        uint cmd = m.cmd;
+                        int cmd = m.cmd;
                         _typeCmd.Add(type, m);
                         if (_cmdType.TryGetValue(cmd, out var type1))
                             Loger.Error($"cmd重复 {type1}  {type}");
@@ -34,16 +34,16 @@ namespace Core
                 }
             }
         }
-        public static uint GetCMDCode(Type type)
+        public static int GetCMDCode(Type type)
         {
             if (!_typeCmd.TryGetValue(type, out var m))
                 Loger.Error("消息没有cmdCode type:" + type.FullName);
             return m.cmd;
         }
-        public static Type GetCMDType(uint cmd)
+        public static Type GetCMDType(int cmd)
         {
             if (!_cmdType.TryGetValue(cmd, out var type))
-                Loger.Error($"cmd没有类型 cmd: main={(ushort)cmd} sub={cmd >> 16}");
+                Loger.Error($"cmd没有类型 cmd: [{(ushort)cmd},{cmd >> 16}]");
             return type;
         }
         public static Type GetResponseType(Type request)
