@@ -41,11 +41,11 @@ namespace Game
 
         public override void DisConnect()
         {
-            if (!_socket.Connected)
+            if (states == NetStates.None)
                 return;
             states = NetStates.None;
-            _socket.Close();
             _socket.Dispose();
+            onDisconnect.Invoke();
         }
 
         protected async override void ReceiveBuffer()
@@ -70,9 +70,6 @@ namespace Game
                     }
                     catch (Exception ex)
                     {
-                        //被动断开链接
-                        if (states != NetStates.None)
-                            this.DisConnect();
                         Error(NetError.ReadError, ex);
                         break;
                     }
@@ -125,7 +122,6 @@ namespace Game
                     break;
                 }
             }
-            onDisconnect.Invoke();
         }
 
         protected override async void SendBuffer()
@@ -192,7 +188,6 @@ namespace Game
                 }
                 Thread.Sleep(1);
             }
-            onDisconnect.Invoke();
         }
 
         IAsyncResult BeginSend(AsyncCallback callback, object state)

@@ -479,7 +479,7 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 40
+  field of view: 60
   orthographic: 0
   orthographic size: 10
   m_Depth: 0
@@ -712,7 +712,7 @@ MonoBehaviour:
     m_Anamorphism: 0
   flipYMode: 0
   xrRendering: 1
-  fullscreenPassthrough: 0
+  fullscreenPassthrough: 1
   allowDynamicResolution: 0
   customRenderingSettings: 0
   invertFaceCulling: 0
@@ -886,7 +886,7 @@ Transform:
   m_GameObject: {fileID: 2133317451}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 9.904241, y: -5, z: 0}
+  m_LocalPosition: {x: 11.480363, y: -5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -909,7 +909,7 @@ MonoBehaviour:
   clearDepth: 1
   volumeLayerMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 32
   volumeAnchorOverride: {fileID: 0}
   antialiasing: 0
   SMAAQuality: 2

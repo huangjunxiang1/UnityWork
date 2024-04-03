@@ -44,7 +44,8 @@ namespace Core
         {
             if (_changeHandles == null || _setChanged || !_enable) return;
             _setChanged = true;
-            World.System.Change(this);
+            for (int i = 0; i < _changeHandles.Count; i++)
+                World.System.AddToChangeWaitInvoke(_changeHandles[i]);
         }
         public void Dispose()
         {

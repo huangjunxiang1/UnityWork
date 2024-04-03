@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: FreedomCameraSetting
   m_EditorClassIdentifier: 
   yMin: 1
-  yMax: 100
+  yMax: 200
   wheelSpeed: 1
   moveSpeed: 0.05

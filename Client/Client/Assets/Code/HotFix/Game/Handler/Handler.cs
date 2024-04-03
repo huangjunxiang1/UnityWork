@@ -72,6 +72,8 @@ static class Handler
     [Event]
     static void EC_InScene(EC_InScene e)
     {
+        if (e.sceneId == 1)
+            Client.Data.Clear();
         if (e.sceneId > 10000)
         {
             BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
@@ -84,6 +86,9 @@ static class Handler
     [Event]
     static void EC_QuitGame(EC_QuitGame e)
     {
+        try { Client.Close(); } catch (System.Exception ex) { throw ex; }
+        try { Server.Close(); } catch (System.Exception ex) { throw ex; }
+        TabM_ST.Tab.Data.Dispose();
         Game.ShareData.Dispose();
     }
 }

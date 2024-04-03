@@ -13,7 +13,6 @@ namespace Game
 
         public int SortOrder { get; }
         public bool HideIfOpenOtherUI { get; set; } = true;//打开新UI 自动隐藏当前UI
-        public bool CloseIfChangeScene { get; set; } = true;//切场景则自动关闭
 
 
         public UIConfig(int SortOrder)

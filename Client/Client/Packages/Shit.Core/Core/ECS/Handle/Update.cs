@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 //?        if (!o.TryGetComponent<[T]>(out var [c])) return null;+\r?
 //        return new Update<?[T]+, ?>(?[c]+, ?);
 //    }
-//    internal override bool IsValid() => ?![t].Disposed+ && ?;
+//    internal override bool Disposed => ?[t].Disposed+ || ?;
 //    internal override void Invoke()
 //    {
 //        if (?![t].Enable+ || ?) return;

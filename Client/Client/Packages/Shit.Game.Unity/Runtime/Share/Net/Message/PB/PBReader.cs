@@ -40,6 +40,39 @@ namespace PB
         {
             return (int)Readuint64();
         }
+        public int2 Readint2()
+        {
+            int2 v = default;
+            int len = Readint32();
+            int next = Position + len;
+            int index = 0;
+            while (Position < next && index < 2)
+                v[index++] = Readint32();
+            this.Seek(next);
+            return v;
+        }
+        public int3 Readint3()
+        {
+            int3 v = default;
+            int len = Readint32();
+            int next = Position + len;
+            int index = 0;
+            while (Position < next && index < 3)
+                v[index++] = Readint32();
+            this.Seek(next);
+            return v;
+        }
+        public int4 Readint4()
+        {
+            int4 v = default;
+            int len = Readint32();
+            int next = Position + len;
+            int index = 0;
+            while (Position < next && index < 4)
+                v[index++] = Readint32();
+            this.Seek(next);
+            return v;
+        }
         public uint Readuint32()
         {
             return (uint)Readuint64();
@@ -70,36 +103,28 @@ namespace PB
             long v = Readint64();
             return (v >> 1) ^ -(v & 1);
         }
-        public uint Readfixed32()
+        public int Readfixed32()
         {
-            uint v = 0;
-            for (int i = 0; i < sizeof(uint); i++)
-                v |= (uint)stream.ReadByte() << (i * 8);
+            int v = 0;
+            for (int i = 0; i < sizeof(int); i++)
+                v |= (int)stream.ReadByte() << (i * 8);
             return v;
         }
-        public int Readsfixed32()
+        public long Readfixed64()
         {
-            return (int)Readfixed32();
-        }
-        public ulong Readfixed64()
-        {
-            ulong v = 0;
-            for (int i = 0; i < sizeof(ulong); i++)
-                v |= (ulong)stream.ReadByte() << (i * 8);
+            long v = 0;
+            for (int i = 0; i < sizeof(long); i++)
+                v |= (long)stream.ReadByte() << (i * 8);
             return v;
-        }
-        public long Readsfixed64()
-        {
-            return (long)Readfixed64();
         }
         public double Readdouble()
         {
-            ulong v = Readfixed64();
+            long v = Readfixed64();
             return *(double*)&v;
         }
         public float Readfloat()
         {
-            uint v = Readfixed32();
+            int v = Readfixed32();
             return *(float*)&v;
         }
         public float2 Readfloat2()
@@ -220,7 +245,7 @@ namespace PB
                 lst.Add(Readsint64());
             this.Seek(next);
         }
-        public void Readfixed32s(List<uint> lst)
+        public void Readfixed32s(List<int> lst)
         {
             int len = Readint32();
             int next = Position + len;
@@ -228,28 +253,12 @@ namespace PB
                 lst.Add(Readfixed32());
             this.Seek(next);
         }
-        public void Readsfixed32s(List<int> lst)
-        {
-            int len = Readint32();
-            int next = Position + len;
-            while (Position < next)
-                lst.Add(Readsfixed32());
-            this.Seek(next);
-        }
-        public void Readfixed64s(List<ulong> lst)
+        public void Readfixed64s(List<long> lst)
         {
             int len = Readint32();
             int next = Position + len;
             while (Position < next)
                 lst.Add(Readfixed64());
-            this.Seek(next);
-        }
-        public void Readsfixed64s(List<long> lst)
-        {
-            int len = Readint32();
-            int next = Position + len;
-            while (Position < next)
-                lst.Add(Readsfixed64());
             this.Seek(next);
         }
         public void Readdoubles(List<double> lst)

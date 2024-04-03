@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1334,750">
+  <displayList>
+    <graph id="n0_pivy" name="n0" xy="0,0" size="1334,750" type="rect" lineSize="0" fillColor="#ff666666">
+      <relation target="" sidePair="width-width,height-height"/>
+    </graph>
+    <component id="n2_pivy" name="_ref" src="qgu27" fileName="Common/btn/btn.xml" xy="84,26" size="227,50">
+      <relation target="" sidePair="left-left,top-top"/>
+      <Button title="刷新列表"/>
+    </component>
+    <list id="n1_pivy" name="_rooms" xy="84,118" size="227,540" overflow="scroll" lineGap="5" defaultItem="ui://zvziziwiqgu27" autoClearItems="true">
+      <relation target="" sidePair="left-left,top-top,bottomext-bottom"/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+      <item/>
+    </list>
+    <component id="n3_pivy" name="_roomName" src="pivys" fileName="Common/labble/input.xml" xy="549,105" size="303,82">
+      <relation target="" sidePair="center-center,middle-middle"/>
+      <Label prompt="请输入房间名字"/>
+    </component>
+    <component id="n4_pivy" name="_create" src="qgu27" fileName="Common/btn/btn.xml" xy="549,291" size="303,82">
+      <relation target="" sidePair="center-center,middle-middle"/>
+      <Button title="创建房间"/>
+    </component>
+  </displayList>
+</component>

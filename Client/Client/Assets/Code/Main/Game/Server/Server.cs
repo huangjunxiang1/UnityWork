@@ -9,40 +9,50 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Game
 {
     public static class Server
     {
         public static World World { get; private set; }
-        public static void Load()
+        public static STask Load()
         {
-            Load(Types.ReflectionAllTypes());
+            return Load(Types.ReflectionAllTypes());
         }
-        public static void Load(List<Type> types)
+        public static STask Load(List<Type> types)
         {
 #if Server
             Run(types);
+            return STask.Completed;
 #else
-            new Thread(() => Run(types)) { IsBackground = true }.Start();
+            int id = Thread.CurrentThread.ManagedThreadId;
+            STask task = new();
+            new Thread(() => Run(types, () =>
+            {
+                ThreadSynchronizationContext.GetOrCreate(id).Post(() => task.TrySetResult());
+            }))
+            { IsBackground = true }.Start();
+            return task;
 #endif
         }
-        static void Run(List<Type> types)
+        static void Run(List<Type> types, Action callBack = null)
         {
             World = new(types);
-
-            World.Event.RunEvent(new EC_ServerLanucher());
+            var w = World;
+            w.Event.RunEvent(new EC_ServerLanucher());
 
             long tick, tick2;
             tick2 = DateTime.Now.Ticks;
             Loger.Log("服务器启动成功");
-            while (!World.Root.Disposed)
+            callBack?.Invoke();
+            while (!w.Root.Disposed)
             {
                 tick = tick2;
                 tick2 = DateTime.Now.Ticks;
                 try
                 {
-                    World.Update((tick2 - tick) / 10000000f);
+                    w.Update((tick2 - tick) / 10000000f);
                 }
                 catch (Exception ex)
                 {
@@ -54,8 +64,9 @@ namespace Game
         public static void Close()
         {
             if (World == null) return;
-            World.Thread.Post(World.Dispose);
+            var w = World;
             World = null;
+            w.Thread.Post(w.Dispose);
         }
     }
 }

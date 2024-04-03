@@ -334,15 +334,19 @@ internal class Gen
                             }
                             else if (isEnum)
                             {
-                                wStr.AppendLine($"            if (this.{fieldName} != 0)");
-                                wStr.AppendLine("            {");
-                                wStr.AppendLine($"                writer.WriteTag({tag});");
-                                wStr.AppendLine($"                writer.Writeint32((int)this.{fieldName});");
-                                wStr.AppendLine("            }");
+                                wStr.AppendLine($"            writer.Writeint32({tag}, (int)this.{fieldName});");
                             }
                             else
                             {
-                                if (realType == "int" || realType == "long" || realType == "uint" || realType == "ulong")
+                                if (ft == fieldType.Value)
+                                {
+                                    wStr.AppendLine($"            writer.Write{rowType}({tag}, this.{fieldName});");
+                                }
+                                else
+                                {
+                                    wStr.AppendLine($"            writer.Writemessage({tag}, this.{fieldName});");
+                                }
+                                /*if (realType == "int" || realType == "long" || realType == "uint" || realType == "ulong")
                                 {
                                     wStr.AppendLine($"            if (this.{fieldName} != 0)");
                                     wStr.AppendLine("            {");
@@ -372,7 +376,10 @@ internal class Gen
                                 }
                                 else if (realType == "float2"
                                     || realType == "float3"
-                                    || realType == "float4")
+                                    || realType == "float4"
+                                    || realType == "int2"
+                                    || realType == "int3"
+                                    || realType == "int4")
                                 {
                                     wStr.AppendLine($"            writer.Write{rowType}({tag}, this.{fieldName});");
                                 }
@@ -387,22 +394,18 @@ internal class Gen
                                 else
                                 {
                                     wStr.AppendLine($"            writer.Writemessage({tag}, this.{fieldName});");
-                                }
+                                }*/
                             }
 
                             if (isLst)
                             {
                                 if (rowType == "string")
                                 {
-                                    rStr.AppendLine($"                    case {tag}:");
-                                    rStr.AppendLine($"                        reader.Read{rowType}s(tag, this.{fieldName});");
-                                    rStr.AppendLine($"                        break;");
+                                    rStr.AppendLine($"                    case {tag}: reader.Read{rowType}s(tag, this.{fieldName}); break;");
                                 }
                                 else if (ft == fieldType.Value)
                                 {
-                                    rStr.AppendLine($"                    case {tag}:");
-                                    rStr.AppendLine($"                        reader.Read{rowType}s(this.{fieldName});");
-                                    rStr.AppendLine($"                        break;");
+                                    rStr.AppendLine($"                    case {tag}: reader.Read{rowType}s(this.{fieldName}); break;");
                                 }
                                 else
                                 {
@@ -424,7 +427,7 @@ internal class Gen
                             {
                                 int kmark = getMark(kRowType);
                                 int ktag = (1 << 3) | kmark;
-                                int vmark = getMark(kRowType);
+                                int vmark = getMark(vRowType);
                                 int vtag = (2 << 3) | vmark;
 
                                 rStr.AppendLine($"                    case {tag}:");
@@ -463,37 +466,27 @@ internal class Gen
                             }
                             else if (isBytes)
                             {
-                                rStr.AppendLine($"                    case {tag}:");
-                                rStr.AppendLine($"                        this.{fieldName} = reader.Readbytes();");
-                                rStr.AppendLine($"                        break;");
+                                rStr.AppendLine($"                    case {tag}:  this.{fieldName} = reader.Readbytes(); break;");
                             }
                             else if (isEnum)
                             {
-                                rStr.AppendLine($"                    case {tag}:");
-                                rStr.AppendLine($"                        this.{fieldName} = ({rowType})reader.Readint32();");
-                                rStr.AppendLine($"                        break;");
+                                rStr.AppendLine($"                    case {tag}: this.{fieldName} = ({rowType})reader.Readint32(); break;");
                             }
                             else
                             {
                                 if (ft == fieldType.Value)
                                 {
-                                    rStr.AppendLine($"                    case {tag}:");
-                                    rStr.AppendLine($"                        this.{fieldName} = reader.Read{rowType}();");
-                                    rStr.AppendLine($"                        break;");
+                                    rStr.AppendLine($"                    case {tag}: this.{fieldName} = reader.Read{rowType}(); break;");
                                 }
                                 else
                                 {
-                                    rStr.AppendLine($"                    case {tag}:");
-                                    rStr.AppendLine($"                        reader.Readmessage(this.{fieldName});");
-                                    rStr.AppendLine($"                        break;");
+                                    rStr.AppendLine($"                    case {tag}: reader.Readmessage(this.{fieldName}); break;");
                                 }
                             }
                         }
 
                         wStr.AppendLine("        }");
-                        rStr.AppendLine("                    default:");
-                        rStr.AppendLine("                        reader.SeekNext(tag);");
-                        rStr.AppendLine("                        break;");
+                        rStr.AppendLine("                    default: reader.SeekNext(tag); break;");
                         rStr.AppendLine("                }");
                         rStr.AppendLine("            }");
                         rStr.AppendLine("        }");
@@ -587,14 +580,14 @@ internal class Gen
 
     string getType(string type)
     {
-        if (type == "int32" || type == "sint32" || type == "sfixed32") return "int";
+        if (type == "int32" || type == "sint32") return "int";
         if (type == "uint32") return "uint";
 
-        if (type == "int64" || type == "sint64" || type == "sfixed64") return "long";
+        if (type == "int64" || type == "sint64") return "long";
         if (type == "uint64") return "ulong";
 
-        if (type == "fixed32") return "uint";
-        if (type == "fixed64") return "ulong";
+        if (type == "fixed32") return "int";
+        if (type == "fixed64") return "long";
         if (type == "double") return "double";
         if (type == "bytes") return "byte[]";
         return type;
@@ -617,7 +610,10 @@ internal class Gen
               || type == "bytes"
               || type == "float2"
               || type == "float3"
-              || type == "float4")
+              || type == "float4"
+              || type == "int2"
+              || type == "int3"
+              || type == "int4")
             return 2;
         else if (type == "float"
             || type == "fixed32"
@@ -667,6 +663,9 @@ internal class Gen
             || type == "float2"
             || type == "float3"
             || type == "float4"
+            || type == "int2"
+            || type == "int3"
+            || type == "int4"
             || type == "string")
             return fieldType.Value;
         return fieldType.Msg;

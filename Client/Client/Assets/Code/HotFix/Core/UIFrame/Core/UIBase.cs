@@ -80,12 +80,21 @@ abstract class UIBase : STree<UIBase>
         return STask.Completed;
     }
     public override void Dispose()
-    {  
-        base.Dispose();
+    {
         //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
         //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
-        if (this.uiStates == UIStates.Success)
-            this.GetSibling<UIBase>(t => t is UUI || t is FUI)?.Show();
+        var arr = this.Parent?.As<STree<UIBase>>().GetChildren();
+        if (this.uiStates == UIStates.Success && arr?.LastOrDefault() == this)
+        {
+            for (int i = arr.Count - 2; i >= 0; i--)
+            {
+                if (!arr[i].Disposed && (arr[i] is FUI || arr[i] is UUI))
+                    arr[i].Show();
+            }
+        }
+
+        base.Dispose();
+
         //先执行退出逻辑
         if (this.uiStates >= UIStates.OnTask)
             this.OnExit();

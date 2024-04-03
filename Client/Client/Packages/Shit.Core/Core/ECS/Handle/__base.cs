@@ -17,7 +17,7 @@ public abstract class __ChangeHandle : __SystemHandle
 }
 public abstract class __UpdateHandle : __SystemHandle
 {
-    internal abstract bool IsValid();
+    internal abstract bool Disposed { get; }
     internal abstract void Invoke();
 }
 public abstract class __EventWatcher : __SystemHandle { }

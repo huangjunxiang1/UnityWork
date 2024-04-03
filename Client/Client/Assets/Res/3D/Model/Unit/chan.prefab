@@ -2225,7 +2225,7 @@ MonoBehaviour:
   _ActionOnDisable: 0
   _PlayAutomatically: 1
   _Animations:
-  - {fileID: 7400000, guid: 1e79f5e733df84044a45d6ab05035627, type: 3}
+  - {fileID: 7400000, guid: 0147e212f97e3d449a4b9e4f5d057180, type: 3}
   - {fileID: 7400000, guid: 26055e26f15260e4e8e0e51f50c41926, type: 3}
 --- !u!1 &100098
 GameObject:

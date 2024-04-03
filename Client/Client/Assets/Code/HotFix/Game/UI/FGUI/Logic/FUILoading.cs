@@ -7,7 +7,7 @@ using System;
 using Event;
 using Core;
 
-[Game.UIConfig(50, CloseIfChangeScene = false, HideIfOpenOtherUI = false)]
+[Game.UIConfig(50,HideIfOpenOtherUI = false)]
 partial class FUILoading
 {
     [Event(-100, Queue = true)]

@@ -165,6 +165,7 @@ namespace Game
             ui = new();
             parent.AddChild(ui);
             ui.LoadConfig(cfg, new STask<T>(), data);
+            parent.GetChildren().Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
             ui.Show();
             ui.onCompleted.TrySetResult(ui);
 
@@ -192,6 +193,7 @@ namespace Game
                 });
                 parent.AddChild(ui);
                 await ui.LoadConfigAsync(cfg, new STask<T>(), data);
+                parent.GetChildren().Sort((x, y) => x.uiConfig.SortOrder - y.uiConfig.SortOrder);
                 await ui.onTask;
                 if (ui.Disposed)
                     return ui;
@@ -240,16 +242,14 @@ namespace Game
 
         public void CloseAll(Func<UIBase, bool> test)
         {
-            int len = this.GetChildren().Count;
-            for (; len > 0; len--)
+            foreach (var ui in this.GetChildren().FindAll(t => test(t)))
             {
-                UIBase ui = this.GetChildren()[len - 1];
-                if (!test(ui)) continue;
+                if (ui.Disposed) continue;
                 ui.Dispose();
             }
         }
 
-        [Event]
-        void outScene(EC_OutScene e) => CloseAll(ui => ui.uiConfig.CloseIfChangeScene);
+        [Event(-101)]
+        void outScene(EC_OutScene e) => CloseAll(ui => true);
     }
 }

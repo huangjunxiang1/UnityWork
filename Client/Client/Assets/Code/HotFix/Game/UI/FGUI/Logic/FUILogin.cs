@@ -6,6 +6,7 @@ using FairyGUI;
 using System.Threading.Tasks;
 using System;
 using Event;
+using main;
 
 partial class FUILogin
 {
@@ -15,79 +16,53 @@ partial class FUILogin
         if (e.sceneId == 1)
             await UI.Inst.OpenAsync<FUILogin>();
     }
-    static int demoIdx = 0;
 
-    protected override async STask OnTask(params object[] data)
-    {
-        await this._bg.SetTexture("UI/Texture/BG/bg.jpg");
-    }
     protected override void OnEnter(params object[] data)
     {
+        _acc.text = SettingL.Account;
+        _acc.GetTextField().asTextInput.onChanged.Add(acc);
+        _pw.text = SettingL.Password;
+        _pw.GetTextField().asTextInput.onChanged.Add(pw);
         _btnLogin.onClick.Add(login);
-        _gameTypeCB.items = new string[]
-        {
-            "Inner",
-            "Outer",
-        };
-        _gameTypeCB.selectedIndex = 1;
-        _demo.selectedIndex = demoIdx;
-        _uiType.onChanged.Add(onUIModel);
-        _uiType.selectedIndex = 0;
-        _acc.text = "t1";
-        _pw.text = "1";
+        _btnEnter.onClick.Add(enter);
+        _asServer.onClick.Add(asServer);
+
+        _asServer.enabled = Server.World == null;
+        if (Server.World != null)
+            _serverIP.text = Server.World.Root.GetChild<Login>().ip.ToString();
     }
 
-    protected override void OnExit()
-    {
-        demoIdx = _demo.selectedIndex;
-    }
+    void acc() => SettingL.Account = _acc.text;
+    void pw() => SettingL.Password = _pw.text;
 
-    [Event]
-    void connectRet(EC_NetError e)
-    {
-    }
-
-    async void onUIModel()
-    {
-        if (_uiType.selectedIndex == 0)
-            SettingL.UIModel = UIModel.FGUI;
-        else
-        {
-            SettingL.UIModel = UIModel.UGUI;
-            await UI.Inst.OpenAsync<UUILogin>();
-            this.Dispose();
-        }
-    }
-   
     async void login()
     {
-        if (_demo.selectedIndex == 0)
+        if (string.IsNullOrEmpty(this._serverIP.text)) return;
+        NetComponent.Inst?.Dispose();
+        NetComponent.Inst = Client.World.Root.AddComponent<NetComponent>();
+        NetComponent.Inst.SetSession(new STCP(Util.ToIPEndPoint(this._serverIP.text)));
+        await NetComponent.Inst.Session.Connect();
+        C2S_Login c = new();
+        c.acc = SettingL.Account;
+        c.pw = SettingL.Password;
+        var s = (S2C_Login)await NetComponent.Inst.SendAsync(c);
+        if (!string.IsNullOrEmpty(s.error))
         {
-            int id = 10001;
-            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
-            await UI.Inst.OpenAsync<FUIFighting>();
+            Box.Tips(s.error);
+            return;
         }
-        else if (_demo.selectedIndex == 1)
-        {
-            int id = 10001;
-            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
-            await UI.Inst.OpenAsync<FUIFighting2>();
-        }
-        else if (_demo.selectedIndex == 2)
-        {
-            int id = 10001;
-            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
-            await UI.Inst.OpenAsync<FUIFighting3>();
-        }
-        else if (_demo.selectedIndex == 3)
-        {
-            int id = 10001;
-            await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
-            await UI.Inst.OpenAsync<FUIFighting4>();
-        }
-        else if (_demo.selectedIndex == 4)
-        {
-            await UI.Inst.OpenAsync<FUIFighting5>();
-        }
+        Box.Tips("登录成功");
+        this._c1.selectedIndex = 1;
+    }
+    async void enter()
+    {
+        this.Dispose();
+        await UI.Inst.OpenAsync<FUIRooms>();
+    }
+    async void asServer()
+    {
+        if (Server.World != null) return;
+        await Server.Load();
+        _asServer.enabled = Server.World == null;
     }
 }

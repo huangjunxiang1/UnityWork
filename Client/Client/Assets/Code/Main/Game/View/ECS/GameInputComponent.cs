@@ -12,7 +12,7 @@ namespace Game
         [Event]
         static void update(Update<GameInputComponent> t)
         {
-            int2 dir = default;
+            int2 dir = 0;
             if (Input.GetKey(KeyCode.W))
                 dir.y += 1;
             if (Input.GetKey(KeyCode.S))
@@ -30,16 +30,13 @@ namespace Game
                 t.t.SetChange();
             }
         }
+       
         [Event]
-        static void play(Change<MoveToComponent, PlayingComponent> t)
+        static void watcher(EventWatcher<S2C_SyncTransform, TransformComponent, PlayingComponent> t)
         {
-            t.t2.Play("RUN00_F"); //t.t2.Play("WAIT01");
-        }
-        [Event]
-        static void watcher(EventWatcher<S2C_SyncTransform, MoveToComponent> t)
-        {
-            t.t2.point = t.t.p;
+            t.t2.position = t.t.p;
             t.t2.rotation = t.t.r;
+            t.t3.Play(t.t.isMoving ? "RUN00_F" : "WAIT00");
         }
     }
 }

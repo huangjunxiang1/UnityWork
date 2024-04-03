@@ -13,6 +13,17 @@ namespace Game
 {
     public static class Client
     {
+        static Client()
+        {
+#if UNITY_EDITOR
+            UnityEditor.Compilation.CompilationPipeline.compilationFinished += o=>
+            {
+                if (World == null) return;
+                World.Event.RunEvent(new EC_QuitGame());
+            } ;
+#endif
+
+        }
         public static World World { get; private set; }
         public static GameObject gameObject { get; private set; }
         public static Transform transform { get; private set; }
@@ -38,8 +49,9 @@ namespace Game
         public static void Close()
         {
             if (World == null) return;
-            World.Thread.Post(World.Dispose);
+            var w = World;
             World = null;
+            w.Thread.Post(w.Dispose);
         }
 
         class Engine : MonoBehaviour
@@ -47,7 +59,14 @@ namespace Game
             void Update()
             {
                 Profiler.BeginSample($"{nameof(World)}.{nameof(World.Update)}");
-                World.Update(Time.deltaTime);
+                try
+                {
+                    World.Update(Time.deltaTime);
+                }
+                catch (Exception ex)
+                {
+                    Loger.Error($"update error " + ex);
+                }
                 Profiler.EndSample();
             }
             void OnApplicationQuit() => World.Event.RunEvent(new EC_QuitGame());

@@ -37,6 +37,7 @@ namespace Game
 
         protected byte[] _sBuffer = new byte[ushort.MaxValue];
         protected byte[] _rBuffer = new byte[ushort.MaxValue];
+        protected static byte[] _ping = new byte[8] { 6, 0, 21, 0, 0, 0, 232, 3 };
 
         public IPEndPoint IP { get; set; }
         public int Session { get; }

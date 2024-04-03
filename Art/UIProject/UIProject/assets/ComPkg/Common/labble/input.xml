@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="100,100" extention="Label">
+  <controller name="grayed" pages="0,,1," selected="1"/>
+  <displayList>
+    <graph id="n0_pivy" name="n0" xy="0,0" size="100,100" type="rect" fillColor="#ff999999">
+      <gearColor controller="grayed" pages="1" values="#999999" default="#ffffff"/>
+      <relation target="" sidePair="width-width,height-height"/>
+    </graph>
+    <text id="n2_pivy" name="title" xy="0,0" size="100,100" fontSize="20" align="center" vAlign="middle" autoSize="none" autoClearText="true" text="" input="true">
+      <relation target="" sidePair="width-width,height-height"/>
+    </text>
+  </displayList>
+</component>

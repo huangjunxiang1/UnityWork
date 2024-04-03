@@ -15,7 +15,7 @@ public class Update<T> : __UpdateHandle where T : SComponent
         if (!o.TryGetComponent<T>(out var c)) return null;
         return new Update<T>(c);
     }
-    internal override bool IsValid() => !t.Disposed;
+    internal override bool Disposed => t.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable) return;
@@ -34,7 +34,7 @@ public class Update<T, T2> : __UpdateHandle where T : SComponent where T2 : SCom
         if (!o.TryGetComponent<T2>(out var c2)) return null;
         return new Update<T, T2>(c, c2);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable) return;
@@ -55,7 +55,7 @@ public class Update<T, T2, T3> : __UpdateHandle where T : SComponent where T2 : 
         if (!o.TryGetComponent<T3>(out var c3)) return null;
         return new Update<T, T2, T3>(c, c2, c3);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable) return;
@@ -78,7 +78,7 @@ public class Update<T, T2, T3, T4> : __UpdateHandle where T : SComponent where T
         if (!o.TryGetComponent<T4>(out var c4)) return null;
         return new Update<T, T2, T3, T4>(c, c2, c3, c4);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed && !t4.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable) return;
@@ -103,7 +103,7 @@ public class Update<T, T2, T3, T4, T5> : __UpdateHandle where T : SComponent whe
         if (!o.TryGetComponent<T5>(out var c5)) return null;
         return new Update<T, T2, T3, T4, T5>(c, c2, c3, c4, c5);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed && !t4.Disposed && !t5.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable) return;
@@ -130,7 +130,7 @@ public class Update<T, T2, T3, T4, T5, T6> : __UpdateHandle where T : SComponent
         if (!o.TryGetComponent<T6>(out var c6)) return null;
         return new Update<T, T2, T3, T4, T5, T6>(c, c2, c3, c4, c5, c6);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed && !t4.Disposed && !t5.Disposed && !t6.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable) return;
@@ -159,7 +159,7 @@ public class Update<T, T2, T3, T4, T5, T6, T7> : __UpdateHandle where T : SCompo
         if (!o.TryGetComponent<T7>(out var c7)) return null;
         return new Update<T, T2, T3, T4, T5, T6, T7>(c, c2, c3, c4, c5, c6, c7);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed && !t4.Disposed && !t5.Disposed && !t6.Disposed && !t7.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable) return;
@@ -190,7 +190,7 @@ public class Update<T, T2, T3, T4, T5, T6, T7, T8> : __UpdateHandle where T : SC
         if (!o.TryGetComponent<T8>(out var c8)) return null;
         return new Update<T, T2, T3, T4, T5, T6, T7, T8>(c, c2, c3, c4, c5, c6, c7, c8);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed && !t4.Disposed && !t5.Disposed && !t6.Disposed && !t7.Disposed && !t8.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable) return;
@@ -223,7 +223,7 @@ public class Update<T, T2, T3, T4, T5, T6, T7, T8, T9> : __UpdateHandle where T 
         if (!o.TryGetComponent<T9>(out var c9)) return null;
         return new Update<T, T2, T3, T4, T5, T6, T7, T8, T9>(c, c2, c3, c4, c5, c6, c7, c8, c9);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed && !t4.Disposed && !t5.Disposed && !t6.Disposed && !t7.Disposed && !t8.Disposed && !t9.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed || t9.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable) return;
@@ -258,7 +258,7 @@ public class Update<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __UpdateHandle whe
         if (!o.TryGetComponent<T10>(out var c10)) return null;
         return new Update<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>(c, c2, c3, c4, c5, c6, c7, c8, c9, c10);
     }
-    internal override bool IsValid() => !t.Disposed && !t2.Disposed && !t3.Disposed && !t4.Disposed && !t5.Disposed && !t6.Disposed && !t7.Disposed && !t8.Disposed && !t9.Disposed && !t10.Disposed;
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed || t9.Disposed || t10.Disposed;
     internal override void Invoke()
     {
         if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable || !t10.Enable) return;

@@ -30,10 +30,8 @@ namespace Game
             states = tcp.Connected ? NetStates.Connect : NetStates.None;
         }
 
-        bool _sendHeart = false;
         TcpClient _client;
         Task _connectTask;
-        static byte[] _heart = new byte[8] { 6, 0, 21, 0, 0, 0, 232, 3 };
 
         public override ServerType serverType => ServerType.TCP;
 
@@ -50,16 +48,17 @@ namespace Game
             _connectTask = null;
             if (_client.Connected)
                 states = NetStates.Connect;
+            this.Work();
             return _client.Connected;
         }
 
         public override void DisConnect()
         {
-            if (!_client.Connected)
+            if (states == NetStates.None)
                 return;
             states = NetStates.None;
-            _client.Close();
             _client.Dispose();
+            onDisconnect?.Invoke();
         }
 
 
@@ -90,9 +89,6 @@ namespace Game
                     }
                     catch (Exception ex)
                     {
-                        //被动断开链接
-                        if (states != NetStates.None)
-                            this.DisConnect();
                         Error(NetError.ReadError, ex);
                         break;
                     }
@@ -122,12 +118,6 @@ namespace Game
                             | (uint)_rBuffer[11] << 24;
                     }
 
-                    //心跳
-                    if (cmd == 1 << 16)
-                    {
-                        _sendHeart = true;
-                        continue;
-                    }
                     try
                     {
                         Type t = MessageParser.GetCMDType(cmd);
@@ -151,7 +141,6 @@ namespace Game
                     break;
                 }
             }
-            onDisconnect.Invoke();
         }
 
         protected override async void SendBuffer()
@@ -159,22 +148,6 @@ namespace Game
             PBWriter writer = new(new MemoryStream(_sBuffer, 0, _sBuffer.Length, true, true));
             while (states != NetStates.None)
             {
-                if (_sendHeart)
-                {
-                    try
-                    {
-                        await _client.GetStream().WriteAsync(_heart, 0, _heart.Length);
-                    }
-                    catch (Exception e)
-                    {
-                        //被动断开链接
-                        if (states != NetStates.None)
-                            this.DisConnect();
-                        Loger.Error("发送消息错误 ex=" + e);
-                        return;
-                    }
-                    _sendHeart = false;
-                }
                 while (sendQueues.TryDequeue(out var message))
                 {
                     try
@@ -234,7 +207,6 @@ namespace Game
                 }
                 Thread.Sleep(1);
             }
-            onDisconnect.Invoke();
         }
     }
 }

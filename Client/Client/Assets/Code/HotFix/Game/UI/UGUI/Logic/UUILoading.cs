@@ -9,7 +9,7 @@ using Event;
 using Game;
 using Core;
 
-[UIConfig(50, CloseIfChangeScene = false, HideIfOpenOtherUI = false)]
+[UIConfig(50, HideIfOpenOtherUI = false)]
 partial class UUILoading
 {
     [Event(-100, Queue = true)]

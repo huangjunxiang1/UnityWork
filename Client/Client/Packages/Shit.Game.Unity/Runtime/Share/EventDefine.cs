@@ -4,6 +4,7 @@ public interface IData { }
 namespace Event
 {
     public class EC_NetError : IData { public int code; }
+    public class EC_Disconnect : IData { public long rpc; }
     public class EC_ClientLanucher { }
     public class EC_ServerLanucher { }
 }

@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 //        var v = new Change<?[T]+, ?>(?[c]+, ?);
 //        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
 //        c._changeHandles.Add(v);
+//        o.World.System.AddToChangeWaitInvoke(v);
 //    }
 //    internal override void AddToRemoveWait()
 //    {

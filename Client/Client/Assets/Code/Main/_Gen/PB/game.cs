@@ -21,6 +21,7 @@ namespace game
     {
         public float3 p { get; set; }
         public float4 r { get; set; }
+        public bool isMoving { get; set; }
     }
 
 }

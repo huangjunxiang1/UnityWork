@@ -19,33 +19,33 @@ internal class Change
 
         o.AddComponent<c_2>();
         Client.World.Update(0);
-        if (o.v != 2) throw new System.Exception();
+        if (o.v != 3) throw new System.Exception();
 
         o.GetComponent<c_1>().SetChange();
         Client.World.Update(0);
-        if (o.v != 4) throw new System.Exception();
-
-        o.GetComponent<c_2>().SetChange();
-        Client.World.Update(0);
         if (o.v != 5) throw new System.Exception();
 
-        o.RemoveComponent<c_1>();
         o.GetComponent<c_2>().SetChange();
         Client.World.Update(0);
         if (o.v != 6) throw new System.Exception();
 
+        o.RemoveComponent<c_1>();
+        o.GetComponent<c_2>().SetChange();
+        Client.World.Update(0);
+        if (o.v != 7) throw new System.Exception();
+
         o.AddComponent<c_1>();
         Client.World.Update(0);
-        if (o.v != 8) throw new System.Exception();
+        if (o.v != 9) throw new System.Exception();
 
         o.GetComponent<c_1>().SetChange();
         o.RemoveComponent<c_2>();
         Client.World.Update(0);
-        if (o.v != 9) throw new System.Exception();
+        if (o.v != 10) throw new System.Exception();
 
         o.Dispose();
         Client.World.Update(0);
-        if (o.v != 9) throw new System.Exception();
+        if (o.v != 10) throw new System.Exception();
     }
 
     class c_1 : SComponent { }

@@ -8,7 +8,7 @@ namespace Game
 {
     public static class UnityMathematicsJsonConverter
     {
-        public static readonly List<JsonConverter> converts = new() 
+        public static readonly List<JsonConverter> Converters = new() 
         {
             new Float2Converter(), new Float3Converter(), new Float4Converter(),
             new Int2Converter(), new Int3Converter(), new Int4Converter(),

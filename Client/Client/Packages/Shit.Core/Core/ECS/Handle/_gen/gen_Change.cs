@@ -16,6 +16,7 @@ public class Change<T> : __ChangeHandle where T : SComponent
         var v = new Change<T>(c);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -42,6 +43,7 @@ public class Change<T, T2> : __ChangeHandle where T : SComponent where T2 : SCom
         var v = new Change<T, T2>(c, c2);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -70,6 +72,7 @@ public class Change<T, T2, T3> : __ChangeHandle where T : SComponent where T2 : 
         var v = new Change<T, T2, T3>(c, c2, c3);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -100,6 +103,7 @@ public class Change<T, T2, T3, T4> : __ChangeHandle where T : SComponent where T
         var v = new Change<T, T2, T3, T4>(c, c2, c3, c4);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -132,6 +136,7 @@ public class Change<T, T2, T3, T4, T5> : __ChangeHandle where T : SComponent whe
         var v = new Change<T, T2, T3, T4, T5>(c, c2, c3, c4, c5);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -166,6 +171,7 @@ public class Change<T, T2, T3, T4, T5, T6> : __ChangeHandle where T : SComponent
         var v = new Change<T, T2, T3, T4, T5, T6>(c, c2, c3, c4, c5, c6);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -202,6 +208,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7> : __ChangeHandle where T : SCompo
         var v = new Change<T, T2, T3, T4, T5, T6, T7>(c, c2, c3, c4, c5, c6, c7);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -240,6 +247,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8> : __ChangeHandle where T : SC
         var v = new Change<T, T2, T3, T4, T5, T6, T7, T8>(c, c2, c3, c4, c5, c6, c7, c8);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -280,6 +288,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8, T9> : __ChangeHandle where T 
         var v = new Change<T, T2, T3, T4, T5, T6, T7, T8, T9>(c, c2, c3, c4, c5, c6, c7, c8, c9);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {
@@ -322,6 +331,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __ChangeHandle whe
         var v = new Change<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>(c, c2, c3, c4, c5, c6, c7, c8, c9, c10);
         if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
         c._changeHandles.Add(v);
+        o.World.System.AddToChangeWaitInvoke(v);
     }
     internal override void AddToRemoveWait()
     {

@@ -1,5 +1,4 @@
-﻿using Game;
-using System.Collections;
+﻿using System.Collections;
 using System.Diagnostics;
 using System.Text;
 
@@ -29,7 +28,7 @@ public static class PrintField
         {
             Formatting = Newtonsoft.Json.Formatting.None, // 缩进输出
             ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore, // 处理循环引用
-            Converters = UnityMathematicsJsonConverter.converts,
+            Converters = Game.UnityMathematicsJsonConverter.Converters,
         };
         var str = string.Empty;
         try
@@ -66,7 +65,8 @@ public static class PrintField
         Newtonsoft.Json.JsonSerializerSettings settings = new Newtonsoft.Json.JsonSerializerSettings
         {
             Formatting = Newtonsoft.Json.Formatting.None, // 缩进输出
-            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore // 处理循环引用
+            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore, // 处理循环引用
+            Converters = Game.UnityMathematicsJsonConverter.Converters,
         };
         var str = string.Empty;
         try

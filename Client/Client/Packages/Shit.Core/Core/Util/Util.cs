@@ -33,5 +33,8 @@ public static class Util
     }
 
     public static int RandomInt() => random.Next();
+    public static int RandomInt(int min, int max) => random.Next(min, max);
+    public static float RandomFloat(float min, float max) => min + (max - min) * RandomFloat01();
+    public static float RandomFloat01() => RandomInt(0, int.MaxValue) / (float)int.MaxValue;
     public static long RandomLong() => (((long)random.Next()) << 32) | (random.Next() & 0xffffffff);
 }

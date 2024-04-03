@@ -22,7 +22,7 @@ namespace Core
 
         Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
 
-        HashSet<SComponent> changeWaitInvoke = ObjectPool.Get<HashSet<SComponent>>();
+        HashSet<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<HashSet<__ChangeHandle>>();
         HashSet<SComponent> changeWaitRemove = new();
         HashSet<SComponent> kvWaitRemove = new();
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
@@ -93,7 +93,7 @@ namespace Core
                 catch (Exception e) { Loger.Error("Enable 出错 " + e); }
             }
         }
-        internal void Change(SComponent c) => changeWaitInvoke.Add(c);
+        internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Add(h);
         internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
         internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
         internal void EventWatcher(long rpc, object e)
@@ -178,6 +178,14 @@ namespace Core
                         kvWatcher.Add(ma.mainKey);
                         continue;
                     }
+                    if (typeof(__UpdateHandle).IsAssignableFrom(ma.mainKey))
+                    {
+                        update.Add(ma.mainKey);
+                        continue;
+                    }
+                }
+                if (ma.attribute is TimerAttribute && typeof(__SystemHandle).IsAssignableFrom(ma.mainKey))
+                {
                     if (typeof(__Timer).IsAssignableFrom(ma.mainKey))
                     {
                         TimerItem ti = new();
@@ -189,11 +197,6 @@ namespace Core
                             timerItems[ma.mainKey] = lst = new();
                         lst.Add(ti);
                         timer.Add(ma.mainKey);
-                        continue;
-                    }
-                    if (typeof(__UpdateHandle).IsAssignableFrom(ma.mainKey))
-                    {
-                        update.Add(ma.mainKey);
                         continue;
                     }
                 }
@@ -294,26 +297,12 @@ namespace Core
         }
         internal void update()
         {
-            if (changeWaitInvoke.Count > 0)
-            {
-                var tmp = changeWaitInvoke;
-                changeWaitInvoke = ObjectPool.Get<HashSet<SComponent>>();
-                foreach (var c in tmp)
-                {
-                    int len = c._changeHandles.Count;
-                    for (int i = 0; i < len; i++)
-                        c._changeHandles[i].Invoke();
-                }
-                tmp.Clear();
-                ObjectPool.Return(tmp);
-            }
-
             Update.Invoke(world);
             var update = updateHandles;
             updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
             while (update.TryDequeue(out var u))
             {
-                if (!u.IsValid())
+                if (u.Disposed)
                     continue;
                 u.Invoke();
                 updateHandles.Enqueue(u);
@@ -330,6 +319,16 @@ namespace Core
                 timerHandles.Enqueue(t);
             }
             ObjectPool.Return(timer);
+
+            if (changeWaitInvoke.Count > 0)
+            {
+                var tmp = changeWaitInvoke;
+                changeWaitInvoke = ObjectPool.Get<HashSet<__ChangeHandle>>();
+                foreach (var c in tmp)
+                    c.Invoke();
+                tmp.Clear();
+                ObjectPool.Return(tmp);
+            }
         }
         internal void AfterUpdate()
         {

@@ -44,13 +44,11 @@ namespace main
         public Dictionary<long, bool> test10 { get; set; } = new Dictionary<long, bool>();
         public Dictionary<int, long> test11 { get; set; } = new Dictionary<int, long>();
         public byte[] test12 { get; set; }
-        public uint test14 { get; set; }
-        public int test15 { get; set; }
-        public ulong test16 { get; set; }
-        public long test17 { get; set; }
+        public int test14 { get; set; }
+        public long test16 { get; set; }
+        public COM_Client_Status test15 { get; set; }
         public double test18 { get; set; }
-        public Dictionary<uint, double> test19 { get; set; } = new Dictionary<uint, double>();
-        public Dictionary<long, string> test20 { get; set; } = new Dictionary<long, string>();
+        public Dictionary<int, double> test19 { get; set; } = new Dictionary<int, double>();
         public List<bool> test21 { get; set; } = new List<bool>();
         public List<int> test22 { get; set; } = new List<int>();
         public List<int> test23 { get; set; } = new List<int>();
@@ -59,10 +57,8 @@ namespace main
         public List<float> test26 { get; set; } = new List<float>();
         public List<string> test27 { get; set; } = new List<string>();
         public List<TestPB2> test28 { get; set; } = new List<TestPB2>();
-        public List<uint> test29 { get; set; } = new List<uint>();
-        public List<int> test30 { get; set; } = new List<int>();
-        public List<ulong> test31 { get; set; } = new List<ulong>();
-        public List<long> test32 { get; set; } = new List<long>();
+        public List<int> test29 { get; set; } = new List<int>();
+        public List<long> test31 { get; set; } = new List<long>();
         public List<double> test33 { get; set; } = new List<double>();
         public float2 test34 { get; set; }
         public float3 test35 { get; set; }
@@ -76,6 +72,37 @@ namespace main
         public List<int> test22 { get; set; } = new List<int>();
     }
 
+    /// <summary>
+    /// 测试空行 跳行不被认为是注释
+    /// </summary>
+    [Message(909401441, typeof(S2C_Login))]
+    public partial class C2S_Login
+    {
+        public string acc { get; set; }
+        public string pw { get; set; }
+    }
+
+    [Message(908352881)]
+    public partial class S2C_Login
+    {
+        public string error { get; set; }
+        public long token { get; set; }
+        public string ip { get; set; }
+        public int port { get; set; }
+    }
+
+    [Message(1532303876, typeof(S2C_LoginGame))]
+    public partial class C2S_LoginGame
+    {
+        public long token { get; set; }
+    }
+
+    [Message(1531255316)]
+    public partial class S2C_LoginGame
+    {
+        public string error { get; set; }
+    }
+
     [Message(34144539)]
     public partial class RoomInfo
     {
@@ -85,6 +112,7 @@ namespace main
         /// 玩家
         /// </summary>
         public List<UnitInfo> infos { get; set; } = new List<UnitInfo>();
+        public Dictionary<int, RoomLinkItem> link { get; set; } = new Dictionary<int, RoomLinkItem>();
     }
 
     [Message(453967900)]
@@ -107,6 +135,28 @@ namespace main
     {
         public int id { get; set; }
         public long v { get; set; }
+    }
+
+    [Message(1801744983)]
+    public partial class RoomLinkItem
+    {
+        /// <summary>
+        /// 唯一下标
+        /// </summary>
+        public int index { get; set; }
+        /// <summary>
+        /// room xy
+        /// </summary>
+        public int2 xy { get; set; }
+        /// <summary>
+        /// 0=左 1=下 2=右  3=上
+        /// </summary>
+        public int dir { get; set; }
+        /// <summary>
+        /// 链接对象
+        /// </summary>
+        public int link { get; set; }
+        public int colorIndex { get; set; }
     }
 
     /// <summary>
@@ -168,6 +218,17 @@ namespace main
 
     [Message(224212088)]
     public partial class S2C_DisRoom
+    {
+        public long id { get; set; }
+    }
+
+    [Message(1399019551, typeof(S2C_PlayerQuit))]
+    public partial class C2S_PlayerQuit
+    {
+    }
+
+    [Message(1400068111)]
+    public partial class S2C_PlayerQuit
     {
         public long id { get; set; }
     }

@@ -42,12 +42,10 @@ message TestPBmain
   bytes test12=12;
   //int32 tst13 =13;//注释行测试
   fixed32 test14=14;
-  sfixed32 test15=15;
   fixed64 test16=16;
-  sfixed64 test17=17;
+  COM_Client_Status test15=15;
   double test18=18;
   map<fixed32,double> test19=19;
-  map<sfixed64,string> test20=20;
 
   repeated bool test21 =21;
   repeated int32 test22 =22;
@@ -58,9 +56,7 @@ message TestPBmain
   repeated string test27 =27;
   repeated TestPB2 test28 =28;
   repeated fixed32 test29 =29;
-  repeated sfixed32 test30 =30;
   repeated fixed64 test31 =31;
-  repeated sfixed64 test32 =32;
   repeated double test33 =33;
 
   float2 test34 =34;
@@ -74,13 +70,29 @@ message TestPB2
 }
 
 //测试空行 跳行不被认为是注释
-
+message C2S_Login{
+	string acc=1;
+	string pw=2;
+}
+message S2C_Login{
+	string error=1;
+	fixed64 token=2;
+	string ip=3;
+	int32 port=4;
+}
+message C2S_LoginGame{
+ fixed64 token=1;
+}
+message S2C_LoginGame{
+	string error=1;
+}
 
 message RoomInfo
 {
   int64 id=1;
   string name=2;
   repeated UnitInfo infos= 3;//玩家
+  map<int32,RoomLinkItem> link=4;
 }
 message UnitInfo{
 	int64 id=1;
@@ -95,6 +107,16 @@ message UnitAttribute{
 	int32 id=1;
 	int64 v=2;
 }
+message RoomLinkItem
+{
+    int32 index=1;//唯一下标
+    int2 xy=2;//room xy
+    int32 dir=3;//0=左 1=下 2=右  3=上
+
+    int32 link=4;//链接对象
+	int32 colorIndex=5;
+}
+
 //表明我是udp链接
 message C2S_UDPConnect{}
 message C2S_RoomList
@@ -133,5 +155,11 @@ message C2S_DisRoom
 }
 message S2C_DisRoom
 {
+	int64 id=1;
+}
+message C2S_PlayerQuit{
+	
+}
+message S2C_PlayerQuit{
 	int64 id=1;
 }
