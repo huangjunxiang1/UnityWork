@@ -34,6 +34,9 @@ namespace FairyGUI
         bool isMain;
         [NonSerialized]
         Display _display;
+#if HDRP
+        FGUIHDRPRenderPass hdrpPass;
+#endif
 
         /// <summary>
         /// 
@@ -66,6 +69,9 @@ namespace FairyGUI
             if (Display.displays.Length > 1 && cachedCamera.targetDisplay != 0 && cachedCamera.targetDisplay < Display.displays.Length)
                 _display = Display.displays[cachedCamera.targetDisplay];
 
+#if HDRP
+            hdrpPass = this.GetComponent<UnityEngine.Rendering.HighDefinition.CustomPassVolume>()?.customPasses.Find(t => t is FGUIHDRPRenderPass) as FGUIHDRPRenderPass;
+#endif
             if (_display == null)
                 OnScreenSizeChanged(Screen.width, Screen.height);
             else
@@ -120,6 +126,13 @@ namespace FairyGUI
                         UIContentScaler.scaleFactor = 1;
                 }
             }
+#if HDRP
+            if (hdrpPass != null)
+                hdrpPass.ApplyChange(this.transform);
+            //涉及到摄像机修改的太多 这里就只enable=false
+            if (Application.isPlaying)
+                cachedCamera.enabled = false;
+#endif
         }
 
         void OnRenderObject()
@@ -187,6 +200,14 @@ namespace FairyGUI
 #if UNITY_5_6_OR_NEWER
             camera.allowHDR = false;
             camera.allowMSAA = false;
+#endif
+
+#if HDRP
+            var volume = cameraObject.AddComponent<UnityEngine.Rendering.HighDefinition.CustomPassVolume>();
+            volume.injectionPoint = UnityEngine.Rendering.HighDefinition.CustomPassInjectionPoint.AfterPostProcess;
+            var pass = (FGUIHDRPRenderPass)volume.AddPassOfType<FGUIHDRPRenderPass>();
+            pass.name = nameof(FGUIHDRPRenderPass);
+            pass.layer = cullingMask;
 #endif
             cameraObject.AddComponent<StageCamera>();
 

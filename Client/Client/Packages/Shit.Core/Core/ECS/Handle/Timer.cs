@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 //    }
 //    internal override void Update()
 //    {
+//        if (?![t].Enable+ || ?) return;
 //        this.delay += t.World.DeltaTime;
 //        if (this.delay >= timer.delay)
 //        {

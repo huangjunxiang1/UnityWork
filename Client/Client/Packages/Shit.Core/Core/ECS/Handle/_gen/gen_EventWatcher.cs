@@ -13,7 +13,6 @@ public class EventWatcher<T, T2> : __EventWatcher where T : class where T2 : SCo
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         o.World.Event.RunEvent(new EventWatcher<T, T2>((T)e, c2));
     }
@@ -27,7 +26,6 @@ public class EventWatcher<T, T2, T3> : __EventWatcher where T : class where T2 :
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         o.World.Event.RunEvent(new EventWatcher<T, T2, T3>((T)e, c2, c3));
@@ -43,7 +41,6 @@ public class EventWatcher<T, T2, T3, T4> : __EventWatcher where T : class where 
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         if (!o.TryGetComponent<T4>(out var c4) || !c4.Enable) return;
@@ -61,7 +58,6 @@ public class EventWatcher<T, T2, T3, T4, T5> : __EventWatcher where T : class wh
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         if (!o.TryGetComponent<T4>(out var c4) || !c4.Enable) return;
@@ -81,7 +77,6 @@ public class EventWatcher<T, T2, T3, T4, T5, T6> : __EventWatcher where T : clas
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         if (!o.TryGetComponent<T4>(out var c4) || !c4.Enable) return;
@@ -103,7 +98,6 @@ public class EventWatcher<T, T2, T3, T4, T5, T6, T7> : __EventWatcher where T : 
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         if (!o.TryGetComponent<T4>(out var c4) || !c4.Enable) return;
@@ -127,7 +121,6 @@ public class EventWatcher<T, T2, T3, T4, T5, T6, T7, T8> : __EventWatcher where 
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         if (!o.TryGetComponent<T4>(out var c4) || !c4.Enable) return;
@@ -153,7 +146,6 @@ public class EventWatcher<T, T2, T3, T4, T5, T6, T7, T8, T9> : __EventWatcher wh
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         if (!o.TryGetComponent<T4>(out var c4) || !c4.Enable) return;
@@ -181,7 +173,6 @@ public class EventWatcher<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __EventWatch
 
     internal static void Invoke(object e, SObject o)
     {
-
         if (!o.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         if (!o.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         if (!o.TryGetComponent<T4>(out var c4) || !c4.Enable) return;

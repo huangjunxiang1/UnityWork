@@ -31,7 +31,6 @@ namespace Game
             UGUIRoot.sizeDelta = new Vector2(Screen.width, Screen.height);
             UGUIRoot.pivot = Vector2.zero;
             UGUIRoot.position = Vector3.zero;
-            UGUICamera = GameObject.Find("UGUICamera").GetComponent<Camera>();
 
             NTexture.CustomDestroyMethod += t => SAsset.Release(t);
             NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
@@ -43,21 +42,18 @@ namespace Game
         /// UGUI模式有效
         /// </summary>
         public RectTransform UGUIRoot { get; }
-        public Camera UGUICamera { get; }
 
         internal async STask Load()
         {
             //ugui init
             {
                 UGUIRoot.gameObject.SetActive(SettingL.UIModel == UIModel.UGUI);
-                UGUICamera.gameObject.SetActive(SettingL.UIModel == UIModel.UGUI);
             }
 
             //fgui init
             {
                 FairyGUI.UIConfig.defaultFont = "Impact";
                 GRoot.inst.visible = SettingL.UIModel == UIModel.FGUI;
-                StageCamera.main.gameObject.SetActive(SettingL.UIModel == UIModel.FGUI);
                 UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
                 UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
                 UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);

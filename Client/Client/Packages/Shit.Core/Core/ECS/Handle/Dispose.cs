@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 //        var c = (T)oo;
 //        var o = c.Entity;
 //        if (!o.World.Event.HasEvent(typeof(Dispose<?[T]+, ?>))) return;
-//?        if (!o.TryGetComponent<[T]>(out var [c])) return;+\r#2?
+//?        if (!o.TryGetComponent<[T]>(out var [c]) || ![c].Enable) return;+\r#2?
 //        o.World.Event.RunEvent(new Dispose<?[T]+, ?>(?[c]+, ?));
 //    }
 //}

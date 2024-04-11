@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 //    {
 //        if (!o.World.Event.HasEvent(typeof(Awake<?[T]+, ?>))) return;
 //
-//?        if (!o.TryGetComponent<[T]>(out var [c])) return;+\r?
+//?        if (!o.TryGetComponent<[T]>(out var [c]) || ![c].Enable) return;+\r?
 //        o.World.Event.RunEvent(new Awake<?[T]+, ?>(?[c]+, ?));
 //    }
 //}

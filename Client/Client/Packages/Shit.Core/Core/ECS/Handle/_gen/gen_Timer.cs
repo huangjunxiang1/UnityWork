@@ -31,6 +31,7 @@ public class Timer<T> : __Timer where T : SComponent
     }
     internal override void Update()
     {
+        if (!t.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -70,6 +71,7 @@ public class Timer<T, T2> : __Timer where T : SComponent where T2 : SComponent
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -111,6 +113,7 @@ public class Timer<T, T2, T3> : __Timer where T : SComponent where T2 : SCompone
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -154,6 +157,7 @@ public class Timer<T, T2, T3, T4> : __Timer where T : SComponent where T2 : SCom
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -199,6 +203,7 @@ public class Timer<T, T2, T3, T4, T5> : __Timer where T : SComponent where T2 : 
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -246,6 +251,7 @@ public class Timer<T, T2, T3, T4, T5, T6> : __Timer where T : SComponent where T
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -295,6 +301,7 @@ public class Timer<T, T2, T3, T4, T5, T6, T7> : __Timer where T : SComponent whe
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -346,6 +353,7 @@ public class Timer<T, T2, T3, T4, T5, T6, T7, T8> : __Timer where T : SComponent
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -399,6 +407,7 @@ public class Timer<T, T2, T3, T4, T5, T6, T7, T8, T9> : __Timer where T : SCompo
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {
@@ -454,6 +463,7 @@ public class Timer<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __Timer where T : S
     }
     internal override void Update()
     {
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable || !t10.Enable) return;
         this.delay += t.World.DeltaTime;
         if (this.delay >= timer.delay)
         {

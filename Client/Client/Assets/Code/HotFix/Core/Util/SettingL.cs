@@ -23,10 +23,7 @@ static partial class SettingL
                 _uiModel = value;
 
                 UI.Inst.UGUIRoot.gameObject.SetActive(value == UIModel.UGUI);
-                UI.Inst.UGUICamera.gameObject.SetActive(value == UIModel.UGUI);
-
                 GRoot.inst.visible = value == UIModel.FGUI;
-                StageCamera.main.gameObject.SetActive(value == UIModel.FGUI);
             }
         }
     }

@@ -52,13 +52,15 @@ namespace Game
                 tick2 = DateTime.Now.Ticks;
                 try
                 {
-                    w.Update((tick2 - tick) / 10000000f);
+                    float time = (tick2 - tick) / 10000000f;
+                    time = Math.Min(time, 0.3f);
+                    w.Update(time);
                 }
                 catch (Exception ex)
                 {
                     Loger.Error($"update error " + ex);
                 }
-                Thread.Sleep(10);
+                Thread.Sleep(20);
             }
         }
         public static void Close()

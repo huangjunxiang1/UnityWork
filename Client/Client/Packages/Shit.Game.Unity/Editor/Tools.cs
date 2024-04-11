@@ -62,7 +62,7 @@ internal class Tools
                             StringBuilder tmp = new(50);
                             for (int j = j_begin - 1; j < cnt + 1; j++)
                             {
-                                if (j > 0)
+                                if (j > j_begin - 1)
                                     tmp.Append(replace);
                                 tmp.Append(code1
                                     .Replace("[T]", "T" + (j > 0 ? j + 1 : ""))
