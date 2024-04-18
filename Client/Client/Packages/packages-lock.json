@@ -23,14 +23,8 @@
       "dependencies": {},
       "hash": "12574c32f658fa23c194357141abc3fc157ea362"
     },
-    "com.shit.core": {
-      "version": "file:Shit.Core",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
-    "com.shit.game.unity": {
-      "version": "file:Shit.Game.Unity",
+    "com.shit.game": {
+      "version": "file:Shit",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -58,12 +52,6 @@
     },
     "com.unity.animancer": {
       "version": "file:Animancer",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
-    "com.unity.behaviordesigner": {
-      "version": "file:BehaviorDesigner",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -98,6 +86,12 @@
         "com.unity.test-framework.performance": "3.0.3"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.unity.dotween": {
+      "version": "file:DOTween",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.editorcoroutines": {
       "version": "1.0.0",
@@ -331,7 +325,7 @@
       }
     },
     "com.unity.test-framework": {
-      "version": "1.4.3",
+      "version": "1.4.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -381,11 +375,12 @@
         "com.unity.render-pipelines.core": "17.0.2"
       }
     },
-    "com.unity.workpackage": {
-      "version": "file:WorkPackage",
+    "com.yasirkula.ingamedebugconsole": {
+      "version": "https://github.com/yasirkula/UnityIngameDebugConsole.git",
       "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "b1204706248cea04f1b762dca8591e32ae044652"
     },
     "nuget-packages": {
       "version": "file:nuget-packages",

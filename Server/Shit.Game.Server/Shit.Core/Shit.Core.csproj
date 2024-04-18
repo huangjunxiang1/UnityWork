@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Loger">
+      <HintPath>..\..\..\Client\Client\Packages\Shit\Plugins\Loger.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\..\..\Client\Client\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    </Reference>
+  </ItemGroup>  
+<ItemGroup>  
+      <Compile Include="..\..\..\Client\Client\Packages\Shit\Runtime\Core\**\*.cs"> 
+            <Link>Core\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+ <Compile Include="..\..\..\Client\Client\Packages\Shit\Runtime\Game\**\*.cs"> 
+            <Link>Game\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+</ItemGroup>  
+<ItemGroup>
+  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+</ItemGroup>  
+</Project>

@@ -12,7 +12,6 @@ using Event;
 using game;
 using main;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace Game
 {
@@ -75,11 +74,11 @@ namespace Game
             t.t2.Send(s);
         }
         [Event]
-        void join(EventWatcher<C2S_JoinRoom, NetComponent> t)
+        void join(EventWatcher<C2S_JoinRoom, NetComponent, Player> t)
         {
             if (!this.TryGetChildGid(t.t.id, out var room)) return;
 
-            string acc = ((Player)t.t2.Entity).acc;
+            string acc = t.t3.acc;
 
             room.AddUnit(t.t2.rpc, acc, t.t2.Session);
 

@@ -2,15 +2,9 @@
 
 using Core;
 using Game;
-using System.Reflection;
-using Unity.Mathematics;
 
 public static class Program
 {
-    class temp
-    {
-        public float2 f2 = 1;
-    }
     static void Main(string[] args)
     {
         try

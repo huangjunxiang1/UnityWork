@@ -44,9 +44,8 @@ public class Login : STree<Player>
         t.t2.Send(s);
     }
     [Event]
-    static void EC_Disconnect(EventWatcher<EC_Disconnect, NetComponent> t)
+    static void EC_Disconnect(EventWatcher<EC_Disconnect, NetComponent, Player> t)
     {
-        if (t.t2.Entity is not Player) return;
         t.t2.Entity.Dispose();
     }
 }

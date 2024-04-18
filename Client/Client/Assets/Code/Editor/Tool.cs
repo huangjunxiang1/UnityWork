@@ -635,9 +635,7 @@ public class Tool
         try
         {
             CreateUUICode();
-#if FairyGUI
             CreateFUICode();
-#endif
             CreateConfigCode();
             calBat(Application.dataPath + "/../../../Excel/ExcelToDB.bat", true);
             calBat(Application.dataPath + "/../../../Excel/ExcelToDB.bat", true);

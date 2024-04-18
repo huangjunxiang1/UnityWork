@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <StartupObject>Program</StartupObject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);DebugEnable;Server</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);Server</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Loger">
+      <HintPath>..\..\..\Client\Client\Packages\Shit\Plugins\Loger.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\..\..\Client\Client\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    </Reference>
+      <ProjectReference Include="..\Shit.Core\Shit.Core.csproj" />
+      <ProjectReference Include="..\Shit.Game\Shit.Game.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy $(TargetDir)*.dll $(ProjectPath)\..\..\..\Output\*.dll&#xD;&#xA;copy $(TargetDir)*.exe $(ProjectPath)\..\..\..\Output\*.exe&#xD;&#xA;copy $(TargetDir)*.json $(ProjectPath)\..\..\..\Output\*.json" />
+  </Target>
+
+</Project>

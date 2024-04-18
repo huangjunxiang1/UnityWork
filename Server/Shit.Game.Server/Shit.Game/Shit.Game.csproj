@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);Server</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);DebugEnable;Server</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Loger">
+      <HintPath>..\..\..\Client\Client\Packages\Shit\Plugins\Loger.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\..\..\Client\Client\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    </Reference>
+      <ProjectReference Include="..\Shit.Core\Shit.Core.csproj" />
+  </ItemGroup>
+<ItemGroup>  
+<Compile Include="..\..\..\Client\Client\Assets\Code\Main\Game\Share\**\*.cs"> 
+            <Link>Share\Main\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+<Compile Include="..\..\..\Client\Client\Assets\Code\Main\Game\Server\**\*.cs"> 
+            <Link>Server\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+<Compile Include="..\..\..\Client\Client\Assets\Code\Main\_Gen\PB\**\*.cs"> 
+            <Link>PB\Main\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+<Compile Include="..\..\..\Client\Client\Assets\Code\HotFix\_Gen\PB\**\*.cs"> 
+            <Link>PB\Hotfix\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+</ItemGroup>
+<ItemGroup>
+  <Compile Include="..\..\..\Client\Client\Assets\Code\Main\AssemblyInfo.cs" Link="AssemblyInfo.cs" />
+</ItemGroup>
+<ItemGroup>
+  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+</ItemGroup>  
+</Project>

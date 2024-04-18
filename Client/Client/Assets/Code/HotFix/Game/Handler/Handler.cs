@@ -35,15 +35,6 @@ static class Handler
     [Event]
     static void EC_GameStart(EC_GameStart e)
     {
-        if (!Application.isEditor && AppSetting.Debug)
-        {
-            G_LogReporter log = new G_LogReporter();
-            log.ui.size = new Vector2(100, 120);
-            GRoot.inst.AddChild(log.ui);
-            log.ui.xy = new Vector2(0, (GRoot.inst.size.y - log.ui.size.y) / 2);
-            log.ui.sortingOrder = int.MaxValue - 10;
-            log.ui.onClick.Add(() => AppSetting.ShowReporter = !AppSetting.ShowReporter);
-        }
         {
             bool showExit = false;
             var input = new ESCInput();
