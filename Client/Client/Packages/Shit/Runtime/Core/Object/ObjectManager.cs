@@ -11,16 +11,41 @@ namespace Core
     {
         Dictionary<long, List<SObject>> map = new();
         Queue<SObject> removed = new();
+        Dictionary<Type, List<SObject>> eventWatcherFirstType = new(100);
+        HashSet<Type> eventWatcherRemoved = new();
 
-        public void Add(SObject o)
+        internal void AddEventWatcherFirstType(Type t)
+        {
+            if (eventWatcherFirstType.ContainsKey(t)) return;
+            eventWatcherFirstType.Add(t, new List<SObject>());
+        }
+        internal void Add(SObject o)
         {
             if (o.rpc == 0) return;
             if (!map.TryGetValue(o.rpc, out var lst))
                 map[o.rpc] = lst = ObjectPool.Get<List<SObject>>();
             lst.Add(o);
         }
-        public void Remove(SObject o) => removed.Enqueue(o);
-        public bool TryGetByRpc(long rpc, out List<SObject> lst) => map.TryGetValue(rpc, out lst);
+        internal void AddComponent(SComponent c, Type t)
+        {
+            if (eventWatcherFirstType.TryGetValue(t, out var value))
+                value.Add(c.Entity);
+        }
+        internal List<SObject> GetObjectsByComponentType(Type t)
+        {
+            eventWatcherFirstType.TryGetValue(t, out var value);
+            return value;
+        }
+        internal void Remove(SObject o)
+        {
+            removed.Enqueue(o);
+            foreach (var item in o._components.Keys)
+            {
+                if (eventWatcherFirstType.ContainsKey(item))
+                    eventWatcherRemoved.Add(item);
+            }
+        }
+        internal bool TryGetByRpc(long rpc, out List<SObject> lst) => map.TryGetValue(rpc, out lst);
 
         internal void AfterUpdate()
         {
@@ -36,6 +61,12 @@ namespace Core
                         ObjectPool.Return(lst);
                     }
                 }
+            }
+            if (eventWatcherRemoved.Count > 0)
+            {
+                foreach (var item in eventWatcherRemoved)
+                    eventWatcherFirstType[item].RemoveAll(t => t.Disposed);
+                eventWatcherRemoved.Clear();
             }
         }
     }

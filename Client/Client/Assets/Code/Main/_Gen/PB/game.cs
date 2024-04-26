@@ -24,4 +24,14 @@ namespace game
         public bool isMoving { get; set; }
     }
 
+    [Message(943545107, typeof(S2C_Ping))]
+    public partial class C2S_Ping
+    {
+    }
+
+    [Message(942496515)]
+    public partial class S2C_Ping
+    {
+    }
+
 }

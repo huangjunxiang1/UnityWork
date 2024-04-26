@@ -46,6 +46,40 @@ namespace game
             }
         }
     }
+    public partial class C2S_Ping : PB.PBMessage
+    {
+        public override void Write(PB.PBWriter writer)
+        {
+        }
+        public override void Read(PB.PBReader reader)
+        {
+            int tag;
+            while ((tag = reader.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default: reader.SeekNext(tag); break;
+                }
+            }
+        }
+    }
+    public partial class S2C_Ping : PB.PBMessage
+    {
+        public override void Write(PB.PBWriter writer)
+        {
+        }
+        public override void Read(PB.PBReader reader)
+        {
+            int tag;
+            while ((tag = reader.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default: reader.SeekNext(tag); break;
+                }
+            }
+        }
+    }
 }
 namespace main
 {

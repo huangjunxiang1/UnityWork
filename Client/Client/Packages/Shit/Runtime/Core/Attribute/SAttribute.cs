@@ -5,10 +5,10 @@ public class SAttribute : Attribute
 {
 }
 [AttributeUsage(AttributeTargets.Assembly)]
-public sealed class AssemblyIncludedToShitRuntime : SAttribute
+public sealed class AssemblyInfoInShitRuntime : SAttribute
 {
     public int SortOrder { get; }
-    public AssemblyIncludedToShitRuntime(int sortOrder = 0)
+    public AssemblyInfoInShitRuntime(int sortOrder = 0)
     {
         this.SortOrder = sortOrder;
     }

@@ -23,8 +23,7 @@ public class Login : STree<Player>
             var client = await tcp.AcceptTcpClientAsync();
             Player o = new((uint)Util.RandomInt());
             t.t.AddChild(o);
-            o.AddComponent<NetComponent>().SetSession(new STCP(client)).Work();
-            o.AddComponent<PingComponent>().Ping();
+            o.AddComponent(new NetComponent(false)).SetSession(new STCP(client)).Work();
         }
     }
     [Event]

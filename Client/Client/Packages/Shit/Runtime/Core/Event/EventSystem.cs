@@ -31,12 +31,6 @@ namespace Core
                 if (m.attribute is EventAttribute ea)
                 {
                     if (m.method != null && !m.method.IsStatic) continue;
-                    if (ea.RPC)
-                    {
-                        Loger.Error("rpc事件不支持静态");
-                        continue;
-                    }
-
                     if (!_evtMap.TryGetValue(m.mainKey, out var queue))
                         _evtMap[m.mainKey] = queue = new();
 
@@ -70,13 +64,29 @@ namespace Core
                 var m = ms[i];
                 if (m.attribute is EventAttribute ea)
                 {
-                    if (ea.RPC) continue;
-
                     if (!_evtMap.TryGetValue(m.mainKey, out var queue))
                         _evtMap[m.mainKey] = queue = new();
 
                     EvtData e = new(m, target);
                     queue.Add(e);
+                }
+            }
+
+            if (target.rpc != 0)
+            {
+                if (!_rpcEvtMap.TryGetValue(target.rpc, out var map))
+                    _rpcEvtMap[target.rpc] = map = new();
+                for (int i = 0; i < ms.Length; i++)
+                {
+                    var m = ms[i];
+                    if (m.attribute is EventAttribute ea)
+                    {
+                        if (!map.TryGetValue(m.mainKey, out var queue))
+                            map[m.mainKey] = queue = new();
+
+                        EvtData e = new(m, target);
+                        queue.Add(e);
+                    }
                 }
             }
         }
@@ -105,39 +115,6 @@ namespace Core
             e.isTask = gs[^1] == typeof(STask);
             e.setHandler = gs.Length >= 2 && gs[1] == typeof(EventHandler);
             queue.Add(e);
-        }
-        public void RigisteRPCEvent(long rpc, IEvent target)
-        {
-            if (target == null)
-            {
-                Loger.Error("添加事件对象为空");
-                return;
-            }
-            Type t = target.GetType();
-            if (!t.IsClass)
-            {
-                Loger.Error("只能在class注册事件");
-                return;
-            }
-
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
-                _rpcEvtMap[rpc] = map = new();
-
-            var ms = Types.GetInstanceMethodsAttribute(t);
-            for (int i = 0; i < ms.Length; i++)
-            {
-                var m = ms[i];
-                if (m.attribute is EventAttribute ea)
-                {
-                    if (!ea.RPC) continue;
-
-                    if (!map.TryGetValue(m.mainKey, out var queue))
-                        map[m.mainKey] = queue = new();
-
-                    EvtData e = new(m, target);
-                    queue.Add(e);
-                }
-            }
         }
         public void RigisteRPCEvent<T>(long rpc, Action<T> callBack, int sortOrder = 0)
         {
@@ -203,6 +180,26 @@ namespace Core
                     }
                 }
             }
+
+            if (target.rpc != 0)
+            {
+                if (!_rpcEvtMap.TryGetValue(target.rpc, out var map)) return;
+                for (int i = 0; i < ms.Length; i++)
+                {
+                    var m = ms[i];
+                    if (m.attribute is EventAttribute)
+                    {
+                        if (map.TryGetValue(m.mainKey, out var queue))
+                        {
+                            if (!queue.addToQueue)
+                            {
+                                queue.addToQueue = true;
+                                removed.Enqueue(queue);
+                            }
+                        }
+                    }
+                }
+            }
         }
         public void RemoveEvent<T>(Action<T> callBack)
         {
@@ -232,37 +229,6 @@ namespace Core
                 {
                     queue.addToQueue = true;
                     removed.Enqueue(queue);
-                }
-            }
-        }
-        public void RemoveRPCEvent(long rpc, IEvent target)
-        {
-            if (target == null)
-            {
-                Loger.Error("移除事件对象为空");
-                return;
-            }
-            Type t = target.GetType();
-            if (!t.IsClass)
-            {
-                Loger.Error("只能在class注册事件");
-                return;
-            }
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            var ms = Types.GetInstanceMethodsAttribute(t);
-            for (int i = 0; i < ms.Length; i++)
-            {
-                var m = ms[i];
-                if (m.attribute is EventAttribute)
-                {
-                    if (map.TryGetValue(m.mainKey, out var queue))
-                    {
-                        if (!queue.addToQueue)
-                        {
-                            queue.addToQueue = true;
-                            removed.Enqueue(queue);
-                        }
-                    }
                 }
             }
         }
@@ -312,21 +278,25 @@ namespace Core
         public void RunEvent<T>(T data, int testParam = 0)
         {
             getEvent?.Invoke(data);
+            world.System.EventWatcher(data);
             _runEvent(_evtMap, data, testParam);
         }
         public STask RunEventAsync<T>(T data, int testParam = 0)
         {
             getEvent?.Invoke(data);
+            world.System.EventWatcher(data);
             return _runEventAsync(_evtMap, data, testParam);
         }
         public void RunEvent(object data, int testParam = 0)
         {
             getEvent?.Invoke(data);
+            world.System.EventWatcher(data);
             _runEvent(_evtMap, data, testParam);
         }
         public STask RunEventAsync(object data, int testParam = 0)
         {
             getEvent?.Invoke(data);
+            world.System.EventWatcher(data);
             return _runEventAsync(_evtMap, data, testParam);
         }
         internal void RunEventNoGCAndFaster<T>(T data, int testParam = 0)
@@ -630,6 +600,7 @@ namespace Core
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
+                e.target?.AcceptedEvent();
                 return default;
             }
             STask invoke(EvtData e, object data, EventHandler eh)
@@ -667,6 +638,7 @@ namespace Core
                 {
                     Loger.Error("事件执行出错 error:" + ex.ToString());
                 }
+                e.target?.AcceptedEvent();
                 return task;
             }
             void invokeNoGCAndFaster<T>(EvtData e, T data, EventHandler eh)

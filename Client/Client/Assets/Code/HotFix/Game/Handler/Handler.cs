@@ -1,5 +1,4 @@
-﻿using Cinemachine;
-using Event;
+﻿using Event;
 using FairyGUI;
 using Game;
 using System;
@@ -8,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Cinemachine;
 using UnityEngine;
 
 static class Handler

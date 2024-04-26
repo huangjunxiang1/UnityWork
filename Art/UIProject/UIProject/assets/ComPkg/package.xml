@@ -20,7 +20,6 @@
     <component id="yj39i" name="FUIFighting4.xml" path="/UI/UIs/tmp/" exported="true"/>
     <component id="mxupl" name="tog.xml" path="/Common/toggle/"/>
     <component id="oxwqn" name="test.xml" path="/UI/Box/" exported="true"/>
-    <component id="9pw6o" name="LogReporter.xml" path="/UI/Box/" exported="true"/>
     <component id="be98p" name="FUIGame.xml" path="/UI/UIs/" exported="true"/>
     <component id="pivyr" name="lable.xml" path="/Common/labble/"/>
     <component id="pivys" name="input.xml" path="/Common/labble/"/>

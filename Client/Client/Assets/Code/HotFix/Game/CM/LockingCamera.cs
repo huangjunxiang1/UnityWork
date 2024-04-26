@@ -1,4 +1,4 @@
-﻿using Cinemachine;
+﻿using Unity.Cinemachine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,9 +73,9 @@ class LockingCamera : BaseCamera
         if (_wheel == 0)
             return;
 
-        CinemachineVirtualCamera cvc = (CinemachineVirtualCamera)Brain.ActiveVirtualCamera;
-        cvc.m_Lens.FieldOfView += _wheel * SettingL.LockingCameraSetting.wheelSpeed;
-        cvc.m_Lens.FieldOfView = Mathf.Clamp(cvc.m_Lens.FieldOfView, SettingL.LockingCameraSetting.yMin, SettingL.LockingCameraSetting.yMax);
+        CinemachineCamera cvc = (CinemachineCamera)Brain.ActiveVirtualCamera;
+        cvc.Lens.FieldOfView += _wheel * SettingL.LockingCameraSetting.wheelSpeed;
+        cvc.Lens.FieldOfView = Mathf.Clamp(cvc.Lens.FieldOfView, SettingL.LockingCameraSetting.yMin, SettingL.LockingCameraSetting.yMax);
     }
     void mobileMove()
     {
@@ -151,15 +151,15 @@ class LockingCamera : BaseCamera
                             _wheel = dmax * 2;
                     }
 
-                    CinemachineVirtualCamera cvc = (CinemachineVirtualCamera)Brain.ActiveVirtualCamera;
-                    CinemachineTransposer ct = cvc.GetCinemachineComponent<CinemachineTransposer>();
-                    Vector3 offset = ct.m_FollowOffset;
+                    CinemachineCamera cvc = (CinemachineCamera)Brain.ActiveVirtualCamera;
+                    CinemachineFollow ct = cvc.GetComponent<CinemachineFollow>();
+                    Vector3 offset = ct.FollowOffset;
                     if (_wheel > 0)
                     {
                         if (offset.y > SettingL.LockingCameraSetting.yMin)
                         {
                             offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
-                            ct.m_FollowOffset = offset;
+                            ct.FollowOffset = offset;
                         }
                     }
                     else
@@ -167,7 +167,7 @@ class LockingCamera : BaseCamera
                         if (offset.y < SettingL.LockingCameraSetting.yMax)
                         {
                             offset += _wheel * SettingL.LockingCameraSetting.wheelSpeed * m.transform.forward;
-                            ct.m_FollowOffset = offset;
+                            ct.FollowOffset = offset;
                         }
                     }
                 }

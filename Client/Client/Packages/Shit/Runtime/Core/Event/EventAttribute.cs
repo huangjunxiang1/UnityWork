@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 public class EventAttribute : SAttribute
 {
     public int SortOrder { get; }//消息调用顺序权值
-    public bool RPC { get; set; }
     public bool Queue { get; set; }
 
     public int Type { get; set; }

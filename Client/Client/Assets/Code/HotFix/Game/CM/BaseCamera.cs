@@ -1,10 +1,11 @@
-﻿using Cinemachine;
+﻿using Unity.Cinemachine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using DG.Tweening;
 
 abstract class BaseCamera
 {
@@ -32,8 +33,8 @@ abstract class BaseCamera
     public virtual void Init(GameObject target)
     {
         this.Target = target;
-        Brain.ActiveVirtualCamera.Follow = target.transform;
-        Brain.ActiveVirtualCamera.LookAt = target.transform;
+        ((CinemachineCamera)Brain.ActiveVirtualCamera).Follow = target.transform;
+        ((CinemachineCamera)Brain.ActiveVirtualCamera).LookAt = target.transform;
     }
     public virtual void Dispose()
     {

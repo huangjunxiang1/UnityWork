@@ -25,4 +25,4 @@ using System.Runtime.InteropServices;
 //      生成号
 //      修订号
 //
-[assembly: AssemblyIncludedToShitRuntime]
+[assembly: AssemblyInfoInShitRuntime]

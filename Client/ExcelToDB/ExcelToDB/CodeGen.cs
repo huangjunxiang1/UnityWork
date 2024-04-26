@@ -118,13 +118,60 @@ class CodeGen
                 FileInfo fi = new FileInfo(mains[i]);
                 Console.WriteLine("开始解析->" + fi.Name);
 
+                ExcelPackage pkg = new ExcelPackage(fi);
+                var sheet = pkg.Workbook.Worksheets[0];
+
                 DClass c = new DClass();
                 cs.Add(c);
+
+                if (fi.Name.Contains("_Public"))
+                {
+                    c.name = "Public";
+
+                    int arrayIdx2 = 0;
+                    var array1 = (object[,])sheet.Cells.Value;
+                    int len1 = array1 == null ? 0 : array1.GetLength(0);
+                    DFieldValue[] fvs = new DFieldValue[len1];
+                    c.fv.Add(fvs);
+                    for (int x = 1; x <= len1; x++)
+                    {
+                        DField f = new DField();
+                        var tag = sheet.Cells[x, 3].Text.ToLower();
+
+                        f.dc = c;
+                        f.index = x;
+                        f.arrayIndex = arrayIdx2++;
+
+                        f.name = sheet.Cells[x, 1].Text;
+                        f.des = sheet.Cells[x, 2].Text.Replace("\n", "\n    /// ");
+
+                        string v = sheet.Cells[x, 4].Text;
+                        f.f1 = Common.GetFtype1(v);
+                        f.f2 = Common.GetFtype2(v);
+                        f.typeStr = Common.GetFTypeStr(v);
+                        f.typeStrECS = Common.GetFTypeStrECS(v);
+                        f.realType = Common.GetFRealType(v);
+
+                        if (tag.Contains('c'))
+                            c.fs.Add(f);
+                        if (tag.Contains('e'))
+                            c.ecs.Add(f);
+
+                        if (string.IsNullOrEmpty(sheet.Cells[x, 5].Text))
+                            continue;
+                        var s = sheet.Cells[x, 5].Text;
+                        if (!Common.GetFv(f, s, out var fv))
+                        {
+                            Console.WriteLine($"解析出错 {f.dc.name}  {4}-{(char)('A' + f.index - 1)} 类型:{f.typeStr} 字符:{s}");
+                            return;
+                        }
+                        fvs[x - 1] = fv;
+                    }
+                    continue;
+                }
+
                 c.name = fi.Name.Split('.')[0];
 
-                ExcelPackage pkg = new ExcelPackage(fi);
-
-                var sheet = pkg.Workbook.Worksheets[0];
                 var keyType = sheet.Cells[2, 1].Text;
                 var keyName = sheet.Cells[3, 1].Text;
                 if (string.IsNullOrEmpty(keyType) || string.IsNullOrEmpty(keyName))
@@ -226,6 +273,7 @@ class CodeGen
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
+                if (c.name == "Public") continue;
                 rw.AppendLine($"    static bool _init{c.name}Array; static {name}{c.name}[] _{c.name}Array; static Dictionary<{c.fs[0].typeStr}, TabMapping> _map{c.name};");
             }
             rw.AppendLine();
@@ -234,19 +282,27 @@ class CodeGen
             rw.AppendLine($"        dbbuff = buffer; loadAll = isLoadAll;");
             rw.AppendLine($"        int len = buffer.Readint(); buffer.Readint(); stringCache = new string[len]; stringIndex = new int[len]; for (int i = 0; i < len; i++) {{ stringIndex[i] = buffer.Position; buffer.Seek(buffer.Readint() + buffer.Position); }}");
             rw.AppendLine($"        buffer.Readint();//data buff总长");
+            rw.AppendLine($"        Public = new(buffer, isLoadAll);");
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
+                if (c.name == "Public") continue;
                 rw.AppendLine($"        len = buffer.Readint(); _init{c.name}Array = false; _{c.name}Array = new {name}{c.name}[len]; _map{c.name} = new(len); for (int i = 0; i < len; i++) {{ int offset = buffer.Readint(); TabMapping map = new(buffer.Position, i); _map{c.name}.Add(buffer.Read{c.fs[0].typeStr}(), map); buffer.Seek(map.point + offset); }}");
             }
             rw.Append($"        if (loadAll) {{");
             for (int i = 0; i < cs.Count; i++)
-                rw.Append($" _ = {cs[i].name}Array;");
+            {
+                var c = cs[i];
+                if (c.name == "Public") continue;
+                rw.Append($" _ = {c.name}Array;");
+            }
             rw.AppendLine($" }}");
             rw.AppendLine($"    }}");
+            rw.AppendLine($"    public static {name}Public Public {{ get; private set; }}");
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
+                if (c.name == "Public") continue;
                 rw.AppendLine();
                 rw.AppendLine($"    public static {name}{c.name}[] {c.name}Array {{ get {{ if (!_init{c.name}Array) {{ _init{c.name}Array = true; foreach (var item in _map{c.name}.Keys) Get{c.name}(item); }} return _{c.name}Array; }} }}");
                 rw.AppendLine($"    public static bool Has{c.name}({c.fs[0].typeStr} key) => _map{c.name}.ContainsKey(key);");
@@ -330,9 +386,26 @@ class CodeGen
             Dictionary<string, int> stringIndex = new(10000);
             DBuffer tmpC = new DBuffer(new MemoryStream(new byte[100000], 0, 100000, true, true));
             DBuffer arrTmp = new DBuffer(new MemoryStream(new byte[10000], 0, 10000, true, true));
+            cs.Sort((x, y) =>
+            {
+                if (y.name == "Public") return 1;
+                if (x.name == "Public") return -1;
+                return 0;
+            });
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
+
+                if (c.name == "Public")
+                {
+                    var vs = c.fv[0];
+                    for (int k = 0; k < vs.Length; k++)
+                    {
+                        var v = vs[k];
+                        Common.WriteFv(c.fs[k], v, data, arrTmp, stringIndex, stringData);
+                    }
+                    continue;
+                }
                 data.Write(c.fv.Count);
 
                 for (int j = 0; j < c.fv.Count; j++)
@@ -363,16 +436,19 @@ class CodeGen
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
+                    if (c.name == "Public") continue;
                     if (c.ecs.Count > 1)
                         erw.AppendLine($"    readonly UnsafeHashMap<{c.fs[0].typeStrECS}, int> {c.name}Map;");
                 }
                 erw.AppendLine($"    public static void Init(DBuffer buffer)");
                 erw.AppendLine($"    {{");
                 erw.AppendLine($"        Tab.Data.Dispose();");
+                erw.AppendLine($"        fixed (Public_ST* ptr = &Tab.Data.Public) {{ *ptr = new Public_ST(buffer); }}");
                 erw.AppendLine($"        int len;");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
+                    if (c.name == "Public") continue;
                     if (c.ecs.Count > 1)
                     {
                         erw.AppendLine($"        len = buffer.Readint(); fixed (UnsafeList<{c.name}_ST>* ptr = &Tab.Data.{c.name}Array) {{ *ptr = new UnsafeList<{c.name}_ST>(len, Allocator.Persistent); fixed (UnsafeHashMap<{c.fs[0].typeStrECS}, int>* ptr2 = &Tab.Data.{c.name}Map) {{ *ptr2 = new UnsafeHashMap<{c.fs[0].typeStrECS}, int>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) {{ {c.name}_ST st = new(buffer); ptr->Add(st); ptr2->Add(st.{c.fs[0].name}, i); }} }} }}");
@@ -384,6 +460,15 @@ class CodeGen
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
+                    if (c.name == "Public")
+                    {
+                        for (int j = 0; j < c.ecs.Count; j++)
+                        {
+                            if (c.ecs[j].f2 == FType2.Array)
+                                erw.AppendLine($"        {c.name}.{c.ecs[j].name}.Dispose();");
+                        }
+                        continue;
+                    }
                     if (c.ecs.Count > 1)
                     {
                         erw.AppendLine($"        for (int i = 0; i < {c.name}Array.Length; i++)");
@@ -401,9 +486,11 @@ class CodeGen
                     }
                 }
                 erw.AppendLine($"    }}");
+                erw.AppendLine($"    public readonly Public_ST Public;");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
+                    if (c.name == "Public") continue;
                     if (c.ecs.Count > 1)
                     {
                         erw.AppendLine($"");
@@ -460,6 +547,17 @@ class CodeGen
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
+                    if (c.name == "Public")
+                    {
+                        var vs = c.fv[0];
+                        for (int k = 0; k < c.ecs.Count; k++)
+                        {
+                            var f = c.ecs[k];
+                            var v = vs[f.arrayIndex];
+                            Common.WriteFv(f, v, bufferEcs, null);
+                        }
+                        continue;
+                    }
                     if (c.ecs.Count > 1)
                     {
                         bufferEcs.Write(c.fv.Count);
@@ -497,5 +595,10 @@ class CodeGen
             Console.WriteLine("写入完成");
             Console.WriteLine("");
         }
+    }
+
+    void gen_public(FileInfo fi)
+    {
+
     }
 }

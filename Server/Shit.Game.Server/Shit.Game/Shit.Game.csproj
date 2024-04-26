@@ -27,7 +27,7 @@
   </ItemGroup>
 <ItemGroup>  
 <Compile Include="..\..\..\Client\Client\Assets\Code\Main\Game\Share\**\*.cs"> 
-            <Link>Share\Main\%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <Link>Share\%(RecursiveDir)%(FileName)%(Extension)</Link>
         </Compile>
 <Compile Include="..\..\..\Client\Client\Assets\Code\Main\Game\Server\**\*.cs"> 
             <Link>Server\%(RecursiveDir)%(FileName)%(Extension)</Link>

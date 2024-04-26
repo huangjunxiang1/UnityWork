@@ -18,6 +18,9 @@ MonoBehaviour:
   m_PlatformBuildProfile:
     rid: 5083712479893651456
   m_Scenes: []
+  m_ScriptingDefines: []
+  m_PlayerSettingsYaml:
+    m_Settings: []
   references:
     version: 2
     RefIds:

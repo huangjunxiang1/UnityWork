@@ -32,6 +32,9 @@ internal class EventWatcher
         if (e.v != 4) throw new Exception();
         Client.World.Event.RunRPCEvent(4, e);
         if (e.v != 4) throw new Exception();
+
+        Client.World.Event.RunEvent(e);
+        if (e.v != 8) throw new Exception();
     }
 
     class Evt

@@ -21,15 +21,15 @@ internal class KVWatcherTest
         o.World.Update(0);
         if (a != 0) throw new Exception();
 
-        kv.Set((int)KType.MoveSpeed, 5);
+        kv.Set(1, 5);
         o.World.Update(0);
         if (a != 1) throw new Exception();
-        kv.Set((int)KType.MoveSpeed, 5);
+        kv.Set(1, 5);
         o.World.Update(0);
         if (a != 1) throw new Exception();
 
         o.AddComponent<c1>();
-        kv.Set((int)KType.MoveSpeed, 6);
+        kv.Set(1, 6);
         o.World.Update(0);
         if (a != 3) throw new Exception();
 
@@ -42,18 +42,18 @@ internal class KVWatcherTest
     class c1 : SComponent { }
     class c2 : SComponent { }
 
-    [Event(Type = (int)KType.MoveSpeed)]
+    [Event(Type = 1)]
     static void e1(KVWatcher t) => a++;
-    [Event(Type = (int)KType.RotateSpeed)]
+    [Event(Type = 2)]
     static void e2(KVWatcher t) => a++;
 
-    [Event(Type = (int)KType.MoveSpeed)]
+    [Event(Type = 1)]
     static void e1(KVWatcher<c1> t) => a++;
-    [Event(Type = (int)KType.RotateSpeed)]
+    [Event(Type = 2)]
     static void e2(KVWatcher<c1> t) => a++;
 
-    [Event(Type = (int)KType.MoveSpeed)]
+    [Event(Type = 1)]
     static void e1(KVWatcher<c1, c2> t) => a++;
-    [Event(Type = (int)KType.RotateSpeed)]
+    [Event(Type = 2)]
     static void e2(KVWatcher<c1, c2> t) => a++;
 }

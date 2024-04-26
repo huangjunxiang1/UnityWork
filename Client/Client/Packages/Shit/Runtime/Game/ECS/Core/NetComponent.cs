@@ -1,6 +1,5 @@
 ﻿using Core;
 using Event;
-using PB;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,25 +9,19 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    [Message(943545107, typeof(S2C_Ping))]
-    partial class C2S_Ping : PB.PBMessage
-    {
-        public override void Read(PBReader reader) { }
-        public override void Write(PBWriter writer) { }
-    }
-
-    [Message(942496515)]
-    partial class S2C_Ping : PB.PBMessage
-    {
-        public override void Read(PBReader reader) { }
-        public override void Write(PBWriter writer) { }
-    }
     public class NetComponent : SComponent
     {
+        public NetComponent(bool isClient)
+        {
+            this.isClient = isClient;
+            if (isClient)
+                Inst = this;
+        }
 #if !Server
-        public static NetComponent Inst { get; set; }
+        public static NetComponent Inst { get; private set; }
 #endif
         public SBaseNet Session { get; private set; }
+        public bool isClient { get; }
 
         Dictionary<Type, STask<IMessage>> reqWaiter = new();
 
@@ -38,16 +31,9 @@ namespace Game
         }
         void _onResponse(IMessage message)
         {
-            if (message is not C2S_Ping && message is not S2C_Ping)
-            {
-#if Server
-                PrintField.Print($"收到消息 msg:[{message.GetType().Name}]  content:{{0}}", message);
-#else
-                PrintField.Print($"<Color=#00FF00>收到消息</Color> msg:[{message.GetType().Name}]  content:{{0}}", message);
-#endif
-            }
             this.World.Thread.Post(() =>
             {
+                this.World.Event.RunEvent(new EC_AcceptedMessage { message = message });
                 //自动注册的事件一般是底层事件 所以先执行底层监听
                 if (message.rpc != 0)
                     this.World.Event.RunRPCEvent(message.rpc, (object)message);
@@ -97,14 +83,7 @@ namespace Game
 
         public void Send(IMessage message)
         {
-            if (message is not C2S_Ping && message is not S2C_Ping)
-            {
-#if Server
-                PrintField.Print($"发送消息 msg:[{message.GetType().Name}]  content:{{0}}", message);
-#else
-                PrintField.Print($"<Color=#FF0000>发送消息</Color> msg:[{message.GetType().Name}]  content:{{0}}", message);
-#endif
-            }
+            this.World.Event.RunEvent(new EC_SendMesssage { message = message });
             Session.Send(message);
         }
         public STask<IMessage> SendAsync(IMessage message)
@@ -133,43 +112,5 @@ namespace Game
 
         [Event]
         static void dispose(Dispose<NetComponent> t) => t.t.Session?.DisConnect();
-    }
-    public class PingComponent : SComponent
-    {
-        static C2S_Ping c_p = new();
-        S2C_Ping s_p = new();
-        int counter;
-
-        public async void Ping()
-        {
-            NetComponent net = this.Entity.GetComponent<NetComponent>();
-            while (true)
-            {
-                await Task.Delay(3000);
-                if (!this.Disposed)
-                {
-                    if (counter > 5)
-                    {
-                        this.Dispose();
-                        net.Session.DisConnect();
-                        break;
-                    }
-                    net.Send(s_p);
-                    counter++;
-                }
-                else break;
-            }
-        }
-        
-        [Event]
-        static void watcher(EventWatcher<C2S_Ping, PingComponent> t)
-        {
-            t.t2.counter = 0;
-        }
-        [Event]
-        static void ping(S2C_Ping ping)
-        {
-            NetComponent.Inst.Send(c_p);
-        }
     }
 }

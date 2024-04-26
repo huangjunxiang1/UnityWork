@@ -23,13 +23,49 @@ public static class TabM
         dbbuff = buffer; loadAll = isLoadAll;
         int len = buffer.Readint(); buffer.Readint(); stringCache = new string[len]; stringIndex = new int[len]; for (int i = 0; i < len; i++) { stringIndex[i] = buffer.Position; buffer.Seek(buffer.Readint() + buffer.Position); }
         buffer.Readint();//data buff总长
+        Public = new(buffer, isLoadAll);
         len = buffer.Readint(); _init_test2Array = false; __test2Array = new TabM_test2[len]; _map_test2 = new(len); for (int i = 0; i < len; i++) { int offset = buffer.Readint(); TabMapping map = new(buffer.Position, i); _map_test2.Add(buffer.Readint(), map); buffer.Seek(map.point + offset); }
         if (loadAll) { _ = _test2Array; }
     }
+    public static TabMPublic Public { get; private set; }
 
     public static TabM_test2[] _test2Array { get { if (!_init_test2Array) { _init_test2Array = true; foreach (var item in _map_test2.Keys) Get_test2(item); } return __test2Array; } }
     public static bool Has_test2(int key) => _map_test2.ContainsKey(key);
     public static TabM_test2 Get_test2(int key) { if (_map_test2.TryGetValue(key, out var value)) { if (__test2Array[value.index] == null) { dbbuff.Seek(value.point); __test2Array[value.index] = new(dbbuff, loadAll); } return __test2Array[value.index]; } Loger.Error("TabM_test2表没有key: " + key); return null; }
+}
+public class TabMPublic
+{
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public int aa { get; }
+    /// <summary>
+    /// 
+    /// </summary>
+    public string bb => TabM.__getstring(_bbIdx);
+    /// <summary>
+    /// 
+    /// </summary>
+    public int[] cc => getcc();
+    /// <summary>
+    /// 
+    /// </summary>
+    public string[] dd => getdd();
+
+    DBuffer dbuff;
+    int _bbIdx;
+    int _ccIdx; int[] _ccTmp; int[] getcc() { if (_ccTmp == null) { dbuff.Seek(_ccIdx); _ccTmp = dbuff.Readints(); } return _ccTmp; }
+    int _ddIdx; string[] _ddTmp; string[] getdd() => _ddTmp ??= TabM.__getstrings(_ddIdx);
+
+    public TabMPublic(DBuffer buffer, bool loadAll = false)
+    {
+        dbuff = buffer;
+        this.aa = buffer.Readint();
+        this._bbIdx = buffer.Readint();
+        buffer.Seek(buffer.Readint() + (this._ccIdx = buffer.Position));
+        buffer.Seek(buffer.Readint() + (this._ddIdx = buffer.Position));
+        if (loadAll) { _ = bb; _ = cc; _ = dd; }
+    }
 }
 public class TabM_test2
 {

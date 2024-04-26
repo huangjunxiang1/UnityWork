@@ -39,7 +39,7 @@ partial class FUILogin
     {
         if (string.IsNullOrEmpty(this._serverIP.text)) return;
         NetComponent.Inst?.Dispose();
-        NetComponent.Inst = Client.World.Root.AddComponent<NetComponent>();
+        Client.World.Root.AddComponent(new NetComponent(true));
         NetComponent.Inst.SetSession(new STCP(Util.ToIPEndPoint(this._serverIP.text)));
         await NetComponent.Inst.Session.Connect();
         C2S_Login c = new();

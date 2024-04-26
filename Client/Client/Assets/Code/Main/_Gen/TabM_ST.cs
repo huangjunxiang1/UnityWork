@@ -14,11 +14,13 @@ public readonly unsafe struct TabM_ST
     public static void Init(DBuffer buffer)
     {
         Tab.Data.Dispose();
+        fixed (Public_ST* ptr = &Tab.Data.Public) { *ptr = new Public_ST(buffer); }
         int len;
         len = buffer.Readint(); fixed (UnsafeList<_test2_ST>* ptr = &Tab.Data._test2Array) { *ptr = new UnsafeList<_test2_ST>(len, Allocator.Persistent); fixed (UnsafeHashMap<int, int>* ptr2 = &Tab.Data._test2Map) { *ptr2 = new UnsafeHashMap<int, int>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) { _test2_ST st = new(buffer); ptr->Add(st); ptr2->Add(st.id, i); } } }
     }
     public void Dispose()
     {
+        Public.cc.Dispose();
         for (int i = 0; i < _test2Array.Length; i++)
         {
             _test2Array[i].value2.Dispose();
@@ -30,10 +32,28 @@ public readonly unsafe struct TabM_ST
         _test2Array.Dispose();
         _test2Map.Dispose();
     }
+    public readonly Public_ST Public;
 
     public readonly UnsafeList<_test2_ST> _test2Array;
     public readonly bool Has_test2(int key) => _test2Map.ContainsKey(key);
     public readonly ref _test2_ST Get_test2(int key) => ref _test2Array.ElementAt(_test2Map[key]);
+}
+public readonly struct Public_ST
+{
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public readonly int aa;
+    /// <summary>
+    /// 
+    /// </summary>
+    public readonly UnsafeList<int> cc;
+    public Public_ST(DBuffer buffer)
+    {
+        int len;
+        this.aa = buffer.Readint();
+        len = buffer.Readint(); this.cc = new UnsafeList<int>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) this.cc.Add(buffer.Readint());
+    }
 }
 public readonly struct _test2_ST
 {

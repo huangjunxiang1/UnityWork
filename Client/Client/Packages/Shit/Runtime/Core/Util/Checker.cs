@@ -93,17 +93,10 @@ namespace Core
                     if (method != null && method.ReturnType == typeof(STask))
                         Loger.Error($"change处理事件不可使用task class:{method.ReflectedType.FullName} method:{method.Name}");
                 }
-                if (typeof(__EventWatcher).IsAssignableFrom(ps[0].ParameterType))
-                {
-                    if (att.RPC)
-                        Loger.Error($"EventWatcher处理事件 本身就是rpc事件 不可标记为rpc class:{method.ReflectedType.FullName}  method: {method.Name}");
-                }
                 if (typeof(__KVWatcher).IsAssignableFrom(ps[0].ParameterType))
                 {
                     if (att.Type == 0)
                         Loger.Error($"KVWatcher处理事件 需要标记Type class:{method.ReflectedType.FullName}   method:  {method.Name}");
-                    if (att.RPC)
-                        Loger.Error($"KVWatcher处理事件 本身就是rpc事件 不可标记为rpc class:{method.ReflectedType.FullName}   method:  {method.Name}");
                 }
                 if (typeof(__UpdateHandle).IsAssignableFrom(ps[0].ParameterType))
                 {

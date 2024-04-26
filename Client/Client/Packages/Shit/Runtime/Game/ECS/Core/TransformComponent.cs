@@ -63,6 +63,6 @@ namespace Game
             }
         }
 
-        public void ResetBound() => _bound = new(float.MinValue, float.MaxValue);
+        public void ResetBound() => Bound = new(float.MinValue, float.MaxValue);
     }
 }

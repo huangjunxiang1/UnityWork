@@ -12,9 +12,9 @@ message S2C_SyncTransform
    float4 r=2;
    bool isMoving=3;
 }
-//message C2S_Ping{
-//
-//}
-//message S2C_Ping{
-//	
-//}
+message C2S_Ping{
+
+}
+message S2C_Ping{
+	
+}

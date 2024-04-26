@@ -52,33 +52,22 @@ namespace Game
             r.mode = releaseMode;
             return g;
         }
-        public static STask<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
+        public static async STask<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
-            STask<GameObject> task = new();
-            async void run()
+            string path = Directory + url;
+            GameObject g;
+            if (_pool.TryGetValue(path, out var pool) && pool.Count > 0)
             {
-                string path = Directory + url;
-                GameObject g;
-                if (_pool.TryGetValue(path, out var pool) && pool.Count > 0)
-                {
-                    g = pool.Dequeue();
-                    g.transform.parent = Client.transform;
-                }
-                else
-                    g = await Loader.LoadGameObjectAsync(path);
-                UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-                r.fullPath = path;
-                r.isFromLoad = true;
-                r.mode = releaseMode;
-                if (task.Disposed)
-                {
-                    ReleaseGameObject(r);
-                    return;
-                }
-                task.TrySetResult(g);
+                g = pool.Dequeue();
+                g.transform.parent = Client.transform;
             }
-            Client.World.Timer.Add(0, 1, run);
-            return task.MakeAutoCancel();
+            else
+                g = await Loader.LoadGameObjectAsync(path);
+            UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
+            r.fullPath = path;
+            r.isFromLoad = true;
+            r.mode = releaseMode;
+            return g;
         }
         public static UnityEngine.SceneManagement.Scene LoadScene(string url, LoadSceneMode mode = LoadSceneMode.Single)
         {
@@ -100,7 +89,7 @@ namespace Game
 #endif
             return (T)Loader.LoadObject(Directory + url);
         }
-        public static STask<T> LoadAsync<T>(string url) where T : UnityEngine.Object
+        public static async STask<T> LoadAsync<T>(string url) where T : UnityEngine.Object
         {
             Type t = typeof(T);
 #if DebugEnable
@@ -110,19 +99,7 @@ namespace Game
                 return default;
             }
 #endif
-            STask<T> task = new();
-            async void run()
-            {
-                T ret = (T)await Loader.LoadObjectAsync(Directory + url);
-                if (task.Disposed)
-                {
-                    Loader.Release(ret);
-                    return;
-                }
-                task.TrySetResult(ret);
-            }
-            Client.World.Timer.Add(0, 1, run);
-            return task.MakeAutoCancel();
+            return (T)await Loader.LoadObjectAsync(Directory + url);
         }
 
         public static void Release(UnityEngine.Object target, bool check = true)

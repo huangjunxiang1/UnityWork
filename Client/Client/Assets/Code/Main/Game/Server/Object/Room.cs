@@ -156,8 +156,7 @@ namespace Game
                 att.Set((int)KType.MoveSpeed, 5);
                 att.Set((int)KType.RotateSpeed, 20);
 
-                o.AddComponent<NetComponent>().SetSession(session);
-                o.AddComponent<PingComponent>().Ping();
+                o.AddComponent(new NetComponent(false)).SetSession(session);
 
                 o.AddComponent<MoveComponent>();
                 o.AddComponent<BelongRoom>().room = this;

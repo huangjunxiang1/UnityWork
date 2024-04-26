@@ -54,6 +54,6 @@ public class KVWatcher : __KVWatcher
     internal override void Invoke(int param)
     {
         if (!kv.Enable) return;
-        kv.World.Event.RunEvent(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, param);
     }
 }

@@ -181,24 +181,6 @@ partial class FUIRooms : FUI
         base.Dispose();
     }
 }
-partial class G_LogReporter
-{
-    public GButton ui { get; }
-    public GTextFieldPropertyBinding _yy { get; private set; }
-
-    public G_LogReporter(GButton ui)
-    {
-        this.ui = ui;
-        _yy = new((GTextField)ui.GetChildAt(4));
-        this.Enter();
-    }
-    partial void Enter();
-    public G_LogReporter() : this((GButton)UIPkg.ComPkg.CreateObject("LogReporter")) { }
-    public void Dispose()
-    {
-        _yy.Dispose();
-    }
-}
 partial class G_test
 {
     public GComponent ui { get; }

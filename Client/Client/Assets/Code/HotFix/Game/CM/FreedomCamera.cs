@@ -1,4 +1,4 @@
-﻿using Cinemachine;
+﻿using Unity.Cinemachine;
 using Core;
 using Game;
 using System;
@@ -113,9 +113,9 @@ class FreedomCamera : BaseCamera
         if (_wheel == 0)
             return;
 
-        CinemachineVirtualCamera cvc = (CinemachineVirtualCamera)Brain.ActiveVirtualCamera;
-        cvc.m_Lens.FieldOfView += _wheel * SettingM.FreedomCameraSetting.wheelSpeed;
-        cvc.m_Lens.FieldOfView = Mathf.Clamp(cvc.m_Lens.FieldOfView, SettingM.FreedomCameraSetting.yMin, SettingM.FreedomCameraSetting.yMax);
+        CinemachineCamera cvc = (CinemachineCamera)Brain.ActiveVirtualCamera;
+        cvc.Lens.FieldOfView += _wheel * SettingM.FreedomCameraSetting.wheelSpeed;
+        cvc.Lens.FieldOfView = Mathf.Clamp(cvc.Lens.FieldOfView, SettingM.FreedomCameraSetting.yMin, SettingM.FreedomCameraSetting.yMax);
     }
     void mobileMove()
     {

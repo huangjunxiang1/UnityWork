@@ -18,17 +18,6 @@ namespace Core
         Dictionary<long, T> _childrenRMap = ObjectPool.Get<Dictionary<long, T>>();
         internal List<T> _children = ObjectPool.Get<List<T>>();
 
-        public sealed override World World
-        {
-            get => base.World;
-            set
-            {
-                base.World = value;
-                for (int i = 0; i < _children.Count; i++)
-                    _children[i].World = value;
-            }
-        }
-
         public override void Dispose()
         {
             this._disposeAllChildren(true);

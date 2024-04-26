@@ -283,7 +283,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     - _deltaTime: 0.5
-    - _ecsStartTime: 80.94665
+    - _ecsStartTime: 137.59859
     - _height: 30
     - _lerpTime: 0.5
     - _noiseScale: 10

@@ -18,10 +18,12 @@ public static class TabL
         dbbuff = buffer; loadAll = isLoadAll;
         int len = buffer.Readint(); buffer.Readint(); stringCache = new string[len]; stringIndex = new int[len]; for (int i = 0; i < len; i++) { stringIndex[i] = buffer.Position; buffer.Seek(buffer.Readint() + buffer.Position); }
         buffer.Readint();//data buff总长
+        Public = new(buffer, isLoadAll);
         len = buffer.Readint(); _initSceneArray = false; _SceneArray = new TabLScene[len]; _mapScene = new(len); for (int i = 0; i < len; i++) { int offset = buffer.Readint(); TabMapping map = new(buffer.Position, i); _mapScene.Add(buffer.Readint(), map); buffer.Seek(map.point + offset); }
         len = buffer.Readint(); _init_test1Array = false; __test1Array = new TabL_test1[len]; _map_test1 = new(len); for (int i = 0; i < len; i++) { int offset = buffer.Readint(); TabMapping map = new(buffer.Position, i); _map_test1.Add(buffer.Readint(), map); buffer.Seek(map.point + offset); }
         if (loadAll) { _ = SceneArray; _ = _test1Array; }
     }
+    public static TabLPublic Public { get; private set; }
 
     public static TabLScene[] SceneArray { get { if (!_initSceneArray) { _initSceneArray = true; foreach (var item in _mapScene.Keys) GetScene(item); } return _SceneArray; } }
     public static bool HasScene(int key) => _mapScene.ContainsKey(key);
@@ -56,6 +58,17 @@ public class TabLScene
         this._nameIdx = buffer.Readint();
         this.type = buffer.Readint();
         if (loadAll) { _ = name; }
+    }
+}
+public class TabLPublic
+{
+
+    DBuffer dbuff;
+
+    public TabLPublic(DBuffer buffer, bool loadAll = false)
+    {
+        dbuff = buffer;
+        if (loadAll) { }
     }
 }
 public class TabL_test1

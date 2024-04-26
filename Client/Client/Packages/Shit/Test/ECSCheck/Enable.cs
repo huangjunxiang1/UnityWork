@@ -28,10 +28,10 @@ internal class Enable
 
             var obj = o.AddComponent<a>();
             obj.Enable = false;
-            if (obj.v != 1) throw new Exception();
+            if (obj.v != 2) throw new Exception();
             obj.Enable = true;
             Client.World.Update(0);
-            if (obj.v != 3) throw new Exception();
+            if (obj.v != 4) throw new Exception();
             obj.Entity.Dispose();
         }
         [Event]

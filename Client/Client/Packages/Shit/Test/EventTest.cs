@@ -16,12 +16,14 @@ class EventTest
         Client.World.Root.AddChild(o);
         Client.World.Root.AddChild(o2);
         Client.World.Root.AddChild(o2.ss);
+        var c = Client.World.Root.AddComponent<c1>();
 
         Client.World.Event.RigisteEvent<EC_Event>(t0, 2);
 
         Client.World.Event.RunEvent(new EC_Event());
 
         o2.test();
+        c.test();
 
         async void test()
         {
@@ -60,6 +62,45 @@ class EventTest
     class EC_Event3
     {
         public int v1;
+    }
+    class c1 : SComponent
+    {
+        class e_test { }
+        [Event]
+        e_test e;
+
+        e_test eee;
+
+        [Event]
+        void ee(e_test e) => eee = e;
+
+        public void test()
+        {
+            this.World.Event.RunEvent(new e_test());
+            if (e == null) throw new System.Exception();
+            if (eee == null) throw new System.Exception();
+            e = null;
+            eee = null;
+            this.Dispose();
+            this.World.Event.RunEvent(new e_test());
+            if (e != null) throw new System.Exception();
+            if (eee != null) throw new System.Exception();
+
+            SObject s = new(999);
+            var c = s.AddComponent<c1>();
+            Client.World.Root.AddChild(s);
+            c.test2();
+            s.Dispose();
+        }
+        void test2()
+        {
+            this.World.Event.RunRPCEvent(5, new e_test());
+            if (e != null) throw new System.Exception();
+            if (eee != null) throw new System.Exception();
+            this.World.Event.RunRPCEvent(999, new e_test());
+            if (e == null) throw new System.Exception();
+            if (eee == null) throw new System.Exception();
+        }
     }
 
     static int testValue;

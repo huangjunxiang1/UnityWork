@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    public abstract class SComponent : IDispose
+    public abstract class SComponent : IEvent
     {
         bool _enable = true;
         internal List<__ChangeHandle> _changeHandles;
@@ -19,9 +19,9 @@ namespace Core
         public virtual World World
         {
             get => this.Entity.World;
-            set
+            internal set
             {
-                Loger.Error($"SComponent can not set {nameof(World)}");
+                Loger.Error($"{nameof(SComponent)} can not set {nameof(World)}");
             }
         }
 
@@ -47,10 +47,12 @@ namespace Core
                 {
                     if (value)
                         this.SetChange();
-                    World.System.Enable(this);
+                    World.System.Enable(this, this.GetType());
                 }
             }
         }
+
+        public virtual bool EventEnable { get => Entity.EventEnable; set => throw new NotSupportedException(); }
 
         public void SetChange()
         {
@@ -66,6 +68,7 @@ namespace Core
                 Loger.Error("重复Dispose->" + this);
                 return;
             }
+            World.Event.RemoveEvent(this);
             this.dispose(true);
             World.System.Dispose(this.GetType(), this);
         }
@@ -92,6 +95,11 @@ namespace Core
 
             if (RemoveFromComponents)
                 Entity.RemoveFromComponents(this);
+        }
+
+        public virtual void AcceptedEvent()
+        {
+            this.SetChange();
         }
     }
 }

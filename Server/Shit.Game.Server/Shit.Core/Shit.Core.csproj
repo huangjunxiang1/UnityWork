@@ -8,6 +8,14 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);Server</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);Server;DebugEnable</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Loger">
       <HintPath>..\..\..\Client\Client\Packages\Shit\Plugins\Loger.dll</HintPath>
@@ -23,6 +31,9 @@
  <Compile Include="..\..\..\Client\Client\Packages\Shit\Runtime\Game\**\*.cs"> 
             <Link>Game\%(RecursiveDir)%(FileName)%(Extension)</Link>
         </Compile>
+</ItemGroup>  
+<ItemGroup>
+  <Compile Include="..\..\..\Client\Client\Packages\Shit\Runtime\AssemblyInfo.cs" Link="AssemblyInfo.cs" />
 </ItemGroup>  
 <ItemGroup>
   <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

@@ -16,7 +16,7 @@ namespace Core
         Dictionary<Type, List<Action<object>>> disposeHandle = new();
         Dictionary<Type, List<Action<SComponent>>> enableHandle = new();
         Dictionary<Type, List<Action<SObject>>> changeHandle = new();
-        Dictionary<Type, List<Action<object, SObject>>> eventWatcherHandle = new();
+        Dictionary<Type, List<(Type, Action<object, SObject>)>> eventWatcherHandle = new();
         Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
         Dictionary<Type, List<Action<SObject>>> timerHandle = new();
 
@@ -28,38 +28,38 @@ namespace Core
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
         internal Queue<__Timer> timerHandles = ObjectPool.Get<Queue<__Timer>>();
 
-        internal void RigisterHandler(SComponent c)
+        internal void RigisterHandler(Type type, SObject o)
         {
             {
-                if (changeHandle.TryGetValue(c.GetType(), out var list))
+                if (changeHandle.TryGetValue(type, out var list))
                 {
                     for (int i = 0; i < list.Count; i++)
-                        list[i].Invoke(c.Entity);
+                        list[i].Invoke(o);
                 }
             }
             {
-                if (c is KVComponent || c.Entity._components.ContainsKey(typeof(KVComponent)))
+                if (o._components.ContainsKey(typeof(KVComponent)))
                 {
-                    if (kvWatcherHandle.TryGetValue(c.GetType(), out var list))
+                    if (kvWatcherHandle.TryGetValue(type, out var list))
                     {
                         for (int i = 0; i < list.Count; i++)
-                            list[i].Invoke(c.Entity);
+                            list[i].Invoke(o);
                     }
                 }
             }
             {
-                if (timerHandle.TryGetValue(c.GetType(), out var list))
+                if (timerHandle.TryGetValue(type, out var list))
                 {
                     for (int i = 0; i < list.Count; i++)
-                        list[i].Invoke(c.Entity);
+                        list[i].Invoke(o);
                 }
-            }
+            }   
             {
-                if (updateHandlerCreater.TryGetValue(c.GetType(), out var list))
+                if (updateHandlerCreater.TryGetValue(type, out var list))
                 {
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var v = list[i].Invoke(c.Entity);
+                        var v = list[i].Invoke(o);
                         if (v != null)
                             updateHandles.Enqueue(v);
                     }
@@ -84,9 +84,9 @@ namespace Core
                 catch (Exception e) { Loger.Error("Dispose 出错 " + e); }
             }
         }
-        internal void Enable(SComponent c)
+        internal void Enable(SComponent c, Type type)
         {
-            if (!enableHandle.TryGetValue(c.GetType(), out var list)) return;
+            if (!enableHandle.TryGetValue(type, out var list)) return;
             for (int i = 0; i < list.Count; i++)
             {
                 try { list[i](c); }
@@ -108,7 +108,25 @@ namespace Core
                 for (int j = 0; j < len; j++)
                 {
                     if (lst[j].Disposed) continue;
-                    acts[i].Invoke(e, lst[j]);
+                    acts[i].Item2.Invoke(e, lst[j]);
+                }
+            }
+        }
+        internal void EventWatcher(object e)
+        {
+            if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
+                return;
+            for (int i = 0; i < acts.Count; i++)
+            {
+                var lst = world.ObjectManager.GetObjectsByComponentType(acts[i].Item1);
+                if (lst != null)
+                {
+                    int len = lst.Count;
+                    for (int j = 0; j < len; j++)
+                    {
+                        if (lst[j].Disposed) continue;
+                        acts[i].Item2.Invoke(e, lst[j]);
+                    }
                 }
             }
         }
@@ -240,7 +258,8 @@ namespace Core
                 var action = (Action<object, SObject>)item.GetMethod(nameof(EventWatcher<object, SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, SObject>));
                 if (!eventWatcherHandle.TryGetValue(ts[0], out var lst))
                     eventWatcherHandle[ts[0]] = lst = new();
-                lst.Add(action);
+                lst.Add((ts[1], action));
+                world.ObjectManager.AddEventWatcherFirstType(ts[1]);
             }
             var kvs = kvWatcherHandle[typeof(KVComponent)] = new();
             var kvAction = (Action<SObject>)KVWatcher.TryCreateHandle;

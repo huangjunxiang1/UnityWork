@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Core
 {
-    public class SObject : SComponent, IEvent, ITimer
+    public class SObject : SComponent, ITimer
     {
         public SObject(long rpc = 0)
         {
@@ -41,10 +41,10 @@ namespace Core
         public double value;
         public object data;
 
-        public override World World
+        public sealed override World World
         {
             get => _world;
-            set
+            internal set
             {
                 if (_world == value || this.Disposed) return;
                 if (_world != null)
@@ -57,18 +57,16 @@ namespace Core
                 {
                     value.ObjectManager.Add(this);
                     value.Event.RigisteEvent(this);
-                    if (rpc != 0)
-                        value.Event.RigisteRPCEvent(rpc, this);
                     _timerRigisterd = value.Timer.RigisterTimer(this);
 
                     if (!this.Disposed)
                     {
-                        var cs = ObjectPool.Get<List<SComponent>>();
-                        cs.AddRange(_components.Values);
+                        var cs = ObjectPool.Get<List<KeyValuePair<Type, SComponent>>>();
+                        cs.AddRange(_components);
                         for (int i = 0; i < cs.Count; i++)
                         {
-                            if (this.Disposed || cs[i].Disposed) break;
-                            RigisterComponent(cs[i]);
+                            if (cs[i].Value.Disposed) continue;
+                            RigisterComponent(cs[i].Value, cs[i].Key);
                         }
                         cs.Clear();
                         ObjectPool.Return(cs);
@@ -80,17 +78,17 @@ namespace Core
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
-        public override long rpc { get; }
+        public sealed override long rpc { get; }
 
         /// <summary>
         /// 自增生成的ID
         /// </summary>
-        public override long gid { get; }
+        public sealed override long gid { get; }
 
         /// <summary>
         /// 事件监听
         /// </summary>
-        public bool EventEnable
+        public override bool EventEnable
         {
             get => _eventEnable;
             set
@@ -115,7 +113,7 @@ namespace Core
         /// <summary>
         /// 根
         /// </summary>
-        public override SObject Root
+        public sealed override SObject Root
         {
             get
             {
@@ -161,6 +159,8 @@ namespace Core
         /// dispose 监听
         /// </summary>
         public Eventer onDispose => _onDispose ??= new Eventer(this);
+
+        public override void AcceptedEvent() { }
 
         public virtual void Remove(SObject child) { }
         public virtual int GetChildIndex(SObject child) => -1;
@@ -327,13 +327,21 @@ namespace Core
             _components[c.GetType()] = c;
 
             if (_world != null)
-                RigisterComponent(c);
+                RigisterComponent(c, c.GetType());
+            
             return c;
         }
-        void RigisterComponent(SComponent c)
+        void RigisterComponent(SComponent c, Type type)
         {
-            World.System.RigisterHandler(c);
-            World.System.Awake(c.GetType(), this);
+            World.ObjectManager.AddComponent(c, type);
+            if (c is not SObject)
+                World.Event.RigisteEvent(c);
+            
+            World.System.RigisterHandler(type, this);
+            World.System.Awake(type, this);
+            if (c.Disposed) return;
+            World.System.Enable(c, type);
+            if (c.Disposed) return;
             c.SetChange();
         }
         internal bool RemoveComponentInternal(Type type)
@@ -353,28 +361,34 @@ namespace Core
         /// </summary>
         public override void Dispose()
         {
+            if (this.Disposed)
+            {
+                Loger.Error("重复Dispose->" + this);
+                return;
+            }
             World.ObjectManager.Remove(this);
             World.Event.RemoveEvent(this);
-            if (this.rpc != 0)
-                World.Event.RemoveRPCEvent(this.rpc, this);
             if (this._timerRigisterd)
                 World.Timer.RemoveTimer();
 
             if (this.Parent != null)
                 this.Parent.Remove(this);
 
+            this.dispose(false);
+
             var tmp = _components;
             _components = null;
             foreach (var item in tmp)
             {
                 if (item.Value is not SObject)
+                {
                     item.Value.dispose(false);
+                    World.Event.RemoveEvent(item.Value);
+                }
                 World.System.Dispose(item.Key, item.Value);
             }
             tmp.Clear();
             ObjectPool.Return(tmp);
-
-            base.dispose(false);
 
             _onDispose?.Call();
         }

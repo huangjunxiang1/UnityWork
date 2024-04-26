@@ -16,13 +16,12 @@ namespace Game
         static Client()
         {
 #if UNITY_EDITOR
-            UnityEditor.Compilation.CompilationPipeline.compilationFinished += o=>
+            UnityEditor.Compilation.CompilationPipeline.compilationFinished += o =>
             {
                 if (World == null) return;
                 World.Event.RunEvent(new EC_QuitGame());
-            } ;
+            };
 #endif
-
         }
         public static World World { get; private set; }
         public static GameObject gameObject { get; private set; }

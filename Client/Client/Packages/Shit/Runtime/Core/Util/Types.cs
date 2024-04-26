@@ -15,9 +15,37 @@ public class Types
 
     public static List<Type> ReflectionAllTypes()
     {
-        List<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(t => t.IsDefined(typeof(AssemblyIncludedToShitRuntime))).ToList();
-        assemblies.Sort((x, y) => x.GetCustomAttribute<AssemblyIncludedToShitRuntime>().SortOrder - y.GetCustomAttribute<AssemblyIncludedToShitRuntime>().SortOrder);
-        return new(assemblies.SelectMany(t => t.GetTypes()));
+        List<Assembly> assemblies = new();
+        assemblies.Add(typeof(Types).Assembly);
+
+        string name = typeof(Types).Assembly.GetName().Name;
+        foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var n = item.GetName().Name;
+            if (n.Contains("Editor") || n.Contains("Test") || n == "Assembly-CSharp")
+                continue;
+            bool referenced = false;
+            foreach (var item2 in item.GetReferencedAssemblies())
+            {
+                if (item2.Name == name)
+                {
+                    referenced = true;
+                    break;
+                }
+            }
+            if (referenced)
+                assemblies.Add(item);
+        }
+
+        assemblies.Sort((x, y) =>
+        {
+            var rx = x.GetCustomAttribute<AssemblyInfoInShitRuntime>();
+            var ry = y.GetCustomAttribute<AssemblyInfoInShitRuntime>();
+            int vx = rx == null ? 0 : rx.SortOrder;
+            int vy = ry == null ? 0 : ry.SortOrder;
+            return vx - vy;
+        });
+        return new List<Type>(assemblies.SelectMany(t => t.GetTypes()));
     }
     internal List<MethodParseData> Parse(List<Type> ts)
     {

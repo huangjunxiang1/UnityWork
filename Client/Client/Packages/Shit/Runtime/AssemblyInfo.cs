@@ -26,4 +26,4 @@ using System.Runtime.InteropServices;
 //
 [assembly: InternalsVisibleTo("Shit.Game.UnityTest")]
 [assembly: InternalsVisibleTo("Shit.Game.UnityEditor")]
-[assembly: AssemblyIncludedToShitRuntime(-100)]
+[assembly: AssemblyInfoInShitRuntime(-100)]
