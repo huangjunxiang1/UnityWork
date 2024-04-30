@@ -40,7 +40,6 @@ partial class FUIGame
     {
         NetComponent.Inst.Send(new C2S_PlayerQuit());
         NetComponent.Inst.Dispose();
-        NetComponent.Inst = null;
         Client.Scene.InLoginScene();
     }
     [Event]

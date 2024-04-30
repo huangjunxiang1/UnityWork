@@ -73,7 +73,7 @@ namespace Game
             this.onMessage.Invoke(message);
         }
 
-        void _work()
+        protected virtual void _work()
         {
             ReceiveBuffer();
             SendBuffer();

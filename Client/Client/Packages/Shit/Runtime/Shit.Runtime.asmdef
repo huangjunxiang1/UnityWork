@@ -33,9 +33,9 @@
             "define": "FairyGUI"
         },
         {
-            "name": "com.unity.workpackage",
+            "name": "com.unity.dotween",
             "expression": "1.0.0",
-            "define": "WorkPackage"
+            "define": "Dotween"
         },
         {
             "name": "com.unity.addressables",

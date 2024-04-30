@@ -82,4 +82,10 @@ static class Handler
         TabM_ST.Tab.Data.Dispose();
         Game.ShareData.Dispose();
     }
+    [Event]
+    static void EC_AcceptedMessage(EC_AcceptedMessage e)
+    {
+        if (!string.IsNullOrEmpty(e.message.error))
+            Box.Tips(e.message.error);
+    }
 }

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
 
-#if WorkPackage
+#if Dotween
 using DG.Tweening;
 using Core;
 
@@ -104,7 +104,7 @@ namespace Game
             return task;
         }
 #endif
-#if WorkPackage
+#if Dotween
         public static STask AsTask(this Tween tween)
         {
             if (tween.IsComplete())

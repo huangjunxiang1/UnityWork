@@ -164,18 +164,6 @@ namespace Core
 
         public virtual void Remove(SObject child) { }
         public virtual int GetChildIndex(SObject child) => -1;
-        public T GetSibling<T>() where T : SObject
-        {
-            if (Parent is STree tree) return tree._children.Find(t => t is T) as T;
-            if (Parent is STree<T> tree2) return tree2._children.FirstOrDefault();
-            return default;
-        }
-        public T GetSibling<T>(Func<T, bool> test) where T : SObject
-        {
-            if (Parent is STree tree) return tree._children.Find(t => t is T t1 && test(t1)) as T;
-            if (Parent is STree<T> tree2) return tree2._children.Find(t => t is T t1 && test(t1));
-            return default;
-        }
         public T As<T>() where T : SObject => this as T;
 
         public T AddComponent<T>() where T : SComponent, new()

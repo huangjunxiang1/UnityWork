@@ -11,6 +11,8 @@ namespace PB
     public abstract class PBMessage : IMessage
     {
         public uint rpc { get; set; }
+        public string error { get; set; }
+
         public abstract void Write(PBWriter writer);
         public abstract void Read(PBReader reader);
     }

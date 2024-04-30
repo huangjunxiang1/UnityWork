@@ -11,7 +11,7 @@ namespace Game
 {
     public class NetComponent : SComponent
     {
-        public NetComponent(bool isClient)
+        public NetComponent(bool isClient = true)
         {
             this.isClient = isClient;
             if (isClient)
@@ -23,7 +23,7 @@ namespace Game
         public SBaseNet Session { get; private set; }
         public bool isClient { get; }
 
-        Dictionary<Type, STask<IMessage>> reqWaiter = new();
+        Dictionary<Type, (bool, STask<IMessage>)> reqWaiter = new();
 
         void _onError(NetError code)
         {
@@ -34,19 +34,24 @@ namespace Game
             this.World.Thread.Post(() =>
             {
                 this.World.Event.RunEvent(new EC_AcceptedMessage { message = message });
-                //自动注册的事件一般是底层事件 所以先执行底层监听
-                if (message.rpc != 0)
-                    this.World.Event.RunRPCEvent(message.rpc, (object)message);
-                else if (this.rpc != 0)
-                    this.World.Event.RunRPCEvent(this.rpc, (object)message);
-                else
+                if (string.IsNullOrEmpty(message.error))
                 {
-                    this.World.Event.RunEvent((object)message);
+                    //自动注册的事件一般是底层事件 所以先执行底层监听
+                    if (message.rpc != 0)
+                        this.World.Event.RunRPCEvent(message.rpc, (object)message);
+                    else if (this.rpc != 0)
+                        this.World.Event.RunRPCEvent(this.rpc, (object)message);
+                    else
+                        this.World.Event.RunEvent((object)message);
+                }
 
-                    if (reqWaiter.TryGetValue(message.GetType(), out var task))
+                if (message.rpc != 0)
+                {
+                    if (reqWaiter.TryGetValue(message.GetType(), out var v2))
                     {
                         reqWaiter.Remove(message.GetType());
-                        task.TrySetResult(message);
+                        if (v2.Item1)
+                            v2.Item2.TrySetResult(message);
                     }
                 }
             });
@@ -86,7 +91,7 @@ namespace Game
             this.World.Event.RunEvent(new EC_SendMesssage { message = message });
             Session.Send(message);
         }
-        public STask<IMessage> SendAsync(IMessage message)
+        public STask<IMessage> SendAsync(IMessage message, bool ignoreError = true)
         {
             Type k = message.GetType();
             var v = MessageParser.GetResponseType(k);
@@ -95,10 +100,9 @@ namespace Game
                 Loger.Error("没有responseType类型 req=" + k);
                 return null;
             }
-            if (!reqWaiter.TryGetValue(v, out var task))
-                reqWaiter[v] = task = new();
+            var ret = reqWaiter[v] = (ignoreError, new());
             Send(message);
-            return task;
+            return ret.Item2;
         }
         public void DisconnectOnNext()
         {

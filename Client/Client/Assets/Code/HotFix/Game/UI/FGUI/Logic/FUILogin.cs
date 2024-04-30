@@ -38,7 +38,8 @@ partial class FUILogin
     async void login()
     {
         if (string.IsNullOrEmpty(this._serverIP.text)) return;
-        NetComponent.Inst?.Dispose();
+        if (NetComponent.Inst != null && !NetComponent.Inst.Disposed)
+            NetComponent.Inst.Dispose();
         Client.World.Root.AddComponent(new NetComponent(true));
         NetComponent.Inst.SetSession(new STCP(Util.ToIPEndPoint(this._serverIP.text)));
         await NetComponent.Inst.Session.Connect();
