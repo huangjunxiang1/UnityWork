@@ -45,7 +45,7 @@ namespace Game
                         this.World.Event.RunEvent((object)message);
                 }
 
-                if (message.rpc != 0)
+                if (message.rpc == 0)
                 {
                     if (reqWaiter.TryGetValue(message.GetType(), out var v2))
                     {
