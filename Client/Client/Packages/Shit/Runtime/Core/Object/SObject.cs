@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Rendering;
 
 namespace Core
 {
@@ -41,6 +42,14 @@ namespace Core
         public double value;
         public object data;
 
+#if UNITY_EDITOR
+        //做检视面板使用的
+        internal List<EventSystem.EvtData> _In = new();
+        internal List<__UpdateHandle> _updates = new();
+        internal List<__Timer> _timers = new();
+        internal static Action objChange;
+#endif
+
         public sealed override World World
         {
             get => _world;
@@ -61,17 +70,20 @@ namespace Core
 
                     if (!this.Disposed)
                     {
-                        var cs = ObjectPool.Get<List<KeyValuePair<Type, SComponent>>>();
-                        cs.AddRange(_components);
-                        for (int i = 0; i < cs.Count; i++)
+                        var cs = _components;
+                        _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
+                        foreach (var c in cs)
                         {
-                            if (cs[i].Value.Disposed) continue;
-                            RigisterComponent(cs[i].Value, cs[i].Key);
+                            _components[c.Key] = c.Value;
+                            RigisterComponent(c.Value, c.Key);
                         }
                         cs.Clear();
                         ObjectPool.Return(cs);
                     }
                 }
+#if UNITY_EDITOR
+                objChange?.Invoke();
+#endif
             }
         }
 
@@ -81,9 +93,14 @@ namespace Core
         public sealed override long rpc { get; }
 
         /// <summary>
-        /// 自增生成的ID
+        /// 随机生成的ID
         /// </summary>
         public sealed override long gid { get; }
+
+        /// <summary>
+        /// 自用 表id
+        /// </summary>
+        public long tid { get; set; }
 
         /// <summary>
         /// 事件监听
@@ -162,6 +179,7 @@ namespace Core
 
         public override void AcceptedEvent() { }
 
+        public virtual void AddChild(SObject child) { throw new NotSupportedException(); }
         public virtual void Remove(SObject child) { }
         public virtual int GetChildIndex(SObject child) => -1;
         public T As<T>() where T : SObject => this as T;
@@ -311,6 +329,11 @@ namespace Core
 
         internal SComponent AddComponentInternal(SComponent c)
         {
+            if (typeof(SObject).IsAssignableFrom(c.GetType()))
+            {
+                Loger.Error($"不能挂载实体组件 ={c.GetType()}");
+                return default;
+            }
             c.Entity = this;
             _components[c.GetType()] = c;
 
@@ -324,16 +347,20 @@ namespace Core
             World.ObjectManager.AddComponent(c, type);
             if (c is not SObject)
                 World.Event.RigisteEvent(c);
-            
-            World.System.RigisterHandler(type, this);
-            World.System.Awake(type, this);
+
+            World.System.RigisterHandler(type, c);
+            World.System.Enable(type, c);
             if (c.Disposed) return;
-            World.System.Enable(c, type);
-            if (c.Disposed) return;
+            World.System.In(type, this);
             c.SetChange();
         }
         internal bool RemoveComponentInternal(Type type)
         {
+            if (typeof(SObject).IsAssignableFrom(type))
+            {
+                Loger.Error($"不能卸载实体组件 ={type}");
+                return default;
+            }
             if (!_components.TryGetValue(type, out var c))
                 return false;
             c.Dispose();
@@ -362,10 +389,15 @@ namespace Core
             if (this.Parent != null)
                 this.Parent.Remove(this);
 
+            var outHandles = ObjectPool.Get<Dictionary<Type, __OutHandle>>();
+            foreach (var item in _components)
+                World.System.Out(item.Key, this, outHandles);
+
             this.dispose(false);
 
             var tmp = _components;
             _components = null;
+
             foreach (var item in tmp)
             {
                 if (item.Value is not SObject)
@@ -373,12 +405,19 @@ namespace Core
                     item.Value.dispose(false);
                     World.Event.RemoveEvent(item.Value);
                 }
-                World.System.Dispose(item.Key, item.Value);
             }
             tmp.Clear();
             ObjectPool.Return(tmp);
 
+            foreach (var item in outHandles)
+                item.Value.Invoke(this);
+            outHandles.Clear();
+            ObjectPool.Return(outHandles);
+
             _onDispose?.Call();
+#if UNITY_EDITOR
+            objChange?.Invoke();
+#endif
         }
 
         public override string ToString()

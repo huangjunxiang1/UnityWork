@@ -13,6 +13,7 @@ using OfficeOpenXml;
 class DClass
 {
     public string name;
+    public bool isSingle;
 
     public List<DField> fs = new List<DField>();
     public List<DField> ecs = new List<DField>();
@@ -21,6 +22,7 @@ class DClass
 class DField
 {
     public DClass dc;
+
     public int index;//excel表下标
     public int arrayIndex;//DClass的fv的数组下标
 
@@ -113,6 +115,7 @@ class CodeGen
             DBuffer bufferEcs = new DBuffer(new MemoryStream(10000000));
 
             List<DClass> cs = new();
+
             for (int i = 0; i < mains.Count; i++)
             {
                 FileInfo fi = new FileInfo(mains[i]);
@@ -127,6 +130,7 @@ class CodeGen
                 if (fi.Name.Contains("_Public"))
                 {
                     c.name = "Public";
+                    c.isSingle = true;
 
                     int arrayIdx2 = 0;
                     var array1 = (object[,])sheet.Cells.Value;
@@ -273,7 +277,7 @@ class CodeGen
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
-                if (c.name == "Public") continue;
+                if (c.isSingle) continue;
                 rw.AppendLine($"    static bool _init{c.name}Array; static {name}{c.name}[] _{c.name}Array; static Dictionary<{c.fs[0].typeStr}, TabMapping> _map{c.name};");
             }
             rw.AppendLine();
@@ -282,27 +286,35 @@ class CodeGen
             rw.AppendLine($"        dbbuff = buffer; loadAll = isLoadAll;");
             rw.AppendLine($"        int len = buffer.Readint(); buffer.Readint(); stringCache = new string[len]; stringIndex = new int[len]; for (int i = 0; i < len; i++) {{ stringIndex[i] = buffer.Position; buffer.Seek(buffer.Readint() + buffer.Position); }}");
             rw.AppendLine($"        buffer.Readint();//data buff总长");
-            rw.AppendLine($"        Public = new(buffer, isLoadAll);");
+            for (int i = 0; i < cs.Count; i++)
+            {
+                if (cs[i].isSingle)
+                    rw.AppendLine($"        {cs[i].name} = new(buffer, isLoadAll);");
+            }
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
-                if (c.name == "Public") continue;
+                if (c.isSingle) continue;
                 rw.AppendLine($"        len = buffer.Readint(); _init{c.name}Array = false; _{c.name}Array = new {name}{c.name}[len]; _map{c.name} = new(len); for (int i = 0; i < len; i++) {{ int offset = buffer.Readint(); TabMapping map = new(buffer.Position, i); _map{c.name}.Add(buffer.Read{c.fs[0].typeStr}(), map); buffer.Seek(map.point + offset); }}");
             }
             rw.Append($"        if (loadAll) {{");
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
-                if (c.name == "Public") continue;
+                if (c.isSingle) continue;
                 rw.Append($" _ = {c.name}Array;");
             }
             rw.AppendLine($" }}");
             rw.AppendLine($"    }}");
-            rw.AppendLine($"    public static {name}Public Public {{ get; private set; }}");
+            for (int i = 0; i < cs.Count; i++)
+            {
+                if (cs[i].isSingle)
+                    rw.AppendLine($"    public static {name}{cs[i].name} {cs[i].name} {{ get; private set; }}");
+            }
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
-                if (c.name == "Public") continue;
+                if (c.isSingle) continue;
                 rw.AppendLine();
                 rw.AppendLine($"    public static {name}{c.name}[] {c.name}Array {{ get {{ if (!_init{c.name}Array) {{ _init{c.name}Array = true; foreach (var item in _map{c.name}.Keys) Get{c.name}(item); }} return _{c.name}Array; }} }}");
                 rw.AppendLine($"    public static bool Has{c.name}({c.fs[0].typeStr} key) => _map{c.name}.ContainsKey(key);");
@@ -388,21 +400,24 @@ class CodeGen
             DBuffer arrTmp = new DBuffer(new MemoryStream(new byte[10000], 0, 10000, true, true));
             cs.Sort((x, y) =>
             {
-                if (y.name == "Public") return 1;
-                if (x.name == "Public") return -1;
+                if (y.isSingle) return 1;
+                if (x.isSingle) return -1;
                 return 0;
             });
             for (int i = 0; i < cs.Count; i++)
             {
                 var c = cs[i];
 
-                if (c.name == "Public")
+                if (c.isSingle)
                 {
-                    var vs = c.fv[0];
-                    for (int k = 0; k < vs.Length; k++)
+                    if (c.fv.Count > 0)
                     {
-                        var v = vs[k];
-                        Common.WriteFv(c.fs[k], v, data, arrTmp, stringIndex, stringData);
+                        var vs = c.fv[0];
+                        for (int k = 0; k < vs.Length; k++)
+                        {
+                            var v = vs[k];
+                            Common.WriteFv(c.fs[k], v, data, arrTmp, stringIndex, stringData);
+                        }
                     }
                     continue;
                 }
@@ -436,19 +451,24 @@ class CodeGen
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
-                    if (c.name == "Public") continue;
+                    if (c.isSingle) continue;
                     if (c.ecs.Count > 1)
                         erw.AppendLine($"    readonly UnsafeHashMap<{c.fs[0].typeStrECS}, int> {c.name}Map;");
                 }
                 erw.AppendLine($"    public static void Init(DBuffer buffer)");
                 erw.AppendLine($"    {{");
                 erw.AppendLine($"        Tab.Data.Dispose();");
-                erw.AppendLine($"        fixed (Public_ST* ptr = &Tab.Data.Public) {{ *ptr = new Public_ST(buffer); }}");
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.isSingle && c.ecs.Count > 0)
+                        erw.AppendLine($"        fixed ({c.name}_ST* ptr = &Tab.Data.{c.name}) {{ *ptr = new {c.name}_ST(buffer); }}");
+                }
                 erw.AppendLine($"        int len;");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
-                    if (c.name == "Public") continue;
+                    if (c.isSingle) continue;
                     if (c.ecs.Count > 1)
                     {
                         erw.AppendLine($"        len = buffer.Readint(); fixed (UnsafeList<{c.name}_ST>* ptr = &Tab.Data.{c.name}Array) {{ *ptr = new UnsafeList<{c.name}_ST>(len, Allocator.Persistent); fixed (UnsafeHashMap<{c.fs[0].typeStrECS}, int>* ptr2 = &Tab.Data.{c.name}Map) {{ *ptr2 = new UnsafeHashMap<{c.fs[0].typeStrECS}, int>(len, AllocatorManager.Persistent); for (int i = 0; i < len; i++) {{ {c.name}_ST st = new(buffer); ptr->Add(st); ptr2->Add(st.{c.fs[0].name}, i); }} }} }}");
@@ -460,7 +480,7 @@ class CodeGen
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
-                    if (c.name == "Public")
+                    if (c.isSingle)
                     {
                         for (int j = 0; j < c.ecs.Count; j++)
                         {
@@ -486,11 +506,16 @@ class CodeGen
                     }
                 }
                 erw.AppendLine($"    }}");
-                erw.AppendLine($"    public readonly Public_ST Public;");
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
-                    if (c.name == "Public") continue;
+                    if (c.isSingle && c.ecs.Count > 0)
+                        erw.AppendLine($"    public readonly {c.name}_ST {c.name};");
+                }
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    var c = cs[i];
+                    if (c.isSingle) continue;
                     if (c.ecs.Count > 1)
                     {
                         erw.AppendLine($"");
@@ -547,14 +572,17 @@ class CodeGen
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
-                    if (c.name == "Public")
+                    if (c.isSingle)
                     {
-                        var vs = c.fv[0];
-                        for (int k = 0; k < c.ecs.Count; k++)
+                        if (c.fv.Count > 0)
                         {
-                            var f = c.ecs[k];
-                            var v = vs[f.arrayIndex];
-                            Common.WriteFv(f, v, bufferEcs, null);
+                            var vs = c.fv[0];
+                            for (int k = 0; k < c.ecs.Count; k++)
+                            {
+                                var f = c.ecs[k];
+                                var v = vs[f.arrayIndex];
+                                Common.WriteFv(f, v, bufferEcs, null);
+                            }
                         }
                         continue;
                     }
@@ -595,10 +623,5 @@ class CodeGen
             Console.WriteLine("写入完成");
             Console.WriteLine("");
         }
-    }
-
-    void gen_public(FileInfo fi)
-    {
-
     }
 }

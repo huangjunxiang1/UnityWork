@@ -31,6 +31,9 @@
  <Compile Include="..\..\..\Client\Client\Packages\Shit\Runtime\Game\**\*.cs"> 
             <Link>Game\%(RecursiveDir)%(FileName)%(Extension)</Link>
         </Compile>
+ <Compile Include="..\Compiler\**\*.cs"> 
+            <Link>Compiler\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
 </ItemGroup>  
 <ItemGroup>
   <Compile Include="..\..\..\Client\Client\Packages\Shit\Runtime\AssemblyInfo.cs" Link="AssemblyInfo.cs" />

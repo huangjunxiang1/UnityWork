@@ -24,6 +24,6 @@ using System.Runtime.InteropServices;
 //      生成号
 //      修订号
 //
-[assembly: InternalsVisibleTo("Shit.Game.UnityTest")]
-[assembly: InternalsVisibleTo("Shit.Game.UnityEditor")]
+[assembly: InternalsVisibleTo("Shit.Test")]
+[assembly: InternalsVisibleTo("Shit.Editor")]
 [assembly: AssemblyInfoInShitRuntime(-100)]

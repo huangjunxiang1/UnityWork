@@ -22,7 +22,8 @@
     "precompiledReferences": [
         "Loger.dll",
         "DOTween.dll",
-        "Newtonsoft.Json.dll"
+        "Newtonsoft.Json.dll",
+        "Sirenix.OdinInspector.Attributes.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

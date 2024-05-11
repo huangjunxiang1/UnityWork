@@ -236,6 +236,7 @@ internal class Gen
                             string fieldName = arr2[arr2.Length - 2];
                             int mark = 0;
                             if (isLst || isMap) mark = 2;
+                            else if (isEnum) mark = 0;
                             else mark = getMark(rowType);
                             int tag = (int.Parse(arr2[arr2.Length - 1]) << 3) | mark;
                             fieldType ft = getFieldTypeEnum(rowType);

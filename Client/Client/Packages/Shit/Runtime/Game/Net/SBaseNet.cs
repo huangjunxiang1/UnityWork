@@ -53,7 +53,7 @@ namespace Game
         {
             sendQueues.Enqueue(message);
         }
-        public void Work()
+        public virtual void Work()
         {
             new Thread(_work) { IsBackground = true }.Start();
         }
@@ -73,7 +73,7 @@ namespace Game
             this.onMessage.Invoke(message);
         }
 
-        protected virtual void _work()
+        void _work()
         {
             ReceiveBuffer();
             SendBuffer();

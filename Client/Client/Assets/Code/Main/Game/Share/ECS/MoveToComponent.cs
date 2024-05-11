@@ -10,7 +10,9 @@ namespace Game
 {
     public class MoveToComponent : SComponent
     {
+        [Sirenix.OdinInspector.ShowInInspector]
         float3 _p;
+        [Sirenix.OdinInspector.ShowInInspector]
         quaternion _r = quaternion.identity;
 
         public float3 point

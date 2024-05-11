@@ -10,6 +10,7 @@ namespace Core
     public class ObjectManager
     {
         Dictionary<long, List<SObject>> map = new();
+        Dictionary<long, SObject> gidMap = new();
         Queue<SObject> removed = new();
         Dictionary<Type, List<SObject>> eventWatcherFirstType = new(100);
         HashSet<Type> eventWatcherRemoved = new();
@@ -21,6 +22,7 @@ namespace Core
         }
         internal void Add(SObject o)
         {
+            gidMap.Add(o.gid, o);
             if (o.rpc == 0) return;
             if (!map.TryGetValue(o.rpc, out var lst))
                 map[o.rpc] = lst = ObjectPool.Get<List<SObject>>();
@@ -38,6 +40,7 @@ namespace Core
         }
         internal void Remove(SObject o)
         {
+            gidMap.Remove(o.gid);
             removed.Enqueue(o);
             foreach (var item in o._components.Keys)
             {
@@ -46,6 +49,7 @@ namespace Core
             }
         }
         internal bool TryGetByRpc(long rpc, out List<SObject> lst) => map.TryGetValue(rpc, out lst);
+        internal bool TryGetByGid(long gid, out SObject o) => gidMap.TryGetValue(gid, out o);
 
         internal void AfterUpdate()
         {

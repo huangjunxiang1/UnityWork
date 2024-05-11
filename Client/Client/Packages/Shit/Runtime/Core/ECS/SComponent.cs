@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.Rendering;
 
 namespace Core
 {
@@ -47,7 +48,11 @@ namespace Core
                 {
                     if (value)
                         this.SetChange();
-                    World.System.Enable(this, this.GetType());
+                    World.System.Enable(this.GetType(), this);
+                    if (value)
+                        World.System.In(this.GetType(), this.Entity);
+                    else
+                        World.System.Out(this.GetType(), this);
                 }
             }
         }
@@ -70,7 +75,7 @@ namespace Core
             }
             World.Event.RemoveEvent(this);
             this.dispose(true);
-            World.System.Dispose(this.GetType(), this);
+            World.System.Out(this.GetType(), this);
         }
         public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";
 

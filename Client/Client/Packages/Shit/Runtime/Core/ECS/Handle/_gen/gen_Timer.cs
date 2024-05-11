@@ -27,6 +27,9 @@ public class Timer<T> : __Timer where T : SComponent
             v.timer = ti.attribute;
             v.action = (Action<Timer<T>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -67,6 +70,9 @@ public class Timer<T, T2> : __Timer where T : SComponent where T2 : SComponent
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -109,6 +115,9 @@ public class Timer<T, T2, T3> : __Timer where T : SComponent where T2 : SCompone
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -153,6 +162,9 @@ public class Timer<T, T2, T3, T4> : __Timer where T : SComponent where T2 : SCom
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3, T4>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -199,6 +211,9 @@ public class Timer<T, T2, T3, T4, T5> : __Timer where T : SComponent where T2 : 
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3, T4, T5>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -247,6 +262,9 @@ public class Timer<T, T2, T3, T4, T5, T6> : __Timer where T : SComponent where T
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3, T4, T5, T6>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -297,6 +315,9 @@ public class Timer<T, T2, T3, T4, T5, T6, T7> : __Timer where T : SComponent whe
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3, T4, T5, T6, T7>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -349,6 +370,9 @@ public class Timer<T, T2, T3, T4, T5, T6, T7, T8> : __Timer where T : SComponent
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3, T4, T5, T6, T7, T8>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -403,6 +427,9 @@ public class Timer<T, T2, T3, T4, T5, T6, T7, T8, T9> : __Timer where T : SCompo
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3, T4, T5, T6, T7, T8, T9>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()
@@ -459,6 +486,9 @@ public class Timer<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __Timer where T : S
             v.timer = ti.attribute;
             v.action = (Action<Timer<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>>)ti.action;
             o.World.System.timerHandles.Enqueue(v);
+#if UNITY_EDITOR
+            o._timers.Add(v);
+#endif
         }
     }
     internal override void Update()

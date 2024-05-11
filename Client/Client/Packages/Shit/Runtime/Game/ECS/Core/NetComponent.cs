@@ -14,12 +14,18 @@ namespace Game
         public NetComponent(bool isClient = true)
         {
             this.isClient = isClient;
+#if !Server
             if (isClient)
                 Inst = this;
+#endif
         }
 #if !Server
         public static NetComponent Inst { get; private set; }
 #endif
+
+        [Sirenix.OdinInspector.ShowInInspector]
+        string IP => Session?.IP.ToString();
+
         public SBaseNet Session { get; private set; }
         public bool isClient { get; }
 
@@ -115,6 +121,6 @@ namespace Game
         }
 
         [Event]
-        static void dispose(Dispose<NetComponent> t) => t.t.Session?.DisConnect();
+        static void Out(Out<NetComponent> t) => t.t.Session?.DisConnect();
     }
 }

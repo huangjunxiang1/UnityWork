@@ -10,9 +10,16 @@ namespace Game
 {
     public class TransformComponent : SComponent
     {
+        [Sirenix.OdinInspector.ShowInInspector]
         float3 _p = 0;
+
+        [Sirenix.OdinInspector.ShowInInspector]
         float3 _s = 1;
+
+        [Sirenix.OdinInspector.ShowInInspector]
         quaternion _r = quaternion.identity;
+
+        [Sirenix.OdinInspector.ShowInInspector]
         float3x2 _bound = new(float.MinValue, float.MaxValue);
 
         public float3 position

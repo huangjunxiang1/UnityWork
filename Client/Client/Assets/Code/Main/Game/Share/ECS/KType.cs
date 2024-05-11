@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    [Flags]
     public enum KType
     {
         MoveSpeed = 1,

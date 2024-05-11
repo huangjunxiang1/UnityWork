@@ -10,11 +10,11 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-public class Login : STree<Player>
+public class Login : STree
 {
     public IPEndPoint ip { get; set; }
     [Event]
-    static async void awake(Awake<Login> t)
+    static async void In(In<Login> t)
     {
         TcpListener tcp = new(t.t.ip);
         tcp.Start();
@@ -32,14 +32,14 @@ public class Login : STree<Player>
         if (string.IsNullOrEmpty(t.t.acc) || string.IsNullOrEmpty(t.t.pw)) return;
         var login = t.t2.Entity.Parent.As<Login>();
         S2C_Login s = new();
-        if (login.GetChildren().Find(c => c.acc == t.t.acc) != null)
+        if (login.GetChildren().Find(c => c.As<Player>().acc == t.t.acc) != null)
         {
             s.error = "账号已被登录";
             t.t2.Send(s);
             return;
         }
         login.TryGetChildRpc(t.t2.rpc,out var c);
-        c.acc = t.t.acc;
+        c.As<Player>().acc = t.t.acc;
         t.t2.Send(s);
     }
     [Event]

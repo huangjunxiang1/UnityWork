@@ -30,20 +30,25 @@ namespace Game
         string _url;
         int _resVersion;
 
+        [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
         ///  
         /// </summary>
         public SGameObjectType gameObjectType { get; }
 
+        [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
         /// 逻辑节点 WObjectLoadStyle.Resource模式 Root==Res
         /// </summary>
         public GameObject gameRoot { get; private set; }
 
+        [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
         /// 资源模型
         /// </summary>
         public GameObject gameObject { get; private set; }
+
+        internal Action<GameObject, GameObject> Replace;
 
         /// <summary>
         /// 设置加载的资源模型
@@ -52,6 +57,7 @@ namespace Game
         public virtual void SetGameObject(GameObject res, bool release = true)
         {
             ++_resVersion;
+            var old = this.gameObject;
             switch (gameObjectType)
             {
                 case SGameObjectType.Static:
@@ -62,7 +68,6 @@ namespace Game
                     }
                     this.gameRoot = res;
                     this.gameObject = res;
-                    this.SetChange();
                     break;
                 case SGameObjectType.Resource:
                     if (res == this.gameObject)
@@ -91,7 +96,6 @@ namespace Game
 
                     this.gameRoot = res;
                     this.gameObject = res;
-                    this.SetChange();
                     break;
                 case SGameObjectType.LogicRoot:
                     if (res == this.gameObject)
@@ -111,11 +115,12 @@ namespace Game
                             this.gameObject.transform.parent = Client.transform;
                     }
                     this.gameObject = res;
-                    this.SetChange();
                     break;
                 default:
                     break;
             }
+            Replace?.Invoke(old, this.gameObject);
+            this.SetChange();
         }
         public void SetGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool) => _ = LoadGameObjectAsync(url, releaseMode);
 
@@ -157,19 +162,22 @@ namespace Game
         }
 
         [Event]
-        static void awake(Awake<GameObjectComponent> a)
+        static void In(In<GameObjectComponent> a)
         {
             if (a.t.gameObjectType == SGameObjectType.Static) return;
-            a.t.gameRoot.SetActive(a.t.Enable);
+            if (a.t.gameRoot)
+            {
+                a.t.gameRoot.SetActive(a.t.Enable);
 #if UNITY_EDITOR
-            if (a.t.rpc != 0)
-                a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}_rpc={a.t.rpc}";
-            else
-                a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}";
+                if (a.t.rpc != 0)
+                    a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}_rpc={a.t.rpc}";
+                else
+                    a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}";
 #endif
+            }
         }
         [Event]
-        static void dispose(Dispose<GameObjectComponent> t)
+        static void Out(Out<GameObjectComponent> t)
         {
             ++t.t._resVersion;
             switch (t.t.gameObjectType)
@@ -193,7 +201,7 @@ namespace Game
         }
 
         [Event]
-        static void change(AnyChange<GameObjectComponent, TransformComponent> t)
+        static void AnyChange(AnyChange<GameObjectComponent, TransformComponent> t)
         {
             if (t.t.gameObjectType == SGameObjectType.Static) return;
             if (t.t.gameRoot)
@@ -205,10 +213,10 @@ namespace Game
             }
         }
         [Event]
-        static void enable(Enable<GameObjectComponent> t)
+        static void Enables(Enable<GameObjectComponent> t)
         {
             if (t.t.gameObjectType == SGameObjectType.Static) return;
-            t.t.gameRoot.SetActive(t.t.Enable);
+            t.t.gameRoot?.SetActive(t.t.Enable);
         }
     }
 }

@@ -13,7 +13,7 @@ internal class Tools
     static void genGroupsCode()
     {
         const int count = 10;
-        string path = Application.dataPath + "/../Packages/Shit.Core/Core/ECS/Handle/";
+        string path = Application.dataPath + "/../Packages/Shit/Runtime/Core/ECS/Handle/";
         foreach (var item in Directory.GetFiles(path, "*.cs"))
         {
             var fi = new FileInfo(item);

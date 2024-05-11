@@ -6,17 +6,13 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    public class STree : STree<SObject>
-    {
-        public STree(long rpc = 0) : base(rpc) { }
-    }
-    public class STree<T> : SObject where T : SObject
+    public class STree : SObject
     {
         public STree(long rpc = 0) : base(rpc) { }
 
-        Dictionary<long, T> _childrenGMap = ObjectPool.Get<Dictionary<long, T>>();
-        Dictionary<long, T> _childrenRMap = ObjectPool.Get<Dictionary<long, T>>();
-        internal List<T> _children = ObjectPool.Get<List<T>>();
+        Dictionary<long, SObject> _childrenGMap = ObjectPool.Get<Dictionary<long, SObject>>();
+        Dictionary<long, SObject> _childrenRMap = ObjectPool.Get<Dictionary<long, SObject>>();
+        internal List<SObject> _children = ObjectPool.Get<List<SObject>>();
 
         public override void Dispose()
         {
@@ -28,7 +24,7 @@ namespace Core
         /// 子添加
         /// </summary>
         /// <param name="child"></param>
-        public virtual void AddChild(T child)
+        public override void AddChild(SObject child)
         {
             if (child.Parent == this)
                 return;
@@ -61,30 +57,30 @@ namespace Core
             child.Parent = this;
             child.World = this.World;
         }
-        public override int GetChildIndex(SObject child) => _children.IndexOf((T)child);
+        public override int GetChildIndex(SObject child) => _children.IndexOf(child);
 
         /// <summary>
         /// 子获取
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T GetChildGid(long gid)
+        public SObject GetChildGid(long gid)
         {
-            _childrenGMap.TryGetValue(gid, out T child);
+            _childrenGMap.TryGetValue(gid, out var child);
             return child;
         }
-        public T GetChildRpc(long rpc)
+        public SObject GetChildRpc(long rpc)
         {
             if (rpc == 0)
             {
                 Loger.Error("无效rpc");
                 return null;
             }
-            _childrenRMap.TryGetValue(rpc, out T child);
+            _childrenRMap.TryGetValue(rpc, out var child);
             return child;
         }
-        public bool TryGetChildGid(long gid, out T child) => _childrenGMap.TryGetValue(gid, out child);
-        public bool TryGetChildRpc(long rpc, out T child)
+        public bool TryGetChildGid(long gid, out SObject child) => _childrenGMap.TryGetValue(gid, out child);
+        public bool TryGetChildRpc(long rpc, out SObject child)
         {
             if (rpc == 0)
             {
@@ -94,9 +90,9 @@ namespace Core
             }
             return _childrenRMap.TryGetValue(rpc, out child);
         }
-        public List<T> ToChildren() => new(_children);
-        public List<T> GetChildren() => _children;
-        public K GetChild<K>() where K : T => _children.Find(t => t is K) as K;
+        public List<SObject> ToChildren() => new(_children);
+        public List<SObject> GetChildren() => _children;
+        public T GetChild<T>() where T : SObject => _children.Find(t => t is T) as T;
 
         /// <summary>
         /// 子移除
@@ -109,12 +105,12 @@ namespace Core
             _childrenGMap.Remove(child.gid);
             if (child.rpc != 0)
                 _childrenRMap.Remove(child.rpc);
-            _children.Remove((T)child);
+            _children.Remove(child);
             child.Parent = null;
         }
-        public virtual void RemoveGid(long gid, bool dispose = true)
+        public void RemoveGid(long gid, bool dispose = true)
         {
-            if (!_childrenGMap.TryGetValue(gid, out T child))
+            if (!_childrenGMap.TryGetValue(gid, out var child))
                 return;
             if (dispose)
             {
@@ -123,14 +119,14 @@ namespace Core
             }
             this.Remove(child);
         }
-        public virtual void RemoveRpc(long rpc, bool dispose = true)
+        public void RemoveRpc(long rpc, bool dispose = true)
         {
             if (rpc == 0)
             {
                 Loger.Error("无效rpc");
                 return;
             }
-            if (!_childrenRMap.TryGetValue(rpc, out T child))
+            if (!_childrenRMap.TryGetValue(rpc, out var child))
                 return;
             if (dispose)
             {
@@ -153,7 +149,7 @@ namespace Core
                 ObjectPool.Return(_childrenRMap);
                 _childrenRMap = null;
 
-                List<T> tmp = _children;
+                List<SObject> tmp = _children;
                 _children = null;
                 for (int i = tmp.Count - 1; i >= 0; i--)
                 {
@@ -172,8 +168,8 @@ namespace Core
                 _childrenGMap.Clear();
                 _childrenRMap.Clear();
 
-                List<T> tmp = _children;
-                _children = ObjectPool.Get<List<T>>();
+                List<SObject> tmp = _children;
+                _children = ObjectPool.Get<List<SObject>>();
                 for (int i = tmp.Count - 1; i >= 0; i--)
                 {
                     if (!tmp[i].Disposed)

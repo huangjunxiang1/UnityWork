@@ -43,13 +43,13 @@ public class GameStart : MonoBehaviour
             System.Reflection.Assembly asm;
             if (AppSetting.Debug)
             {
-                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll");
-                byte[] pdb = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.pdb");
+                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/Game.HotFix.dll");
+                byte[] pdb = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/Game.HotFix.pdb");
                 asm = System.Reflection.Assembly.Load(dll, pdb);
             }
             else
             {
-                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/HotFix.dll");
+                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/Game.HotFix.dll");
                 asm = System.Reflection.Assembly.Load(dll);
             }
             asm.GetType("Program").GetMethod("Main").Invoke(null, null);

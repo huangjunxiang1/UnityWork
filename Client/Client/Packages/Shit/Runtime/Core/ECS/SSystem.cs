@@ -12,15 +12,14 @@ namespace Core
         public SSystem(World world) => this.world = world;
 
         World world;
-        Dictionary<Type, List<Action<SObject>>> awakeHandle = new();
-        Dictionary<Type, List<Action<object>>> disposeHandle = new();
-        Dictionary<Type, List<Action<SComponent>>> enableHandle = new();
-        Dictionary<Type, List<Action<SObject>>> changeHandle = new();
-        Dictionary<Type, List<(Type, Action<object, SObject>)>> eventWatcherHandle = new();
-        Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
-        Dictionary<Type, List<Action<SObject>>> timerHandle = new();
-
-        Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
+        internal Dictionary<Type, List<Action<SObject>>> inHandle = new();
+        internal Dictionary<Type, List<(Action<Type, SComponent>, Action<SObject, Dictionary<Type, __OutHandle>>)>> outHandle = new();
+        internal Dictionary<Type, List<Action<SComponent>>> enableHandle = new();
+        internal Dictionary<Type, List<Action<SObject>>> changeHandle = new();
+        internal Dictionary<Type, List<(Type, Action<object, SObject>)>> eventWatcherHandle = new();
+        internal Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
+        internal Dictionary<Type, List<Action<SObject>>> timerHandle = new();
+        internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
 
         HashSet<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<HashSet<__ChangeHandle>>();
         HashSet<SComponent> changeWaitRemove = new();
@@ -28,22 +27,22 @@ namespace Core
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
         internal Queue<__Timer> timerHandles = ObjectPool.Get<Queue<__Timer>>();
 
-        internal void RigisterHandler(Type type, SObject o)
+        internal void RigisterHandler(Type type, SComponent c)
         {
             {
                 if (changeHandle.TryGetValue(type, out var list))
                 {
                     for (int i = 0; i < list.Count; i++)
-                        list[i].Invoke(o);
+                        list[i].Invoke(c.Entity);
                 }
             }
             {
-                if (o._components.ContainsKey(typeof(KVComponent)))
+                if (c.Entity._components.ContainsKey(typeof(KVComponent)))
                 {
                     if (kvWatcherHandle.TryGetValue(type, out var list))
                     {
                         for (int i = 0; i < list.Count; i++)
-                            list[i].Invoke(o);
+                            list[i].Invoke(c.Entity);
                     }
                 }
             }
@@ -51,40 +50,54 @@ namespace Core
                 if (timerHandle.TryGetValue(type, out var list))
                 {
                     for (int i = 0; i < list.Count; i++)
-                        list[i].Invoke(o);
+                        list[i].Invoke(c.Entity);
                 }
-            }   
+            }
             {
                 if (updateHandlerCreater.TryGetValue(type, out var list))
                 {
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var v = list[i].Invoke(o);
+                        var v = list[i].Invoke(c.Entity);
                         if (v != null)
+                        {
                             updateHandles.Enqueue(v);
+#if UNITY_EDITOR
+                            c.Entity._updates.Add(v);
+#endif
+                        }
                     }
                 }
             }
         }
-        internal void Awake(Type type, SObject o)
+        internal void In(Type type, SObject o)
         {
-            if (!awakeHandle.TryGetValue(type, out var list)) return;
+            if (!inHandle.TryGetValue(type, out var list)) return;
             for (int i = 0; i < list.Count; i++)
             {
                 try { list[i](o); }
-                catch (Exception e) { Loger.Error("Awake 出错 " + e); }
+                catch (Exception e) { Loger.Error("In 出错 " + e); }
             }
         }
-        internal void Dispose(Type type, object o)
+        internal void Out(Type type, SComponent c)
         {
-            if (!disposeHandle.TryGetValue(type, out var list)) return;
+            if (!outHandle.TryGetValue(type, out var list)) return;
             for (int i = 0; i < list.Count; i++)
             {
-                try { list[i](o); }
-                catch (Exception e) { Loger.Error("Dispose 出错 " + e); }
+                try { list[i].Item1(type, c); }
+                catch (Exception e) { Loger.Error("Out 出错 " + e); }
             }
         }
-        internal void Enable(SComponent c, Type type)
+        internal void Out(Type type, SObject o, Dictionary<Type, __OutHandle> record)
+        {
+            if (!outHandle.TryGetValue(type, out var list)) return;
+            for (int i = 0; i < list.Count; i++)
+            {
+                try { list[i].Item2.Invoke(o, record); }
+                catch (Exception e) { Loger.Error("Out 出错 " + e); }
+            }
+        }
+        internal void Enable(Type type, SComponent c)
         {
             if (!enableHandle.TryGetValue(type, out var list)) return;
             for (int i = 0; i < list.Count; i++)
@@ -136,8 +149,8 @@ namespace Core
         /// </summary>
         internal void Load(List<MethodParseData> methods)
         {
-            awakeHandle.Clear();
-            disposeHandle.Clear();
+            inHandle.Clear();
+            outHandle.Clear();
             enableHandle.Clear();
             changeHandle.Clear();
             eventWatcherHandle.Clear();
@@ -152,8 +165,8 @@ namespace Core
             updateHandles.Clear();
             timerHandles.Clear();
 
-            HashSet<Type> awake = new();
-            HashSet<Type> dispose = new();
+            HashSet<Type> aIn = new();
+            HashSet<Type> aOut = new();
             HashSet<Type> enable = new();
             HashSet<Type> change = new();
             HashSet<Type> eventWatcher = new();
@@ -166,14 +179,14 @@ namespace Core
                 MethodParseData ma = methods[i];
                 if (ma.attribute is EventAttribute && typeof(__SystemHandle).IsAssignableFrom(ma.mainKey))
                 {
-                    if (typeof(__AwakeHandle).IsAssignableFrom(ma.mainKey))
+                    if (typeof(__InHandle).IsAssignableFrom(ma.mainKey))
                     {
-                        awake.Add(ma.mainKey);
+                        aIn.Add(ma.mainKey);
                         continue;
                     }
-                    if (typeof(__DisposeHandle).IsAssignableFrom(ma.mainKey))
+                    if (typeof(__OutHandle).IsAssignableFrom(ma.mainKey))
                     {
-                        dispose.Add(ma.mainKey);
+                        aOut.Add(ma.mainKey);
                         continue;
                     }
                     if (typeof(__EnableHandle).IsAssignableFrom(ma.mainKey))
@@ -216,21 +229,28 @@ namespace Core
                     continue;
                 }
             }
-            foreach (var item in awake)
+            foreach (var item in aIn)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<SObject>)item.GetMethod(nameof(Awake<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
-                if (!awakeHandle.TryGetValue(ts[0], out var lst))
-                    awakeHandle[ts[0]] = lst = new();
-                lst.Add(action);
+                var action = (Action<SObject>)item.GetMethod(nameof(In<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
+                for (int i = 0; i < ts.Length; i++)
+                {
+                    if (!inHandle.TryGetValue(ts[i], out var lst))
+                        inHandle[ts[i]] = lst = new();
+                    lst.Add(action);
+                }
             }
-            foreach (var item in dispose)
+            foreach (var item in aOut)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<object>)item.GetMethod(nameof(Dispose<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object>));
-                if (!disposeHandle.TryGetValue(ts[0], out var lst))
-                    disposeHandle[ts[0]] = lst = new();
-                lst.Add(action);
+                var action = (Action<Type, SComponent>)item.GetMethod(nameof(Out<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<Type, SComponent>));
+                var action2 = (Action<SObject, Dictionary<Type, __OutHandle>>)item.GetMethod(nameof(Out<SObject>.Invoke2), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject, Dictionary<Type, __OutHandle>>));
+                for (int i = 0; i < ts.Length; i++)
+                {
+                    if (!outHandle.TryGetValue(ts[i], out var lst))
+                        outHandle[ts[i]] = lst = new();
+                    lst.Add((action, action2));
+                }
             }
             foreach (var item in enable)
             {
@@ -244,11 +264,10 @@ namespace Core
             {
                 var ts = item.GetGenericArguments();
                 var action = (Action<SObject>)item.GetMethod(nameof(AnyChange<SComponent, SComponent>.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
-                for (int j = 0; j < ts.Length; j++)
+                for (int i = 0; i < ts.Length; i++)
                 {
-                    var key = ts[j];
-                    if (!changeHandle.TryGetValue(key, out var lst))
-                        changeHandle[key] = lst = new();
+                    if (!changeHandle.TryGetValue(ts[i], out var lst))
+                        changeHandle[ts[i]] = lst = new();
                     lst.Add(action);
                 }
             }

@@ -33,21 +33,23 @@ namespace Game
         }
 
         [Event]
-        static void change(Change<GameObjectComponent> t)
+        static void AnyChange(AnyChange<GameObjectComponent, PlayingComponent> t)
         {
-            if (t.t.gameObject && t.t.Entity.TryGetComponent<PlayingComponent>(out var a))
+            if (t.t.gameObject)
             {
                 if (t.t.gameObject.TryGetComponent<Animancer.NamedAnimancerComponent>(out var c))
-                    a.Set(new A_Animancer() { ani = c });
+                    t.t2.Set(new A_Animancer() { ani = c });
                 else if (t.t.gameObject.TryGetComponent<UnityEngine.Animation>(out var c2))
-                    a.Set(new A_Animation() { ani = c2 });
+                    t.t2.Set(new A_Animation() { ani = c2 });
                 else if (t.t.gameObject.TryGetComponent<UnityEngine.Animator>(out var c3))
-                    a.Set(new A_Animator() { ani = c3 });
+                    t.t2.Set(new A_Animator() { ani = c3 });
                 else if (t.t.gameObject.TryGetComponent<Spine.Unity.SkeletonAnimation>(out var c4))
-                    a.Set(new A_Spine() { ani = c4 });
+                    t.t2.Set(new A_Spine() { ani = c4 });
                 else
-                    a.Set(null);
+                    t.t2.Set(null);
             }
+            else
+                t.t2.Set(null);
         }
 
         class A_Animancer : Playing

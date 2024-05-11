@@ -28,6 +28,9 @@ using System.Threading.Tasks;
 //            v.timer = ti.attribute;
 //            v.action = (Action<Timer<?[T]+, ?>>)ti.action;
 //            o.World.System.timerHandles.Enqueue(v);
+//#if UNITY_EDITOR
+//            o._timers.Add(v);
+//#endif
 //        }
 //    }
 //    internal override void Update()

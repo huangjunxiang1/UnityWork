@@ -13,31 +13,36 @@ namespace Game
 {
     public static class Client
     {
-        static Client()
-        {
 #if UNITY_EDITOR
-            UnityEditor.Compilation.CompilationPipeline.compilationFinished += o =>
-            {
-                if (World == null) return;
-                World.Event.RunEvent(new EC_QuitGame());
-            };
-#endif
+        [UnityEditor.InitializeOnLoadMethod]
+        static void Init()
+        {
+            UnityEditor.Compilation.CompilationPipeline.compilationFinished -= Reload;
+            UnityEditor.Compilation.CompilationPipeline.compilationFinished += Reload;
         }
+        static void Reload(object o)
+        {
+            if (World == null) return;
+            World.Event.RunEvent(new EC_QuitGame());
+        }
+#endif
         public static World World { get; private set; }
         public static GameObject gameObject { get; private set; }
         public static Transform transform { get; private set; }
         public static Data Data { get; private set; }
         public static Scene Scene { get; private set; }
+        public static UIManager UI { get; private set; }
 
         public static void Load(List<Type> types)
         {
-            World = new(types);
+            World = new(types, "Client");
 
             Data = new(World);
             World.Root.AddChild(Scene = new());
 
             if (Application.isPlaying)
             {
+                World.Root.AddChild(UI = new());
                 gameObject = new(nameof(Client));
                 gameObject.AddComponent<Engine>();
                 transform = gameObject.transform;
@@ -50,7 +55,7 @@ namespace Game
             if (World == null) return;
             var w = World;
             World = null;
-            w.Thread.Post(w.Dispose);
+            w.Dispose();
         }
 
         class Engine : MonoBehaviour
@@ -68,7 +73,7 @@ namespace Game
                 }
                 Profiler.EndSample();
             }
-            void OnApplicationQuit() => World.Event.RunEvent(new EC_QuitGame());
+            void OnApplicationQuit() => World?.Event?.RunEvent(new EC_QuitGame());
         }
     }
 }

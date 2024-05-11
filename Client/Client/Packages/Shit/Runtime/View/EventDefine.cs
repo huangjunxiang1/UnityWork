@@ -1,4 +1,5 @@
-﻿
+﻿using Core;
+
 namespace Event
 {
     public class EC_GameStart : IData { }
@@ -12,5 +13,9 @@ namespace Event
     {
         public int sceneId;
         public int sceneType;
+    }
+    public class EC_ClickObject
+    {
+        public SObject obj;
     }
 }

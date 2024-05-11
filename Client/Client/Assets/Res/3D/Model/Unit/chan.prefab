@@ -2162,6 +2162,7 @@ GameObject:
   - component: {fileID: 400096}
   - component: {fileID: 9500000}
   - component: {fileID: 1394639344057805373}
+  - component: {fileID: 472981175103409812}
   m_Layer: 0
   m_Name: chan
   m_TagString: Untagged
@@ -2227,6 +2228,27 @@ MonoBehaviour:
   _Animations:
   - {fileID: 7400000, guid: 0147e212f97e3d449a4b9e4f5d057180, type: 3}
   - {fileID: 7400000, guid: 26055e26f15260e4e8e0e51f50c41926, type: 3}
+--- !u!65 &472981175103409812
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100096}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.73, z: 0}
 --- !u!1 &100098
 GameObject:
   m_ObjectHideFlags: 0

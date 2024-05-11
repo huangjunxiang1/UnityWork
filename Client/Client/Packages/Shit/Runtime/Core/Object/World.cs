@@ -9,8 +9,9 @@ namespace Core
 {
     public sealed class World
     {
-        public World(List<Type> types)
+        public World(List<Type> types,string name)
         {
+            this.Name = string.IsNullOrEmpty(name) ? "Unknown" : name;
             Thread = ThreadSynchronizationContext.GetOrCreate(global::System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             Checker.Check(types);
@@ -23,8 +24,10 @@ namespace Core
             Timer.Load(methods);
             System.Load(methods);
 
+            Worlds.Add(this);
             this.Root.World = this;
         }
+        public string Name { get; }
         public ThreadSynchronizationContext Thread { get; private set; }
         public EventSystem Event { get; private set; } 
         public STimer Timer { get; private set; } = new();
@@ -34,6 +37,8 @@ namespace Core
         public STree Root { get; private set; } = new();
 
         internal SSystem System;
+        internal static List<World> Worlds = new();
+        internal static Action Close;
 
         public void Update(float time)
         {
@@ -50,7 +55,9 @@ namespace Core
         }
         public void Dispose()
         {
-            Root.Dispose();
+            Worlds.Remove(this);
+            Close?.Invoke();
+            Thread.Post(Root.Dispose);
         }
     }
 }

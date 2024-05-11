@@ -27,6 +27,7 @@ namespace Game
             op.completed += e => task.TrySetResult();
             return task;
         }
+#if UNITY_2023_1_OR_NEWER
         public static STask<T> AsTask<T>(this AsyncInstantiateOperation<T> op)
         {
             STask<T> task = new();
@@ -36,6 +37,7 @@ namespace Game
                 op.completed += e => task.TrySetResult(op.Result[0]);
             return task;
         }
+#endif
         public static STask AsTask(this UnityEvent unityEvent)
         {
             STask task = new();

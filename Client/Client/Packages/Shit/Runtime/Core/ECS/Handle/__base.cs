@@ -6,8 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 public abstract class __SystemHandle { }
-public abstract class __AwakeHandle : __SystemHandle { }
-public abstract class __DisposeHandle : __SystemHandle { }
+public abstract class __InHandle : __SystemHandle { }
+public abstract class __OutHandle : __SystemHandle
+{
+    internal abstract void Invoke(SObject o);
+}
 public abstract class __EnableHandle : __SystemHandle { }
 public abstract class __ChangeHandle : __SystemHandle
 {

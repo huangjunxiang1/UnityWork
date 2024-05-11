@@ -14,7 +14,7 @@ namespace Core
         readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
         Queue<EvtQueue> removed = ObjectPool.Get<Queue<EvtQueue>>();
-        public Action<object> getEvent;
+        internal Action<object> getEvent;
 
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
@@ -271,6 +271,11 @@ namespace Core
         public bool HasEvent<T>() => _evtMap.TryGetValue(typeof(T), out var queue) && queue.evts.Count > 0;
         public bool HasEvent(Type type) => _evtMap.TryGetValue(type, out var queue) && queue.evts.Count > 0;
 
+        internal bool GetEventQueue(Type type, out EvtQueue queue)
+        {
+            return _evtMap.TryGetValue(type, out queue);
+        }
+
         /// <summary>
         /// 执行事件
         /// </summary>
@@ -377,7 +382,7 @@ namespace Core
             return queue.RunAsync(data, testParam);
         }
 
-        class EvtData
+        internal class EvtData
         {
             public EvtData()
             {
@@ -450,7 +455,7 @@ namespace Core
 
             public Delegate action;
         }
-        class EvtQueue
+        internal class EvtQueue
         {
             public List<EvtData> evts = new();
             public int counter = 0;

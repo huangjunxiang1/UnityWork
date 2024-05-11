@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 public class KVComponent : SComponent
 {
+    [Sirenix.OdinInspector.ShowInInspector]
     public Dictionary<int, long> Values { get; set; } = new();
 
     HashSet<int> changedIDs = ObjectPool.Get<HashSet<int>>();
@@ -49,7 +50,7 @@ public class KVComponent : SComponent
     }
 
     [Event]
-    static void change(Change<KVComponent> t)
+    static void Change(Change<KVComponent> t)
     {
         if (t.t._kvWatcherHandles != null)
         {
@@ -69,7 +70,7 @@ public class KVComponent : SComponent
         }
     }
     [Event]
-    static void dispose(Dispose<KVComponent> t)
+    static void Out(Out<KVComponent> t)
     {
         t.t.changedIDs.Clear();
         ObjectPool.Return(t.t.changedIDs);

@@ -15,13 +15,13 @@ using Unity.Mathematics;
 
 namespace Game
 {
-    public class Room : STree<RoomItem>
+    public class Room : STree
     {
         public List<RoomInfo> GetLst()
         {
             var lst = new List<RoomInfo>();
             foreach (var item in this.GetChildren())
-                lst.Add(item.GetRoomInfo());
+                lst.Add(item.As<RoomItem>().GetRoomInfo());
             return lst;
         }
         public RoomItem CreateRoom(string name)
@@ -80,11 +80,11 @@ namespace Game
 
             string acc = t.t3.acc;
 
-            room.AddUnit(t.t2.rpc, acc, t.t2.Session);
+            room.As<RoomItem>().AddUnit(t.t2.rpc, acc, t.t2.Session);
 
             S2C_JoinRoom s = new();
-            s.info = room.GetRoomInfo(true);
-            s.units = room.GetUnitInfo2s();
+            s.info = room.As<RoomItem>().GetRoomInfo(true);
+            s.units = room.As<RoomItem>().GetUnitInfo2s();
             s.myid = t.t2.rpc;
             t.t2.Send(s);
 
@@ -103,7 +103,7 @@ namespace Game
             room.Dispose();
         }
     }
-    public class RoomItem : STree<Unit>
+    public class RoomItem : STree
     {
         public string name;
 
@@ -146,7 +146,7 @@ namespace Game
             if (!this.TryGetChildRpc(rpc, out var o))
             {
                 o = new Unit(rpc);
-                o.name = name;
+                o.As<Unit>().name = name;
                 this.AddChild(o);
 
                 o.AddComponent<TransformComponent>();
@@ -162,7 +162,7 @@ namespace Game
                 o.AddComponent<BelongRoom>().room = this;
             }
             S2C_PlayerJoinRoom join = new();
-            join.info = o.GetUnitInfo2();
+            join.info = o.As<Unit>().GetUnitInfo2();
             foreach (var item in this.GetChildren())
             {
                 if (item.rpc != rpc)
@@ -171,7 +171,7 @@ namespace Game
                 }
             }
 
-            return o;
+            return o.As<Unit>();
         }
         public RoomInfo GetRoomInfo(bool getLink = false)
         {
@@ -183,7 +183,7 @@ namespace Game
                 ri.link = new(this.linkMap);
 
             foreach (var item in this.GetChildren())
-                ri.infos.Add(item.GetUnitInfo());
+                ri.infos.Add(item.As<Unit>().GetUnitInfo());
 
             return ri;
         }
@@ -192,7 +192,7 @@ namespace Game
             var lst = new List<UnitInfo2>();
 
             foreach (var item in this.GetChildren())
-                lst.Add(item.GetUnitInfo2());
+                lst.Add(item.As<Unit>().GetUnitInfo2());
 
             return lst;
         }
@@ -270,14 +270,14 @@ namespace Game
         public int2 xy { get; private set; }//room xy
 
         [Event]
-        static void bound(Awake<SubRoom, TransformComponent> t)
+        static void In(In<SubRoom, TransformComponent> t)
         {
             var min = SettingM.SubRoomSize * t.t.xy + 1;
             var max = SettingM.SubRoomSize * (t.t.xy + 1);
             t.t2.Bound = new float3x2(new float3(min.x + 0.5f, 0, min.y + 0.5f), new float3(max.x - 0.5f, 0, max.y - 0.5f));
         }
         [Event]
-        static void Dispose(Dispose<SubRoom, TransformComponent> t)
+        static void Out(Out<SubRoom, TransformComponent> t)
         {
             t.t2.ResetBound();
         }

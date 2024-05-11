@@ -37,7 +37,7 @@ namespace Game
         }
         static void Run(List<Type> types, Action callBack = null)
         {
-            World = new(types);
+            World = new(types, "Server");
             var w = World;
             w.Event.RunEvent(new EC_ServerLanucher());
 
@@ -67,7 +67,7 @@ namespace Game
             if (World == null) return;
             var w = World;
             World = null;
-            w.Thread.Post(w.Dispose);
+            w.Dispose();
         }
     }
 }

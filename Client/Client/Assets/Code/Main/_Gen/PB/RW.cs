@@ -138,7 +138,7 @@ namespace main
             writer.Writebytes(98, this.test12);
             writer.Writefixed32(117, this.test14);
             writer.Writefixed64(129, this.test16);
-            writer.Writeint32(122, (int)this.test15);
+            writer.Writeint32(120, (int)this.test15);
             writer.Writedouble(145, this.test18);
             if (this.test19 != null)
             {
@@ -249,7 +249,7 @@ namespace main
                     case 98:  this.test12 = reader.Readbytes(); break;
                     case 117: this.test14 = reader.Readfixed32(); break;
                     case 129: this.test16 = reader.Readfixed64(); break;
-                    case 122: this.test15 = (COM_Client_Status)reader.Readint32(); break;
+                    case 120: this.test15 = (COM_Client_Status)reader.Readint32(); break;
                     case 145: this.test18 = reader.Readdouble(); break;
                     case 154:
                         {
