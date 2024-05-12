@@ -19,9 +19,9 @@ namespace Game
 
             public void OnPointerClick(PointerEventData eventData)
             {
-                if (target == null || !target.Enable) return;
+                if (target == null || !target.Enable || target.Disposed) return;
                 if (target.World.ObjectManager.TryGetByGid(gid, out var o))
-                    target.World.Event.RunEvent(new EC_ClickObject { obj = o });
+                    target.World.Event.RunGenericEventAndBaseType(typeof(EC_ClickSObject<>), o);
                 else
                     Loger.Error("不存在的对象 " + gid);
             }

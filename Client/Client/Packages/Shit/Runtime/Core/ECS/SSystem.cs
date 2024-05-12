@@ -14,7 +14,6 @@ namespace Core
         World world;
         internal Dictionary<Type, List<Action<SObject>>> inHandle = new();
         internal Dictionary<Type, List<(Action<Type, SComponent>, Action<SObject, Dictionary<Type, __OutHandle>>)>> outHandle = new();
-        internal Dictionary<Type, List<Action<SComponent>>> enableHandle = new();
         internal Dictionary<Type, List<Action<SObject>>> changeHandle = new();
         internal Dictionary<Type, List<(Type, Action<object, SObject>)>> eventWatcherHandle = new();
         internal Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
@@ -97,15 +96,6 @@ namespace Core
                 catch (Exception e) { Loger.Error("Out 出错 " + e); }
             }
         }
-        internal void Enable(Type type, SComponent c)
-        {
-            if (!enableHandle.TryGetValue(type, out var list)) return;
-            for (int i = 0; i < list.Count; i++)
-            {
-                try { list[i](c); }
-                catch (Exception e) { Loger.Error("Enable 出错 " + e); }
-            }
-        }
         internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Add(h);
         internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
         internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
@@ -149,25 +139,8 @@ namespace Core
         /// </summary>
         internal void Load(List<MethodParseData> methods)
         {
-            inHandle.Clear();
-            outHandle.Clear();
-            enableHandle.Clear();
-            changeHandle.Clear();
-            eventWatcherHandle.Clear();
-            kvWatcherHandle.Clear();
-            timerHandle.Clear();
-
-            updateHandlerCreater.Clear();
-
-            changeWaitInvoke.Clear();
-            changeWaitRemove.Clear();
-            kvWaitRemove.Clear();
-            updateHandles.Clear();
-            timerHandles.Clear();
-
             HashSet<Type> aIn = new();
             HashSet<Type> aOut = new();
-            HashSet<Type> enable = new();
             HashSet<Type> change = new();
             HashSet<Type> eventWatcher = new();
             HashSet<Type> kvWatcher = new();
@@ -187,11 +160,6 @@ namespace Core
                     if (typeof(__OutHandle).IsAssignableFrom(ma.mainKey))
                     {
                         aOut.Add(ma.mainKey);
-                        continue;
-                    }
-                    if (typeof(__EnableHandle).IsAssignableFrom(ma.mainKey))
-                    {
-                        enable.Add(ma.mainKey);
                         continue;
                     }
                     if (typeof(__ChangeHandle).IsAssignableFrom(ma.mainKey))
@@ -251,14 +219,6 @@ namespace Core
                         outHandle[ts[i]] = lst = new();
                     lst.Add((action, action2));
                 }
-            }
-            foreach (var item in enable)
-            {
-                var ts = item.GetGenericArguments();
-                var action = (Action<SComponent>)item.GetMethod(nameof(Enable<SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SComponent>));
-                if (!enableHandle.TryGetValue(ts[0], out var lst))
-                    enableHandle[ts[0]] = lst = new();
-                lst.Add(action);
             }
             foreach (var item in change)
             {

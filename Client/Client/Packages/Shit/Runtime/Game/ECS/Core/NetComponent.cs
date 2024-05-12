@@ -121,6 +121,6 @@ namespace Game
         }
 
         [Event]
-        static void Out(Out<NetComponent> t) => t.t.Session?.DisConnect();
+        static void Dispose(Dispose<NetComponent> t) => t.t.Session?.DisConnect();
     }
 }

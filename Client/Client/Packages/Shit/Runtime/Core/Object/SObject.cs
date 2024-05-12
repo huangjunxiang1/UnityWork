@@ -44,6 +44,7 @@ namespace Core
 
 #if UNITY_EDITOR
         //做检视面板使用的
+        internal List<EventSystem.EvtData> _Awake = new();
         internal List<EventSystem.EvtData> _In = new();
         internal List<__UpdateHandle> _updates = new();
         internal List<__Timer> _timers = new();
@@ -349,7 +350,11 @@ namespace Core
                 World.Event.RigisteEvent(c);
 
             World.System.RigisterHandler(type, c);
-            World.System.Enable(type, c);
+#if UNITY_EDITOR
+            if (World.Event.GetEventQueue(typeof(Awake<>).MakeGenericType(type), out var queue))
+                _Awake.AddRange(queue.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+#endif
+            World.Event.RunGenericEvent(typeof(Awake<>), c, type);
             if (c.Disposed) return;
             World.System.In(type, this);
             c.SetChange();
@@ -398,6 +403,11 @@ namespace Core
             var tmp = _components;
             _components = null;
 
+            foreach (var item in outHandles)
+                item.Value.Invoke(this);
+            outHandles.Clear();
+            ObjectPool.Return(outHandles);
+
             foreach (var item in tmp)
             {
                 if (item.Value is not SObject)
@@ -405,14 +415,10 @@ namespace Core
                     item.Value.dispose(false);
                     World.Event.RemoveEvent(item.Value);
                 }
+                World.Event.RunGenericEvent(typeof(Dispose<>), item.Value, item.Key);
             }
             tmp.Clear();
             ObjectPool.Return(tmp);
-
-            foreach (var item in outHandles)
-                item.Value.Invoke(this);
-            outHandles.Clear();
-            ObjectPool.Return(outHandles);
 
             _onDispose?.Call();
 #if UNITY_EDITOR

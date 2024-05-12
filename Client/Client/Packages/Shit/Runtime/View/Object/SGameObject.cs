@@ -13,7 +13,7 @@ namespace Game
         public PlayingComponent Playing { get; private set; }
 
         [Event]
-        static void In(In<SGameObject> t)
+        static void Awake(Awake<SGameObject> t)
         {
             t.t.GameObject = t.t.AddComponent<GameObjectComponent>();
             t.t.Playing = t.t.AddComponent<PlayingComponent>();

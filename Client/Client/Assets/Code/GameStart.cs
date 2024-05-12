@@ -13,9 +13,9 @@ public class GameStart : MonoBehaviour
     {
         var tsc = ThreadSynchronizationContext.GetOrCreate(Thread.CurrentThread.ManagedThreadId);
         ThreadSynchronizationContext.SetMainThread(tsc);
-        Loger.__get__log += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.Log(o + Loger.GetStackTrace()));
-        Loger.__get__warning += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogWarning(o + Loger.GetStackTrace()));
-        Loger.__get__error += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogError(o + Loger.GetStackTrace()));
+        Loger.__get__log += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.Log(o));
+        Loger.__get__warning += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogWarning(o));
+        Loger.__get__error += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogError(o));
 
         DontDestroyOnLoad(this.gameObject);
 

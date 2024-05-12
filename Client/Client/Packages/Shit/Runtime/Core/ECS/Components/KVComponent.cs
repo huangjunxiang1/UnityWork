@@ -70,7 +70,7 @@ public class KVComponent : SComponent
         }
     }
     [Event]
-    static void Out(Out<KVComponent> t)
+    static void Dispose(Dispose<KVComponent> t)
     {
         t.t.changedIDs.Clear();
         ObjectPool.Return(t.t.changedIDs);

@@ -48,7 +48,6 @@ namespace Core
                 {
                     if (value)
                         this.SetChange();
-                    World.System.Enable(this.GetType(), this);
                     if (value)
                         World.System.In(this.GetType(), this.Entity);
                     else
@@ -75,6 +74,7 @@ namespace Core
             }
             World.Event.RemoveEvent(this);
             this.dispose(true);
+            World.Event.RunGenericEvent(typeof(Dispose<>), this, this.GetType());
             World.System.Out(this.GetType(), this);
         }
         public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";

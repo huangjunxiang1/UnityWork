@@ -11,7 +11,6 @@ public abstract class __OutHandle : __SystemHandle
 {
     internal abstract void Invoke(SObject o);
 }
-public abstract class __EnableHandle : __SystemHandle { }
 public abstract class __ChangeHandle : __SystemHandle
 {
     internal bool Disposed;

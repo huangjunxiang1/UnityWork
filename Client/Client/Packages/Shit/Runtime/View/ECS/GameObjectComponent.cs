@@ -121,6 +121,17 @@ namespace Game
             }
             Replace?.Invoke(old, this.gameObject);
             this.SetChange();
+#if UNITY_EDITOR
+            if (this.gameRoot && this.gameObjectType != SGameObjectType.Static)
+            {
+                string s = this.Entity.GetType().Name;
+                if (this.rpc != 0)
+                    s += $"_rpc={this.rpc}";
+                if (this.Entity.tid != 0)
+                    s += $"_tid={this.Entity.tid}";
+                this.gameRoot.name = s;
+            }
+#endif
         }
         public void SetGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool) => _ = LoadGameObjectAsync(url, releaseMode);
 
@@ -162,22 +173,7 @@ namespace Game
         }
 
         [Event]
-        static void In(In<GameObjectComponent> a)
-        {
-            if (a.t.gameObjectType == SGameObjectType.Static) return;
-            if (a.t.gameRoot)
-            {
-                a.t.gameRoot.SetActive(a.t.Enable);
-#if UNITY_EDITOR
-                if (a.t.rpc != 0)
-                    a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}_rpc={a.t.rpc}";
-                else
-                    a.t.gameRoot.name = $"{a.t.Entity.GetType().Name}";
-#endif
-            }
-        }
-        [Event]
-        static void Out(Out<GameObjectComponent> t)
+        static void Dispose(Dispose<GameObjectComponent> t)
         {
             ++t.t._resVersion;
             switch (t.t.gameObjectType)
@@ -213,10 +209,16 @@ namespace Game
             }
         }
         [Event]
-        static void Enables(Enable<GameObjectComponent> t)
+        static void In(In<GameObjectComponent> t)
         {
             if (t.t.gameObjectType == SGameObjectType.Static) return;
-            t.t.gameRoot?.SetActive(t.t.Enable);
+            t.t.gameRoot?.SetActive(true);
+        }
+        [Event]
+        static void Out(Out<GameObjectComponent> t)
+        {
+            if (t.t.gameObjectType == SGameObjectType.Static) return;
+            t.t.gameRoot?.SetActive(false);
         }
     }
 }

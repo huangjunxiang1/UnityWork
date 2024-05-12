@@ -11,9 +11,10 @@ static class _test
 {
     public static void test()
     {
+        Awake.test();
+        Dispose.test();
         In.test();
         Out.test();
-        Enable.test();
         Change.test();
         AnyChange.test();
         EventWatcher.test();

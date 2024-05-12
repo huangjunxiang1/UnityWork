@@ -14,7 +14,7 @@ public class Login : STree
 {
     public IPEndPoint ip { get; set; }
     [Event]
-    static async void In(In<Login> t)
+    static async void Awake(Awake<Login> t)
     {
         TcpListener tcp = new(t.t.ip);
         tcp.Start();

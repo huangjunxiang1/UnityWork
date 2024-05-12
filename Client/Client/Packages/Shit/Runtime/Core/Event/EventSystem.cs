@@ -15,6 +15,7 @@ namespace Core
         readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
         Queue<EvtQueue> removed = ObjectPool.Get<Queue<EvtQueue>>();
         internal Action<object> getEvent;
+        GenericEventHelper GenericEvent;
 
         /// <summary>
         /// 反射注册所有静态函数的消息和事件监听
@@ -38,6 +39,7 @@ namespace Core
                     queue.Add(e);
                 }
             }
+            GenericEvent = new(methods, this);
         }
 
         /// <summary>
@@ -304,6 +306,8 @@ namespace Core
             world.System.EventWatcher(data);
             return _runEventAsync(_evtMap, data, testParam);
         }
+        public void RunGenericEvent(Type baseType, object o, Type elementType = null) => GenericEvent.Invoke(baseType, o, elementType);
+        public void RunGenericEventAndBaseType(Type baseType, object o) => GenericEvent.InvokeAndBaseType(baseType, o);
         internal void RunEventNoGCAndFaster<T>(T data, int testParam = 0)
         {
             if (!_evtMap.TryGetValue(data.GetType(), out var queue)) return;
