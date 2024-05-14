@@ -35,14 +35,38 @@ namespace Game
                 this.SetChange();
             }
         }
+        [Sirenix.OdinInspector.ShowInInspector]
+        public float3 forward
+        {
+            get => math.mul(_r, math.forward());
+            set => rotation = quaternion.LookRotation(value, math.up());
+        }
 
+        [Event]
+        static void In(In<MoveToComponent, TransformComponent> t)
+        {
+            t.t.point = t.t2.position;
+            t.t.forward = t.t2.forward;
+        }
         [Event]
         static void Update(Update<MoveToComponent, TransformComponent, KVComponent> t)
         {
             var speed = t.t3.Get((int)KType.MoveSpeed);
             var speed2 = t.t3.Get((int)KType.RotateSpeed);
-            t.t2.position = math.lerp(t.t2.position, t.t.point, t.t.World.DeltaTime * speed);
-            t.t2.rotation = math.slerp(t.t2.rotation, t.t.rotation, t.t.World.DeltaTime * speed2);
+            float distance = math.distance(t.t.point, t.t2.position);
+            float moveStep = t.t.World.DeltaTime * speed;
+            if (distance > moveStep)
+            {
+                var dir = math.normalize(t.t.point - t.t2.position);
+                t.t2.position += dir * moveStep;
+                var r = quaternion.LookRotation(dir, math.up());
+                t.t2.rotation = math.slerp(t.t2.rotation, r, t.t.World.DeltaTime * speed2);
+            }
+            else
+            {
+                t.t2.position = t.t.point;
+                t.t2.rotation = math.slerp(t.t2.rotation, t.t.rotation, t.t.World.DeltaTime * speed2);
+            }
         }
     }
 }

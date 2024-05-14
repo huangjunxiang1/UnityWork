@@ -10,7 +10,7 @@ static class _main
     [Test]
     public static void test()
     {
-        var tsc = ThreadSynchronizationContext.GetOrCreate(Thread.CurrentThread.ManagedThreadId);
+        var tsc = ThreadSynchronizationContext.GetOrCreate(System.Environment.CurrentManagedThreadId);
         ThreadSynchronizationContext.SetMainThread(tsc);
         Loger.__get__log += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.Log(o));
         Loger.__get__warning += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogWarning(o));

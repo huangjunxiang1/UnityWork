@@ -10,6 +10,6 @@ namespace Game
     public enum KType
     {
         MoveSpeed = 1,
-        RotateSpeed,
+        RotateSpeed = 2,
     }
 }

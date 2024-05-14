@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 partial class FUIRooms
 {
@@ -66,7 +67,7 @@ partial class FUIRooms
             go.Transform.rotation = v.t.r;
             if (go.rpc == s.myid)
                 go.AddComponent<GameInputComponent>();
-            go.KV.Values = v.attribute;
+            go.KV.Set(v.attribute);
             go.AddComponent<ColliderClickComponent>();
         }
         await Client.UI.OpenAsync<FUIGame>();

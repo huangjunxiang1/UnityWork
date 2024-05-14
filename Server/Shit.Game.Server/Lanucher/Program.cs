@@ -20,7 +20,7 @@ public static class Program
     }
     static void gameStart()
     {
-        var tsc = ThreadSynchronizationContext.GetOrCreate(Thread.CurrentThread.ManagedThreadId);
+        var tsc = ThreadSynchronizationContext.GetOrCreate(Environment.CurrentManagedThreadId);
         ThreadSynchronizationContext.SetMainThread(tsc);
         Loger.__get__log += o =>
         {

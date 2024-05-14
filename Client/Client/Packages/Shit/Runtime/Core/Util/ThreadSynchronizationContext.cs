@@ -53,7 +53,7 @@ namespace Core
 
         public void Post(Action action)
         {
-            if (Thread.CurrentThread.ManagedThreadId == this.threadId)
+            if (Environment.CurrentManagedThreadId == this.threadId)
             {
                 try
                 {

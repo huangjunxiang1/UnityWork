@@ -1,9 +1,5 @@
-﻿using Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Core
 {
@@ -49,7 +45,7 @@ namespace Core
             }
         }
         internal bool TryGetByRpc(long rpc, out List<SObject> lst) => map.TryGetValue(rpc, out lst);
-        internal bool TryGetByGid(long gid, out SObject o) => gidMap.TryGetValue(gid, out o);
+        public bool TryGetByGid(long gid, out SObject o) => gidMap.TryGetValue(gid, out o);
 
         internal void AfterUpdate()
         {

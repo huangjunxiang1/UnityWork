@@ -9,12 +9,33 @@ using System.Threading.Tasks;
 public class KVComponent : SComponent
 {
     [Sirenix.OdinInspector.ShowInInspector]
-    public Dictionary<int, long> Values { get; set; } = new();
+    public Dictionary<int, long> Values { get; } = new();
 
     HashSet<int> changedIDs = ObjectPool.Get<HashSet<int>>();
 
     public bool Has(int id) => Values.ContainsKey(id);
     public bool TryGet(int id, out long v) => Values.TryGetValue(id, out v);
+    public void Set(IDictionary<int,long> kvs)
+    {
+        foreach (var item in kvs)
+        {
+            if (!Values.TryGetValue(item.Key, out var v) || v != item.Value)
+            {
+                Values[item.Key] = item.Value;
+                changedIDs.Add(item.Key);
+                continue;
+            }
+        }
+        foreach (var item in Values)
+        {
+            if (!kvs.ContainsKey(item.Key))
+            {
+                Values.Remove(item.Key);
+                changedIDs.Add(item.Key);
+            }
+        }
+        this.SetChange();
+    }
     public void Set(int id, long v)
     {
         if (Values.TryGetValue(id, out var old) && old == v) return;

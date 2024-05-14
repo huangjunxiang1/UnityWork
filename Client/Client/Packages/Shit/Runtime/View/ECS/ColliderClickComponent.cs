@@ -19,7 +19,6 @@ namespace Game
 
             public void OnPointerClick(PointerEventData eventData)
             {
-                if (target == null || !target.Enable || target.Disposed) return;
                 if (target.World.ObjectManager.TryGetByGid(gid, out var o))
                     target.World.Event.RunGenericEventAndBaseType(typeof(EC_ClickSObject<>), o);
                 else
@@ -45,7 +44,7 @@ namespace Game
         static void Out(Out<GameObjectComponent, ColliderClickComponent> t)
         {
             if (t.t2.click)
-                t.t2.click.target = null;
+                GameObject.DestroyImmediate(t.t2.click);
         }
 
         static void Replace(GameObject a, GameObject b)

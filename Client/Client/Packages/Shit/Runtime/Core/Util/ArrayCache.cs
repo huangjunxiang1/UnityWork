@@ -15,7 +15,7 @@ internal static class ArrayCache
         static ConcurrentDictionary<int, T[][]> safeDic = new();
         internal static T[] Get(int index)
         {
-            int id = Thread.CurrentThread.ManagedThreadId;
+            int id = Environment.CurrentManagedThreadId;
             if (!safeDic.TryGetValue(id, out var arr))
             {
                 safeDic[id] = arr = new T[Max][]

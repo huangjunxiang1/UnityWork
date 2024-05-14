@@ -7,7 +7,6 @@ using UnityEngine.Events;
 #if Dotween
 using DG.Tweening;
 using Core;
-
 #endif
 
 #if FairyGUI

@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Rendering;
 
 namespace Core
 {
@@ -403,11 +402,6 @@ namespace Core
             var tmp = _components;
             _components = null;
 
-            foreach (var item in outHandles)
-                item.Value.Invoke(this);
-            outHandles.Clear();
-            ObjectPool.Return(outHandles);
-
             foreach (var item in tmp)
             {
                 if (item.Value is not SObject)
@@ -419,6 +413,11 @@ namespace Core
             }
             tmp.Clear();
             ObjectPool.Return(tmp);
+
+            foreach (var item in outHandles)
+                item.Value.Invoke(this);
+            outHandles.Clear();
+            ObjectPool.Return(outHandles);
 
             _onDispose?.Call();
 #if UNITY_EDITOR

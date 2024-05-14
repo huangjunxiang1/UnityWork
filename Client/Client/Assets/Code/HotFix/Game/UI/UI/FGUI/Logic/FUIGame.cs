@@ -51,7 +51,7 @@ partial class FUIGame
         go.GameObject.SetGameObject("3D/Model/Unit/chan.prefab");
         go.Transform.position = v.t.p;
         go.Transform.rotation = v.t.r;
-        go.KV.Values = v.attribute;
+        go.KV.Set(v.attribute);
     }
     [Event]
     void S2C_PlayerQuit(S2C_PlayerQuit e)

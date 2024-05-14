@@ -24,6 +24,7 @@ namespace Game
             this.name = name;
             if (play == null || string.IsNullOrEmpty(name)) return;
             play.Play(name, fade);
+            this.SetChange();
         }
         public void Set(Playing play)
         {

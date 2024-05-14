@@ -24,7 +24,7 @@ namespace Game
         }
 
         [Event]
-        static void move(Update<MoveComponent, TransformComponent, KVComponent> t)
+        static void Update(Update<MoveComponent, TransformComponent, KVComponent> t)
         {
             if (math.any(t.t.Direction != 0) && math.all(!math.isnan(t.t.Direction)))
             {

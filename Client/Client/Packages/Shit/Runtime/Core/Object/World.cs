@@ -12,7 +12,7 @@ namespace Core
         public World(List<Type> types,string name)
         {
             this.Name = string.IsNullOrEmpty(name) ? "Unknown" : name;
-            Thread = ThreadSynchronizationContext.GetOrCreate(global::System.Threading.Thread.CurrentThread.ManagedThreadId);
+            Thread = ThreadSynchronizationContext.GetOrCreate(Environment.CurrentManagedThreadId);
 
             Checker.Check(types);
 

@@ -25,7 +25,7 @@ namespace Game
             Run(types);
             return STask.Completed;
 #else
-            int id = Thread.CurrentThread.ManagedThreadId;
+            int id = System.Environment.CurrentManagedThreadId;
             STask task = new();
             new Thread(() => Run(types, () =>
             {
