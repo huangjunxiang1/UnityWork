@@ -273,9 +273,18 @@ namespace Core
         public bool HasEvent<T>() => _evtMap.TryGetValue(typeof(T), out var queue) && queue.evts.Count > 0;
         public bool HasEvent(Type type) => _evtMap.TryGetValue(type, out var queue) && queue.evts.Count > 0;
 
-        internal bool GetEventQueue(Type type, out EvtQueue queue)
+        internal bool GetEventQueue(Type type, out List<EvtData> es)
         {
-            return _evtMap.TryGetValue(type, out queue);
+            if (_evtMap.TryGetValue(type, out var queue))
+            {
+                es = queue.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed));
+                return true;
+            }
+            else
+            {
+                es = new List<EvtData>();   
+                return false;
+            }
         }
 
         /// <summary>

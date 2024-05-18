@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 //        o.World.Event.RunEvent(new In<?[T]+, ?>(?[c]+, ?));
 // #if UNITY_EDITOR
 //        o.World.Event.GetEventQueue(typeof(In<?[T]+, ?>), out var v);
-//        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+//        o._In.AddRange(v);
 // #endif
 //    }
 //}

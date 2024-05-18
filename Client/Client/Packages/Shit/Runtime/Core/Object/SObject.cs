@@ -351,7 +351,7 @@ namespace Core
             World.System.RigisterHandler(type, c);
 #if UNITY_EDITOR
             if (World.Event.GetEventQueue(typeof(Awake<>).MakeGenericType(type), out var queue))
-                _Awake.AddRange(queue.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+                _Awake.AddRange(queue);
 #endif
             World.Event.RunGenericEvent(typeof(Awake<>), c, type);
             if (c.Disposed) return;

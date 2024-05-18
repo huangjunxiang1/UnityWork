@@ -150,7 +150,7 @@ class ObjectWindows : OdinMenuEditorWindow
             {
                 if (obj.World.Event.GetEventQueue(typeof(Dispose<>).MakeGenericType(k.Key), out var queue))
                 {
-                    var ds = queue.evts;
+                    var ds = queue;
                     foreach (var d in ds)
                         addToList(ret, d, k.Key.Name);
                 }
@@ -183,9 +183,9 @@ class ObjectWindows : OdinMenuEditorWindow
                         if (!find) continue;
                         if (obj.World.Event.GetEventQueue(rt, out var lst))
                         {
-                            for (int j = 0; j < lst.evts.Count; j++)
+                            for (int j = 0; j < lst.Count; j++)
                             {
-                                var d = lst.evts[j];
+                                var d = lst[j];
                                 addToList(ret, d, k.Key.Name);
                             }
                         }
@@ -211,7 +211,7 @@ class ObjectWindows : OdinMenuEditorWindow
             {
                 if (obj.World.Event.GetEventQueue(item2.GetType(), out var lst))
                 {
-                    foreach (var d in lst.evts)
+                    foreach (var d in lst)
                         addToList(ret, d);
                 }
             }
@@ -222,7 +222,7 @@ class ObjectWindows : OdinMenuEditorWindow
             {
                 if (obj.World.Event.GetEventQueue(item.GetType(), out var lst))
                 {
-                    foreach (var d in lst.evts)
+                    foreach (var d in lst)
                         addToList(ret, d);
                 }
             }
@@ -230,8 +230,6 @@ class ObjectWindows : OdinMenuEditorWindow
 
         void addToList(List<View1> ret,EventSystem.EvtData d)
         {
-            if (d.disposed || (d.target != null && d.target.Disposed)) return;
-
             View1 s = new();
             var method = d.action.Method;
 
@@ -251,7 +249,6 @@ class ObjectWindows : OdinMenuEditorWindow
         }
         void addToList(Dictionary<string, SystemHandler.View2> map, EventSystem.EvtData d,string cName)
         {
-            if (d.disposed || (d.target != null && d.target.Disposed)) return;
             if (!map.TryGetValue(cName, out var w))
                 map[cName] = w = new();
             var ret = w.list;

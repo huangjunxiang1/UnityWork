@@ -18,7 +18,7 @@ public class In<T> : __InHandle where T : SComponent
         o.World.Event.RunEvent(new In<T>(c));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -37,7 +37,7 @@ public class In<T, T2> : __InHandle where T : SComponent where T2 : SComponent
         o.World.Event.RunEvent(new In<T, T2>(c, c2));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -58,7 +58,7 @@ public class In<T, T2, T3> : __InHandle where T : SComponent where T2 : SCompone
         o.World.Event.RunEvent(new In<T, T2, T3>(c, c2, c3));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -81,7 +81,7 @@ public class In<T, T2, T3, T4> : __InHandle where T : SComponent where T2 : SCom
         o.World.Event.RunEvent(new In<T, T2, T3, T4>(c, c2, c3, c4));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3, T4>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -106,7 +106,7 @@ public class In<T, T2, T3, T4, T5> : __InHandle where T : SComponent where T2 : 
         o.World.Event.RunEvent(new In<T, T2, T3, T4, T5>(c, c2, c3, c4, c5));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3, T4, T5>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -133,7 +133,7 @@ public class In<T, T2, T3, T4, T5, T6> : __InHandle where T : SComponent where T
         o.World.Event.RunEvent(new In<T, T2, T3, T4, T5, T6>(c, c2, c3, c4, c5, c6));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3, T4, T5, T6>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -162,7 +162,7 @@ public class In<T, T2, T3, T4, T5, T6, T7> : __InHandle where T : SComponent whe
         o.World.Event.RunEvent(new In<T, T2, T3, T4, T5, T6, T7>(c, c2, c3, c4, c5, c6, c7));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3, T4, T5, T6, T7>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -193,7 +193,7 @@ public class In<T, T2, T3, T4, T5, T6, T7, T8> : __InHandle where T : SComponent
         o.World.Event.RunEvent(new In<T, T2, T3, T4, T5, T6, T7, T8>(c, c2, c3, c4, c5, c6, c7, c8));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3, T4, T5, T6, T7, T8>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -226,7 +226,7 @@ public class In<T, T2, T3, T4, T5, T6, T7, T8, T9> : __InHandle where T : SCompo
         o.World.Event.RunEvent(new In<T, T2, T3, T4, T5, T6, T7, T8, T9>(c, c2, c3, c4, c5, c6, c7, c8, c9));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3, T4, T5, T6, T7, T8, T9>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }
@@ -261,7 +261,7 @@ public class In<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __InHandle where T : S
         o.World.Event.RunEvent(new In<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>(c, c2, c3, c4, c5, c6, c7, c8, c9, c10));
  #if UNITY_EDITOR
         o.World.Event.GetEventQueue(typeof(In<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>), out var v);
-        o._In.AddRange(v.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed)));
+        o._In.AddRange(v);
  #endif
     }
 }

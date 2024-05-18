@@ -8,12 +8,18 @@ public static class LanguageUtil
     {
         public Dictionary<int, Mapping> kvs_int;
         public Dictionary<string, Mapping> kvs_str;
+        public Dictionary<string, Mapping2> kvs_str2;
         public DBuffer buff;
     }
     struct Mapping
     {
         public int index;
         public string value;
+    }
+    struct Mapping2
+    {
+        public int index;
+        public string[] value;
     }
 
     static readonly Language[] languageArray = new Language[(int)SystemLanguage.Unknown];
@@ -78,6 +84,31 @@ public static class LanguageUtil
     {
         return string.Format(key.ToLan(), args);
     }
+    public static string[] ToLans(this string key)
+    {
+        Language lan = languageArray[(int)LanguageType];
+
+        if (lan == null)
+        {
+            Loger.Error($"没有加载语言包 SystemLanguage={LanguageType}");
+            return Array.Empty<string>();
+        }
+
+        if (!lan.kvs_str2.TryGetValue(key, out Mapping2 kv))
+        {
+            Loger.Error($"Language没有key:{key} SystemLanguage={LanguageType}");
+            return Array.Empty<string>();
+        }
+
+        if (kv.value == null)
+        {
+            lan.buff.Seek(kv.index);
+            kv.value = lan.buff.Readstrings();
+            lan.kvs_str2[key] = kv;
+        }
+
+        return kv.value;
+    }
     public static void Load(int languageType, DBuffer buff, bool isDebug)
     {
         Language lan = languageArray[languageType] = new Language();
@@ -105,6 +136,18 @@ public static class LanguageUtil
             if (isDebug) map.value = buff.Readstring();
             else buff.Seek(buff.Readint() + buff.Position);
             lan.kvs_str.Add(key, map);
+        }
+
+        len = buff.Readint();
+        lan.kvs_str2 = new Dictionary<string, Mapping2>(len);
+        for (int i = 0; i < len; i++)
+        {
+            Mapping2 map = new();
+            string key = buff.Readstring();
+            map.index = buff.Position;
+            if (isDebug) map.value = buff.Readstrings();
+            else buff.Seek(buff.Readint() + buff.Position);
+            lan.kvs_str2.Add(key, map);
         }
     }
     public static void Clear()

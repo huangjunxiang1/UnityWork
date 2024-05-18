@@ -19,6 +19,7 @@ namespace Game
 
             public void OnPointerClick(PointerEventData eventData)
             {
+                if (TouchHelper.isTouchUI != null && TouchHelper.isTouchUI()) return;
                 if (target.World.ObjectManager.TryGetByGid(gid, out var o))
                     target.World.Event.RunGenericEventAndBaseType(typeof(EC_ClickSObject<>), o);
                 else

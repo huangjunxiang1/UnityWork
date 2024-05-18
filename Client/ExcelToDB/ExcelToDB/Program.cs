@@ -67,18 +67,21 @@ class Program
             string main = excelPath + "/Language";
             List<string> mains = Common.getFiles(main);
 
-            FileInfo fih = new FileInfo(mains[0]);
-            ExcelPackage pkgh = new ExcelPackage(fih);
-            List<int> mainIdx = new List<int>();
-            Common.GetHead(mainIdx, pkgh);
-            Dictionary<int, temp> lan = new Dictionary<int, temp>();
-            for (int i = 0; i < mainIdx.Count; i++)
+            var _common = mains.Find(t => new FileInfo(t).Name == "_Common.xlsx");
+            if (_common == null)
             {
-                FileInfo fi = new FileInfo(mains[0]);
-                ExcelPackage pkg = new ExcelPackage(fi);
-
-                var t = lan[mainIdx[i]] = new();
-                t.name = pkg.Workbook.Worksheets[0].Cells[3, mainIdx[i]].Text;
+                Console.WriteLine("没有包含定义表 _Common.xlsx");
+                Console.ReadLine();
+                return;
+            }
+            FileInfo fih = new FileInfo(_common);
+            ExcelPackage pkgh = new ExcelPackage(fih);
+            List<string> tag = new();
+            Common.GetHead(tag, pkgh);
+            Dictionary<string, temp> lan = new();
+            for (int i = 0; i < tag.Count; i++)
+            {
+                var t = lan[tag[i]] = new();
             }
             List<temp3> temp3Lst = new List<temp3>();
             foreach (string path in mains)
@@ -89,15 +92,16 @@ class Program
                 List<int> lines = new List<int>();
                 var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
                 int len = array.GetLength(0);
-                for (int j = 3; j < len; j++)
+                for (int j = 3; j <= len; j++)
                 {
-                    if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[j + 1, 1].Text))
-                        lines.Add(j + 1);
+                    if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[j, 1].Text))
+                        lines.Add(j);
                 }
 
                 temp3 tt = new temp3();
                 tt.fi = fi;
                 tt.dataLines = lines;
+                tt.isCommonTab = fi.Name == "_Common.xlsx";
 
                 temp3Lst.Add(tt);
             }
@@ -106,47 +110,105 @@ class Program
                 ExcelPackage pkg = new ExcelPackage(item.fi);
                 Console.WriteLine("开始解析->" + item.fi.Name);
 
-                for (int i = 0; i < item.dataLines.Count; i++)
+                for (int j = 0; j < tag.Count; j++)
                 {
-                    var str = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], 1].Text;
-                    if (int.TryParse(str, out var key))
+                    int x = -1;
+                    var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
+                    int len = array.GetLength(1);
+                    for (int k = 1; k <= len; k++)
                     {
-                        for (int j = 0; j < mainIdx.Count; j++)
+                        if (pkg.Workbook.Worksheets[0].Cells[2, k].Text == tag[j])
                         {
-                            int idx = mainIdx[j];
-                            lan[idx].kv.Add(new KV { key = key, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], idx].Text });
+                            x = k;
+                            break;
                         }
                     }
-                    else
+                    if (x == -1)
                     {
-                        for (int j = 0; j < mainIdx.Count; j++)
+                        Console.WriteLine($"{item.fi.Name} 没有配置{tag[j]}的语言列");
+                        Console.ReadLine();
+                        return;
+                    }
+
+                    var lan_1 = lan[tag[j]];
+                    for (int i = 0; i < item.dataLines.Count; i++)
+                    {
+                        var str = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], 1].Text;
+                        if (item.isCommonTab)
                         {
-                            int idx = mainIdx[j];
-                            lan[idx].kv2.Add(new KV2 { key = str, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], idx].Text });
+                            if (pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], 3].Text == "[]")
+                            {
+                                string s = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text;
+                                string[] arr = s.Split(Common.arraySplit, StringSplitOptions.RemoveEmptyEntries);
+                                lan_1.kv3.Add(new KV3 { key = "gk_" + str, v = arr });
+                            }
+                            else
+                            {
+                                lan_1.kv2.Add(new KV2 { key = "gk_" + str, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text });
+                            }
+                            continue;
+                        }
+                        if (int.TryParse(str, out var key))
+                        {
+                            lan_1.kv.Add(new KV { key = key, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text });
+                        }
+                        else
+                        {
+                            if (str.StartsWith("gk_"))
+                            {
+                                Console.WriteLine($"以[gk_]开头的id是_Common表的保留id 请勿使用 ->{item.fi.Name}");
+                                Console.ReadLine();
+                                return;
+                            }
+                            lan_1.kv2.Add(new KV2 { key = str, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text });
                         }
                     }
                 }
             }
             DBuffer buffer = new DBuffer(100000);
-            foreach (var item in lan.Values)
+            foreach (var item in lan)
             {
                 buffer.Seek(0);
                 buffer.WriteHeaderInfo();
 
-                buffer.Write(item.kv.Count);
-                for (int i = 0; i < item.kv.Count; i++)
+                buffer.Write(item.Value.kv.Count);
+                for (int i = 0; i < item.Value.kv.Count; i++)
                 {
-                    buffer.Write(item.kv[i].key);
-                    buffer.Write(item.kv[i].v);
+                    buffer.Write(item.Value.kv[i].key);
+                    buffer.Write(item.Value.kv[i].v);
                 }
-                buffer.Write(item.kv2.Count);
-                for (int i = 0; i < item.kv2.Count; i++)
+                buffer.Write(item.Value.kv2.Count);
+                for (int i = 0; i < item.Value.kv2.Count; i++)
                 {
-                    buffer.Write(item.kv2[i].key);
-                    buffer.Write(item.kv2[i].v);
+                    buffer.Write(item.Value.kv2[i].key);
+                    buffer.Write(item.Value.kv2[i].v);
+                }
+                buffer.Write(item.Value.kv3.Count);
+                for (int i = 0; i < item.Value.kv3.Count; i++)
+                {
+                    buffer.Write(item.Value.kv3[i].key);
+                    buffer.Write(item.Value.kv3[i].v);
                 }
 
-                File.WriteAllBytes(assetsPath + $"/Language_{item.name}.bytes", buffer.ToBytes());
+                File.WriteAllBytes(assetsPath + $"/Language_{item.Key}.bytes", buffer.ToBytes());
+            }
+            {
+                var item = temp3Lst.Find(t => t.fi.Name == "_Common.xlsx");
+                StringBuilder str = new(10000);
+                str.AppendLine("using System.Collections.Generic;");
+                str.AppendLine("using System;");
+                str.AppendLine("static class TabCommonLanguage");
+                str.AppendLine("{");
+                for (int i = 0; i < item.dataLines.Count; i++)
+                {
+                    string s = pkgh.Workbook.Worksheets[0].Cells[item.dataLines[i], 1].Text;
+                    if (pkgh.Workbook.Worksheets[0].Cells[item.dataLines[i], 3].Text == "[]")
+                        str.AppendLine($"    public static string[] {s} => \"gk_{s}\".ToLans();");
+                    else
+                        str.AppendLine($"    public static string {s} => \"gk_{s}\".ToLan();");
+                }
+                str.AppendLine("}");
+                File.WriteAllText(hotCodePath + "TabCommonLanguage.cs", str.ToString());
             }
         }
 

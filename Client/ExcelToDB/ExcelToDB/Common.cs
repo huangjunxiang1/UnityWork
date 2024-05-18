@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 static class Common
 {
-    static char[] arraySplit = new char[] { '[', ']', ',' };
+    public static char[] arraySplit = new char[] { '[', ']', ',' };
     static char[] VectorSplit = new char[] { '(', ')', ',' };
     static char[] VectorArraySplit = new char[] { '[', ']', '(', ')', ',' };
 
@@ -1117,23 +1117,16 @@ static class Common
     }
 
     //解析头 获得类型和字段名
-    public static void GetHead(List<int> coIdx, ExcelPackage pkg)
+    public static void GetHead(List<string> tag, ExcelPackage pkg)
     {
         var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
         int len = array.GetLength(1);
         for (int i = 1; i <= len; i++)
         {
-            if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[2, i].Text))
+            string s = pkg.Workbook.Worksheets[0].Cells[2, i].Text;
+            if (string.IsNullOrEmpty(s))
                 continue;
-            if (string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[3, i].Text))
-                continue;
-            if (i > 1)
-            {
-                string s = pkg.Workbook.Worksheets[0].Cells[4, i].Text.ToLower();
-                if (string.IsNullOrEmpty(s) || !s.Contains('c'))
-                    continue;
-            }
-            coIdx.Add(i);
+            tag.Add(s);
         }
     }
 
@@ -1141,14 +1134,15 @@ static class Common
 
 class temp
 {
-    public string name;
     public List<KV> kv = new List<KV>();
     public List<KV2> kv2 = new List<KV2>();
+    public List<KV3> kv3 = new List<KV3>();
 }
 class temp3
 {
     public FileInfo fi;
     public List<int> dataLines;
+    public bool isCommonTab = false;
 }
 struct KV
 {
@@ -1159,4 +1153,9 @@ struct KV2
 {
     public string key;
     public string v;
+}
+struct KV3
+{
+    public string key;
+    public string[] v;
 }

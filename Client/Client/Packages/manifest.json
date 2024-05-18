@@ -7,7 +7,7 @@
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.addressables": "2.0.8",
     "com.unity.animancer": "https://github.com/huangjunxiang1/UnityWork.git?path=Client/Client/Packages/Animancer",
-    "com.unity.burst": "1.8.14",
+    "com.unity.burst": "1.8.15",
     "com.unity.cinemachine": "3.1.0",
     "com.unity.collections": "2.4.1",
     "com.unity.dotween": "https://github.com/huangjunxiang1/UnityWork.git?path=Client/Client/Packages/DOTween",

@@ -1,6 +1,6 @@
 {
     "name": "Game.HotFix",
-    "rootNamespace": "HotFix",
+    "rootNamespace": "",
     "references": [
         "GUID:d8f23ede77696194da3ecb38376f20bd",
         "GUID:ececc46d025df4f498fdf7bec5957489",

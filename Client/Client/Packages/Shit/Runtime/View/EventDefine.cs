@@ -14,7 +14,7 @@ namespace Event
         public int sceneId;
         public int sceneType;
     }
-    public class EC_ClickSObject<T> where T : SObject
+    public class EC_ClickSObject<T> : GenericEvent where T : SObject
     {
         public EC_ClickSObject(T t) => this.target = t;
         public T target { get; }
