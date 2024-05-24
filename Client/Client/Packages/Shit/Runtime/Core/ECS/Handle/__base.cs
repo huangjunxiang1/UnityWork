@@ -31,12 +31,6 @@ public abstract class __KVWatcher : __SystemHandle
 }
 public abstract class __Timer : __SystemHandle
 {
-    protected int count;
-    protected float delay;
-    protected TimerAttribute timer;
-    protected bool dispposed = false;
+    protected SObject obj;
     internal virtual bool Disposed { get; }
-
-    internal abstract void Update();
-    public virtual void Dispose() => this.dispposed = true;
 }

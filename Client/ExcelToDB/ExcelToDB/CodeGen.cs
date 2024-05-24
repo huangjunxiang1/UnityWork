@@ -17,6 +17,7 @@ class DClass
 
     public List<DField> fs = new List<DField>();
     public List<DField> ecs = new List<DField>();
+    public List<DField> groups = new List<DField>();
     public List<DFieldValue[]> fv = new List<DFieldValue[]>();
 }
 class DField
@@ -191,11 +192,13 @@ class CodeGen
                 {
                     bool nor = j == 1;
                     bool ecs = j == 1;
+                    bool group = false;
                     if (j > 1)
                     {
                         string s = sheet.Cells[4, j].Text.ToLower();
                         nor = s.Contains('c');
                         ecs = s.Contains('e');
+                        group = s.Contains('g');
                         if (!nor && !ecs)
                             continue;
                     }
@@ -219,6 +222,15 @@ class CodeGen
                         c.fs.Add(f);
                     if (ecs)
                         c.ecs.Add(f);
+                    if(group)
+                    {
+                        if (f.f2 != FType2.Value || f.f1 == FType.ffloat || f.f1 == FType.fv2f || f.f1 == FType.fv3f)
+                        {
+                            Console.WriteLine($"{fi.Name} 的组标记字段 {f.name}  不能为数组或者 float 类型");
+                            continue;
+                        }
+                        c.groups.Add(f);
+                    }
                 }
                 int dataLen = array.GetLength(0);
                 for (int j = 5; j <= dataLen; j++)
@@ -278,7 +290,10 @@ class CodeGen
             {
                 var c = cs[i];
                 if (c.isSingle) continue;
-                rw.AppendLine($"    static bool _init{c.name}Array; static {name}{c.name}[] _{c.name}Array; static Dictionary<{c.fs[0].typeStr}, TabMapping> _map{c.name};");
+                rw.Append($"    static bool _init{c.name}Array; static {name}{c.name}[] _{c.name}Array; static Dictionary<{c.fs[0].typeStr}, TabMapping> _map{c.name};");
+                for (int j = 0; j < c.groups.Count; j++)
+                    rw.Append($" static Dictionary<{c.groups[j].typeStr}, List<{name}{c.name}>> {c.name}_{c.groups[j].name}GroupMap;");
+                rw.AppendLine();
             }
             rw.AppendLine();
             rw.AppendLine($"    public static void Init(DBuffer buffer, bool isLoadAll)");
@@ -319,6 +334,8 @@ class CodeGen
                 rw.AppendLine($"    public static {name}{c.name}[] {c.name}Array {{ get {{ if (!_init{c.name}Array) {{ _init{c.name}Array = true; foreach (var item in _map{c.name}.Keys) Get{c.name}(item); }} return _{c.name}Array; }} }}");
                 rw.AppendLine($"    public static bool Has{c.name}({c.fs[0].typeStr} key) => _map{c.name}.ContainsKey(key);");
                 rw.AppendLine($"    public static {name}{c.name} Get{c.name}({c.fs[0].typeStr} key) {{ if (_map{c.name}.TryGetValue(key, out var value)) {{ if (_{c.name}Array[value.index] == null) {{ dbbuff.Seek(value.point); _{c.name}Array[value.index] = new(dbbuff, loadAll); }} return _{c.name}Array[value.index]; }} Loger.Error(\"{name}{c.name}表没有key: \" + key); return null; }}");
+                for (int j = 0; j < c.groups.Count; j++)
+                    rw.AppendLine($"    public static List<{name}{c.name}> Get{c.name}_{c.groups[j].name}Group({c.groups[j].typeStr} group) {{ if ({c.name}_{c.groups[j].name}GroupMap == null) {{ {c.name}_{c.groups[j].name}GroupMap = new(); for (int i = 0; i < {c.name}Array.Length; i++) {{ var t = {c.name}Array[i]; if (!{c.name}_{c.groups[j].name}GroupMap.TryGetValue(t.{c.groups[j].name}, out var vs)) {c.name}_{c.groups[j].name}GroupMap[t.{c.groups[j].name}] = vs = new(); vs.Add(t); }} }} if (!{c.name}_{c.groups[j].name}GroupMap.TryGetValue(group, out var lst)) Loger.Error(\"{name}{c.name}表没有{c.groups[j].name}组: \" + group); return lst; }}");
             }
 
             rw.AppendLine($"}}");

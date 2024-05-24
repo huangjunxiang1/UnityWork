@@ -111,4 +111,6 @@ public abstract class UIBase : STree
     protected virtual void OnHide() { }//UI每次隐藏时调用 
     protected abstract void Binding();//UI元件绑定
 
+    public sealed override void AcceptedEvent() { base.AcceptedEvent(); }
+    public sealed override bool EventEnable { get => base.EventEnable; set => base.EventEnable = value; }
 }

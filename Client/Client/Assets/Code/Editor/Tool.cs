@@ -16,6 +16,7 @@ using Unity.Entities.UniversalDelegates;
 using UnityEngine.Rendering;
 using Mono.Cecil.Cil;
 using DG.Tweening.Plugins.Core.PathCore;
+using Core;
 
 public class Tool
 {
@@ -438,12 +439,7 @@ public class Tool
     [MenuItem("Shit/CopyTexture")]
     static void CopyTexture()
     {
-        var fs = Directory.GetFiles(Application.dataPath + "/../../../Art/Texture");
-        for (int i = 0; i < fs.Length; i++)
-        {
-            FileInfo fi = new FileInfo(fs[i]);
-            File.Copy(fs[i], Application.dataPath + "/Res/Texture/" + fi.Name, true);
-        }
+        FileHelper.SyncDirectories(Application.dataPath + "/../../../Art/UI/Texture", Application.dataPath + "/Res/Texture/", exclude: ".meta");
         AssetDatabase.Refresh();
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
@@ -637,8 +633,8 @@ public class Tool
             CreateUUICode();
             CreateFUICode();
             CreateConfigCode();
-            calBat(Application.dataPath + "/../../../Excel/ExcelToDB.bat", true);
-            calBat(Application.dataPath + "/../../../Excel/ExcelToDB.bat", true);
+            GenTabs();
+            GenPB();
         }
         catch (System.Exception)
         {

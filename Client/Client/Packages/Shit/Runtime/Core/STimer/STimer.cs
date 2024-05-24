@@ -1,246 +1,303 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Diagnostics;
 
-public class STimer
+namespace Core
 {
-    readonly DateTime _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-    long _timeOffset;
-
-    readonly List<TimerItem> _timerLst = new();
-
-    long minUtc;
-    readonly List<UTCTimerItem> _utcTimerLst = new();
-
-    bool _isExcutingUTCTimer;
-    bool _isRemovedTimer;
-    bool _isRemovedUTCTimer;
-
-    public long ServerTime
+    public class STimer
     {
-        get { return ClientTime - _timeOffset; }
-        set { _timeOffset = ClientTime - value; }
-    }
-    public long ClientTime
-    {
-        get { return (DateTime.Now.Ticks - _dt1970.Ticks) / 10000; }
-    }
+        public STimer(float wheelInterval = 1f, int utc_wheelInterval = 1000)
+        {
+            this.wheelInterval = Math.Max(wheelInterval, 0.1f);
+            this.utc_wheelInterval = utc_wheelInterval;
+        }
 
-    public void Add(float time, int count, Action call, ITimer target = null)
-    {
+        bool isSetUtc = false;
+        readonly DateTime _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        long _timeOffset;
+        public long utc
+        {
+            get { return getNow() - _timeOffset; }
+            set
+            {
 #if DebugEnable
-        if (Contains(call))
-            Loger.Error("已经包含timer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
+                long old = _timeOffset;
 #endif
-
-        if (count == 0) return;
-
-        TimerItem t = ObjectPool.Get<TimerItem>();
-        t.time = time;
-        t.count = count;
-        t.isEveryFrame = time <= 0;
-        t.action = call;
-        t.target = target;
-
-        t.curTime = 0;
-        t.curCount = 0;
-        t.isDisposed = false;
-
-        _timerLst.Add(t);
-    }
-    public void Remove(Action call)
-    {
-        for (int i = 0; i < _timerLst.Count; i++)
-        {
-            if (_timerLst[i].action == call)
-            {
-                _timerLst[i].isDisposed = true;
-                _isRemovedTimer = true;
-            }
-        }
-    }
-    public bool Contains(Action call)
-    {
-        for (int i = 0; i < _timerLst.Count; i++)
-        {
-            if (_timerLst[i].isDisposed) continue;
-            if (_timerLst[i].action == call) return true;
-        }
-        return false;
-    }
-
-    public void AddUTC(long utc, Action call)
-    {
-#if DebugEnable
-        if (ContainsUTC(call))
-            Loger.Error("已经包含utcTimer calss:" + call.Method.ReflectedType + " method:" + call.Method.Name);
-#endif
-
-        UTCTimerItem t = new UTCTimerItem();
-        t.utc = utc;
-        t.action = call;
-        _utcTimerLst.Add(t);
-
-        if (!_isExcutingUTCTimer)
-        {
-            if (minUtc == 0) minUtc = utc;
-            else minUtc = Math.Min(minUtc, utc);
-        }
-    }
-    public void RemoveUTC(Action call)
-    {
-        for (int i = 0; i < _utcTimerLst.Count; i++)
-        {
-            if (_utcTimerLst[i].action == call)
-            {
-                _utcTimerLst[i].isDisposed = true;
-                _isRemovedUTCTimer = true;
-            }
-        }
-    }
-    public bool ContainsUTC(Action call)
-    {
-        for (int i = 0; i < _utcTimerLst.Count; i++)
-        {
-            if (_utcTimerLst[i].isDisposed) continue;
-            if (_utcTimerLst[i].action == call) return true;
-        }
-        return false;
-    }
-
-    public void Update(float deltatime)
-    {
-        int cnt = _timerLst.Count;
-        for (int i = 0; i < cnt; i++)
-        {
-            TimerItem t = _timerLst[i];
-            if (t.isDisposed) continue;
-            if (t.target != null && (!t.target.TimerEnable || t.target.Disposed)) continue;
-
-            if (!t.isEveryFrame)
-                t.curTime += deltatime;
-
-            // t.time <=0 则表示每帧执行
-            if (t.isEveryFrame || t.curTime >= t.time)
-            {
-                if (!t.isEveryFrame) t.curTime -= t.time;
-                if (t.count > 0)
+                _timeOffset = getNow() - value;
+                if (!isSetUtc)
                 {
-                    t.curCount++;
-                    if (t.curCount >= t.count)
+                    isSetUtc = true;
+                    this.utc_wheel = utc / utc_wheelInterval;
+                }
+#if DebugEnable
+                else
+                {
+                    if (Math.Abs(old - _timeOffset) > 1000 * 60)
+                        Loger.Error($"utc 连续两次偏移 超出预期 old={old} new={_timeOffset} abs={Math.Abs(old - _timeOffset)}");
+                }
+#endif
+            }
+        }
+        long getNow() => (DateTime.Now.Ticks - _dt1970.Ticks) / 10000;
+
+        float wheelInterval;//轮间隔
+        long wheel;//时间轮的当前轮
+        float time;
+        Dictionary<long, Queue<TimerItem>> timers = new();
+        Dictionary<Action, TimerItem> atMap = new();
+        Dictionary<ITimer, List<TimerItem>> targetMap = new();
+
+        int utc_wheelInterval;//轮间隔
+        long utc_wheel;//时间轮的当前轮
+        Dictionary<long, Queue<utcTimerItem>> utc_timers = new();
+        Dictionary<Action, utcTimerItem> utc_atMap = new();
+
+        public void Add(float time, int count, Action call, ITimer target = null)
+        {
+            if (atMap.ContainsKey(call))
+            {
+                Loger.Error($"{call.Method.ReflectedType} {call.Method.Name} 已经包含");
+                return;
+            }
+            atMap[call] = createTimer(time, count, call, target);
+        }
+        TimerItem createTimer(float time, int count, Action call, ITimer target = null)
+        {
+            if (count <= 0 && count != -1)
+            {
+                Loger.Error("error count=" + count);
+                return null;
+            }
+            var ti = ObjectPool.Get<TimerItem>();
+            ti.deltaTime = Math.Max(time, 0);
+            ti.cnt = count;
+            ti.action = call;
+            ti.target = target;
+
+            ti.nextTime = this.time + time;
+
+            ti.disposed = false;
+            ti.wheel = (long)(ti.nextTime / wheelInterval);
+            ti.wheel = Math.Max(ti.wheel, this.wheel);
+
+            addToQueue(ti);
+
+            return ti;
+        }
+        public void Remove(Action call)
+        {
+            if (atMap.TryGetValue(call, out var ti))
+            {
+                ti.disposed = true;
+                ti.target = null;
+                ti.action = null;
+                atMap.Remove(call);
+            }
+        }
+        public void AddUTC(long utc, Action call)
+        {
+            if (!isSetUtc)
+            {
+                Loger.Error("还未设置当前 utc 不可添加timer");
+                return;
+            }
+            if (utc_atMap.ContainsKey(call))
+            {
+                Loger.Error($"{call.Method.ReflectedType} {call.Method.Name} 已经包含");
+                return;
+            }
+            if (utc < this.utc)
+                Loger.Error($"{call.Method.ReflectedType} {call.Method.Name} utc时间小于当前");
+
+            utcTimerItem ti = ObjectPool.Get<utcTimerItem>();
+            ti.utc = utc;
+            ti.action = call;
+            ti.disposed = false;
+            ti.wheel = ti.utc / utc_wheelInterval;
+            ti.wheel = Math.Max(ti.wheel, this.utc_wheel);
+
+            addToUtcQueue(ti);
+            utc_atMap[call] = ti;
+        }
+        public void RemoveUTC(Action call)
+        {
+            if (utc_atMap.TryGetValue(call, out var ti))
+            {
+                ti.disposed = true;
+                ti.action = null;
+                utc_atMap.Remove(call);
+            }
+        }
+
+        internal void Update(float deltatime)
+        {
+            time += deltatime;
+            long i = wheel;
+            wheel = (long)(time / wheelInterval);
+            for (; i <= wheel; ++i)
+            {
+                if (timers.TryGetValue(i, out var queue))
+                {
+                    timers.Remove(i);
+
+                    while (queue.TryDequeue(out var ti))
                     {
-                        t.isDisposed = true;
-                        _isRemovedTimer = true;
+                        if (ti.disposed)
+                        {
+                            ObjectPool.Return(ti);
+                            continue;
+                        }
+                        if (ti.nextTime > time)
+                        {
+                            addToQueue(ti);
+                            continue;
+                        }
+
+                        if (ti.target == null || ti.target.TimerEnable)
+                        {
+                            try { ti.action(); }
+                            catch (Exception e)
+                            { Loger.Error("timer error:" + e); }
+                        }
+
+                        if (ti.cnt == -1)
+                        {
+                            ti.nextTime = Math.Max(ti.nextTime + ti.deltaTime, time);
+                            ti.wheel = (long)(ti.nextTime / wheelInterval);
+                            ti.wheel = Math.Max(ti.wheel, this.wheel);
+                            addToQueue(ti);
+                        }
+                        else if (ti.cnt > 1)
+                        {
+                            ti.cnt--;
+                            ti.nextTime = Math.Max(ti.nextTime + ti.deltaTime, time);
+                            ti.wheel = (long)(ti.nextTime / wheelInterval);
+                            ti.wheel = Math.Max(ti.wheel, this.wheel);
+                            addToQueue(ti);
+                        }
+                        else
+                        {
+                            ti.action = null;
+                            ti.target = null;
+                            ObjectPool.Return(ti);
+                        }
                     }
+
+                    ObjectPool.Return(queue);
                 }
-                try
+            }
+
+            if (utc_wheel == 0) return;
+            long utc = this.utc;
+            i = utc_wheel;
+            utc_wheel = utc / utc_wheelInterval;
+            utc_wheel = Math.Min(utc_wheel, i + 5);//单次最多循环5
+            for (; i <= utc_wheel; ++i)
+            {
+                if (utc_timers.TryGetValue(i, out var queue))
                 {
-                    t.action();
+                    utc_timers.Remove(i);
+
+                    while (queue.TryDequeue(out var ti))
+                    {
+                        if (ti.disposed)
+                        {
+                            ObjectPool.Return(ti);
+                            continue;
+                        }
+                        if (ti.utc > utc)
+                        {
+                            addToUtcQueue(ti);
+                            continue;
+                        }
+                        try { ti.action(); }
+                        catch (Exception e)
+                        { Loger.Error("utc timer error:" + e); }
+                        ObjectPool.Return(ti);
+                    }
+
+                    ObjectPool.Return(queue);
                 }
-                catch (Exception e)
-                { Loger.Error("timer error:" + e); }
             }
         }
-
-        _isExcutingUTCTimer = true;
-        if (minUtc <= ServerTime)
+        void addToQueue(TimerItem ti)
         {
-            cnt = _utcTimerLst.Count;
-            for (int i = 0; i < cnt; i++)
-            {
-                UTCTimerItem t = _utcTimerLst[i];
-                if (t.isDisposed) continue;
-                if (t.utc > minUtc) continue;
+            if (!timers.TryGetValue(ti.wheel, out var queue))
+                timers[ti.wheel] = queue = ObjectPool.Get<Queue<TimerItem>>();
+            queue.Enqueue(ti);
+        }
+        void addToUtcQueue(utcTimerItem ti)
+        {
+            if (!utc_timers.TryGetValue(ti.wheel, out var queue))
+                utc_timers[ti.wheel] = queue = ObjectPool.Get<Queue<utcTimerItem>>();
+            queue.Enqueue(ti);
+        }
 
-                t.isDisposed = true;
-                _isRemovedUTCTimer = true;
-                try
-                {
-                    t.action();
-                }
-                catch (Exception e)
-                { Loger.Error("utcTimer error:" + e); }
+        internal void Load(List<MethodParseData> methods)
+        {
+            for (int i = 0; i < methods.Count; i++)
+            {
+                MethodParseData ma = methods[i];
+                if (ma.attribute is TimerAttribute ea && ma.method.IsStatic && ma.parameters.Length == 0)
+                    Add(ea.delay, ea.count, (Action)ma.method.CreateDelegate(typeof(Action)));
             }
         }
-        _isExcutingUTCTimer = false;
-    }
-    public void AfterUpdate()
-    {
-        if (_isRemovedTimer)
+        public bool RigisterTimer(ITimer target)
         {
-            _timerLst.RemoveAll(t =>
+            if (targetMap.ContainsKey(target))
             {
-                if (t.isDisposed || (t.target != null && t.target.Disposed))
-                {
-                    t.action = null;
-                    t.target = null;
-                    ObjectPool.Return(t);
-                    return true;
-                }
+                Loger.Error($"{target} 已经注册timer");
                 return false;
-            });
-            _isRemovedTimer = false;
-        }
-        if (_isRemovedUTCTimer)
-        {
-            _utcTimerLst.RemoveAll(t => t.isDisposed);
-            minUtc = 0;
-            int cnt = _utcTimerLst.Count;
-            for (int i = 0; i < cnt; i++)
-            {
-                if (minUtc == 0) minUtc = _utcTimerLst[i].utc;
-                else minUtc = Math.Min(_utcTimerLst[i].utc, minUtc);
             }
-            _isRemovedUTCTimer = false;
-        }
-    }
-
-    internal void Load(List<MethodParseData> methods)
-    {
-        _timerLst.Clear();
-        minUtc = 0;
-        _utcTimerLst.Clear();
-        for (int i = 0; i < methods.Count; i++)
-        {
-            MethodParseData ma = methods[i];
-            if (ma.attribute is TimerAttribute ea && ma.method.IsStatic && ma.parameters.Length == 0)
-                Add(ea.delay, ea.count, (Action)ma.method.CreateDelegate(typeof(Action)));
-        }
-    }
-    public bool RigisterTimer(ITimer target)
-    {
-        bool ret = false;
-        var methods = Types.GetInstanceMethodsAttribute(target.GetType());
-        for (int i = 0; i < methods.Length; i++)
-        {
-            if (methods[i].attribute is TimerAttribute ta)
+            bool ret = false;
+            var methods = Types.GetInstanceMethodsAttribute(target.GetType());
+            for (int i = 0; i < methods.Length; i++)
             {
-                Add(ta.delay, ta.count, (Action)methods[i].method.CreateDelegate(typeof(Action), target), target);
-                ret = true;
+                if (methods[i].attribute is TimerAttribute ta)
+                {
+                    var ti = createTimer(ta.delay, ta.count, (Action)methods[i].method.CreateDelegate(typeof(Action), target), target);
+                    if (!targetMap.TryGetValue(target, out var tis))
+                        targetMap[target] = tis = ObjectPool.Get<List<TimerItem>>();
+                    tis.Add(ti);
+                    ret = true;
+                }
+            }
+            return ret;
+        }
+        public void RemoveTimer(ITimer target)
+        {
+            if (targetMap.TryGetValue(target, out var tis))
+            {
+                targetMap.Remove(target);
+                for (int i = 0; i < tis.Count; i++)
+                {
+                    tis[i].disposed = true;
+                    tis[i].target = null;
+                    tis[i].action = null;
+                }
+                tis.Clear();
+                ObjectPool.Return(tis);
             }
         }
-        return ret;
-    }
-    public void RemoveTimer() => _isRemovedTimer = true;
 
-    class TimerItem
-    {
-        public float time;
-        public int count;
-        public bool isEveryFrame;//每帧
-        public Action action;
-        public ITimer target;
+        class TimerItem
+        {
+            public long wheel;
 
-        public float curTime;
-        public int curCount;
+            public float deltaTime;
+            public int cnt;
+            public Action action;
+            public ITimer target;
 
-        public bool isDisposed;
-    }
-    class UTCTimerItem
-    {
-        public long utc;
-        public Action action;
-        public bool isDisposed;
+            public float nextTime;//下一次调用时间
+            public bool disposed;
+        }
+        class utcTimerItem
+        {
+            public long wheel;
+
+            public long utc;
+            public Action action;
+            public bool disposed;
+        }
     }
 }

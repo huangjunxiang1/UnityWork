@@ -121,6 +121,11 @@ toolMenu:AddItem("导入美术资源=所有包", "importImages", function(menuIt
             else
                 items[j].exported =false;
             end
+            
+            if(items[j].type=="image") then
+               if(items[j].width*items[j].height >= 256*256) then
+               end
+            end
         end
         
         pkg:SetChanged();

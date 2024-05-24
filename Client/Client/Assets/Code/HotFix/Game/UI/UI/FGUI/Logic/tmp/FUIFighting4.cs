@@ -96,35 +96,48 @@ partial class FUIFighting4
         {
             Box.Tips("未初始化障碍");
             return;
-        }    
-        if (!World.Timer.Contains(draw))
+        }
+        World.Timer.Remove(draw);
+
+        World.Timer.Add(0, -1, draw);
+
+        mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
+
+        kernel = cs.FindKernel("CSMain");
+
+        cs.SetInts("size", size, size);
+        roadCb.SetData(road);
+        cs.SetBuffer(kernel, "road", roadCb);
+        cs.SetBuffer(kernel, "mark", mark);
+        cs.SetBuffer(kernel, "mvs", mvs);
+        cs.SetBuffer(kernel, "temp", temp);
+
+        Bounds bs = new Bounds(Vector3.zero, Vector3.one * 100);
+        rp = new RenderParams(mat);
+        rp.worldBounds = bs;
+
+        Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
+
         {
-            World.Timer.Add(0, -1, draw);
-
-            mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
-
-            kernel = cs.FindKernel("CSMain");
-
-            cs.SetInts("size", size, size);
-            roadCb.SetData(road);
-            cs.SetBuffer(kernel, "road", roadCb);
-            cs.SetBuffer(kernel, "mark", mark);
-            cs.SetBuffer(kernel, "mvs", mvs);
-            cs.SetBuffer(kernel, "temp", temp);
-
-            Bounds bs = new Bounds(Vector3.zero, Vector3.one * 100);
-            rp = new RenderParams(mat);
-            rp.worldBounds = bs;
-
-            Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
-
+            NativeArray<float2> ps = new NativeArray<float2>(playerCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < playerCount; i++)
             {
-                NativeArray<float2> ps = new NativeArray<float2>(playerCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                for (int i = 0; i < playerCount; i++)
+                int2 r = random.NextInt2(0, size);
+                bool find = false;
+                for (int j = r.y * size + r.x; j < road.Length; j++)
                 {
-                    int2 r = random.NextInt2(0, size);
-                    bool find = false;
-                    for (int j = r.y * size + r.x; j < road.Length; j++)
+                    if (road[j] > 0)
+                        continue;
+                    int x = j % size;
+                    int y = j / size;
+                    r.x = x;
+                    r.y = y;
+                    find = true;
+                    break;
+                }
+                if (!find)
+                {
+                    for (int j = 0; j < r.y * size + r.x; j++)
                     {
                         if (road[j] > 0)
                             continue;
@@ -132,42 +145,42 @@ partial class FUIFighting4
                         int y = j / size;
                         r.x = x;
                         r.y = y;
-                        find = true;
                         break;
                     }
-                    if (!find)
-                    {
-                        for (int j = 0; j < r.y * size + r.x; j++)
-                        {
-                            if (road[j] > 0)
-                                continue;
-                            int x = j % size;
-                            int y = j / size;
-                            r.x = x;
-                            r.y = y;
-                            break;
-                        }
-                    }
-                    //road[r.y * size + r.x]++;
-                    ps[i] = new float2(r.x, r.y) + 0.5f;
                 }
-
-                //
-                ps[0] = new float2(0, 0);
-                //
-
-                pCb.SetData(ps);
-                ps.Dispose();
-                cs.SetBuffer(kernel, "ps", pCb);
+                //road[r.y * size + r.x]++;
+                ps[i] = new float2(r.x, r.y) + 0.5f;
             }
 
+            //
+            ps[0] = new float2(0, 0);
+            //
+
+            pCb.SetData(ps);
+            ps.Dispose();
+            cs.SetBuffer(kernel, "ps", pCb);
+        }
+
+        {
+            NativeArray<float2> targets = new NativeArray<float2>(playerCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < playerCount; i++)
             {
-                NativeArray<float2> targets = new NativeArray<float2>(playerCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                for (int i = 0; i < playerCount; i++)
+                int2 r = random.NextInt2(0, size);
+                bool find = false;
+                for (int j = r.y * size + r.x; j < road.Length; j++)
                 {
-                    int2 r = random.NextInt2(0, size);
-                    bool find = false;
-                    for (int j = r.y * size + r.x; j < road.Length; j++)
+                    if (road[j] > 0)
+                        continue;
+                    int x = j % size;
+                    int y = j / size;
+                    r.x = x;
+                    r.y = y;
+                    find = true;
+                    break;
+                }
+                if (!find)
+                {
+                    for (int j = 0; j < r.y * size + r.x; j++)
                     {
                         if (road[j] > 0)
                             continue;
@@ -175,33 +188,19 @@ partial class FUIFighting4
                         int y = j / size;
                         r.x = x;
                         r.y = y;
-                        find = true;
                         break;
                     }
-                    if (!find)
-                    {
-                        for (int j = 0; j < r.y * size + r.x; j++)
-                        {
-                            if (road[j] > 0)
-                                continue;
-                            int x = j % size;
-                            int y = j / size;
-                            r.x = x;
-                            r.y = y;
-                            break;
-                        }
-                    }
-                    targets[i] = r;
                 }
-
-                //
-                targets[0] = new float2(2, 2) + 0.5f;
-                //
-
-                targetP.SetData(targets);
-                targets.Dispose();
-                cs.SetBuffer(kernel, "targetP", targetP);
+                targets[i] = r;
             }
+
+            //
+            targets[0] = new float2(2, 2) + 0.5f;
+            //
+
+            targetP.SetData(targets);
+            targets.Dispose();
+            cs.SetBuffer(kernel, "targetP", targetP);
         }
     }
 

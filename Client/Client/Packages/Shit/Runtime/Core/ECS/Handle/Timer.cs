@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 //{
 //    Action<Timer<?[T]+, ?>> action;
 //    static List<TimerItem> timers;
-//    internal override bool Disposed => this.dispposed || ?this.[t].Disposed+ || ?;
+//    internal override bool Disposed => ?this.[t].Disposed+ || ?;
 //    public Timer(?[T] [t]+, ?) { ?this.[t] = [t];+ ? }
 //?    public [T] [t] { get; }+\r?
 //
@@ -25,26 +25,23 @@ using System.Threading.Tasks;
 //
 //?            if (!o.TryGetComponent<[T]>(out var [c])) continue;+\r?
 //            var v = new Timer<?[T]+, ?>(?[c]+, ?);
-//            v.timer = ti.attribute;
 //            v.action = (Action<Timer<?[T]+, ?>>)ti.action;
-//            o.World.System.timerHandles.Enqueue(v);
+//            v.obj = o;
+//            o.World.Timer.Add(ti.attribute.delay, ti.attribute.count, v.Invoke);
 //#if UNITY_EDITOR
 //            o._timers.Add(v);
 //#endif
 //        }
 //    }
-//    internal override void Update()
+//    void Invoke()
 //    {
-//        if (?![t].Enable+ || ?) return;
-//        this.delay += t.World.DeltaTime;
-//        if (this.delay >= timer.delay)
+//        if (this.Disposed)
 //        {
-//            this.delay -= timer.delay;
-//            this.count++;
-//            action.Invoke(this);
-//            if (timer.count > 0 && timer.count <= this.count)
-//                this.Dispose();
+//            this.obj.World.Timer.Remove(this.Invoke);
+//            return;
 //        }
+//        if (?![t].Enable+ || ?) return;
+//        action.Invoke(this);
 //    }
 //}
 //end

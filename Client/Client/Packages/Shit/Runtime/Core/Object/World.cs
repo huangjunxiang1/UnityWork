@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Threading;
 
 namespace Core
 {
@@ -49,7 +45,6 @@ namespace Core
             Timer.Update(time);
 
             System.AfterUpdate();
-            Timer.AfterUpdate();
             Event.AfterUpdate();
             ObjectManager.AfterUpdate();
         }

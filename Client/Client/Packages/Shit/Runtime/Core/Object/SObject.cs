@@ -183,6 +183,16 @@ namespace Core
         public virtual void Remove(SObject child) { }
         public virtual int GetChildIndex(SObject child) => -1;
         public T As<T>() where T : SObject => this as T;
+        public T GetRoot<T>() where T : SObject
+        {
+            var root = this;
+            do
+            {
+                if (root is T) return (T)root;
+                root = root.Parent;
+            } while (root != null);
+            return default;
+        }
 
         public T AddComponent<T>() where T : SComponent, new()
         {
@@ -388,7 +398,7 @@ namespace Core
             World.ObjectManager.Remove(this);
             World.Event.RemoveEvent(this);
             if (this._timerRigisterd)
-                World.Timer.RemoveTimer();
+                World.Timer.RemoveTimer(this);
 
             if (this.Parent != null)
                 this.Parent.Remove(this);

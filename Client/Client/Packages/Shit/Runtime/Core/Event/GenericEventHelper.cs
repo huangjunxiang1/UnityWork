@@ -20,8 +20,8 @@ namespace Core
                 {
                     var m = methods[i];
 #if DebugEnable
-                    if (m.mainKey.GetGenericArguments().Length != 1)
-                        Loger.Error($"{m.mainKey} 非一个泛型参数类型");
+                    if (!m.mainKey.IsGenericType || m.mainKey.GetGenericArguments().Length != 1)
+                        Loger.Error($"{m.mainKey} 泛型错误");
 #endif
                     var element = m.mainKey.GetGenericArguments()[0];
                     var ctor = m.mainKey.GetConstructors().FirstOrDefault();
@@ -30,6 +30,7 @@ namespace Core
                         Loger.Error($"{m.mainKey} 没有匹配的构造函数");
 #endif
                     Keys k = new() { a = m.mainKey.GetGenericTypeDefinition(), b = element };
+                    if (map.ContainsKey(k)) continue;
                     map.Add(k, ctor);
                 }
             }

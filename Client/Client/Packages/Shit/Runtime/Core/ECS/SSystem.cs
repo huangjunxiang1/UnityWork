@@ -24,7 +24,6 @@ namespace Core
         HashSet<SComponent> changeWaitRemove = new();
         HashSet<SComponent> kvWaitRemove = new();
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
-        internal Queue<__Timer> timerHandles = ObjectPool.Get<Queue<__Timer>>();
 
         internal void RigisterHandler(Type type, SComponent c)
         {
@@ -303,17 +302,6 @@ namespace Core
                 updateHandles.Enqueue(u);
             }
             ObjectPool.Return(update);
-
-            var timer = timerHandles;
-            timerHandles = ObjectPool.Get<Queue<__Timer>>();
-            while (timer.TryDequeue(out var t))
-            {
-                if (t.Disposed)
-                    continue;
-                t.Update();
-                timerHandles.Enqueue(t);
-            }
-            ObjectPool.Return(timer);
 
             if (changeWaitInvoke.Count > 0)
             {
