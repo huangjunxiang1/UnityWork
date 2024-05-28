@@ -15,6 +15,8 @@ namespace Game
         [Sirenix.OdinInspector.ShowInInspector]
         quaternion _r = quaternion.identity;
 
+        STask task;
+
         public float3 point
         {
             get => _p;
@@ -42,6 +44,18 @@ namespace Game
             set => rotation = quaternion.LookRotation(value, math.up());
         }
 
+        public STask MoveTo(float3 p, quaternion r)
+        {
+            this.point = p;
+            this.rotation = r;
+            return task = new();
+        }
+        public STask MoveTo(float3 p)
+        {
+            this.point = p;
+            return task = new();
+        }
+
         [Event]
         static void In(In<MoveToComponent, TransformComponent> t)
         {
@@ -66,6 +80,9 @@ namespace Game
             {
                 t.t2.position = t.t.point;
                 t.t2.rotation = math.slerp(t.t2.rotation, t.t.rotation, t.t.World.DeltaTime * speed2);
+                var s = t.t.task;
+                t.t.task = null;
+                s?.TrySetResult();
             }
         }
     }

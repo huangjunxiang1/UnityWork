@@ -36,6 +36,7 @@ namespace Core
         bool _eventEnable = true;
         bool _timerRigisterd = false;
         Eventer _onDispose;
+        bool _view = true;
         internal Dictionary<Type, SComponent> _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
 
         public double value;
@@ -125,7 +126,7 @@ namespace Core
         /// <summary>
         /// 父节点
         /// </summary>
-        public SObject Parent { get; internal set; }
+        public STree Parent { get; internal set; }
 
         /// <summary>
         /// 根
@@ -176,6 +177,47 @@ namespace Core
         /// dispose 监听
         /// </summary>
         public Eventer onDispose => _onDispose ??= new Eventer(this);
+
+        /// <summary>
+        /// 显示组件 是否显示
+        /// </summary>
+        public bool View
+        {
+            get => _view;
+            set
+            {
+                if (_view == value) return;
+                _view = value;
+
+                List<SComponent> lst = ObjectPool.Get<List<SComponent>>();
+                foreach (var c in _components.Values)
+                {
+                    if (c is ViewComponent)
+                        lst.Add(c);
+                }
+                for (int i = 0; i < lst.Count; i++)
+                {
+                    if (!lst[i].Disposed)
+                        lst[i].Enable = value;
+                }
+                lst.Clear();
+                ObjectPool.Return(lst);
+
+                if (this is STree tree)
+                {
+                    List<SObject> lstOs = ObjectPool.Get<List<SObject>>();
+                    lstOs.AddRange(tree.GetChildren());
+                    for (int i = 0; i < lstOs.Count; i++)
+                    {
+                        if (lstOs[i].Parent != this)
+                            continue;
+                        lstOs[i].View = value;
+                    }
+                    lstOs.Clear();
+                    ObjectPool.Return(lstOs);
+                }
+            }
+        }
 
         public override void AcceptedEvent() { }
 
@@ -248,6 +290,19 @@ namespace Core
                 return (T)c;
             Loger.Error($"未包含 component={typeof(T)}");
             return default;
+        }
+        public IEnumerable<T> GetComponentIfIs<T>() where T : SComponent
+        {
+            if (this.Disposed)
+            {
+                Loger.Error($"实体已经销毁 entity={this}");
+                yield return null;
+            }
+            foreach (var c in _components.Values)
+            {
+                if (c is T)
+                    yield return c as T;
+            }
         }
         public SComponent GetComponent(Type type)
         {
@@ -365,8 +420,12 @@ namespace Core
 #endif
             World.Event.RunGenericEvent(typeof(Awake<>), c, type);
             if (c.Disposed) return;
-            World.System.In(type, this);
-            c.SetChange();
+            if (c.Enable)
+            {
+                World.System.In(type, this);
+                c.SetChange();
+            }
+            c.OnRigister();
         }
         internal bool RemoveComponentInternal(Type type)
         {

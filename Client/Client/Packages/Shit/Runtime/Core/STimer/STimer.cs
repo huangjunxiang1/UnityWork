@@ -154,6 +154,7 @@ namespace Core
 
                         if (ti.target == null || ti.target.TimerEnable)
                         {
+                            atMap.Remove(ti.action);
                             try { ti.action(); }
                             catch (Exception e)
                             { Loger.Error("timer error:" + e); }
@@ -209,6 +210,7 @@ namespace Core
                             addToUtcQueue(ti);
                             continue;
                         }
+                        utc_atMap.Remove(ti.action);
                         try { ti.action(); }
                         catch (Exception e)
                         { Loger.Error("utc timer error:" + e); }

@@ -45,6 +45,14 @@ public class KVComponent : SComponent
         Values[id] = v;
         this.SetChange();
     }
+    public void Add(int id, long v)
+    {
+        changedIDs.Add(id);
+
+        Values.TryGetValue(id, out var old);
+        Values[id] = old + v;
+        this.SetChange();
+    }
     public void Remove(int id)
     {
         if (!Values.ContainsKey(id)) return;

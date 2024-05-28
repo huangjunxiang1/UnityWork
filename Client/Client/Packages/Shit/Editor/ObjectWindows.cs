@@ -81,7 +81,7 @@ class ObjectWindows : OdinMenuEditorWindow
             for (int i = 0; i < list.Count; i++)
             {
                 var o = list[i];
-                add(tree, o, path + "/" + o.GetType().Name);
+                add(tree, o,  $"{path}/[{i}] {o.GetType().Name}");
             }
         }
     }
@@ -90,6 +90,7 @@ class ObjectWindows : OdinMenuEditorWindow
         [ShowInInspector] long rpc => obj.rpc;
         [ShowInInspector] long gid => obj.gid;
         [ShowInInspector] long tid => obj.tid;
+        [ShowInInspector] bool View => obj.View;
         [ShowInInspector] object target => obj;
 
         [ShowInInspector]

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Mathematics;
+using Unity.Mathematics.Geometry;
 
 namespace Game
 {
@@ -20,14 +21,14 @@ namespace Game
         quaternion _r = quaternion.identity;
 
         [Sirenix.OdinInspector.ShowInInspector]
-        float3x2 _bound = new(float.MinValue, float.MaxValue);
+        MinMaxAABB _bound = new(float.MinValue, float.MaxValue);
 
         public float3 position
         {
             get => _p;
             set
             {
-                value = math.clamp(value, _bound.c0, _bound.c1);
+                value = math.clamp(value, _bound.Min, _bound.Max);
                 if (math.all(_p == value)) return;
                 _p = value;
                 this.SetChange();
@@ -58,14 +59,14 @@ namespace Game
             get => math.mul(_r, math.forward());
             set => rotation = quaternion.LookRotation(value, math.up());
         }
-        public float3x2 Bound
+        public MinMaxAABB Bound
         {
             get => _bound;
             set
             {
                 if (_bound.Equals(value)) return;
                 _bound = value;
-                _p = math.clamp(_p, _bound.c0, _bound.c1);
+                _p = math.clamp(_p, _bound.Min, _bound.Max);
                 this.SetChange();
             }
         }

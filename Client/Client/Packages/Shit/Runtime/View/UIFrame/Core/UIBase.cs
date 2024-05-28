@@ -89,7 +89,10 @@ public abstract class UIBase : STree
             for (int i = arr.Count - 2; i >= 0; i--)
             {
                 if (!arr[i].Disposed && (arr[i] is FUI || arr[i] is UUI))
+                {
                     ((UIBase)arr[i]).Show();
+                    break;
+                }
             }
         }
 

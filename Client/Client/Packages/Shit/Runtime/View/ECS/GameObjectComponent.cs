@@ -14,7 +14,7 @@ namespace Game
         Resource,//资源类型
         LogicRoot,//根节点是空节点 下面挂资源
     }
-    public class GameObjectComponent : SComponent
+    public class GameObjectComponent : ViewComponent
     {
         public GameObjectComponent() : this(SGameObjectType.LogicRoot) { }
         public GameObjectComponent(SGameObjectType style = SGameObjectType.LogicRoot)
@@ -49,6 +49,12 @@ namespace Game
         public GameObject gameObject { get; private set; }
 
         internal Action<GameObject, GameObject> Replace;
+
+        protected override void View(bool view)
+        {
+            if (this.gameObjectType == SGameObjectType.Static) return;
+            this.gameRoot?.SetActive(view);
+        }
 
         /// <summary>
         /// 设置加载的资源模型
@@ -207,18 +213,6 @@ namespace Game
                 t.t.gameRoot.transform.rotation = t.t2.rotation;
                 t.t.gameRoot.transform.forward = t.t2.forward;
             }
-        }
-        [Event]
-        static void In(In<GameObjectComponent> t)
-        {
-            if (t.t.gameObjectType == SGameObjectType.Static) return;
-            t.t.gameRoot?.SetActive(true);
-        }
-        [Event]
-        static void Out(Out<GameObjectComponent> t)
-        {
-            if (t.t.gameObjectType == SGameObjectType.Static) return;
-            t.t.gameRoot?.SetActive(false);
         }
     }
 }

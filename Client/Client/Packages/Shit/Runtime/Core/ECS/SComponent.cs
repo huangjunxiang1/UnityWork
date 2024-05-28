@@ -36,7 +36,7 @@ namespace Core
         public virtual long gid => this.Entity.gid;
         public virtual SObject Root => this.Entity.Root;
 
-        public bool Enable
+        public virtual bool Enable
         {
             get => _enable;
             set
@@ -77,6 +77,8 @@ namespace Core
             World.System.Out(this.GetType(), this);
         }
         public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";
+
+        internal virtual void OnRigister() { }
 
         /// <summary>
         /// 

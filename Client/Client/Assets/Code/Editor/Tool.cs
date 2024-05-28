@@ -303,6 +303,7 @@ public class Tool
                     code.AppendLine($"    public G_{item.name}() : this(({obj.GetType().Name})UIPkg.{item.owner.name}.CreateObject(\"{item.name}\")) {{ }}");
                     code.AppendLine("    public void Dispose()");
                     code.AppendLine("    {");
+                    code.AppendLine("        this.ui.Dispose();");
                     code.Append(disposeCode.ToString());
                     code.AppendLine("    }");
 

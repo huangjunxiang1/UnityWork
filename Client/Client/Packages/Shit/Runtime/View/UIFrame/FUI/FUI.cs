@@ -31,6 +31,8 @@ public abstract class FUI : FUIBase
         this.states = UIStates.Loading;
         this._ui = FUIBase.CreateUI(this, this.url);
         (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
+        if (Close == null)
+            (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
@@ -56,6 +58,8 @@ public abstract class FUI : FUIBase
             return;
         }
         (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
+        if (Close == null)
+            (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
         this._ui.visible = false;
         this.Binding();
         this.setConfig();
