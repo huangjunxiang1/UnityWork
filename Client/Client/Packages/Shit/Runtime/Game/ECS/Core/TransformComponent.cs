@@ -21,14 +21,14 @@ namespace Game
         quaternion _r = quaternion.identity;
 
         [Sirenix.OdinInspector.ShowInInspector]
-        MinMaxAABB _bound = new(float.MinValue, float.MaxValue);
+        MinMaxAABB _aabb = new(float.MinValue, float.MaxValue);
 
         public float3 position
         {
             get => _p;
             set
             {
-                value = math.clamp(value, _bound.Min, _bound.Max);
+                value = math.clamp(value, _aabb.Min, _aabb.Max);
                 if (math.all(_p == value)) return;
                 _p = value;
                 this.SetChange();
@@ -59,18 +59,18 @@ namespace Game
             get => math.mul(_r, math.forward());
             set => rotation = quaternion.LookRotation(value, math.up());
         }
-        public MinMaxAABB Bound
+        public MinMaxAABB AABB
         {
-            get => _bound;
+            get => _aabb;
             set
             {
-                if (_bound.Equals(value)) return;
-                _bound = value;
-                _p = math.clamp(_p, _bound.Min, _bound.Max);
+                if (_aabb.Equals(value)) return;
+                _aabb = value;
+                _p = math.clamp(_p, _aabb.Min, _aabb.Max);
                 this.SetChange();
             }
         }
 
-        public void ResetBound() => Bound = new(float.MinValue, float.MaxValue);
+        public void ResetAABB() => AABB = new(float.MinValue, float.MaxValue);
     }
 }

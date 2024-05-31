@@ -27,10 +27,10 @@ public class KVWatcher<T> : __KVWatcher where T : SComponent
         kv.World.System.AddToKVWaitRemove(kv);
         t.World.System.AddToKVWaitRemove(t);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2> : __KVWatcher where T : SComponent where T2 : SComponent
@@ -60,10 +60,10 @@ public class KVWatcher<T, T2> : __KVWatcher where T : SComponent where T2 : SCom
         t.World.System.AddToKVWaitRemove(t);
         t2.World.System.AddToKVWaitRemove(t2);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent
@@ -98,10 +98,10 @@ public class KVWatcher<T, T2, T3> : __KVWatcher where T : SComponent where T2 : 
         t2.World.System.AddToKVWaitRemove(t2);
         t3.World.System.AddToKVWaitRemove(t3);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3, T4> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent
@@ -141,10 +141,10 @@ public class KVWatcher<T, T2, T3, T4> : __KVWatcher where T : SComponent where T
         t3.World.System.AddToKVWaitRemove(t3);
         t4.World.System.AddToKVWaitRemove(t4);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3, T4, T5> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent
@@ -189,10 +189,10 @@ public class KVWatcher<T, T2, T3, T4, T5> : __KVWatcher where T : SComponent whe
         t4.World.System.AddToKVWaitRemove(t4);
         t5.World.System.AddToKVWaitRemove(t5);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3, T4, T5, T6> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent
@@ -242,10 +242,10 @@ public class KVWatcher<T, T2, T3, T4, T5, T6> : __KVWatcher where T : SComponent
         t5.World.System.AddToKVWaitRemove(t5);
         t6.World.System.AddToKVWaitRemove(t6);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3, T4, T5, T6, T7> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent
@@ -300,10 +300,10 @@ public class KVWatcher<T, T2, T3, T4, T5, T6, T7> : __KVWatcher where T : SCompo
         t6.World.System.AddToKVWaitRemove(t6);
         t7.World.System.AddToKVWaitRemove(t7);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3, T4, T5, T6, T7, T8> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent
@@ -363,10 +363,10 @@ public class KVWatcher<T, T2, T3, T4, T5, T6, T7, T8> : __KVWatcher where T : SC
         t7.World.System.AddToKVWaitRemove(t7);
         t8.World.System.AddToKVWaitRemove(t8);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3, T4, T5, T6, T7, T8, T9> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent where T9 : SComponent
@@ -431,10 +431,10 @@ public class KVWatcher<T, T2, T3, T4, T5, T6, T7, T8, T9> : __KVWatcher where T 
         t8.World.System.AddToKVWaitRemove(t8);
         t9.World.System.AddToKVWaitRemove(t9);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }
 public class KVWatcher<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __KVWatcher where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent where T9 : SComponent where T10 : SComponent
@@ -504,9 +504,9 @@ public class KVWatcher<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __KVWatcher whe
         t9.World.System.AddToKVWaitRemove(t9);
         t10.World.System.AddToKVWaitRemove(t10);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable || !t10.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }

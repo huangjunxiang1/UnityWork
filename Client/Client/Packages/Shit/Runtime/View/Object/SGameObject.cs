@@ -12,7 +12,7 @@ namespace Game
         public GameObjectComponent GameObject { get; private set; }
         public PlayingComponent Playing { get; private set; }
 
-        [Event]
+        [Event(-1)]
         static void Awake(Awake<SGameObject> t)
         {
             t.t.GameObject = t.t.AddComponent<GameObjectComponent>();

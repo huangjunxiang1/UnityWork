@@ -25,9 +25,11 @@ public abstract class __UpdateHandle : __SystemHandle
 public abstract class __EventWatcher : __SystemHandle { }
 public abstract class __KVWatcher : __SystemHandle
 {
+    public long Old { get; internal set; }
+    public long New { get; internal set; }
     internal bool Disposed { get; private set; }
     internal virtual void Dispose() => this.Disposed = true;
-    internal abstract void Invoke(int param);
+    internal abstract void Invoke(int type);
 }
 public abstract class __Timer : __SystemHandle
 {

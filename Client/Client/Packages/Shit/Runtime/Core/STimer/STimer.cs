@@ -118,6 +118,7 @@ namespace Core
             addToUtcQueue(ti);
             utc_atMap[call] = ti;
         }
+        public void NextUTC(long delay, Action call) => AddUTC(this.utc + delay, call);
         public void RemoveUTC(Action call)
         {
             if (utc_atMap.TryGetValue(call, out var ti))

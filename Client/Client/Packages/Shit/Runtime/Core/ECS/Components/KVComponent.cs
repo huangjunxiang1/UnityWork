@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 public class KVComponent : SComponent
 {
     [Sirenix.OdinInspector.ShowInInspector]
-    public Dictionary<int, long> Values { get; } = new();
+    Dictionary<int, long> Values = ObjectPool.Get<Dictionary<int, long>>();
 
-    HashSet<int> changedIDs = ObjectPool.Get<HashSet<int>>();
+    Dictionary<int, long> changeKV = ObjectPool.Get<Dictionary<int, long>>();
 
     public bool Has(int id) => Values.ContainsKey(id);
     public bool TryGet(int id, out long v) => Values.TryGetValue(id, out v);
@@ -19,19 +19,20 @@ public class KVComponent : SComponent
     {
         foreach (var item in kvs)
         {
-            if (!Values.TryGetValue(item.Key, out var v) || v != item.Value)
+            if (!Values.TryGetValue(item.Key, out var old) || old != item.Value)
             {
+                if (!changeKV.ContainsKey(item.Key))
+                    changeKV.Add(item.Key, old);
                 Values[item.Key] = item.Value;
-                changedIDs.Add(item.Key);
-                continue;
             }
         }
         foreach (var item in Values)
         {
             if (!kvs.ContainsKey(item.Key))
             {
+                if (!changeKV.ContainsKey(item.Key))
+                    changeKV.Add(item.Key, item.Value);
                 Values.Remove(item.Key);
-                changedIDs.Add(item.Key);
             }
         }
         this.SetChange();
@@ -40,24 +41,28 @@ public class KVComponent : SComponent
     {
         if (Values.TryGetValue(id, out var old) && old == v) return;
 
-        changedIDs.Add(id);
+        if (!changeKV.ContainsKey(id))
+            changeKV.Add(id, old);
 
         Values[id] = v;
         this.SetChange();
     }
     public void Add(int id, long v)
     {
-        changedIDs.Add(id);
+        if (Values.TryGetValue(id, out var old) && v == 0) return;
 
-        Values.TryGetValue(id, out var old);
+        if (!changeKV.ContainsKey(id))
+            changeKV.Add(id, old);
+
         Values[id] = old + v;
         this.SetChange();
     }
     public void Remove(int id)
     {
-        if (!Values.ContainsKey(id)) return;
+        if (!Values.TryGetValue(id, out var old)) return;
 
-        changedIDs.Add(id);
+        if (!changeKV.ContainsKey(id))
+            changeKV.Add(id, old);
 
         Values.Remove(id);
         this.SetChange();
@@ -66,8 +71,11 @@ public class KVComponent : SComponent
     {
         if (this.Values.Count == 0) return;
 
-        foreach (var id in Values.Keys)
-            changedIDs.Add(id);
+        foreach (var kv in Values)
+        {
+            if (!changeKV.ContainsKey(kv.Key))
+                changeKV.Add(kv.Key, kv.Value);
+        }
 
         Values.Clear();
         this.SetChange();
@@ -77,21 +85,28 @@ public class KVComponent : SComponent
         Values.TryGetValue(id, out long v);
         return v;
     }
+    public void CopyTo(Dictionary<int, long> target)
+    {
+        foreach (var item in Values)
+            target[item.Key] = item.Value;
+    }
 
     [Event]
     static void Change(Change<KVComponent> t)
     {
         if (t.t._kvWatcherHandles != null)
         {
-            var tmp = t.t.changedIDs;
-            t.t.changedIDs = ObjectPool.Get<HashSet<int>>();
-            foreach (var id in tmp)
+            var tmp = t.t.changeKV;
+            t.t.changeKV = ObjectPool.Get<Dictionary<int, long>>();
+            foreach (var kv in tmp)
             {
                 int len = t.t._kvWatcherHandles.Count;
                 for (int i = 0; i < len; i++)
                 {
                     if (t.t._kvWatcherHandles[i].Disposed) continue;
-                    t.t._kvWatcherHandles[i].Invoke(id);
+                    t.t._kvWatcherHandles[i].Old = kv.Value;
+                    t.t._kvWatcherHandles[i].New = t.t.Get(kv.Key);
+                    t.t._kvWatcherHandles[i].Invoke(kv.Key);
                 }
             }
             tmp.Clear();
@@ -101,7 +116,11 @@ public class KVComponent : SComponent
     [Event]
     static void Dispose(Dispose<KVComponent> t)
     {
-        t.t.changedIDs.Clear();
-        ObjectPool.Return(t.t.changedIDs);
+        t.t.Values.Clear();
+        t.t.changeKV.Clear();
+        ObjectPool.Return(t.t.changeKV);
+        ObjectPool.Return(t.t.Values);
+        t.t.Values = null;
+        t.t.changeKV = null;
     }
 }

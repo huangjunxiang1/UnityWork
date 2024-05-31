@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sirenix.OdinInspector;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,6 +37,7 @@ namespace Core
         public virtual long gid => this.Entity.gid;
         public virtual SObject Root => this.Entity.Root;
 
+        [ShowInInspector]
         public virtual bool Enable
         {
             get => _enable;
@@ -57,7 +59,7 @@ namespace Core
 
         public virtual bool EventEnable { get => Entity.EventEnable; set => throw new NotSupportedException(); }
 
-        public void SetChange()
+        public virtual void SetChange()
         {
             if (_changeHandles == null || _setChanged || !_enable || World == null) return;
             _setChanged = true;
@@ -77,8 +79,6 @@ namespace Core
             World.System.Out(this.GetType(), this);
         }
         public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";
-
-        internal virtual void OnRigister() { }
 
         /// <summary>
         /// 

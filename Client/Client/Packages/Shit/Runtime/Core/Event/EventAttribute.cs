@@ -14,8 +14,6 @@ public class EventAttribute : SAttribute
 
     public EventAttribute(int sortOrder = 0) => this.SortOrder = sortOrder;
 
-    public virtual bool Test(int type) => this.Type == type;
-
     public readonly static EventAttribute Default = new();
 }
 public class TimerAttribute : SAttribute

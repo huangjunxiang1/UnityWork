@@ -9,7 +9,7 @@
                     "name": "onEsc",
                     "type": "Button",
                     "id": "e64c28ad-9fe6-408b-bc8b-cc42af9a03a2",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false

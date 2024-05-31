@@ -83,7 +83,11 @@ namespace Core
                     }
                 }
 #if UNITY_EDITOR
-                objChange?.Invoke();
+                if (objChange != null)
+                {
+                    _world.Timer.Remove(objChange);
+                    _world.Timer.Add(0, 1, objChange);
+                }
 #endif
             }
         }
@@ -198,7 +202,7 @@ namespace Core
                 for (int i = 0; i < lst.Count; i++)
                 {
                     if (!lst[i].Disposed)
-                        lst[i].Enable = value;
+                        lst[i].SetChange();
                 }
                 lst.Clear();
                 ObjectPool.Return(lst);
@@ -211,7 +215,7 @@ namespace Core
                     {
                         if (lstOs[i].Parent != this)
                             continue;
-                        lstOs[i].View = value;
+                        lstOs[i].View = _view;
                     }
                     lstOs.Clear();
                     ObjectPool.Return(lstOs);
@@ -220,6 +224,7 @@ namespace Core
         }
 
         public override void AcceptedEvent() { }
+        public sealed override void SetChange() => base.SetChange();
 
         public virtual void AddChild(SObject child) { throw new NotSupportedException(); }
         public virtual void Remove(SObject child) { }
@@ -421,11 +426,8 @@ namespace Core
             World.Event.RunGenericEvent(typeof(Awake<>), c, type);
             if (c.Disposed) return;
             if (c.Enable)
-            {
                 World.System.In(type, this);
-                c.SetChange();
-            }
-            c.OnRigister();
+            c.SetChange();
         }
         internal bool RemoveComponentInternal(Type type)
         {
@@ -490,7 +492,11 @@ namespace Core
 
             _onDispose?.Call();
 #if UNITY_EDITOR
-            objChange?.Invoke();
+            if (objChange != null)
+            {
+                _world.Timer.Remove(objChange);
+                _world.Timer.Add(0, 1, objChange);
+            }
 #endif
         }
 

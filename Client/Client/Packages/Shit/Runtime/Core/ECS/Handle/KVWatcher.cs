@@ -28,10 +28,10 @@ using System.Threading.Tasks;
 //        kv.World.System.AddToKVWaitRemove(kv);
 //?        [t].World.System.AddToKVWaitRemove([t]);+\r?
 //    }
-//    internal override void Invoke(int param)
+//    internal override void Invoke(int type)
 //    {
 //        if (!kv.Enable || ?![t].Enable+ || ?) return;
-//        kv.World.Event.RunEventNoGCAndFaster(this, param);
+//        kv.World.Event.RunEventNoGCAndFaster(this, type);
 //    }
 //}
 //end
@@ -51,9 +51,9 @@ public class KVWatcher : __KVWatcher
         base.Dispose();
         kv.World.System.AddToKVWaitRemove(kv);
     }
-    internal override void Invoke(int param)
+    internal override void Invoke(int type)
     {
         if (!kv.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, param);
+        kv.World.Event.RunEventNoGCAndFaster(this, type);
     }
 }

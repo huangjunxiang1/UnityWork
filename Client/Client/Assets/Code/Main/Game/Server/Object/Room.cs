@@ -223,7 +223,7 @@ namespace Game
             ui.t.r = t.rotation.value;
 
             var att = this.GetComponent<KVComponent>();
-            ui.attribute = new(att.Values);
+            att.CopyTo(ui.attribute);
 
             return ui;
         }
@@ -274,12 +274,12 @@ namespace Game
         {
             var min = SettingM.SubRoomSize * t.t.xy + 1;
             var max = SettingM.SubRoomSize * (t.t.xy + 1);
-            t.t2.Bound = new float3x2(new float3(min.x + 0.5f, 0, min.y + 0.5f), new float3(max.x - 0.5f, 0, max.y - 0.5f));
+            t.t2.AABB = new Unity.Mathematics.Geometry.MinMaxAABB(new float3(min.x + 0.5f, 0, min.y + 0.5f), new float3(max.x - 0.5f, 0, max.y - 0.5f));
         }
         [Event]
         static void Out(Out<SubRoom, TransformComponent> t)
         {
-            t.t2.ResetBound();
+            t.t2.ResetAABB();
         }
         [Event]
         static void change(Change<TransformComponent, SubRoom, BelongRoom> t)
@@ -319,7 +319,7 @@ namespace Game
         {
             var min = SettingM.SubRoomSize * xy + 1;
             var max = SettingM.SubRoomSize * (xy + 1);
-            t.Bound = new float3x2(new float3(min.x + 0.5f, 0, min.y + 0.5f), new float3(max.x - 0.5f, 0, max.y - 0.5f));
+            t.AABB = new Unity.Mathematics.Geometry.MinMaxAABB(new float3(min.x + 0.5f, 0, min.y + 0.5f), new float3(max.x - 0.5f, 0, max.y - 0.5f));
 
             int2 n = SettingM.SubRoomSize * xy;
             if (dir == 0)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,11 +9,27 @@ namespace Core
 {
     public class EventSystem
     {
+        struct EventKey : IEquatable<EventKey>
+        {
+            public EventKey(Type k, long rpc = 0, int type = 0)
+            {
+                this.keyType = k;
+                this.rpc = rpc;
+                this.type = type;
+            }
+
+            public Type keyType;
+            public long rpc;
+            public int type;
+
+            public bool Equals(EventKey other) => other.keyType == keyType && other.rpc == rpc && other.type == type;
+            public override int GetHashCode() => keyType.GetHashCode() ^ rpc.GetHashCode() ^ type;
+            public override string ToString() => $"key={keyType} rpc={rpc} type={type}";
+        }
         internal EventSystem(World world) => this.world = world;
 
         World world;
-        readonly Dictionary<Type, EvtQueue> _evtMap = new(97);
-        readonly Dictionary<long, Dictionary<Type, EvtQueue>> _rpcEvtMap = new(97);
+        readonly Dictionary<EventKey, EvtQueue> _evtMap = new(97);
         Queue<EvtQueue> removed = ObjectPool.Get<Queue<EvtQueue>>();
         internal Action<object> getEvent;
         GenericEventHelper GenericEvent;
@@ -23,7 +40,6 @@ namespace Core
         internal void Load(List<MethodParseData> methods)
         {
             _evtMap.Clear();
-            _rpcEvtMap.Clear();
             removed.Clear();
             getEvent = null;
             for (int i = 0; i < methods.Count; i++)
@@ -32,8 +48,9 @@ namespace Core
                 if (m.attribute is EventAttribute ea)
                 {
                     if (m.method != null && !m.method.IsStatic) continue;
-                    if (!_evtMap.TryGetValue(m.mainKey, out var queue))
-                        _evtMap[m.mainKey] = queue = new();
+                    EventKey k = new(m.mainKey, 0, ea.Type);
+                    if (!_evtMap.TryGetValue(k, out var queue))
+                        _evtMap[k] = queue = new();
 
                     EvtData e = new(m, null);
                     queue.Add(e);
@@ -66,26 +83,18 @@ namespace Core
                 var m = ms[i];
                 if (m.attribute is EventAttribute ea)
                 {
-                    if (!_evtMap.TryGetValue(m.mainKey, out var queue))
-                        _evtMap[m.mainKey] = queue = new();
-
-                    EvtData e = new(m, target);
-                    queue.Add(e);
-                }
-            }
-
-            if (target.rpc != 0)
-            {
-                if (!_rpcEvtMap.TryGetValue(target.rpc, out var map))
-                    _rpcEvtMap[target.rpc] = map = new();
-                for (int i = 0; i < ms.Length; i++)
-                {
-                    var m = ms[i];
-                    if (m.attribute is EventAttribute ea)
                     {
-                        if (!map.TryGetValue(m.mainKey, out var queue))
-                            map[m.mainKey] = queue = new();
-
+                        EventKey k = new(m.mainKey, 0, ea.Type);
+                        if (!_evtMap.TryGetValue(k, out var queue))
+                            _evtMap[k] = queue = new();
+                        EvtData e = new(m, target);
+                        queue.Add(e);
+                    }
+                    if (target.rpc != 0)
+                    {
+                        EventKey k = new(m.mainKey, target.rpc, ea.Type);
+                        if (!_evtMap.TryGetValue(k, out var queue))
+                            _evtMap[k] = queue = new();
                         EvtData e = new(m, target);
                         queue.Add(e);
                     }
@@ -95,8 +104,9 @@ namespace Core
         public void RigisteEvent<T>(Action<T> callBack, int sortOrder = 0)
         {
             Checker.Check(callBack.Method);
-            if (!_evtMap.TryGetValue(typeof(T), out var queue))
-                _evtMap[typeof(T)] = queue = new();
+            EventKey k = new(typeof(T));
+            if (!_evtMap.TryGetValue(k, out var queue))
+                _evtMap[k] = queue = new();
 
             EvtData e = new();
             e.action = callBack;
@@ -107,9 +117,9 @@ namespace Core
         {
             Checker.Check(callBack.Method);
             Type[] gs = callBack.GetType().GetGenericArguments();
-            Type type = gs[0];
-            if (!_evtMap.TryGetValue(type, out var queue))
-                _evtMap[type] = queue = new();
+            EventKey k = new(gs[0]);
+            if (!_evtMap.TryGetValue(k, out var queue))
+                _evtMap[k] = queue = new();
 
             EvtData e = new();
             e.action = callBack;
@@ -121,10 +131,9 @@ namespace Core
         public void RigisteRPCEvent<T>(long rpc, Action<T> callBack, int sortOrder = 0)
         {
             Checker.Check(callBack.Method);
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
-                _rpcEvtMap[rpc] = map = new();
-            if (!map.TryGetValue(typeof(T), out var queue))
-                map[typeof(T)] = queue = new();
+            EventKey k = new(typeof(T), rpc);
+            if (!_evtMap.TryGetValue(k, out var queue))
+                _evtMap[k] = queue = new();
 
             EvtData e = new();
             e.action = callBack;
@@ -135,11 +144,9 @@ namespace Core
         {
             Checker.Check(callBack.Method);
             Type[] gs = callBack.GetType().GetGenericArguments();
-            Type type = gs[0];
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
-                _rpcEvtMap[rpc] = map = new();
-            if (!map.TryGetValue(type, out var queue))
-                map[type] = queue = new();
+            EventKey k = new(gs[0], rpc);
+            if (!_evtMap.TryGetValue(k, out var queue))
+                _evtMap[k] = queue = new();
 
             EvtData e = new();
             e.action = callBack;
@@ -170,28 +177,21 @@ namespace Core
             for (int i = 0; i < ms.Length; i++)
             {
                 var m = ms[i];
-                if (m.attribute is EventAttribute)
+                if (m.attribute is EventAttribute ea)
                 {
-                    if (_evtMap.TryGetValue(m.mainKey, out var queue))
                     {
-                        if (!queue.addToQueue)
+                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, 0, ea.Type), out var queue))
                         {
-                            queue.addToQueue = true;
-                            removed.Enqueue(queue);
+                            if (!queue.addToQueue)
+                            {
+                                queue.addToQueue = true;
+                                removed.Enqueue(queue);
+                            }
                         }
                     }
-                }
-            }
-
-            if (target.rpc != 0)
-            {
-                if (!_rpcEvtMap.TryGetValue(target.rpc, out var map)) return;
-                for (int i = 0; i < ms.Length; i++)
-                {
-                    var m = ms[i];
-                    if (m.attribute is EventAttribute)
+                    if (target.rpc != 0)
                     {
-                        if (map.TryGetValue(m.mainKey, out var queue))
+                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, target.rpc, ea.Type), out var queue))
                         {
                             if (!queue.addToQueue)
                             {
@@ -206,7 +206,7 @@ namespace Core
         public void RemoveEvent<T>(Action<T> callBack)
         {
             Checker.Check(callBack.Method);
-            if (!_evtMap.TryGetValue(typeof(T), out var queue))
+            if (!_evtMap.TryGetValue(new EventKey(typeof(T)), out var queue))
                 return;
 
             if (queue.Remove(callBack))
@@ -221,8 +221,7 @@ namespace Core
         public void RemoveEvent(Delegate callBack)
         {
             Checker.Check(callBack.Method);
-            Type type = callBack.GetType().GetGenericArguments()[0];
-            if (!_evtMap.TryGetValue(type, out var queue))
+            if (!_evtMap.TryGetValue(new EventKey(callBack.GetType().GetGenericArguments()[0]), out var queue))
                 return;
 
             if (queue.Remove(callBack))
@@ -237,9 +236,8 @@ namespace Core
         public void RemoveRPCEvent<T>(long rpc, Action<T> callBack)
         {
             Checker.Check(callBack.Method);
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
-                return;
-            if (!map.TryGetValue(typeof(T), out var queue))
+            var k = new EventKey(typeof(T), rpc);
+            if (!_evtMap.TryGetValue(k, out var queue))
                 return;
 
             if (queue.Remove(callBack))
@@ -254,10 +252,8 @@ namespace Core
         public void RemoveRPCEvent(long rpc, Delegate callBack)
         {
             Checker.Check(callBack.Method);
-            Type type = callBack.GetType().GetGenericArguments()[0];
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map))
-                return;
-            if (!map.TryGetValue(type, out var queue))
+            var k = new EventKey(callBack.GetType().GetGenericArguments()[0], rpc);
+            if (!_evtMap.TryGetValue(k, out var queue))
                 return;
 
             if (queue.Remove(callBack))
@@ -270,12 +266,12 @@ namespace Core
             }
         }
 
-        public bool HasEvent<T>() => _evtMap.TryGetValue(typeof(T), out var queue) && queue.evts.Count > 0;
-        public bool HasEvent(Type type) => _evtMap.TryGetValue(type, out var queue) && queue.evts.Count > 0;
+        public bool HasEvent<T>() => _evtMap.TryGetValue(new EventKey(typeof(T)), out var queue) && queue.evts.Count > 0;
+        public bool HasEvent(Type type) => _evtMap.TryGetValue(new EventKey(type), out var queue) && queue.evts.Count > 0;
 
         internal bool GetEventQueue(Type type, out List<EvtData> es)
         {
-            if (_evtMap.TryGetValue(type, out var queue))
+            if (_evtMap.TryGetValue(new EventKey(type), out var queue))
             {
                 es = queue.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed));
                 return true;
@@ -291,67 +287,70 @@ namespace Core
         /// 执行事件
         /// </summary>
         /// <param name="data"></param>
-        public void RunEvent<T>(T data, int testParam = 0)
+        public void RunEvent<T>(T data, int type = 0)
         {
             getEvent?.Invoke(data);
             world.System.EventWatcher(data);
-            _runEvent(_evtMap, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(typeof(T), 0, type), out var queue)) return;
+            queue.Run(data);
         }
-        public STask RunEventAsync<T>(T data, int testParam = 0)
+        public STask RunEventAsync<T>(T data, int type = 0)
         {
             getEvent?.Invoke(data);
             world.System.EventWatcher(data);
-            return _runEventAsync(_evtMap, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(typeof(T), 0, type), out var queue)) return STask.Completed;
+            return queue.RunAsync(data);
         }
-        public void RunEvent(object data, int testParam = 0)
+        public void RunEvent(object data, int type = 0)
         {
             getEvent?.Invoke(data);
             world.System.EventWatcher(data);
-            _runEvent(_evtMap, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, type), out var queue)) return;
+            queue.Run(data);
         }
-        public STask RunEventAsync(object data, int testParam = 0)
+        public STask RunEventAsync(object data, int type = 0)
         {
             getEvent?.Invoke(data);
             world.System.EventWatcher(data);
-            return _runEventAsync(_evtMap, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, type), out var queue)) return STask.Completed;
+            return queue.RunAsync(data);
         }
         public void RunGenericEvent(Type baseType, object o, Type elementType = null) => GenericEvent.Invoke(baseType, o, elementType);
         public void RunGenericEventAndBaseType(Type baseType, object o) => GenericEvent.InvokeAndBaseType(baseType, o);
-        internal void RunEventNoGCAndFaster<T>(T data, int testParam = 0)
+        internal void RunEventNoGCAndFaster<T>(T data, int type = 0)
         {
-            if (!_evtMap.TryGetValue(data.GetType(), out var queue)) return;
-            queue.RunNoGCAndFaster(data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, type), out var queue)) return;
+            queue.RunNoGCAndFaster(data);
         }
 
-        public void RunRPCEvent<T>(long rpc, T data, int testParam = 0)
+        public void RunRPCEvent<T>(long rpc, T data, int type = 0)
         {
             world.System.EventWatcher(rpc, data);
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            _runEvent(map, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(typeof(T), rpc, type), out var queue)) return;
+            queue.Run(data);
         }
-        public STask RunRPCEventAsync<T>(long rpc, T data, int testParam = 0)
+        public STask RunRPCEventAsync<T>(long rpc, T data, int type = 0)
         {
             world.System.EventWatcher(rpc, data);
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
-            return _runEventAsync(map, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(typeof(T), rpc, type), out var queue)) return STask.Completed;
+            return queue.RunAsync(data);
         }
-        public void RunRPCEvent(long rpc, object data, int testParam = 0)
+        public void RunRPCEvent(long rpc, object data, int type = 0)
         {
             world.System.EventWatcher(rpc, data);
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return;
-            _runEvent(map, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, type), out var queue)) return;
+            queue.Run(data);
         }
-        public STask RunRPCEventAsync(long rpc, object data, int testParam = 0)
+        public STask RunRPCEventAsync(long rpc, object data, int type = 0)
         {
             world.System.EventWatcher(rpc, data);
-            if (!_rpcEvtMap.TryGetValue(rpc, out var map)) return STask.Completed;
-            return _runEventAsync(map, data, testParam);
+            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, type), out var queue)) return STask.Completed;
+            return queue.RunAsync(data);
         }
 
         public void Clear()
         {
             _evtMap.Clear();
-            _rpcEvtMap.Clear();
         }
 
         internal void AfterUpdate()
@@ -372,27 +371,6 @@ namespace Core
                 }
                 ObjectPool.Return(tmp);
             }
-        }
-
-        void _runEvent<T>(Dictionary<Type, EvtQueue> evtMap, T data, int testParam = 0)
-        {
-            if (!evtMap.TryGetValue(typeof(T), out var queue)) return;
-            queue.Run(data, testParam);
-        }
-        STask _runEventAsync<T>(Dictionary<Type, EvtQueue> evtMap, T data, int testParam = 0)
-        {
-            if (!evtMap.TryGetValue(typeof(T), out var queue)) return STask.Completed;
-            return queue.RunAsync(data, testParam);
-        }
-        void _runEvent(Dictionary<Type, EvtQueue> evtMap, object data, int testParam = 0)
-        {
-            if (!evtMap.TryGetValue(data.GetType(), out var queue)) return;
-            queue.Run(data, testParam);
-        }
-        STask _runEventAsync(Dictionary<Type, EvtQueue> evtMap, object data, int testParam = 0)
-        {
-            if (!evtMap.TryGetValue(data.GetType(), out var queue)) return STask.Completed;
-            return queue.RunAsync(data, testParam);
         }
 
         internal class EvtData
@@ -495,7 +473,7 @@ namespace Core
                 return false;
             }
             public void RemoveAll() => evts.RemoveAll(t => t.disposed || (t.target != null && t.target.Disposed));
-            public async void Run<T>(T data, int testParam = 0)
+            public async void Run<T>(T data)
             {
                 ++counter;
                 int cnt = evts.Count;
@@ -503,13 +481,12 @@ namespace Core
                 for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
                     EvtData e = evts[i];
-                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null && e.isQueue) await task;
                 }
                 --counter;
             }
-            public async STask RunAsync<T>(T data, int testParam = 0)
+            public async STask RunAsync<T>(T data)
             {
                 ++counter;
                 List<STask> ts = ObjectPool.Get<List<STask>>();
@@ -518,7 +495,6 @@ namespace Core
                 for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
                     EvtData e = evts[i];
-                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null)
                     {
@@ -534,7 +510,7 @@ namespace Core
                     ObjectPool.Return(ts);
                 }
             }
-            public async void Run(object data, int testParam = 0)
+            public async void Run(object data)
             {
                 ++counter;
                 int cnt = evts.Count;
@@ -542,13 +518,12 @@ namespace Core
                 for (int i = 0; i < cnt; ++i)
                 {
                     EvtData e = evts[i];
-                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null && e.isQueue) await task;
                 }
                 --counter;
             }
-            public async STask RunAsync(object data, int testParam = 0)
+            public async STask RunAsync(object data)
             {
                 ++counter;
                 List<STask> ts = ObjectPool.Get<List<STask>>();
@@ -557,7 +532,6 @@ namespace Core
                 for (int i = 0; i < cnt; ++i)
                 {
                     EvtData e = evts[i];
-                    if (!e.Attribute.Test(testParam)) continue;
                     STask task = invoke(e, data, eh);
                     if (task != null)
                     {
@@ -573,17 +547,13 @@ namespace Core
                     ObjectPool.Return(ts);
                 }
             }
-            public void RunNoGCAndFaster<T>(T data, int testParam = 0)
+            public void RunNoGCAndFaster<T>(T data)
             {
                 ++counter;
                 int cnt = evts.Count;
                 EventHandler eh = ObjectPool.Get<EventHandler>();
                 for (int i = 0; i < cnt && !eh.isBreak; ++i)
-                {
-                    EvtData e = evts[i];
-                    if (!e.Attribute.Test(testParam)) continue;
                     invokeNoGCAndFaster(evts[i], data, eh);
-                }
                 eh.Reset();
                 ObjectPool.Return(eh);
                 --counter;
