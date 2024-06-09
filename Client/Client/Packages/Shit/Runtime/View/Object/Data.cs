@@ -14,7 +14,7 @@ namespace Game
             world.Event.getEvent += Add;
         }
 
-        Dictionary<Type, IData> _dataMap = new();
+        internal Dictionary<Type, IData> _dataMap = new();
 
         public T Get<T>() where T : class
         {

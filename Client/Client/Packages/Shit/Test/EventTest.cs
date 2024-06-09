@@ -86,7 +86,7 @@ class EventTest
             if (e != null) throw new System.Exception();
             if (eee != null) throw new System.Exception();
 
-            SObject s = new(999);
+            SObject s = new() { rpc = 999 };
             var c = s.AddComponent<c1>();
             Client.World.Root.AddChild(s);
             c.test2();
@@ -94,10 +94,10 @@ class EventTest
         }
         void test2()
         {
-            this.World.Event.RunRPCEvent(5, new e_test());
+            this.World.Event.RunEvent(new e_test(), 5);
             if (e != null) throw new System.Exception();
             if (eee != null) throw new System.Exception();
-            this.World.Event.RunRPCEvent(999, new e_test());
+            this.World.Event.RunEvent(new e_test(), 999);
             if (e == null) throw new System.Exception();
             if (eee == null) throw new System.Exception();
         }

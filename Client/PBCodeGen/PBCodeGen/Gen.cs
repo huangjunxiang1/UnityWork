@@ -248,28 +248,28 @@ internal class Gen
                                 df.AppendLine("        /// </summary>");
                             }
                             if (isLst)
-                                df.AppendLine($"        public List<{realType}> {fieldName} {{ get; set; }} = new List<{realType}>();");
+                                df.AppendLine($"        public List<{realType}> {fieldName} = new List<{realType}>();");
                             else if (isMap)
                             {
-                                df.AppendLine($"        public Dictionary<{kType}, {vType}> {fieldName} {{ get; set; }} = new Dictionary<{kType}, {vType}>();");
+                                df.AppendLine($"        public Dictionary<{kType}, {vType}> {fieldName} = new Dictionary<{kType}, {vType}>();");
                             }
                             else if (isBytes)
                             {
-                                df.AppendLine($"        public byte[] {fieldName} {{ get; set; }}");
+                                df.AppendLine($"        public byte[] {fieldName};");
                             }
                             else if (isEnum)
                             {
-                                df.AppendLine($"        public {realType} {fieldName}" + " { get; set; }");
+                                df.AppendLine($"        public {realType} {fieldName}" + ";");
                             }
                             else
                             {
                                 if (ft == fieldType.Value)
                                 {
-                                    df.AppendLine($"        public {realType} {fieldName}" + " { get; set; }");
+                                    df.AppendLine($"        public {realType} {fieldName}" + ";");
                                 }
                                 else
                                 {
-                                    df.AppendLine($"        public {realType} {fieldName} {{ get; set; }} = new {realType}();");
+                                    df.AppendLine($"        public {realType} {fieldName} = new {realType}();");
                                 }
                             }
 

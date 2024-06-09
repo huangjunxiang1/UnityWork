@@ -101,7 +101,6 @@ class CodeGen
     public string excelPath;
     public string codePath;
     public string dataPath;
-    public string dataPath2;
     public bool genMapping = false;
     public bool genEcs = false;
 
@@ -624,7 +623,6 @@ class CodeGen
             if (genEcs)
             {
                 File.WriteAllBytes(dataPath + name + ".bytes", buffer.ToBytes());
-                File.WriteAllBytes(dataPath2 + name + ".bytes", buffer.ToBytes());
                 File.WriteAllBytes(dataPath + name + "_ST.bytes", bufferEcs.ToBytes());
 
                 File.WriteAllText(codePath + name + ".cs", rw.ToString());
@@ -633,12 +631,10 @@ class CodeGen
             else
             {
                 File.WriteAllBytes(dataPath + name + ".bytes", buffer.ToBytes());
-                File.WriteAllBytes(dataPath2 + name + ".bytes", buffer.ToBytes());
                 File.WriteAllText(codePath + name + ".cs", rw.ToString());
             }
 
             Console.WriteLine("写入完成");
-            Console.WriteLine("");
         }
     }
 }

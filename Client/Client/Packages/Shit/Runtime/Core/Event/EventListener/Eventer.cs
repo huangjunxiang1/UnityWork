@@ -151,7 +151,7 @@ public class Eventer
 
         if (_isExcuting)
         {
-            Loger.Error("事件循环 target=" + this.Creater);
+            Loger.Error("Event loop target=" + this.Creater);
             return;
         }
         _isExcuting = true;

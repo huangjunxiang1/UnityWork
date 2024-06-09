@@ -8,11 +8,8 @@ namespace Core
 {
     public class SObject : SComponent, ITimer
     {
-        public SObject(long rpc = 0)
+        public SObject()
         {
-            this.gid = Util.RandomLong();
-            this.rpc = rpc;
-
             this.Entity = this;
 
             var types = ObjectPool.Get<List<Type>>();
@@ -33,6 +30,7 @@ namespace Core
         }
 
         World _world;
+        long _rpc;
         bool _eventEnable = true;
         bool _timerRigisterd = false;
         Eventer _onDispose;
@@ -75,6 +73,7 @@ namespace Core
                         _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
                         foreach (var c in cs)
                         {
+                            if (c.Value.Disposed) continue;
                             _components[c.Key] = c.Value;
                             RigisterComponent(c.Value, c.Key);
                         }
@@ -84,10 +83,7 @@ namespace Core
                 }
 #if UNITY_EDITOR
                 if (objChange != null)
-                {
-                    _world.Timer.Remove(objChange);
                     _world.Timer.Add(0, 1, objChange);
-                }
 #endif
             }
         }
@@ -95,17 +91,34 @@ namespace Core
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
-        public sealed override long rpc { get; }
+        public sealed override long rpc
+        {
+            get => _rpc;
+            set
+            {
+                if (this._world != null)
+                {
+                    Loger.Error("rpc set must being init Timing");
+                    return;
+                }
+                _rpc = value;
+            }
+        }
 
         /// <summary>
         /// 随机生成的ID
         /// </summary>
-        public sealed override long gid { get; }
+        public sealed override long gid { get; } = Util.RandomLong();
 
         /// <summary>
         /// 自用 表id
         /// </summary>
         public long tid { get; set; }
+
+        /// <summary>
+        /// 对象类型
+        /// </summary>
+        public int ObjType { get; set; }
 
         /// <summary>
         /// 事件监听
@@ -426,8 +439,10 @@ namespace Core
             World.Event.RunGenericEvent(typeof(Awake<>), c, type);
             if (c.Disposed) return;
             if (c.Enable)
+            {
                 World.System.In(type, this);
-            c.SetChange();
+                c.SetChange();
+            }
         }
         internal bool RemoveComponentInternal(Type type)
         {
@@ -493,10 +508,7 @@ namespace Core
             _onDispose?.Call();
 #if UNITY_EDITOR
             if (objChange != null)
-            {
-                _world.Timer.Remove(objChange);
                 _world.Timer.Add(0, 1, objChange);
-            }
 #endif
         }
 

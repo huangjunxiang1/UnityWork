@@ -116,4 +116,8 @@ public abstract class UIBase : STree
 
     public sealed override void AcceptedEvent() { base.AcceptedEvent(); }
     public sealed override bool EventEnable { get => base.EventEnable; set => base.EventEnable = value; }
+    public sealed override void AddChild(SObject child) => base.AddChild(child);
+    public sealed override int GetChildIndex(SObject child) => base.GetChildIndex(child);
+    public sealed override void Remove(SObject child) => base.Remove(child);
+    public sealed override bool Enable { get => base.Enable; set => base.Enable = value; }
 }

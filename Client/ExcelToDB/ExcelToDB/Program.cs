@@ -10,14 +10,15 @@ class Program
     public static bool debug = true;
 
     public static bool compress = true;
-
-    public static string mainCodePath = Environment.CurrentDirectory + "/../../../../../Client/Assets/Code/Main/_Gen/";
-    public static string hotCodePath = Environment.CurrentDirectory + "/../../../../../Client/Assets/Code/HotFix/_Gen/";
-
+    public static string codePath = Environment.CurrentDirectory + "/../../../../../Client/Assets/Code/Main/_Gen/";
     public static string assetsPath = Environment.CurrentDirectory + "/../../../../../Client/Assets/Res/Config/Tabs/";
-    public static string assetsPath2 = Environment.CurrentDirectory + "/../../../../../../Server/Tabs/";
+    public static string excelPath = Environment.CurrentDirectory + "/../../../../../../Excel/main";
+    public static string TabName = "TabM";
+    public static bool genMapping = true;
+    public static bool genEcs = true;
+    public static int type = 0;
+    public static bool ClearBytes = true;
 
-    public static string excelPath = Environment.CurrentDirectory + "/../../../../../../Excel/";
     static void Main(string[] args)
     {
         debug = bool.Parse(args[0]);
@@ -25,47 +26,41 @@ class Program
         if (!debug)
         {
             compress = bool.Parse(Environment.GetEnvironmentVariable(nameof(compress)));
-            mainCodePath = Environment.GetEnvironmentVariable(nameof(mainCodePath));
-            hotCodePath = Environment.GetEnvironmentVariable(nameof(hotCodePath));
+            codePath = Environment.GetEnvironmentVariable(nameof(codePath));
             assetsPath = Environment.GetEnvironmentVariable(nameof(assetsPath));
-            assetsPath2 = Environment.GetEnvironmentVariable(nameof(assetsPath2));
             excelPath = Environment.GetEnvironmentVariable(nameof(excelPath));
+            TabName = Environment.GetEnvironmentVariable(nameof(TabName));
+            genMapping = bool.Parse(Environment.GetEnvironmentVariable(nameof(genMapping)));
+            genEcs = bool.Parse(Environment.GetEnvironmentVariable(nameof(genEcs)));
+            type = int.Parse(Environment.GetEnvironmentVariable(nameof(type)));
+            ClearBytes = bool.Parse(Environment.GetEnvironmentVariable(nameof(ClearBytes)));
         }
 
-        foreach (var item in Directory.GetFiles(assetsPath, "*.bytes"))
-            File.Delete(item);
-        foreach (var item in Directory.GetFiles(assetsPath2, "*.bytes"))
-            File.Delete(item);
+        if (ClearBytes)
+        {
+            foreach (var item in Directory.GetFiles(assetsPath, "*.bytes"))
+                File.Delete(item);
+        }
 
         ExcelPackage.LicenseContext = LicenseContext.Commercial;
         //main
+        if (type == 0)
         {
+            Console.WriteLine("--->" + TabName);
             CodeGen gen = new CodeGen();
-            gen.name = "TabM";
-            gen.excelPath = excelPath + "/main";
-            gen.codePath = mainCodePath;
+            gen.name = TabName;
+            gen.excelPath = excelPath;
+            gen.codePath = codePath;
             gen.dataPath = assetsPath;
-            gen.dataPath2 = assetsPath2;
-            gen.genMapping = true;
-            gen.genEcs = true;
+            gen.genMapping = genMapping;
+            gen.genEcs = genEcs;
             gen.Gen();
         }
-
-        //hot
-        {
-            CodeGen gen = new CodeGen();
-            gen.name = "TabL";
-            gen.excelPath = excelPath + "/hot";
-            gen.codePath = hotCodePath;
-            gen.dataPath = assetsPath;
-            gen.dataPath2 = assetsPath2;
-            gen.Gen();
-        }
-
+        else if (type == 1)
         //Language表 
         {
-            string main = excelPath + "/Language";
-            List<string> mains = Common.getFiles(main);
+            Console.WriteLine("--->Language");
+            List<string> mains = Common.getFiles(excelPath);
 
             var _common = mains.Find(t => new FileInfo(t).Name == "_Common.xlsx");
             if (_common == null)
@@ -208,11 +203,11 @@ class Program
                         str.AppendLine($"    public static string {s} => \"gk_{s}\".ToLan();");
                 }
                 str.AppendLine("}");
-                File.WriteAllText(hotCodePath + "TabCommonLanguage.cs", str.ToString());
+                File.WriteAllText(codePath + "TabCommonLanguage.cs", str.ToString());
             }
         }
 
         Console.WriteLine("生成成功");
-        Console.ReadLine();
+        Console.WriteLine();
     }
 }

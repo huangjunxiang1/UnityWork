@@ -46,7 +46,7 @@ partial class FUIGame
     void join(S2C_PlayerJoinRoom t)
     {
         var v = t.info;
-        SGameObject go = new(v.id);
+        SGameObject go = new() { rpc = v.id };
         Client.Scene.AddChild(go);
         go.GameObject.SetGameObject("3D/Model/Unit/chan.prefab");
         go.Transform.position = v.t.p;

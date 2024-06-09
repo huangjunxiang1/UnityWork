@@ -11,20 +11,22 @@ namespace Core
     {
         struct EventKey : IEquatable<EventKey>
         {
-            public EventKey(Type k, long rpc = 0, int type = 0)
+            public EventKey(Type k, long rpc = 0, long gid = 0, int type = 0)
             {
                 this.keyType = k;
                 this.rpc = rpc;
+                this.gid = gid;
                 this.type = type;
             }
 
             public Type keyType;
             public long rpc;
+            public long gid;
             public int type;
 
-            public bool Equals(EventKey other) => other.keyType == keyType && other.rpc == rpc && other.type == type;
-            public override int GetHashCode() => keyType.GetHashCode() ^ rpc.GetHashCode() ^ type;
-            public override string ToString() => $"key={keyType} rpc={rpc} type={type}";
+            public bool Equals(EventKey other) => other.keyType == keyType && other.rpc == rpc && other.gid == gid && other.type == type;
+            public override int GetHashCode() => keyType.GetHashCode() ^ rpc.GetHashCode() ^ gid.GetHashCode() ^ type;
+            public override string ToString() => $"key={keyType} rpc={rpc} gid={gid} type={type}";
         }
         internal EventSystem(World world) => this.world = world;
 
@@ -48,7 +50,7 @@ namespace Core
                 if (m.attribute is EventAttribute ea)
                 {
                     if (m.method != null && !m.method.IsStatic) continue;
-                    EventKey k = new(m.mainKey, 0, ea.Type);
+                    EventKey k = new(m.mainKey, 0, 0, ea.Type);
                     if (!_evtMap.TryGetValue(k, out var queue))
                         _evtMap[k] = queue = new();
 
@@ -73,7 +75,7 @@ namespace Core
             Type t = target.GetType();
             if (!t.IsClass)
             {
-                Loger.Error("只能在class注册事件");
+                Loger.Error("Only rigister event in class");
                 return;
             }
 
@@ -84,7 +86,7 @@ namespace Core
                 if (m.attribute is EventAttribute ea)
                 {
                     {
-                        EventKey k = new(m.mainKey, 0, ea.Type);
+                        EventKey k = new(m.mainKey, 0, 0, ea.Type);
                         if (!_evtMap.TryGetValue(k, out var queue))
                             _evtMap[k] = queue = new();
                         EvtData e = new(m, target);
@@ -92,7 +94,14 @@ namespace Core
                     }
                     if (target.rpc != 0)
                     {
-                        EventKey k = new(m.mainKey, target.rpc, ea.Type);
+                        EventKey k = new(m.mainKey, target.rpc, 0, ea.Type);
+                        if (!_evtMap.TryGetValue(k, out var queue))
+                            _evtMap[k] = queue = new();
+                        EvtData e = new(m, target);
+                        queue.Add(e);
+                    }
+                    {
+                        EventKey k = new(m.mainKey, 0, target.gid, ea.Type);
                         if (!_evtMap.TryGetValue(k, out var queue))
                             _evtMap[k] = queue = new();
                         EvtData e = new(m, target);
@@ -170,7 +179,7 @@ namespace Core
             Type t = target.GetType();
             if (!t.IsClass)
             {
-                Loger.Error("只能在class注册事件");
+                Loger.Error("Only rigister event in class");
                 return;
             }
             var ms = Types.GetInstanceMethodsAttribute(t);
@@ -180,7 +189,7 @@ namespace Core
                 if (m.attribute is EventAttribute ea)
                 {
                     {
-                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, 0, ea.Type), out var queue))
+                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, 0, 0, ea.Type), out var queue))
                         {
                             if (!queue.addToQueue)
                             {
@@ -191,7 +200,17 @@ namespace Core
                     }
                     if (target.rpc != 0)
                     {
-                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, target.rpc, ea.Type), out var queue))
+                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, target.rpc, 0, ea.Type), out var queue))
+                        {
+                            if (!queue.addToQueue)
+                            {
+                                queue.addToQueue = true;
+                                removed.Enqueue(queue);
+                            }
+                        }
+                    }
+                    {
+                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, 0, target.gid, ea.Type), out var queue))
                         {
                             if (!queue.addToQueue)
                             {
@@ -287,65 +306,123 @@ namespace Core
         /// 执行事件
         /// </summary>
         /// <param name="data"></param>
-        public void RunEvent<T>(T data, int type = 0)
+        public void RunEvent<T>(T data, long rpc = 0, long gid = 0, int type = 0)
         {
-            getEvent?.Invoke(data);
-            world.System.EventWatcher(data);
-            if (!_evtMap.TryGetValue(new EventKey(typeof(T), 0, type), out var queue)) return;
-            queue.Run(data);
+#if DebugEnable
+            if (rpc != 0 && gid != 0)
+                Loger.Error($"rpc 和 gid  不可同时为有效值");
+#endif
+            if (rpc != 0)
+            {
+                world.System.EventWatcherRpc(rpc, data);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), rpc, 0, type), out var queue))
+                    queue.Run(data);
+            }
+            else if (gid != 0)
+            {
+                world.System.EventWatcherGid(gid, data);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, gid, type), out var queue))
+                    queue.Run(data);
+            }
+            else
+            {
+                getEvent?.Invoke(data);
+                world.System.EventWatcher(data);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
+                    queue.Run(data);
+            }
         }
-        public STask RunEventAsync<T>(T data, int type = 0)
+        public STask RunEventAsync<T>(T data, long rpc = 0, long gid = 0, int type = 0)
         {
-            getEvent?.Invoke(data);
-            world.System.EventWatcher(data);
-            if (!_evtMap.TryGetValue(new EventKey(typeof(T), 0, type), out var queue)) return STask.Completed;
-            return queue.RunAsync(data);
+#if DebugEnable
+            if (rpc != 0 && gid != 0)
+                Loger.Error($"rpc 和 gid  不可同时为有效值");
+#endif
+            if (rpc != 0)
+            {
+                world.System.EventWatcherRpc(rpc, data);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), rpc, 0, type), out var queue))
+                    return queue.RunAsync(data);
+                else return STask.Completed;
+            }
+            else if (gid != 0)
+            {
+                world.System.EventWatcherGid(gid, data);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, gid, type), out var queue))
+                    return queue.RunAsync(data);
+                else return STask.Completed;
+            }
+            else
+            {
+                getEvent?.Invoke(data);
+                world.System.EventWatcher(data);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
+                    return queue.RunAsync(data);
+                else return STask.Completed;
+            }
         }
-        public void RunEvent(object data, int type = 0)
+        public void RunEvent(object data, long rpc = 0, long gid = 0, int type = 0)
         {
-            getEvent?.Invoke(data);
-            world.System.EventWatcher(data);
-            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, type), out var queue)) return;
-            queue.Run(data);
+#if DebugEnable
+            if (rpc != 0 && gid != 0)
+                Loger.Error($"rpc 和 gid  不可同时为有效值");
+#endif
+            if (rpc != 0)
+            {
+                world.System.EventWatcherRpc(rpc, data);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, 0, type), out var queue))
+                    queue.Run(data);
+            }
+            else if (gid != 0)
+            {
+                world.System.EventWatcherGid(gid, data);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, gid, type), out var queue))
+                    queue.Run(data);
+            }
+            else
+            {
+                getEvent?.Invoke(data);
+                world.System.EventWatcher(data);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
+                    queue.Run(data);
+            }
         }
-        public STask RunEventAsync(object data, int type = 0)
+        public STask RunEventAsync(object data, long rpc = 0, long gid = 0, int type = 0)
         {
-            getEvent?.Invoke(data);
-            world.System.EventWatcher(data);
-            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, type), out var queue)) return STask.Completed;
-            return queue.RunAsync(data);
+#if DebugEnable
+            if (rpc != 0 && gid != 0)
+                Loger.Error($"rpc 和 gid  不可同时为有效值");
+#endif
+            if (rpc != 0)
+            {
+                world.System.EventWatcherRpc(rpc, data);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, 0, type), out var queue))
+                    return queue.RunAsync(data);
+                else return STask.Completed;
+            }
+            else if (gid != 0)
+            {
+                world.System.EventWatcherGid(gid, data);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, gid, type), out var queue))
+                    return queue.RunAsync(data);
+                else return STask.Completed;
+            }
+            else
+            {
+                getEvent?.Invoke(data);
+                world.System.EventWatcher(data);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
+                    return queue.RunAsync(data);
+                else return STask.Completed;
+            }
         }
+
         public void RunGenericEvent(Type baseType, object o, Type elementType = null) => GenericEvent.Invoke(baseType, o, elementType);
         public void RunGenericEventAndBaseType(Type baseType, object o) => GenericEvent.InvokeAndBaseType(baseType, o);
         internal void RunEventNoGCAndFaster<T>(T data, int type = 0)
         {
-            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, type), out var queue)) return;
+            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue)) return;
             queue.RunNoGCAndFaster(data);
-        }
-
-        public void RunRPCEvent<T>(long rpc, T data, int type = 0)
-        {
-            world.System.EventWatcher(rpc, data);
-            if (!_evtMap.TryGetValue(new EventKey(typeof(T), rpc, type), out var queue)) return;
-            queue.Run(data);
-        }
-        public STask RunRPCEventAsync<T>(long rpc, T data, int type = 0)
-        {
-            world.System.EventWatcher(rpc, data);
-            if (!_evtMap.TryGetValue(new EventKey(typeof(T), rpc, type), out var queue)) return STask.Completed;
-            return queue.RunAsync(data);
-        }
-        public void RunRPCEvent(long rpc, object data, int type = 0)
-        {
-            world.System.EventWatcher(rpc, data);
-            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, type), out var queue)) return;
-            queue.Run(data);
-        }
-        public STask RunRPCEventAsync(long rpc, object data, int type = 0)
-        {
-            world.System.EventWatcher(rpc, data);
-            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, type), out var queue)) return STask.Completed;
-            return queue.RunAsync(data);
         }
 
         public void Clear()
@@ -586,7 +663,7 @@ namespace Core
                 }
                 catch (Exception ex)
                 {
-                    Loger.Error("事件执行出错 error:" + ex.ToString());
+                    Loger.Error("Event Execute Error :" + ex.ToString());
                 }
                 e.target?.AcceptedEvent();
                 return default;
@@ -624,7 +701,7 @@ namespace Core
                 }
                 catch (Exception ex)
                 {
-                    Loger.Error("事件执行出错 error:" + ex.ToString());
+                    Loger.Error("Event Execute Error :" + ex.ToString());
                 }
                 e.target?.AcceptedEvent();
                 return task;
@@ -641,7 +718,7 @@ namespace Core
                 }
                 catch (Exception ex)
                 {
-                    Loger.Error("事件执行出错 error:" + ex.ToString());
+                    Loger.Error("Event Execute Error :" + ex.ToString());
                 }
             }
         }

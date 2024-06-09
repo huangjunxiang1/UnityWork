@@ -201,7 +201,7 @@ namespace Game
                         //被动断开链接
                         if (states != NetStates.None)
                             this.DisConnect();
-                        Loger.Error("发送消息错误 ex=" + e);
+                        Loger.Error("Send message error :" + e);
                         return;
                     }
                 }

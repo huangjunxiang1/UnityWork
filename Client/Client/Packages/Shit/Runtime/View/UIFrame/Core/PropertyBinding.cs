@@ -16,7 +16,7 @@ public abstract class UIPropertyBinding<T, V>
     {
         if (this.getter != null)
         {
-            Loger.Error("getter 重复");
+            Loger.Error("getter Repeat");
             return;
         }
         void Event(K k) => this.View(getter(k));

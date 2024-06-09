@@ -8,6 +8,7 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -70,6 +71,19 @@ class ObjectWindows : OdinMenuEditorWindow
         for (int i = 0; i < World.Worlds.Count; i++)
             add(tree, World.Worlds[i].Root, World.Worlds[i].Name);
 
+        WarpOther pool = new();
+        if (Client.Data != null)
+        {
+            foreach (var item in Client.Data._dataMap)
+                pool.Data.Add(GetTypeName(item.Key), item.Value);
+        }
+        foreach (var item in ObjectPool.p_pool)
+            pool.In.Add(GetTypeName(item.Key), item.Value);
+        foreach (var item in ObjectPool.p_malloc)
+            pool.Out.Add(GetTypeName(item.Key), item.Value);
+
+        tree.Add("Other", pool);
+
         return tree;
     }
     void add(OdinMenuTree tree, SObject obj, string path)
@@ -85,15 +99,25 @@ class ObjectWindows : OdinMenuEditorWindow
             }
         }
     }
-    class WarpObject
+    class WarpOther
     {
-        [ShowInInspector] long rpc => obj.rpc;
-        [ShowInInspector] long gid => obj.gid;
-        [ShowInInspector] long tid => obj.tid;
-        [ShowInInspector] bool View => obj.View;
-        [ShowInInspector] object target => obj;
+        [ShowInInspector]
+        public Dictionary<string, IData> Data = new();
 
         [ShowInInspector]
+        public Dictionary<string, List<object>> In = new();
+        [ShowInInspector]
+        public Dictionary<string, List<object>> Out = new();
+    }
+    class WarpObject
+    {
+        [ShowInInspector, EnableGUI] long rpc => obj.rpc;
+        [ShowInInspector, EnableGUI] long gid => obj.gid;
+        [ShowInInspector, EnableGUI] long tid => obj.tid;
+        [ShowInInspector, EnableGUI] bool View => obj.View;
+        [ShowInInspector, EnableGUI] object target => obj;
+
+        [ShowInInspector, EnableGUI]
         Dictionary<string, object> components
         {
             get
@@ -118,7 +142,7 @@ class ObjectWindows : OdinMenuEditorWindow
             }
         }
 
-        [ShowInInspector]
+        [ShowInInspector, EnableGUI]
         SystemHandler Systems
         {
             get
@@ -235,15 +259,7 @@ class ObjectWindows : OdinMenuEditorWindow
             var method = d.action.Method;
 
             s.Method = method.ReflectedType.Name + ":" + method.Name;
-            var type = method.GetParameters().FirstOrDefault().ParameterType;
-
-            s.Parameter = type.Name[..^2];
-            s.Parameter += "<";
-            foreach (var item2 in type.GetGenericArguments())
-                s.Parameter += $"{item2.Name},";
-            s.Parameter = s.Parameter[..^1];
-            s.Parameter += ">";
-
+            s.Parameter = GetTypeName(method.GetParameters().FirstOrDefault().ParameterType);
             s.Assembly = d.action.Method.ReflectedType.Assembly.GetName().Name;
 
             ret.Add(s);
@@ -258,15 +274,7 @@ class ObjectWindows : OdinMenuEditorWindow
             var method = d.action.Method;
 
             s.Method = method.ReflectedType.Name + ":" + method.Name;
-            var type = method.GetParameters().FirstOrDefault().ParameterType;
-
-            s.Parameter = type.Name[..^2];
-            s.Parameter += "<";
-            foreach (var item4 in type.GetGenericArguments())
-                s.Parameter += $"{item4.Name},";
-            s.Parameter = s.Parameter[..^1];
-            s.Parameter += ">";
-
+            s.Parameter = GetTypeName(method.GetParameters().FirstOrDefault().ParameterType);
             s.Assembly = d.action.Method.ReflectedType.Assembly.GetName().Name;
 
             ret.Add(s);
@@ -325,5 +333,22 @@ class ObjectWindows : OdinMenuEditorWindow
             [LabelWidth(40)]
             public string Assembly;
         }
+    }
+
+    static string GetTypeName(Type type)
+    {
+        string name;
+        if (type.IsGenericType)
+        {
+            name = type.Name[..^2];
+            name += "<";
+            foreach (var item2 in type.GetGenericArguments())
+                name += $"{GetTypeName(item2)},";
+            name = name[..^1];
+            name += ">";
+        }
+        else
+            name = type.Name;
+        return name;
     }
 }

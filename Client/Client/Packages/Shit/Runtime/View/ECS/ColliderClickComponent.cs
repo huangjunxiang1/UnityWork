@@ -23,14 +23,24 @@ namespace Game
                 if (target.World.ObjectManager.TryGetByGid(gid, out var o))
                     target.World.Event.RunGenericEventAndBaseType(typeof(EC_ClickSObject<>), o);
                 else
-                    Loger.Error("不存在的对象 " + gid);
+                    Loger.Error("Not contains " + gid);
             }
         }
 
         Click click;
 
+        static void EventWatcher(EventWatcher<EC_GameObjectReplace, ColliderClickComponent> t)
+        {
+            if (t.t.old && t.t.old.TryGetComponent<Click>(out var c)) GameObject.DestroyImmediate(c);
+            if (t.t.Component.gameObject)
+            {
+                t.t2.click = t.t.Component.gameObject.GetComponent<Click>() ?? t.t.Component.gameObject.AddComponent<Click>();
+                t.t2.click.gid = t.t2.gid;
+                t.t2.click.target = t.t2;
+            }
+        }
         [Event]
-        static void AnyChange(AnyChange<ColliderClickComponent, GameObjectComponent> t)
+        static void In(In<ColliderClickComponent, GameObjectComponent> t)
         {
             if (t.t2.gameObject)
             {
@@ -38,8 +48,6 @@ namespace Game
                 t.t.click.gid = t.t.gid;
                 t.t.click.target = t.t;
             }
-            t.t2.Replace -= Replace;
-            t.t2.Replace += Replace;
         }
         [Event]
         static void Out(Out<GameObjectComponent, ColliderClickComponent> t)

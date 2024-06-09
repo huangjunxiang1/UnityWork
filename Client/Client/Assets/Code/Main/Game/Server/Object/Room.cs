@@ -145,7 +145,7 @@ namespace Game
         {
             if (!this.TryGetChildRpc(rpc, out var o))
             {
-                o = new Unit(rpc);
+                o = new Unit() { rpc = rpc };
                 o.As<Unit>().name = name;
                 this.AddChild(o);
 
@@ -205,7 +205,6 @@ namespace Game
     {
         public string name;
 
-        public Unit(long rpc) : base(rpc) { }
 
         public UnitInfo GetUnitInfo()
         {

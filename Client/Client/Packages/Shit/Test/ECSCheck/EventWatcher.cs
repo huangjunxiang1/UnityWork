@@ -10,8 +10,8 @@ internal class EventWatcher
 {
     public static void test()
     {
-        SObject o = new(5);
-        SObject o2 = new(6);
+        SObject o = new() { rpc = 5 };
+        SObject o2 = new() { rpc = 6 };
         Client.World.Root.AddChild(o);
         Client.World.Root.AddChild(o2);
         Evt e = new();
@@ -19,22 +19,33 @@ internal class EventWatcher
         o.AddComponent<c1>();
         o2.AddComponent<c1>();
 
-        Client.World.Event.RunRPCEvent(5, e);
+        Client.World.Event.RunEvent(e, rpc: 5);
         if (e.v != 1) throw new Exception();
 
-        Client.World.Event.RunRPCEvent(4, e);
+        Client.World.Event.RunEvent(e, rpc: 4);
         if (e.v != 1) throw new Exception();
 
         o.AddComponent<c2>();
         o2.AddComponent<c1>();
 
-        Client.World.Event.RunRPCEvent(5, e);
+        Client.World.Event.RunEvent(e, rpc: 5);
         if (e.v != 4) throw new Exception();
-        Client.World.Event.RunRPCEvent(4, e);
+        Client.World.Event.RunEvent(e, rpc: 4);
         if (e.v != 4) throw new Exception();
 
         Client.World.Event.RunEvent(e);
         if (e.v != 8) throw new Exception();
+
+        Client.World.Event.RunEvent(e, gid: o.gid);
+        if (e.v != 11) throw new Exception();
+
+        Client.World.Event.RunEvent(e, gid: o2.gid);
+        if (e.v != 12) throw new Exception();
+
+        Client.World.Event.RunEvent(e, gid: 4);
+        if (e.v != 12) throw new Exception();
+        Client.World.Event.RunEvent(e, gid: 5);
+        if (e.v != 12) throw new Exception();
     }
 
     class Evt

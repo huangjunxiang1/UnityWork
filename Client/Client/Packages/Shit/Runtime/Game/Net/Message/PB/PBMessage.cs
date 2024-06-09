@@ -10,7 +10,9 @@ namespace PB
 {
     public abstract class PBMessage : IMessage
     {
+        [Sirenix.OdinInspector.ShowInInspector]
         public uint rpc { get; set; }
+        [Sirenix.OdinInspector.ShowInInspector]
         public string error { get; set; }
 
         public abstract void Write(PBWriter writer);

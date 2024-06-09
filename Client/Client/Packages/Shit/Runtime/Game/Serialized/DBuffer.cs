@@ -304,9 +304,9 @@ public class DBuffer : IDisposable
         if (this.Readint() != Verify)
         {
 #if UNITY_2019_4_OR_NEWER
-            Loger.Error("不是DBuffer数据");
+            Loger.Error("is not DBuffer data");
 #else
-            Console.WriteLine("不是DBuffer数据");
+            Console.WriteLine("is not DBuffer data");
 #endif
             return false;
         }

@@ -62,7 +62,7 @@ public class STaskLocker : IDispose
     {
         if (key == 0)
         {
-            Loger.Error("key不能为0");
+            Loger.Error("key cannot is 0");
             return null;
         }
         if (!locks2.TryGetValue(key, out var locker) || locker.Disposed)

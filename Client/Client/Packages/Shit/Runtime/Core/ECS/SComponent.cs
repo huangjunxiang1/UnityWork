@@ -29,7 +29,11 @@ namespace Core
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
-        public virtual long rpc => this.Entity.rpc;
+        public virtual long rpc
+        {
+            get => this.Entity.rpc;
+            set => this.Entity.rpc = value;
+        }
 
         /// <summary>
         /// 自增生成的ID
@@ -44,14 +48,15 @@ namespace Core
             set
             {
                 if (_enable == value) return;
+                bool enable = this.Enable;
                 _enable = value;
                 if (World != null)
                 {
-                    if (value)
+                    if (this.Enable)
                         this.SetChange();
-                    if (value)
+                    if (!enable && this.Enable)
                         World.System.In(this.GetType(), this.Entity);
-                    else
+                    if (enable && !this.Enable)
                         World.System.Out(this.GetType(), this);
                 }
             }

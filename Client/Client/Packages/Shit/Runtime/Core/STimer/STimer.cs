@@ -53,11 +53,7 @@ namespace Core
 
         public void Add(float time, int count, Action call, ITimer target = null)
         {
-            if (atMap.ContainsKey(call))
-            {
-                Loger.Error($"{call.Method.ReflectedType} {call.Method.Name} 已经包含");
-                return;
-            }
+            Remove(call);
             atMap[call] = createTimer(time, count, call, target);
         }
         TimerItem createTimer(float time, int count, Action call, ITimer target = null)

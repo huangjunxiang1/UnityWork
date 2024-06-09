@@ -9,7 +9,7 @@ namespace Game
 {
     public partial class SGameObject : STree
     {
-        public SGameObject(long rpc = 0) : base(rpc)
+        public SGameObject()
         {
             this.KV = this.AddComponent<KVComponent>();
             this.Transform = this.AddComponent<TransformComponent>();

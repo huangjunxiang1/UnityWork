@@ -74,7 +74,7 @@ namespace Core
             for (int i = 0; i < list.Count; i++)
             {
                 try { list[i](o); }
-                catch (Exception e) { Loger.Error("In 出错 " + e); }
+                catch (Exception e) { Loger.Error("In Error " + e); }
             }
         }
         internal void Out(Type type, SComponent c)
@@ -83,7 +83,7 @@ namespace Core
             for (int i = 0; i < list.Count; i++)
             {
                 try { list[i].Item1(type, c); }
-                catch (Exception e) { Loger.Error("Out 出错 " + e); }
+                catch (Exception e) { Loger.Error("Out Error " + e); }
             }
         }
         internal void Out(Type type, SObject o, Dictionary<Type, __OutHandle> record)
@@ -92,13 +92,13 @@ namespace Core
             for (int i = 0; i < list.Count; i++)
             {
                 try { list[i].Item2.Invoke(o, record); }
-                catch (Exception e) { Loger.Error("Out 出错 " + e); }
+                catch (Exception e) { Loger.Error("Out Error " + e); }
             }
         }
         internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Add(h);
         internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
         internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
-        internal void EventWatcher(long rpc, object e)
+        internal void EventWatcherRpc(long rpc, object e)
         {
             if (!world.ObjectManager.TryGetByRpc(rpc, out var lst))
                 return;
@@ -113,6 +113,15 @@ namespace Core
                     acts[i].Item2.Invoke(e, lst[j]);
                 }
             }
+        }
+        internal void EventWatcherGid(long gid, object e)
+        {
+            if (!world.ObjectManager.TryGetByGid(gid, out var o))
+                return;
+            if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
+                return;
+            for (int i = 0; i < acts.Count; i++)
+                acts[i].Item2.Invoke(e, o);
         }
         internal void EventWatcher(object e)
         {

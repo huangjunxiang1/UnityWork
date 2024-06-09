@@ -97,8 +97,6 @@ partial class FUIFighting4
             Box.Tips("未初始化障碍");
             return;
         }
-        World.Timer.Remove(draw);
-
         World.Timer.Add(0, -1, draw);
 
         mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);

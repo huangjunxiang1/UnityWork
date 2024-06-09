@@ -8,7 +8,6 @@ namespace Core
 {
     public class STree : SObject
     {
-        public STree(long rpc = 0) : base(rpc) { }
 
         Dictionary<long, SObject> _childrenGMap = ObjectPool.Get<Dictionary<long, SObject>>();
         Dictionary<long, SObject> _childrenRMap = ObjectPool.Get<Dictionary<long, SObject>>();
@@ -26,6 +25,11 @@ namespace Core
         /// <param name="child"></param>
         public override void AddChild(SObject child)
         {
+            if (this.World == null)
+            {
+                Loger.Error($"{this} Not Add To Any World");
+                return;
+            }
             if (child.Parent == this)
                 return;
 
@@ -35,7 +39,7 @@ namespace Core
             {
                 if (o == child)
                 {
-                    Loger.Error("树节点循环");
+                    Loger.Error("STree Node Loop");
                     return;
                 }
             } while ((o = o.Parent) != null);
@@ -50,7 +54,7 @@ namespace Core
                 if (!_childrenRMap.ContainsKey(child.rpc))
                     _childrenRMap[child.rpc] = child;
                 else
-                    Loger.Error($"已经包含子对象 this={this} child={child}");
+                    Loger.Error($"Already Contains Child this={this} child={child}");
             }
 
             _children.Add(child);
@@ -154,9 +158,11 @@ namespace Core
                 _children = null;
                 for (int i = tmp.Count - 1; i >= 0; i--)
                 {
-                    tmp[i].Parent = null;
-                    if (!tmp[i].Disposed)
+                    if (!tmp[i].Disposed && tmp[i].Parent == this)
+                    {
+                        tmp[i].Parent = null;
                         tmp[i].Dispose();
+                    }
                 }
                 tmp.Clear();
                 ObjectPool.Return(tmp);
@@ -173,7 +179,7 @@ namespace Core
                 _children = ObjectPool.Get<List<SObject>>();
                 for (int i = tmp.Count - 1; i >= 0; i--)
                 {
-                    if (!tmp[i].Disposed)
+                    if (!tmp[i].Disposed && tmp[i].Parent == this)
                         tmp[i].Dispose();
                 }
                 tmp.Clear();

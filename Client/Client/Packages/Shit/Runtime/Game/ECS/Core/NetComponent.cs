@@ -44,9 +44,9 @@ namespace Game
                 {
                     //自动注册的事件一般是底层事件 所以先执行底层监听
                     if (message.rpc != 0)
-                        this.World.Event.RunRPCEvent(message.rpc, (object)message);
+                        this.World.Event.RunEvent((object)message, message.rpc);
                     else if (this.rpc != 0)
-                        this.World.Event.RunRPCEvent(this.rpc, (object)message);
+                        this.World.Event.RunEvent((object)message, this.rpc);
                     else
                         this.World.Event.RunEvent((object)message);
                 }
@@ -67,8 +67,10 @@ namespace Game
             this.World.Thread.Post(() =>
             {
                 var v = new EC_Disconnect { rpc = this.rpc };
-                this.World.Event.RunRPCEvent(this.rpc, v);
-                this.World.Event.RunEvent(v);
+                if (this.rpc != 0)
+                    this.World.Event.RunEvent(v, rpc: this.rpc);
+                else
+                    this.World.Event.RunEvent(v);
             });
         }
         public SBaseNet SetSession(SBaseNet session, bool disConnect = true)

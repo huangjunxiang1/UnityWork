@@ -21,7 +21,7 @@ public class Login : STree
         while (true)
         {
             var client = await tcp.AcceptTcpClientAsync();
-            Player o = new((uint)Util.RandomInt());
+            Player o = new() { rpc = (uint)Util.RandomInt() };
             t.t.AddChild(o);
             o.AddComponent(new NetComponent(false)).SetSession(new STCP(client)).Work();
         }
@@ -50,6 +50,5 @@ public class Login : STree
 }
 public class Player : SObject
 {
-    public Player(uint rpc) : base(rpc) { }
     public string acc;
 }

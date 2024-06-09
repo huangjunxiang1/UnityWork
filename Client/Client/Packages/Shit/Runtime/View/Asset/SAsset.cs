@@ -83,7 +83,7 @@ namespace Game
 #if DebugEnable
             if (t == typeof(GameObject))
             {
-                Loger.Error("GameObject 不使用这个函数加载");
+                Loger.Error("GameObject Cannot Use This Method");
                 return default;
             }
 #endif
@@ -95,7 +95,7 @@ namespace Game
 #if DebugEnable
             if (t == typeof(GameObject))
             {
-                Loger.Error("GameObject 不使用这个函数加载");
+                Loger.Error("GameObject Cannot Use This Method");
                 return default;
             }
 #endif

@@ -1,4 +1,5 @@
 ﻿using Core;
+using Event;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,8 +48,6 @@ namespace Game
         /// 资源模型
         /// </summary>
         public GameObject gameObject { get; private set; }
-
-        internal Action<GameObject, GameObject> Replace;
 
         protected override void View(bool view)
         {
@@ -125,7 +124,6 @@ namespace Game
                 default:
                     break;
             }
-            Replace?.Invoke(old, this.gameObject);
             this.SetChange();
 #if UNITY_EDITOR
             if (this.gameRoot && this.gameObjectType != SGameObjectType.Static)
@@ -138,6 +136,10 @@ namespace Game
                 this.gameRoot.name = s;
             }
 #endif
+            EC_GameObjectReplace c = new();
+            c.Component = this;
+            c.old = old;
+            this.World.Event.RunEvent(c);
         }
         public void SetGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool) => _ = LoadGameObjectAsync(url, releaseMode);
 

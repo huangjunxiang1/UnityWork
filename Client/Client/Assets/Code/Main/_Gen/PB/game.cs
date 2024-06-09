@@ -10,7 +10,7 @@ namespace game
     [Message(540237658, typeof(S2C_SyncTransform))]
     public partial class C2S_SyncTransform
     {
-        public float2 dir { get; set; }
+        public float2 dir;
     }
 
     /// <summary>
@@ -19,9 +19,9 @@ namespace game
     [Message(539189066)]
     public partial class S2C_SyncTransform
     {
-        public float3 p { get; set; }
-        public float4 r { get; set; }
-        public bool isMoving { get; set; }
+        public float3 p;
+        public float4 r;
+        public bool isMoving;
     }
 
     [Message(943545107, typeof(S2C_Ping))]

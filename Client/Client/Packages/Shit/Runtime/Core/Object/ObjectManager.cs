@@ -5,7 +5,7 @@ namespace Core
 {
     public class ObjectManager
     {
-        Dictionary<long, List<SObject>> map = new();
+        Dictionary<long, List<SObject>> rpcMap = new();
         Dictionary<long, SObject> gidMap = new();
         Queue<SObject> removed = new();
         Dictionary<Type, List<SObject>> eventWatcherFirstType = new(100);
@@ -19,10 +19,12 @@ namespace Core
         internal void Add(SObject o)
         {
             gidMap.Add(o.gid, o);
-            if (o.rpc == 0) return;
-            if (!map.TryGetValue(o.rpc, out var lst))
-                map[o.rpc] = lst = ObjectPool.Get<List<SObject>>();
-            lst.Add(o);
+            if (o.rpc != 0)
+            {
+                if (!rpcMap.TryGetValue(o.rpc, out var lst))
+                    rpcMap[o.rpc] = lst = ObjectPool.Get<List<SObject>>();
+                lst.Add(o);
+            }
         }
         internal void AddComponent(SComponent c, Type t)
         {
@@ -37,27 +39,27 @@ namespace Core
         internal void Remove(SObject o)
         {
             gidMap.Remove(o.gid);
-            removed.Enqueue(o);
+            if (o.rpc != 0)
+                removed.Enqueue(o);
             foreach (var item in o._components.Keys)
             {
                 if (eventWatcherFirstType.ContainsKey(item))
                     eventWatcherRemoved.Add(item);
             }
         }
-        internal bool TryGetByRpc(long rpc, out List<SObject> lst) => map.TryGetValue(rpc, out lst);
+        internal bool TryGetByRpc(long rpc, out List<SObject> lst) => rpcMap.TryGetValue(rpc, out lst);
         public bool TryGetByGid(long gid, out SObject o) => gidMap.TryGetValue(gid, out o);
 
         internal void AfterUpdate()
         {
             while (removed.TryDequeue(out var o))
             {
-                if (o.rpc == 0) continue;
-                if (map.TryGetValue(o.rpc, out var lst))
+                if (rpcMap.TryGetValue(o.rpc, out var lst))
                 {
                     lst.RemoveAll(t => t.Disposed);
                     if (lst.Count == 0)
                     {
-                        map.Remove(o.rpc);
+                        rpcMap.Remove(o.rpc);
                         ObjectPool.Return(lst);
                     }
                 }

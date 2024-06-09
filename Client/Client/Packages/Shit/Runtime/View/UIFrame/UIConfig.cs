@@ -18,7 +18,7 @@ namespace Game
         public UIConfig(int SortOrder)
         {
             if (SortOrder > 100 || SortOrder < -100)
-                Loger.Error("SortOrder不能超过-100到100");
+                Loger.Error("SortOrder must be range -100 to 100");
 
             this.SortOrder = SortOrder;
         }

@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using System;
 
 public interface IData { }
 namespace Event
