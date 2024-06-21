@@ -194,7 +194,10 @@ namespace Game
                     break;
                 case SGameObjectType.LogicRoot:
                     if (t.t.gameObject)
+                    {
+                        t.t.gameRoot.transform.localScale = Vector3.one;
                         SAsset.Release(t.t.gameObject);
+                    }
                     GameObject.DestroyImmediate(t.t.gameRoot);
                     break;
                 default:

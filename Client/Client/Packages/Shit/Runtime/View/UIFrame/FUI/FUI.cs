@@ -1,6 +1,5 @@
 ﻿using FairyGUI;
 using System;
-using Game;
 
 public abstract class FUI : FUIBase
 {
@@ -33,6 +32,8 @@ public abstract class FUI : FUIBase
         (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
         if (Close == null)
             (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
+        if (Close == null)
+            (Close = this._ui.GetChild("_Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
@@ -60,6 +61,8 @@ public abstract class FUI : FUIBase
         (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
         if (Close == null)
             (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
+        if (Close == null)
+            (Close = this._ui.GetChild("_Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
         this._ui.visible = false;
         this.Binding();
         this.setConfig();

@@ -439,10 +439,8 @@ namespace Core
             World.Event.RunGenericEvent(typeof(Awake<>), c, type);
             if (c.Disposed) return;
             if (c.Enable)
-            {
                 World.System.In(type, this);
-                c.SetChange();
-            }
+            c.SetChange();
         }
         internal bool RemoveComponentInternal(Type type)
         {

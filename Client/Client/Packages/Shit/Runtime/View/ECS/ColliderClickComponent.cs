@@ -32,15 +32,9 @@ namespace Game
         static void EventWatcher(EventWatcher<EC_GameObjectReplace, ColliderClickComponent> t)
         {
             if (t.t.old && t.t.old.TryGetComponent<Click>(out var c)) GameObject.DestroyImmediate(c);
-            if (t.t.Component.gameObject)
-            {
-                t.t2.click = t.t.Component.gameObject.GetComponent<Click>() ?? t.t.Component.gameObject.AddComponent<Click>();
-                t.t2.click.gid = t.t2.gid;
-                t.t2.click.target = t.t2;
-            }
         }
         [Event]
-        static void In(In<ColliderClickComponent, GameObjectComponent> t)
+        static void AnyChange(AnyChange<ColliderClickComponent, GameObjectComponent> t)
         {
             if (t.t2.gameObject)
             {
@@ -54,13 +48,6 @@ namespace Game
         {
             if (t.t2.click)
                 GameObject.DestroyImmediate(t.t2.click);
-        }
-
-        static void Replace(GameObject a, GameObject b)
-        {
-            var click = a?.GetComponent<Click>();
-            if (click)
-                GameObject.DestroyImmediate(click);
         }
     }
 }
