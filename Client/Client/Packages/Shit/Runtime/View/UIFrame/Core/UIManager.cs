@@ -213,6 +213,14 @@ namespace Game
                 ui.Dispose();
             }
         }
+        public void CloseAll()
+        {
+            foreach (var ui in this.ToChildren())
+            {
+                if (ui.Disposed) continue;
+                ui.Dispose();
+            }
+        }
 
         [Event(-101)]
         void outScene(EC_OutScene e) => CloseAll(ui => true);

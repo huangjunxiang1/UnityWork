@@ -84,18 +84,22 @@ class Program
                 FileInfo fi = new FileInfo(path);
                 ExcelPackage pkg = new ExcelPackage(fi);
 
-                List<int> lines = new List<int>();
-                var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
-                int len = array.GetLength(0);
-                for (int j = 3; j <= len; j++)
-                {
-                    if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[0].Cells[j, 1].Text))
-                        lines.Add(j);
-                }
-
                 temp3 tt = new temp3();
                 tt.fi = fi;
-                tt.dataLines = lines;
+                for (int i = 0; i < pkg.Workbook.Worksheets.Count; i++)
+                {
+                    List<int> lines = new List<int>();
+                    var array = (object[,])pkg.Workbook.Worksheets[i].Cells.Value;
+                    int len = array.GetLength(0);
+                    for (int j = 3; j <= len; j++)
+                    {
+                        if (!string.IsNullOrEmpty(pkg.Workbook.Worksheets[i].Cells[j, 1].Text))
+                            lines.Add(j);
+                    }
+
+                    tt.dataLines.Add((i, lines));
+                }
+               
                 tt.isCommonTab = fi.Name == "_Common.xlsx";
 
                 temp3Lst.Add(tt);
@@ -107,55 +111,60 @@ class Program
 
                 for (int j = 0; j < tag.Count; j++)
                 {
-                    int x = -1;
-                    var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
-                    int len = array.GetLength(1);
-                    for (int k = 1; k <= len; k++)
-                    {
-                        if (pkg.Workbook.Worksheets[0].Cells[2, k].Text == tag[j])
-                        {
-                            x = k;
-                            break;
-                        }
-                    }
-                    if (x == -1)
-                    {
-                        Console.WriteLine($"{item.fi.Name} 没有配置{tag[j]}的语言列");
-                        Console.ReadLine();
-                        return;
-                    }
-
                     var lan_1 = lan[tag[j]];
-                    for (int i = 0; i < item.dataLines.Count; i++)
+                    for (int s = 0; s < item.dataLines.Count; s++)
                     {
-                        var str = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], 1].Text;
-                        if (item.isCommonTab)
+                        int sheet = item.dataLines[s].Item1;
+                        var dataLines = item.dataLines[s].Item2;
+                        int x = -1;
+                        var array = (object[,])pkg.Workbook.Worksheets[sheet].Cells.Value;
+                        int len = array.GetLength(1);
+                        for (int k = 1; k <= len; k++)
                         {
-                            if (pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], 3].Text == "[]")
+                            if (pkg.Workbook.Worksheets[sheet].Cells[2, k].Text == tag[j])
                             {
-                                string s = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text;
-                                string[] arr = s.Split(Common.arraySplit, StringSplitOptions.RemoveEmptyEntries);
-                                lan_1.kv3.Add(new KV3 { key = "gk_" + str, v = arr });
+                                x = k;
+                                break;
+                            }
+                        }
+                        if (x == -1)
+                        {
+                            Console.WriteLine($"{item.fi.Name} sheet:{pkg.Workbook.Worksheets[sheet].Name} 没有配置{tag[j]}的语言列");
+                            Console.ReadLine();
+                            return;
+                        }
+
+                        for (int i = 0; i < dataLines.Count; i++)
+                        {
+                            var str = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], 1].Text;
+                            if (item.isCommonTab)
+                            {
+                                if (pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], 3].Text == "[]")
+                                {
+                                    string text = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], x].Text;
+                                    string[] arr = text.Split(Common.arraySplit, StringSplitOptions.RemoveEmptyEntries);
+                                    lan_1.kv3.Add(new KV3 { key = "gk_" + str, v = arr });
+                                }
+                                else
+                                {
+                                    lan_1.kv2.Add(new KV2 { key = "gk_" + str, v = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], x].Text });
+                                }
+                                continue;
+                            }
+                            if (int.TryParse(str, out var key))
+                            {
+                                lan_1.kv.Add(new KV { key = key, v = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], x].Text });
                             }
                             else
                             {
-                                lan_1.kv2.Add(new KV2 { key = "gk_" + str, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text });
+                                if (str.StartsWith("gk_"))
+                                {
+                                    Console.WriteLine($"以[gk_]开头的id是_Common表的保留id 请勿使用 ->{item.fi.Name}");
+                                    Console.ReadLine();
+                                    return;
+                                }
+                                lan_1.kv2.Add(new KV2 { key = str, v = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], x].Text });
                             }
-                            continue;
-                        }
-                        if (int.TryParse(str, out var key))
-                        {
-                            lan_1.kv.Add(new KV { key = key, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text });
-                        }
-                        else
-                        {
-                            if (str.StartsWith("gk_"))
-                            {
-                                Console.WriteLine($"以[gk_]开头的id是_Common表的保留id 请勿使用 ->{item.fi.Name}");
-                                Console.ReadLine();
-                                return;
-                            }
-                            lan_1.kv2.Add(new KV2 { key = str, v = pkg.Workbook.Worksheets[0].Cells[item.dataLines[i], x].Text });
                         }
                     }
                 }
@@ -196,11 +205,16 @@ class Program
                 str.AppendLine("{");
                 for (int i = 0; i < item.dataLines.Count; i++)
                 {
-                    string s = pkgh.Workbook.Worksheets[0].Cells[item.dataLines[i], 1].Text;
-                    if (pkgh.Workbook.Worksheets[0].Cells[item.dataLines[i], 3].Text == "[]")
-                        str.AppendLine($"    public static string[] {s} => \"gk_{s}\".ToLans();");
-                    else
-                        str.AppendLine($"    public static string {s} => \"gk_{s}\".ToLan();");
+                    int sheet = item.dataLines[i].Item1;
+                    var dataLines = item.dataLines[i].Item2;
+                    for (int j = 0; j < dataLines.Count; j++)
+                    {
+                        string s = pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 1].Text;
+                        if (pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 3].Text == "[]")
+                            str.AppendLine($"    public static string[] {s} => \"gk_{s}\".ToLans();");
+                        else
+                            str.AppendLine($"    public static string {s} => \"gk_{s}\".ToLan();");
+                    }
                 }
                 str.AppendLine("}");
                 File.WriteAllText(codePath + "TabCommonLanguage.cs", str.ToString());

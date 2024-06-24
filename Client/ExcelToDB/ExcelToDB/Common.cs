@@ -1141,7 +1141,7 @@ class temp
 class temp3
 {
     public FileInfo fi;
-    public List<int> dataLines;
+    public List<(int, List<int>)> dataLines = new();
     public bool isCommonTab = false;
 }
 struct KV

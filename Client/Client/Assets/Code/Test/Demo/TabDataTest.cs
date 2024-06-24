@@ -121,8 +121,14 @@ class TabDataTest
         else
             LanguageUtil.Load((int)SystemLanguage.Chinese, buff_cn, true);
         LanguageUtil.LanguageType = SystemLanguage.Chinese;
-        if (1.ToLan() != "草泥马")
+
+        if ("gk_a".ToLan() != "草泥马")
             throw new System.Exception("数据出错");
+        if ("gk_aa".ToLans()[1] != "4")
+            throw new System.Exception("数据出错");
+        if ("gk_a3".ToLan() != "草泥马3")
+            throw new System.Exception("数据出错");
+
         if (2.ToLan() != "草泥马2")
             throw new System.Exception("数据出错");
         if (3.ToLan() != "草泥马3")
@@ -131,14 +137,22 @@ class TabDataTest
             throw new System.Exception("数据出错");
         if ("k3".ToLan() != "草泥马3")
             throw new System.Exception("数据出错");
+        if (23.ToLan() != "草泥马23")
+            throw new System.Exception("数据出错");
 
         if (!buff_en.ReadHeaderInfo())
             throw new System.Exception("不是Language_en数据");
         else
             LanguageUtil.Load((int)SystemLanguage.English, buff_en, true);
         LanguageUtil.LanguageType = SystemLanguage.English;
-        if (1.ToLan() != "english")
+
+        if ("gk_a".ToLan() != "english")
             throw new System.Exception("数据出错");
+        if ("gk_aa".ToLans()[1] != "b")
+            throw new System.Exception("数据出错");
+        if ("gk_aa3".ToLans()[1] != "bu")
+            throw new System.Exception("数据出错");
+
         if (2.ToLan() != "english2")
             throw new System.Exception("数据出错");
         if (3.ToLan() != "english3")
@@ -146,6 +160,8 @@ class TabDataTest
         if ("k2".ToLan() != "english2")
             throw new System.Exception("数据出错");
         if ("k3".ToLan() != "english3")
+            throw new System.Exception("数据出错");
+        if ("k33".ToLan() != "english33")
             throw new System.Exception("数据出错");
     }
     static void test_ST(DBuffer buffM)

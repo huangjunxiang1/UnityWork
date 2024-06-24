@@ -9,21 +9,17 @@ namespace Game
 {
     public partial class SGameObject : STree
     {
-        public SGameObject(SGameObjectType type) : this()
+#if !Server
+        public SGameObject(SGameObjectType type = SGameObjectType.LogicRoot)
         {
-            this.type = type;
+            this.KV = this.AddComponent<KVComponent>();
+            this.Transform = this.AddComponent<TransformComponent>();
+            this.GameObject = this.AddComponent(new GameObjectComponent(type));
+            this.Playing = this.AddComponent<PlayingComponent>();
         }
-
-        SGameObjectType type = SGameObjectType.LogicRoot;
+#endif
 
         public GameObjectComponent GameObject { get; private set; }
         public PlayingComponent Playing { get; private set; }
-
-        [Event(-1)]
-        static void Awake(Awake<SGameObject> t)
-        {
-            t.t.GameObject = t.t.AddComponent(new GameObjectComponent(t.t.type));
-            t.t.Playing = t.t.AddComponent<PlayingComponent>();
-        }
     }
 }
