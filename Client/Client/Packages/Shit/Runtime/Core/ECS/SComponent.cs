@@ -96,7 +96,7 @@ namespace Core
             if (_changeHandles != null)
             {
                 for (int i = 0; i < _changeHandles.Count; i++)
-                    _changeHandles[i].AddToRemoveWait();
+                    _changeHandles[i].Dispose();
             }
             if (_kvWatcherHandles != null)
             {

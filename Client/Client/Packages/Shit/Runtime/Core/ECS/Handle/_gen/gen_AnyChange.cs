@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 public class AnyChange<T, T2> : __ChangeHandle where T : SComponent where T2 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed;
     public AnyChange(T t, T2 t2) { this.t = t; this.t2 = t2; }
     public T t { get; }
     public T2 t2 { get; }
@@ -21,7 +22,7 @@ public class AnyChange<T, T2> : __ChangeHandle where T : SComponent where T2 : S
         c._changeHandles.Add(v);
         c2._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -29,13 +30,13 @@ public class AnyChange<T, T2> : __ChangeHandle where T : SComponent where T2 : S
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed)) return;
-        if (!t.Enable || !t2.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed;
     public AnyChange(T t, T2 t2, T3 t3) { this.t = t; this.t2 = t2; this.t3 = t3; }
     public T t { get; }
     public T2 t2 { get; }
@@ -54,7 +55,7 @@ public class AnyChange<T, T2, T3> : __ChangeHandle where T : SComponent where T2
         c2._changeHandles.Add(v);
         c3._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -63,13 +64,13 @@ public class AnyChange<T, T2, T3> : __ChangeHandle where T : SComponent where T2
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3, T4> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed;
     public AnyChange(T t, T2 t2, T3 t3, T4 t4) { this.t = t; this.t2 = t2; this.t3 = t3; this.t4 = t4; }
     public T t { get; }
     public T2 t2 { get; }
@@ -92,7 +93,7 @@ public class AnyChange<T, T2, T3, T4> : __ChangeHandle where T : SComponent wher
         c3._changeHandles.Add(v);
         c4._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -102,13 +103,13 @@ public class AnyChange<T, T2, T3, T4> : __ChangeHandle where T : SComponent wher
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3, T4, T5> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed;
     public AnyChange(T t, T2 t2, T3 t3, T4 t4, T5 t5) { this.t = t; this.t2 = t2; this.t3 = t3; this.t4 = t4; this.t5 = t5; }
     public T t { get; }
     public T2 t2 { get; }
@@ -135,7 +136,7 @@ public class AnyChange<T, T2, T3, T4, T5> : __ChangeHandle where T : SComponent 
         c4._changeHandles.Add(v);
         c5._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -146,13 +147,13 @@ public class AnyChange<T, T2, T3, T4, T5> : __ChangeHandle where T : SComponent 
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3, T4, T5, T6> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed;
     public AnyChange(T t, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) { this.t = t; this.t2 = t2; this.t3 = t3; this.t4 = t4; this.t5 = t5; this.t6 = t6; }
     public T t { get; }
     public T2 t2 { get; }
@@ -183,7 +184,7 @@ public class AnyChange<T, T2, T3, T4, T5, T6> : __ChangeHandle where T : SCompon
         c5._changeHandles.Add(v);
         c6._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -195,13 +196,13 @@ public class AnyChange<T, T2, T3, T4, T5, T6> : __ChangeHandle where T : SCompon
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3, T4, T5, T6, T7> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed;
     public AnyChange(T t, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7) { this.t = t; this.t2 = t2; this.t3 = t3; this.t4 = t4; this.t5 = t5; this.t6 = t6; this.t7 = t7; }
     public T t { get; }
     public T2 t2 { get; }
@@ -236,7 +237,7 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7> : __ChangeHandle where T : SCo
         c6._changeHandles.Add(v);
         c7._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -249,13 +250,13 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7> : __ChangeHandle where T : SCo
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed;
     public AnyChange(T t, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8) { this.t = t; this.t2 = t2; this.t3 = t3; this.t4 = t4; this.t5 = t5; this.t6 = t6; this.t7 = t7; this.t8 = t8; }
     public T t { get; }
     public T2 t2 { get; }
@@ -294,7 +295,7 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8> : __ChangeHandle where T :
         c7._changeHandles.Add(v);
         c8._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -308,13 +309,13 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8> : __ChangeHandle where T :
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = t8._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8, T9> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent where T9 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed || t9.Disposed;
     public AnyChange(T t, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9) { this.t = t; this.t2 = t2; this.t3 = t3; this.t4 = t4; this.t5 = t5; this.t6 = t6; this.t7 = t7; this.t8 = t8; this.t9 = t9; }
     public T t { get; }
     public T2 t2 { get; }
@@ -357,7 +358,7 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8, T9> : __ChangeHandle where
         c8._changeHandles.Add(v);
         c9._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -372,13 +373,13 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8, T9> : __ChangeHandle where
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = t8._setChanged = t9._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed || t9.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
 public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __ChangeHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent where T9 : SComponent where T10 : SComponent
 {
+    internal override bool Disposed => t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed || t9.Disposed || t10.Disposed;
     public AnyChange(T t, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10) { this.t = t; this.t2 = t2; this.t3 = t3; this.t4 = t4; this.t5 = t5; this.t6 = t6; this.t7 = t7; this.t8 = t8; this.t9 = t9; this.t10 = t10; }
     public T t { get; }
     public T2 t2 { get; }
@@ -425,7 +426,7 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __ChangeHandle 
         c9._changeHandles.Add(v);
         c10._changeHandles.Add(v);
     }
-    internal override void AddToRemoveWait()
+    internal override void Dispose()
     {
         t.World.System.AddToChangeWaitRemove(t);
         t2.World.System.AddToChangeWaitRemove(t2);
@@ -441,8 +442,7 @@ public class AnyChange<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __ChangeHandle 
     internal override void Invoke()
     {
         t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = t8._setChanged = t9._setChanged = t10._setChanged = false;
-        if (this.Disposed = (t.Disposed || t2.Disposed || t3.Disposed || t4.Disposed || t5.Disposed || t6.Disposed || t7.Disposed || t8.Disposed || t9.Disposed || t10.Disposed)) return;
-        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable || !t10.Enable) return;
+        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable || !t10.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }

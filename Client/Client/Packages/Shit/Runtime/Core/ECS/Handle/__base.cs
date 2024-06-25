@@ -13,8 +13,8 @@ public abstract class __OutHandle : __SystemHandle
 }
 public abstract class __ChangeHandle : __SystemHandle
 {
-    internal bool Disposed;
-    internal abstract void AddToRemoveWait();
+    internal abstract bool Disposed { get; }
+    internal abstract void Dispose();
     internal abstract void Invoke();
 }
 public abstract class __UpdateHandle : __SystemHandle

@@ -29,9 +29,25 @@ internal class AnyChange
         Client.World.Update(0);
         if (o.v != 3) throw new System.Exception();
 
-        o.Dispose();
+        o.GetComponent<c_1>().Dispose();
         Client.World.Update(0);
         if (o.v != 3) throw new System.Exception();
+
+        o.AddComponent<c_1>();
+        Client.World.Update(0);
+        if (o.v != 4) throw new System.Exception();
+
+        o.GetComponent<c_2>().Dispose();
+        Client.World.Update(0);
+        if (o.v != 4) throw new System.Exception();
+
+        o.AddComponent<c_2>();
+        Client.World.Update(0);
+        if (o.v != 5) throw new System.Exception();
+
+        o.Dispose();
+        Client.World.Update(0);
+        if (o.v != 5) throw new System.Exception();
     }
 
     class c_1 : SComponent { }

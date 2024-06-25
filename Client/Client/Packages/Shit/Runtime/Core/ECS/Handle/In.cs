@@ -16,11 +16,11 @@ using System.Threading.Tasks;
 //        if (!o.World.Event.HasEvent(typeof(In<?[T]+, ?>))) return;
 //
 //?        if (!o.TryGetComponent<[T]>(out var [c]) || ![c].Enable) return;+\r?
-//        o.World.Event.RunEvent(new In<?[T]+, ?>(?[c]+, ?));
 // #if UNITY_EDITOR
 //        o.World.Event.GetEventQueue(typeof(In<?[T]+, ?>), out var v);
 //        o._In.AddRange(v);
 // #endif
+//        o.World.Event.RunEvent(new In<?[T]+, ?>(?[c]+, ?));
 //    }
 //}
 //end

@@ -14,11 +14,10 @@ public static class ObjectPool
         static readonly ConcurrentQueue<T> pool = new();
         public static T Get()
         {
-            T ret;
-            if (!pool.TryDequeue(out ret))
+            if (!pool.TryDequeue(out T ret))
                 ret = new T();
 #if UNITY_EDITOR
-            lock(p_malloc)
+            lock (p_malloc)
             {
                 if (!p_malloc.TryGetValue(typeof(T), out var lst))
                     p_malloc[typeof(T)] = lst = new();

@@ -56,6 +56,14 @@ namespace FairyGUI
         public static float DefaultCameraSize = 5;
         public static float DefaultUnitsPerPixel = 0.02f;
 
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void Init()
+        {
+            main = null;
+        }
+#endif
+
         void OnEnable()
         {
             cachedTransform = this.transform;
@@ -68,7 +76,6 @@ namespace FairyGUI
 
             if (Display.displays.Length > 1 && cachedCamera.targetDisplay != 0 && cachedCamera.targetDisplay < Display.displays.Length)
                 _display = Display.displays[cachedCamera.targetDisplay];
-
 #if HDRP
             hdrpPass = this.GetComponent<UnityEngine.Rendering.HighDefinition.CustomPassVolume>()?.customPasses.Find(t => t is FGUIHDRPRenderPass) as FGUIHDRPRenderPass;
 #endif
@@ -119,7 +126,11 @@ namespace FairyGUI
                     Stage.inst.HandleScreenSizeChanged(screenWidth, screenHeight, unitsPerPixel);
                 else
                 {
+#if UNITY_2022_2_OR_NEWER
+                    UIContentScaler scaler = GameObject.FindFirstObjectByType<UIContentScaler>();
+#else
                     UIContentScaler scaler = GameObject.FindObjectOfType<UIContentScaler>();
+#endif
                     if (scaler != null)
                         scaler.ApplyChange();
                     else
@@ -192,16 +203,10 @@ namespace FairyGUI
             camera.orthographicSize = DefaultCameraSize;
             camera.nearClipPlane = -30;
             camera.farClipPlane = 30;
-
-#if UNITY_5_4_OR_NEWER
             camera.stereoTargetEye = StereoTargetEyeMask.None;
-#endif
-
-#if UNITY_5_6_OR_NEWER
             camera.allowHDR = false;
             camera.allowMSAA = false;
-#endif
-
+            cameraObject.AddComponent<StageCamera>();
 #if HDRP
             var volume = cameraObject.AddComponent<UnityEngine.Rendering.HighDefinition.CustomPassVolume>();
             volume.injectionPoint = UnityEngine.Rendering.HighDefinition.CustomPassInjectionPoint.AfterPostProcess;
@@ -209,8 +214,6 @@ namespace FairyGUI
             pass.name = nameof(FGUIHDRPRenderPass);
             pass.layer = cullingMask;
 #endif
-            cameraObject.AddComponent<StageCamera>();
-
             return camera;
         }
     }

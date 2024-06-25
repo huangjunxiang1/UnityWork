@@ -1,8 +1,8 @@
 {
-    "name": "FairyGUIEditor",
+    "name": "FairyGUI-Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:ececc46d025df4f498fdf7bec5957489"
+        "FairyGUI"
     ],
     "includePlatforms": [
         "Editor"

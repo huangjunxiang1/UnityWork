@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 //begin#1
 //public class Change<?[T]+, ?> : __ChangeHandle ?where [T] : SComponent+ ?
 //{
+//    internal override bool Disposed => ?[t].Disposed+ || ?;
 //    public Change(?[T] [t]+, ?) { ?this.[t] = [t];+ ? }
 //?    public [T] [t] { get; }+\r?
 //
@@ -19,15 +20,14 @@ using System.Threading.Tasks;
 //        c._changeHandles.Add(v);
 //        o.World.System.AddToChangeWaitInvoke(v);
 //    }
-//    internal override void AddToRemoveWait()
+//    internal override void Dispose()
 //    {
 //        t.World.System.AddToChangeWaitRemove(t);
 //    }
 //    internal override void Invoke()
 //    {
 //        ?[t]._setChanged+ = ? = false;
-//        if (this.Disposed = (?[t].Disposed+ || ?)) return;
-//        if (?![t].Enable+ || ?) return;
+//        if (this.Disposed || ?![t].Enable+ || ?) return;
 //        t.World.Event.RunEventNoGCAndFaster(this);
 //    }
 //}
