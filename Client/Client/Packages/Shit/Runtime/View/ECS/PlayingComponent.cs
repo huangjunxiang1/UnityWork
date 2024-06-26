@@ -66,14 +66,19 @@ namespace Game
         {
             if (t.t.gameObject)
             {
+#if Animancer
                 if (t.t.gameObject.TryGetComponent<Animancer.NamedAnimancerComponent>(out var c))
                     t.t2.Set(new A_Animancer() { ani = c });
-                else if (t.t.gameObject.TryGetComponent<UnityEngine.Animation>(out var c2))
+                else
+#endif
+                if (t.t.gameObject.TryGetComponent<UnityEngine.Animation>(out var c2))
                     t.t2.Set(new A_Animation() { ani = c2 });
                 else if (t.t.gameObject.TryGetComponent<UnityEngine.Animator>(out var c3))
                     t.t2.Set(new A_Animator() { ani = c3 });
+#if Spine
                 else if (t.t.gameObject.TryGetComponent<Spine.Unity.SkeletonAnimation>(out var c4))
                     t.t2.Set(new A_Spine() { ani = c4 });
+#endif
                 else
                     t.t2.Set(null);
             }
@@ -81,6 +86,7 @@ namespace Game
                 t.t2.Set(null);
         }
 
+#if Animancer
         class A_Animancer : Playing
         {
             Animancer.AnimancerState state;
@@ -103,6 +109,7 @@ namespace Game
                 return 1;
             }
         }
+#endif
         class A_Animation : Playing
         {
             public UnityEngine.Animation ani;
@@ -152,6 +159,7 @@ namespace Game
                 ani.speed = playing.Speed;
             }
         }
+#if Spine
         class A_Spine : Playing
         {
             public Spine.Unity.SkeletonAnimation ani;
@@ -173,5 +181,6 @@ namespace Game
                 ani.timeScale = playing.Speed;
             }
         }
+#endif
     }
 }

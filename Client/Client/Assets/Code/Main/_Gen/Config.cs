@@ -1,7 +1,6 @@
 using UnityEngine;
 using Game;
 using System;
-using UnityEngine.InputSystem;
 
 public static partial class SettingM
 {
@@ -13,7 +12,7 @@ public class CMInput
 {
     public CMInput()
     {
-        this.Asset = SAsset.Load<InputActionAsset>("Config/SO/Main/CMInput.inputactions");
+        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>("Config/SO/Main/CMInput.inputactions");
         this.Asset.Enable();
         this.CMEditor = this.Asset.FindActionMap(new Guid(0x8ab7c044, 0xb1d5, 0x4d00, 0xad, 0xd9, 0xb5, 0xad, 0x34, 0x65, 0x1f, 0xb2));
         this.CMEditorMouseClick = this.CMEditor.FindAction(new Guid(0xf6e24bbd, 0xe3fa, 0x44d8, 0x92, 0x3a, 0x92, 0x48, 0xbd, 0xef, 0xed, 0xc6));
@@ -24,20 +23,41 @@ public class CMInput
         this.CMMobileMove = this.CMMobile.FindAction(new Guid(0xa5390b0f, 0x91f2, 0x482b, 0x87, 0x69, 0x12, 0x08, 0xe8, 0x96, 0x3f, 0x93));
     }
 
-    public InputActionAsset Asset { get; }
+    public UnityEngine.InputSystem.InputActionAsset Asset { get; }
 
-    public InputActionMap CMEditor { get; }
-    public InputAction CMEditorMouseClick { get; }
-    public InputAction CMEditorMouseMove { get; }
-    public InputAction CMEditorMouseWheel { get; }
-    public InputAction CMEditorMousePosition { get; }
-    public InputActionMap CMMobile { get; }
-    public InputAction CMMobileMove { get; }
+    public UnityEngine.InputSystem.InputActionMap CMEditor { get; }
+    public UnityEngine.InputSystem.InputAction CMEditorMouseClick { get; }
+    public UnityEngine.InputSystem.InputAction CMEditorMouseMove { get; }
+    public UnityEngine.InputSystem.InputAction CMEditorMouseWheel { get; }
+    public UnityEngine.InputSystem.InputAction CMEditorMousePosition { get; }
+    public UnityEngine.InputSystem.InputActionMap CMMobile { get; }
+    public UnityEngine.InputSystem.InputAction CMMobileMove { get; }
 
     public void Dispose()
     {
         SAsset.Release(Asset);
         this.CMEditor.Dispose();
         this.CMMobile.Dispose();
+    }
+}
+public class PlayerControl
+{
+    public PlayerControl()
+    {
+        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>("Config/SO/Main/PlayerControl.inputactions");
+        this.Asset.Enable();
+        this.Player = this.Asset.FindActionMap(new Guid(0x63cce95c, 0xfd08, 0x4620, 0xb2, 0xf4, 0x09, 0xfd, 0x85, 0x44, 0xfc, 0x42));
+        this.PlayerMove = this.Player.FindAction(new Guid(0x3ad895d5, 0x5f1b, 0x48ec, 0x9e, 0x02, 0xd7, 0x3e, 0xee, 0x99, 0xca, 0x3f));
+    }
+
+    public UnityEngine.InputSystem.InputActionAsset Asset { get; }
+
+    public UnityEngine.InputSystem.InputActionMap Player { get; }
+    public UnityEngine.InputSystem.InputAction PlayerMove { get; }
+
+    public void Dispose()
+    {
+        SAsset.Release(Asset);
+        this.Player.Dispose();
     }
 }

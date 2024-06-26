@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <Reference Include="Loger">
-      <HintPath>..\..\..\Client\Client\Packages\Shit\Plugins\Loger.dll</HintPath>
+      <HintPath>..\Compiler\Loger.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>..\..\..\Client\Client\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>

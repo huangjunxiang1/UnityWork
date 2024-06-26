@@ -1,11 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UI;
-using Game;
+
+#if FairyGUI
 using FairyGUI;
 
 public abstract class FUIBase : UIBase
@@ -181,3 +176,4 @@ public abstract class FUIBase : UIBase
         return STask.Completed;
     }
 }
+#endif

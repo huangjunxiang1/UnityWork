@@ -17,6 +17,16 @@ public abstract class UIBase : STree
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
+    public sealed override SObject Root
+    {
+        get
+        {
+            UIBase ui = this;
+            while (ui.Parent is UIBase uibase)
+                ui = uibase;
+            return ui;
+        }
+    }
     public abstract UIStates uiStates { get; }
     /// <summary>
     /// UI层级

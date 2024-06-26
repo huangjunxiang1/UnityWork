@@ -2,6 +2,7 @@
 using UnityEngine;
 using Game;
 
+#if UGUI
 public abstract class UUI : UUIBase
 {
     RectTransform _ui;
@@ -74,3 +75,4 @@ public abstract class UUI : UUIBase
             this.canvas.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
     }
 }
+#endif

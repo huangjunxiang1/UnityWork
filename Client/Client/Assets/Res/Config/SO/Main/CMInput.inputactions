@@ -9,7 +9,7 @@
                     "name": "MouseClick",
                     "type": "Button",
                     "id": "f6e24bbd-e3fa-44d8-923a-9248bdefedc6",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "Press",
                     "initialStateCheck": true

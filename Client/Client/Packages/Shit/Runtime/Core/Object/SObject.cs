@@ -148,7 +148,7 @@ namespace Core
         /// <summary>
         /// 根
         /// </summary>
-        public sealed override SObject Root
+        public override SObject Root
         {
             get
             {

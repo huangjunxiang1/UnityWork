@@ -1,6 +1,7 @@
-﻿using FairyGUI;
-using System;
+﻿using System;
 
+#if FairyGUI
+using FairyGUI;
 public abstract class FUI : FUIBase
 {
     GComponent _ui;
@@ -99,3 +100,4 @@ public abstract class FUI : FUIBase
             this._ui.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
     }
 }
+#endif

@@ -4,23 +4,23 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.UI;
-using FairyGUI;
 using System.Diagnostics;
-using Debug = UnityEngine.Debug;
 using System;
-using TMPro;
-using UnityEngine.InputSystem;
-using static UnityEditor.Progress;
-using Unity.Entities.UniversalDelegates;
-using UnityEngine.Rendering;
-using Mono.Cecil.Cil;
-using DG.Tweening.Plugins.Core.PathCore;
 using Core;
+using Debug = UnityEngine.Debug;
+
+#if UGUI
+using UnityEngine.UI;
+#endif
+#if FairyGUI
+using FairyGUI;
+#endif
 
 public class Tool
 {
     static bool tips = true;
+
+#if UGUI
     [MenuItem("Shit/生成UGUI代码", false, int.MaxValue - 100)]
     static void CreateUUICode()
     {
@@ -230,8 +230,9 @@ public class Tool
                 genFieldCode(go, child.GetChild(i), fieldCode, typeMap, getUICode, disposeStr);
         }
     }
+#endif
 
-
+#if FairyGUI
     [MenuItem("Shit/生成FGUI代码", false, int.MaxValue - 100)]
     static void CreateFUICode()
     {
@@ -321,7 +322,7 @@ public class Tool
         if (tips)
             EditorUtility.DisplayDialog("完成", "创建完成", "确定");
     }
-    static void appendField(string name, string path, GComponent obj, StringBuilder field, StringBuilder binding, StringBuilder dispose, Dictionary<Type, Type> typeMap)
+    static void appendField(string name, string path, FairyGUI.GComponent obj, StringBuilder field, StringBuilder binding, StringBuilder dispose, Dictionary<Type, Type> typeMap)
     {
         var cs = obj.GetChildren();
         for (int i = 0; i < cs.Length; i++)
@@ -373,7 +374,7 @@ public class Tool
             binding.AppendLine($"        {name + obj.Transitions[i].name} = {path}.GetTransitionAt({i});");
         }
     }
-    static void appendFUI3DCode(StringBuilder code, string path, UIPackage pkg, Dictionary<Type, Type> typeMap)
+    static void appendFUI3DCode(StringBuilder code, string path, FairyGUI.UIPackage pkg, Dictionary<Type, Type> typeMap)
     {
         var ds = Directory.GetDirectories(path);
         foreach (var d in ds)
@@ -435,6 +436,7 @@ public class Tool
             obj.Dispose();
         }
     }
+#endif
 
 
     [MenuItem("Shit/CopyTexture")]
@@ -453,7 +455,6 @@ public class Tool
             so.AppendLine("using UnityEngine;");
             so.AppendLine("using Game;");
             so.AppendLine("using System;");
-            so.AppendLine(@"using UnityEngine.InputSystem;");
             so.AppendLine("");
             so.AppendLine("public static partial class SettingM");
             so.AppendLine("{");
@@ -476,7 +477,6 @@ public class Tool
             so.AppendLine("using UnityEngine;");
             so.AppendLine("using Game;");
             so.AppendLine("using System;");
-            so.AppendLine(@"using UnityEngine.InputSystem;");
             so.AppendLine("");
             so.AppendLine("public static partial class SettingL");
             so.AppendLine("{");
@@ -512,9 +512,12 @@ public class Tool
                 continue;
             var ff = "Assets" + f.Replace(Application.dataPath, "");
             var o = AssetDatabase.LoadMainAssetAtPath(ff);
-            if (o is InputActionAsset input)
+#if ENABLE_INPUT_SYSTEM
+            if (o is UnityEngine.InputSystem.InputActionAsset input)
                 appendInputSystemCode(input, inputCode);
-            else if (o is ScriptableObject so)
+            else
+#endif
+            if (o is ScriptableObject so)
                 appendScriptObjectCode(so, soCode);
         }
     }
@@ -526,14 +529,15 @@ public class Tool
         code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})SAsset.Load<ScriptableObject>(\"{url.Replace(Game.SAsset.Directory, "")}\");");
     }
 
-    static void appendInputSystemCode(InputActionAsset input, StringBuilder str)
+#if ENABLE_INPUT_SYSTEM
+    static void appendInputSystemCode(UnityEngine.InputSystem.InputActionAsset input, StringBuilder str)
     {
         str.AppendLine($"public class {input.name}");
         str.AppendLine("{");
         str.AppendLine($"    public {input.name}()");
         str.AppendLine("    {");
         var url = AssetDatabase.GetAssetPath(input);
-        str.AppendLine($"        this.Asset = SAsset.Load<InputActionAsset>(\"{url.Replace(Game.SAsset.Directory, "")}\");");
+        str.AppendLine($"        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>(\"{url.Replace(Game.SAsset.Directory, "")}\");");
         str.AppendLine("        this.Asset.Enable();");
 
         foreach (var item in input.actionMaps)
@@ -549,15 +553,15 @@ public class Tool
 
         str.AppendLine(@"    }
 
-    public InputActionAsset Asset { get; }
+    public UnityEngine.InputSystem.InputActionAsset Asset { get; }
 ");
 
         foreach (var item in input.actionMaps)
         {
-            str.AppendLine($"    public InputActionMap {item.name} {{ get; }}");
+            str.AppendLine($"    public UnityEngine.InputSystem.InputActionMap {item.name} {{ get; }}");
             foreach (var act in item.actions)
             {
-                str.AppendLine($"    public InputAction {item.name}{act.name} {{ get; }}");
+                str.AppendLine($"    public UnityEngine.InputSystem.InputAction {item.name}{act.name} {{ get; }}");
             }
         }
 
@@ -572,14 +576,32 @@ public class Tool
         str.AppendLine("    }");
         str.AppendLine(@"}");
     }
+#endif
 
 
     [MenuItem("Shit/热重载配置表")]
     static void ReloadConfig()
     {
         if (!Application.isPlaying) return;
-        TabM.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes"))), ConstDefCore.Debug);
-        TabL.Init(new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes"))), ConstDefCore.Debug);
+
+        {
+            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes")));
+            if (!buff.ReadHeaderInfo())
+                throw new System.Exception("数据错误");
+            TabM.Init(buff, ConstDefCore.Debug);
+        }
+        {
+            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes")));
+            if (!buff.ReadHeaderInfo())
+                throw new System.Exception("数据错误");
+            TabL.Init(buff, ConstDefCore.Debug);
+        }
+        {
+            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/Language_{LanguageUtil.LanguageType}.bytes")));
+            if (!buff.ReadHeaderInfo())
+                throw new System.Exception("数据错误");
+            LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefCore.Debug);
+        }
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }
 
@@ -631,8 +653,12 @@ public class Tool
         tips = false;
         try
         {
+#if UGUI
             CreateUUICode();
+#endif
+#if FairyGUI
             CreateFUICode();
+#endif
             CreateConfigCode();
             GenTabs();
             GenPB();

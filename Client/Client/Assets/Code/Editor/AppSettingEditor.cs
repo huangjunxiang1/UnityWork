@@ -31,7 +31,7 @@ public class AppSettingEditor : Editor
     void refAsmdefAndDefine()
     {
         {
-            string path = Application.dataPath + "/Code/HotFix/HotFix.asmdef";
+            string path = Application.dataPath + "/Code/HotFix/Game.HotFix.asmdef";
             AssmblyOpter ao = AssmblyOpter.Load(path);
 
             if (setting.Runtime == CodeRuntime.Assembly)
@@ -54,14 +54,6 @@ public class AppSettingEditor : Editor
         for (int i = 0; i < groups.Length; i++)
         {
             List<string> defs = PlayerSettings.GetScriptingDefineSymbols(groups[i]).Split(';').ToList();
-
-            if (setting.Runtime == CodeRuntime.Assembly)
-            {
-                if (!defs.Contains("Assembly"))
-                    defs.Add("Assembly");
-            }
-            else
-                defs.RemoveAll(t => t == "Assembly");
 
             if (setting.Debug)
             {

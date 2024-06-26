@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using FairyGUI;
 using System.Reflection;
 using Event;
 
@@ -30,8 +29,10 @@ namespace Game
             UGUIRoot.pivot = Vector2.zero;
             UGUIRoot.position = Vector3.zero;
 
-            NTexture.CustomDestroyMethod += t => SAsset.Release(t);
-            NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
+#if FairyGUI
+            FairyGUI.NTexture.CustomDestroyMethod += t => SAsset.Release(t);
+            FairyGUI.NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
+#endif
 
             Client.World.Root.AddChild(this);
         }
@@ -207,7 +208,7 @@ namespace Game
 
         public void CloseAll(Func<UIBase, bool> test)
         {
-            foreach (var ui in this.GetChildren().FindAll(t => test((UIBase)t)))
+            foreach (var ui in this.ToChildren().FindAll(t => test((UIBase)t)))
             {
                 if (ui.Disposed) continue;
                 ui.Dispose();
@@ -223,6 +224,6 @@ namespace Game
         }
 
         [Event(-101)]
-        void outScene(EC_OutScene e) => CloseAll(ui => true);
+        void outScene(EC_OutScene e) => CloseAll();
     }
 }

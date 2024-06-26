@@ -1,6 +1,7 @@
 ﻿using Game;
 using UnityEngine;
 
+#if UGUI
 public abstract class UUI3D : UUIBase
 {
     RectTransform _ui;
@@ -60,3 +61,4 @@ public abstract class UUI3D : UUIBase
         });
     }
 }
+#endif

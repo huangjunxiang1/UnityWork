@@ -4,9 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
-using FairyGUI;
-using Game;
 
 static class InputHelper
 {
@@ -25,7 +22,7 @@ static class InputHelper
             eventSysCurrent.enabled = EnableCounter <= 0;
 #endif
 #if FairyGUI
-        GRoot.inst.touchable = EnableCounter <= 0;
+        FairyGUI.GRoot.inst.touchable = EnableCounter <= 0;
 #endif
     }
 }

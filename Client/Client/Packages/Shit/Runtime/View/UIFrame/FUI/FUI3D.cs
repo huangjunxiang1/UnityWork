@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+ 
+#if FairyGUI
 using FairyGUI;
 using Game;
 
@@ -74,3 +76,4 @@ public abstract class FUI3D : FUIBase
         base.Dispose();
     }
 }
+#endif

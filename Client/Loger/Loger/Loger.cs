@@ -5,6 +5,7 @@ using System.Threading;
 
 public static class Loger
 {
+    public static bool isUnity = true;
     public static Action<object> __get__log;
     public static Action<object> __get__warning;
     public static Action<object> __get__error;
@@ -14,6 +15,11 @@ public static class Loger
     [DebuggerHidden]
     public static void Log(object o)
     {
+        /*if (isUnity)
+        {
+            UnityEngine.Debug.Log(o);
+            return;
+        }*/
         __get__log?.Invoke(o);
     }
 
@@ -22,6 +28,11 @@ public static class Loger
     [DebuggerHidden]
     public static void Warning(object o)
     {
+        /*if (isUnity)
+        {
+            UnityEngine.Debug.LogWarning(o);
+            return;
+        }*/
         __get__warning?.Invoke(o);
     }
 
@@ -30,6 +41,11 @@ public static class Loger
     [DebuggerHidden]
     public static void Error(object o)
     {
+        /*if (isUnity)
+        {
+            UnityEngine.Debug.LogError(o);
+            return;
+        }*/
         __get__error?.Invoke(o);
     }
 

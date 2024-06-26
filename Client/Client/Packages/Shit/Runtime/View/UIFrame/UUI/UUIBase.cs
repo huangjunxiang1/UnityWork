@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Game;
 using Core;
+
+#if UGUI
 public abstract class UUIBase : UIBase
 {
     bool isShowing = false;
@@ -206,3 +208,4 @@ public abstract class UUIBase : UIBase
         base.Dispose();
     }
 }
+#endif
