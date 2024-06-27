@@ -50,7 +50,7 @@ namespace Game
 
             UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
-            ui = new();
+            ui = new() { isCrucialRoot = true };
             this.AddChild(ui);
             ui.LoadConfig(cfg, new STask<T>(), data);
             this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
@@ -84,7 +84,7 @@ namespace Game
                 UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
                 InputHelper.EnableUIInput(false);
-                ui = new();
+                ui = new() { isCrucialRoot = true };
                 this.AddChild(ui);
                 //在执行异步的过程中有可能会关闭这个UI
                 ui.onDispose.Add(() =>

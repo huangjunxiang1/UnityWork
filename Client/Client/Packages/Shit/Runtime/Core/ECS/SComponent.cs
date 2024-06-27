@@ -32,14 +32,14 @@ namespace Core
         public virtual long rpc
         {
             get => this.Entity.rpc;
-            set => this.Entity.rpc = value;
+            init => throw new NotSupportedException();
         }
 
         /// <summary>
         /// 自增生成的ID
         /// </summary>
         public virtual long gid => this.Entity.gid;
-        public virtual SObject Root => this.Entity.Root;
+        public virtual SObject CrucialRoot => this.Entity.CrucialRoot;
 
         [ShowInInspector]
         public virtual bool Enable

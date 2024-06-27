@@ -22,21 +22,6 @@ public static class Program
     {
         var tsc = ThreadSynchronizationContext.GetOrCreate(Environment.CurrentManagedThreadId);
         ThreadSynchronizationContext.SetMainThread(tsc);
-        Loger.__get__log += o =>
-        {
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"{o}");
-        };
-        Loger.__get__warning += o =>
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"warning:{o}");
-        };
-        Loger.__get__error += o =>
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"error:{o}");
-        };
 
         List<Type> types = Types.ReflectionAllTypes();
         MessageParser.Parse(types);

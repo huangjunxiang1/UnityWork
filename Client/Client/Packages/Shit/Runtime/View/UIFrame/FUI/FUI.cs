@@ -91,9 +91,9 @@ public abstract class FUI : FUIBase
         this._ui.AddRelation(GRoot.inst, RelationType.Center_Center);
         this._ui.fairyBatching = true;
 
-        int layer = this.Layer - 2;
+        int layer = this.CrucialLayer;
         if (layer > 3)
-            Loger.Error("层级太深");
+            Loger.Error("层级太深 layer=" + layer);
         if (this.Parent is not UIBase)
             this._ui.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
         else

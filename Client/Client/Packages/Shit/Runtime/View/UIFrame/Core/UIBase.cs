@@ -17,16 +17,6 @@ public abstract class UIBase : STree
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
-    public sealed override SObject Root
-    {
-        get
-        {
-            UIBase ui = this;
-            while (ui.Parent is UIBase uibase)
-                ui = uibase;
-            return ui;
-        }
-    }
     public abstract UIStates uiStates { get; }
     /// <summary>
     /// UI层级
@@ -98,10 +88,22 @@ public abstract class UIBase : STree
         {
             for (int i = arr.Count - 2; i >= 0; i--)
             {
-                if (!arr[i].Disposed && (arr[i] is FUI || arr[i] is UUI))
+                if (!arr[i].Disposed)
                 {
-                    ((UIBase)arr[i]).Show();
-                    break;
+#if FairyGUI
+                    if (arr[i] is FUI)
+                    {
+                        ((UIBase)arr[i]).Show();
+                        break;
+                    }
+#endif
+#if UGUI
+                    if (arr[i] is UUI)
+                    {
+                        ((UIBase)arr[i]).Show();
+                        break;
+                    }
+#endif
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sirenix.OdinInspector;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -30,7 +31,6 @@ namespace Core
         }
 
         World _world;
-        long _rpc;
         bool _eventEnable = true;
         bool _timerRigisterd = false;
         Eventer _onDispose;
@@ -91,19 +91,7 @@ namespace Core
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
-        public sealed override long rpc
-        {
-            get => _rpc;
-            set
-            {
-                if (this._world != null)
-                {
-                    Loger.Error("rpc set must being init Timing");
-                    return;
-                }
-                _rpc = value;
-            }
-        }
+        public sealed override long rpc { get; init; }
 
         /// <summary>
         /// 随机生成的ID
@@ -113,12 +101,19 @@ namespace Core
         /// <summary>
         /// 自用 表id
         /// </summary>
-        public long tid { get; set; }
+        public long tid { get; init; }
 
         /// <summary>
         /// 对象类型
         /// </summary>
-        public int ObjType { get; set; }
+        [ShowInInspector]
+        public int ObjType { get; init; }
+
+        /// <summary>
+        /// 关键节点
+        /// </summary>
+        [ShowInInspector]
+        public bool isCrucialRoot { get; init; }
 
         /// <summary>
         /// 事件监听
@@ -146,14 +141,14 @@ namespace Core
         public STree Parent { get; internal set; }
 
         /// <summary>
-        /// 根
+        /// 关键节点
         /// </summary>
-        public override SObject Root
+        public sealed override SObject CrucialRoot
         {
             get
             {
                 SObject root = this;
-                while (root.Parent != null)
+                while (!root.isCrucialRoot && root.Parent != null)
                     root = root.Parent;
                 return root;
             }
@@ -167,11 +162,29 @@ namespace Core
             get
             {
                 int layer = 0;
-                SObject parent = this.Parent;
-                while (parent != null)
+                SObject s = this;
+                while (s.Parent != null)
                 {
                     layer++;
-                    parent = parent.Parent;
+                    s = s.Parent;
+                }
+                return layer;
+            }
+        }
+
+        /// <summary>
+        /// 关键节点层级
+        /// </summary>
+        public int CrucialLayer
+        {
+            get
+            {
+                int layer = 0;
+                SObject s = this;
+                while (!s.isCrucialRoot && s.Parent != null)
+                {
+                    layer++;
+                    s = s.Parent;
                 }
                 return layer;
             }

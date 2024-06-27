@@ -85,11 +85,11 @@ namespace Core
                 var m = ms[i];
                 if (m.attribute is EventAttribute ea)
                 {
+                    EvtData e = new(m, target);
                     {
                         EventKey k = new(m.mainKey, 0, 0, ea.Type);
                         if (!_evtMap.TryGetValue(k, out var queue))
                             _evtMap[k] = queue = new();
-                        EvtData e = new(m, target);
                         queue.Add(e);
                     }
                     if (target.rpc != 0)
@@ -97,47 +97,18 @@ namespace Core
                         EventKey k = new(m.mainKey, target.rpc, 0, ea.Type);
                         if (!_evtMap.TryGetValue(k, out var queue))
                             _evtMap[k] = queue = new();
-                        EvtData e = new(m, target);
                         queue.Add(e);
                     }
                     {
                         EventKey k = new(m.mainKey, 0, target.gid, ea.Type);
                         if (!_evtMap.TryGetValue(k, out var queue))
                             _evtMap[k] = queue = new();
-                        EvtData e = new(m, target);
                         queue.Add(e);
                     }
                 }
             }
         }
-        public void RigisteEvent<T>(Action<T> callBack, int sortOrder = 0)
-        {
-            Checker.Check(callBack.Method);
-            EventKey k = new(typeof(T));
-            if (!_evtMap.TryGetValue(k, out var queue))
-                _evtMap[k] = queue = new();
-
-            EvtData e = new();
-            e.action = callBack;
-            e.sortOrder = sortOrder;
-            queue.Add(e);
-        }
-        public void RigisteEvent(Delegate callBack, int sortOrder = 0)
-        {
-            Checker.Check(callBack.Method);
-            Type[] gs = callBack.GetType().GetGenericArguments();
-            EventKey k = new(gs[0]);
-            if (!_evtMap.TryGetValue(k, out var queue))
-                _evtMap[k] = queue = new();
-
-            EvtData e = new();
-            e.action = callBack;
-            e.sortOrder = sortOrder;
-            e.isTask = gs[^1] == typeof(STask);
-            e.setHandler = gs.Length >= 2 && gs[1] == typeof(EventHandler);
-            queue.Add(e);
-        }
-        public void RigisteRPCEvent<T>(long rpc, Action<T> callBack, int sortOrder = 0)
+        public void RigisteEvent<T>(Action<T> callBack, long rpc = 0, int sortOrder = 0)
         {
             Checker.Check(callBack.Method);
             EventKey k = new(typeof(T), rpc);
@@ -149,7 +120,7 @@ namespace Core
             e.sortOrder = sortOrder;
             queue.Add(e);
         }
-        public void RigisteRPCEvent(long rpc, Delegate callBack, int sortOrder = 0)
+        public void RigisteEvent(Delegate callBack, long rpc = 0, int sortOrder = 0)
         {
             Checker.Check(callBack.Method);
             Type[] gs = callBack.GetType().GetGenericArguments();
@@ -222,10 +193,10 @@ namespace Core
                 }
             }
         }
-        public void RemoveEvent<T>(Action<T> callBack)
+        public void RemoveEvent<T>(Action<T> callBack, long rpc = 0)
         {
             Checker.Check(callBack.Method);
-            if (!_evtMap.TryGetValue(new EventKey(typeof(T)), out var queue))
+            if (!_evtMap.TryGetValue(new EventKey(typeof(T), rpc), out var queue))
                 return;
 
             if (queue.Remove(callBack))
@@ -237,42 +208,10 @@ namespace Core
                 }
             }
         }
-        public void RemoveEvent(Delegate callBack)
+        public void RemoveEvent(Delegate callBack, long rpc = 0)
         {
             Checker.Check(callBack.Method);
-            if (!_evtMap.TryGetValue(new EventKey(callBack.GetType().GetGenericArguments()[0]), out var queue))
-                return;
-
-            if (queue.Remove(callBack))
-            {
-                if (!queue.addToQueue)
-                {
-                    queue.addToQueue = true;
-                    removed.Enqueue(queue);
-                }
-            }
-        }
-        public void RemoveRPCEvent<T>(long rpc, Action<T> callBack)
-        {
-            Checker.Check(callBack.Method);
-            var k = new EventKey(typeof(T), rpc);
-            if (!_evtMap.TryGetValue(k, out var queue))
-                return;
-
-            if (queue.Remove(callBack))
-            {
-                if (!queue.addToQueue)
-                {
-                    queue.addToQueue = true;
-                    removed.Enqueue(queue);
-                }
-            }
-        }
-        public void RemoveRPCEvent(long rpc, Delegate callBack)
-        {
-            Checker.Check(callBack.Method);
-            var k = new EventKey(callBack.GetType().GetGenericArguments()[0], rpc);
-            if (!_evtMap.TryGetValue(k, out var queue))
+            if (!_evtMap.TryGetValue(new EventKey(callBack.GetType().GetGenericArguments()[0], rpc), out var queue))
                 return;
 
             if (queue.Remove(callBack))

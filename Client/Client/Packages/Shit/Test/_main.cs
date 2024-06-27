@@ -12,9 +12,6 @@ static class _main
     {
         var tsc = ThreadSynchronizationContext.GetOrCreate(System.Environment.CurrentManagedThreadId);
         ThreadSynchronizationContext.SetMainThread(tsc);
-        Loger.__get__log += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.Log(o));
-        Loger.__get__warning += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogWarning(o));
-        Loger.__get__error += o => ThreadSynchronizationContext.MainThread.Post(() => UnityEngine.Debug.LogError(o));
 
         List<Type> types = new();
         types.AddRange(typeof(World).Assembly.GetTypes());

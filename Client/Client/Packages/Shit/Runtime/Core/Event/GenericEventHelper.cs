@@ -61,9 +61,9 @@ namespace Core
                 ts.Add(t);
                 t = t.BaseType;
             }
+            var os = ArrayCache.Get<object>(1);
             for (int i = ts.Count - 1; i >= 0; i--)
             {
-                var os = ArrayCache.Get<object>(1);
                 Keys k = new() { a = genericType, b = ts[i] };
                 if (map.TryGetValue(k, out var v))
                 {
