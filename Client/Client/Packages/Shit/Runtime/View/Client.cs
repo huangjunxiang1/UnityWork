@@ -36,6 +36,8 @@ namespace Game
         public static void Load(List<Type> types)
         {
             World = new(types, "Client");
+            STask.DelayHandle -= delayHandle;
+            STask.DelayHandle += delayHandle;
 
             Data = new(World);
             World.Root.AddChild(Scene = new());
@@ -43,7 +45,7 @@ namespace Game
             if (Application.isPlaying)
             {
                 World.Root.AddChild(UI = new());
-                gameObject = new(nameof(Client));
+                gameObject = new(nameof(World));
                 gameObject.AddComponent<Engine>();
                 transform = gameObject.transform;
                 UnityEngine.Object.DontDestroyOnLoad(gameObject);
@@ -56,6 +58,13 @@ namespace Game
             var w = World;
             World = null;
             w.Dispose();
+        }
+
+        static void delayHandle(int ms, STask task)
+        {
+            if (World == null || World.Root.Disposed)
+                throw new Exception("World is Close");
+            World.Timer.Add(ms / 1000f, 1, task.TrySetResult);
         }
 
         class Engine : MonoBehaviour

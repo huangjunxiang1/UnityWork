@@ -38,7 +38,13 @@ namespace Game
         static void Run(List<Type> types, Action callBack = null)
         {
             World = new(types, "Server");
+#if Server
+            STask.DelayHandle -= delayHandle;
+            STask.DelayHandle += delayHandle;
+#endif
+
             var w = World;
+            w.Timer.utc = w.Timer.utc;
             w.Event.RunEvent(new EC_ServerLanucher());
 
             long tick, tick2;
@@ -69,5 +75,14 @@ namespace Game
             World = null;
             w.Dispose();
         }
+
+#if Server
+        static void delayHandle(int ms, STask task)
+        {
+            if (World == null || World.Root.Disposed)
+                throw new Exception("World is Close");
+            World.Timer.Add(ms / 1000f, 1, task.TrySetResult);
+        }
+#endif
     }
 }

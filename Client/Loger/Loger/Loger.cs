@@ -5,9 +5,9 @@ using System.Threading;
 
 public static class Loger
 {
-
+#if Unity
     [Conditional("DebugEnable")]
-    [Conditional("DEBUG")]
+#endif
     [DebuggerHidden]
     public static void Log(object o)
     {
@@ -19,8 +19,9 @@ public static class Loger
 #endif
     }
 
+#if Unity
     [Conditional("DebugEnable")]
-    [Conditional("DEBUG")]
+#endif
     [DebuggerHidden]
     public static void Warning(object o)
     {
@@ -32,8 +33,9 @@ public static class Loger
 #endif
     }
 
+#if Unity
     [Conditional("DebugEnable")]
-    [Conditional("DEBUG")]
+#endif
     [DebuggerHidden]
     public static void Error(object o)
     {
@@ -45,8 +47,9 @@ public static class Loger
 #endif
     }
 
+#if Unity
     [Conditional("DebugEnable")]
-    [Conditional("DEBUG")]
+#endif
     [DebuggerHidden]
     public static void LogStackTrace()
     {

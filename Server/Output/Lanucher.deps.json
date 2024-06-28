@@ -11,7 +11,6 @@
         "dependencies": {
           "Shit.Core": "1.0.0",
           "Shit.Game": "1.0.0",
-          "Loger": "1.0.0.0",
           "Unity.Mathematics": "0.0.0.0",
           "runtimepack.Microsoft.NETCore.App.Runtime.win-x64": "8.0.3"
         },
@@ -764,14 +763,6 @@
           "Shit.Game.dll": {}
         }
       },
-      "Loger/1.0.0.0": {
-        "runtime": {
-          "Loger.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
-        }
-      },
       "Unity.Mathematics/0.0.0.0": {
         "runtime": {
           "Unity.Mathematics.dll": {
@@ -807,11 +798,6 @@
     },
     "Shit.Game/1.0.0": {
       "type": "project",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "Loger/1.0.0.0": {
-      "type": "reference",
       "serviceable": false,
       "sha512": ""
     },

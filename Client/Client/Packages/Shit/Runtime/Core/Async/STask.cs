@@ -31,6 +31,8 @@ public class STask : ICriticalNotifyCompletion, IDispose
     Action _event;
     bool _Disposed = false;
 
+    public static Action<int, STask> DelayHandle;
+
     public object Tag { get; }
     public Task WarpTask { get; }
     public bool AutoCancel { get; private set; }
@@ -197,7 +199,13 @@ public class STask : ICriticalNotifyCompletion, IDispose
 
     public static STask Delay(int millisecondsDelay)
     {
-        return new STask(Task.Delay(millisecondsDelay));
+        var task = new STask();
+#if DebugEnable
+        if (DelayHandle == null)
+            throw new Exception("muse be set DelayHandle before invoke Delay");
+#endif
+        DelayHandle.Invoke(millisecondsDelay, task);
+        return task;
     }
     public static async STask All(IEnumerable<STask> itor, bool toArray = true)
     {

@@ -87,6 +87,25 @@ namespace Core
                 ti.target = null;
                 ti.action = null;
                 atMap.Remove(call);
+                if (ti.wheel > this.wheel)
+                {
+                    var u = timers[ti.wheel];
+                    var q = ObjectPool.Get<Queue<TimerItem>>();
+                    while (u.TryDequeue(out var t))
+                    {
+                        if (t.disposed)
+                        {
+                            ObjectPool.Return(t);
+                            continue;
+                        }
+                        q.Enqueue(t);
+                    }
+                    ObjectPool.Return(u);
+                    if (q.Count == 0)
+                        ObjectPool.Return(q);
+                    else
+                        timers[ti.wheel] = q;
+                }
             }
         }
         public void AddUTC(long utc, Action call)
@@ -96,11 +115,7 @@ namespace Core
                 Loger.Error("还未设置当前 utc 不可添加timer");
                 return;
             }
-            if (utc_atMap.ContainsKey(call))
-            {
-                Loger.Error($"{call.Method.ReflectedType} {call.Method.Name} 已经包含");
-                return;
-            }
+            RemoveUTC(call);
             if (utc < this.utc)
                 Loger.Error($"{call.Method.ReflectedType} {call.Method.Name} utc时间小于当前");
 
@@ -122,6 +137,25 @@ namespace Core
                 ti.disposed = true;
                 ti.action = null;
                 utc_atMap.Remove(call);
+                if (ti.wheel > this.utc_wheel)
+                {
+                    var u = utc_timers[ti.wheel];
+                    var q = ObjectPool.Get<Queue<utcTimerItem>>();
+                    while (u.TryDequeue(out var t))
+                    {
+                        if (t.disposed)
+                        {
+                            ObjectPool.Return(t);
+                            continue;
+                        }
+                        q.Enqueue(t);
+                    }
+                    ObjectPool.Return(u);
+                    if (q.Count == 0)
+                        ObjectPool.Return(q);
+                    else
+                        utc_timers[ti.wheel] = q;
+                }
             }
         }
 
@@ -149,6 +183,8 @@ namespace Core
                             continue;
                         }
 
+                        if (ti.cnt == 1)
+                            atMap.Remove(ti.action);
                         if (ti.target == null || ti.target.TimerEnable)
                         {
                             atMap.Remove(ti.action);
