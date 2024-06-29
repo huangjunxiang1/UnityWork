@@ -39,9 +39,10 @@ namespace Core
         /// 自增生成的ID
         /// </summary>
         public virtual long gid => this.Entity.gid;
-        public virtual SObject CrucialRoot => this.Entity.CrucialRoot;
+        public virtual STree CrucialRoot => this.Entity.CrucialRoot;
 
         [ShowInInspector]
+        [PropertyOrder(-100)]
         public virtual bool Enable
         {
             get => _enable;

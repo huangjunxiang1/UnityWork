@@ -40,7 +40,7 @@ namespace Game
             STask.DelayHandle += delayHandle;
 
             Data = new(World);
-            World.Root.AddChild(Scene = new());
+            World.Root.AddChild(Scene = new() { isCrucialRoot = true });
 
             if (Application.isPlaying)
             {

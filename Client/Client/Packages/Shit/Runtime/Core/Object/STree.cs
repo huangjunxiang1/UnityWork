@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sirenix.OdinInspector;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,10 +9,30 @@ namespace Core
 {
     public class STree : SObject
     {
-
+        [ShowInInspector]
         Dictionary<long, SObject> _childrenGMap = ObjectPool.Get<Dictionary<long, SObject>>();
+        [ShowInInspector]
         Dictionary<long, SObject> _childrenRMap = ObjectPool.Get<Dictionary<long, SObject>>();
+        [ShowInInspector]
+        Dictionary<int, List<SObject>> _typeMap;
         internal List<SObject> _children = ObjectPool.Get<List<SObject>>();
+        bool _isCrucialRoot;
+
+        /// <summary>
+        /// 关键节点
+        /// </summary>
+        [ShowInInspector]
+        [PropertyOrder(-100)]
+        public bool isCrucialRoot
+        {
+            get => _isCrucialRoot;
+            init
+            {
+                _isCrucialRoot = value;
+                if (value)
+                    _typeMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
+            }
+        }
 
         public override void Dispose()
         {
@@ -56,8 +77,18 @@ namespace Core
                 else
                     Loger.Error($"Already Contains Child this={this} child={child}");
             }
-
+            if (child.ObjType != 0)
+            {
+                var cr = this.CrucialRoot;
+                if (cr != null)
+                {
+                    if (!cr._typeMap.TryGetValue(child.ObjType, out var lst))
+                        cr._typeMap[child.ObjType] = lst = ObjectPool.Get<List<SObject>>();
+                    lst.Add(child);
+                }
+            }
             _children.Add(child);
+
             child.Parent = this;
             child.World = this.World;
             child.View = this.View;
@@ -97,6 +128,12 @@ namespace Core
         }
         public List<SObject> ToChildren() => new(_children);
         public List<SObject> GetChildren() => _children;
+        public List<SObject> GetChildrenByObjType(int objType)
+        {
+            if (!this.isCrucialRoot) return null;
+            _typeMap.TryGetValue(objType, out var lst);
+            return lst;
+        }
         public T GetChild<T>() where T : SObject => _children.Find(t => t is T) as T;
 
         /// <summary>
@@ -110,6 +147,15 @@ namespace Core
             _childrenGMap.Remove(child.gid);
             if (child.rpc != 0)
                 _childrenRMap.Remove(child.rpc);
+            if (child.ObjType != 0)
+            {
+                var cr = this.CrucialRoot;
+                if (cr != null)
+                {
+                    if (cr._typeMap.TryGetValue(child.ObjType, out var lst))
+                        lst.Remove(child);
+                }
+            }
             _children.Remove(child);
             child.Parent = null;
         }
@@ -154,6 +200,18 @@ namespace Core
                 ObjectPool.Return(_childrenRMap);
                 _childrenRMap = null;
 
+                if (this.isCrucialRoot)
+                {
+                    foreach (var item in _typeMap)
+                    {
+                        item.Value.Clear();
+                        ObjectPool.Return(item.Value);
+                    }
+                    _typeMap.Clear();
+                    ObjectPool.Return(_typeMap);
+                    _typeMap = null;
+                }
+
                 List<SObject> tmp = _children;
                 _children = null;
                 for (int i = tmp.Count - 1; i >= 0; i--)
@@ -174,6 +232,16 @@ namespace Core
 
                 _childrenGMap.Clear();
                 _childrenRMap.Clear();
+                if (this.isCrucialRoot)
+                {
+                    foreach (var item in _typeMap)
+                    {
+                        item.Value.Clear();
+                        ObjectPool.Return(item.Value);
+                    }
+                    _typeMap.Clear();
+                    ObjectPool.Return(_typeMap);
+                }
 
                 List<SObject> tmp = _children;
                 _children = ObjectPool.Get<List<SObject>>();

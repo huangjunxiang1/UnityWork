@@ -60,7 +60,7 @@ partial class FUIRooms
         for (int i = 0; i < s.units.Count; i++)
         {
             var v = s.units[i];
-            SGameObject go = new() { rpc = v.id };
+            SGameObject go = new() { rpc = v.id, ObjType = 1 };
             Client.Scene.AddChild(go);
             go.GameObject.SetGameObject("3D/Model/Unit/chan.prefab");
             go.Transform.position = v.t.p;

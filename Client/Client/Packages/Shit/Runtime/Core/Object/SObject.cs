@@ -91,33 +91,36 @@ namespace Core
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
+        [ShowInInspector]
+        [PropertyOrder(-100)]
         public sealed override long rpc { get; init; }
 
         /// <summary>
         /// 随机生成的ID
         /// </summary>
+        [ShowInInspector]
+        [PropertyOrder(-100)]
         public sealed override long gid { get; } = Util.RandomLong();
 
         /// <summary>
         /// 自用 表id
         /// </summary>
+        [ShowInInspector]
+        [PropertyOrder(-100)]
         public long tid { get; init; }
 
         /// <summary>
         /// 对象类型
         /// </summary>
         [ShowInInspector]
+        [PropertyOrder(-100)]
         public int ObjType { get; init; }
-
-        /// <summary>
-        /// 关键节点
-        /// </summary>
-        [ShowInInspector]
-        public bool isCrucialRoot { get; init; }
 
         /// <summary>
         /// 事件监听
         /// </summary>
+        [ShowInInspector]
+        [PropertyOrder(-100)]
         public override bool EventEnable
         {
             get => _eventEnable;
@@ -133,6 +136,8 @@ namespace Core
             }
         }
 
+        [ShowInInspector]
+        [PropertyOrder(-100)]
         public bool TimerEnable { get; set; } = true;
 
         /// <summary>
@@ -143,14 +148,17 @@ namespace Core
         /// <summary>
         /// 关键节点
         /// </summary>
-        public sealed override SObject CrucialRoot
+        [ShowInInspector]
+        [PropertyOrder(-99)]
+        public sealed override STree CrucialRoot
         {
             get
             {
-                SObject root = this;
+                if (this is not STree) return null;
+                STree root = (STree)this;
                 while (!root.isCrucialRoot && root.Parent != null)
                     root = root.Parent;
-                return root;
+                return root.isCrucialRoot ? root : null;
             }
         }
 
@@ -173,18 +181,18 @@ namespace Core
         }
 
         /// <summary>
-        /// 关键节点层级
+        /// 在关键节点的层级
         /// </summary>
         public int CrucialLayer
         {
             get
             {
                 int layer = 0;
-                SObject s = this;
-                while (!s.isCrucialRoot && s.Parent != null)
+                STree root = this as STree;
+                while (root != null && !root.isCrucialRoot)
                 {
                     layer++;
-                    s = s.Parent;
+                    root = root.Parent;
                 }
                 return layer;
             }
@@ -211,6 +219,8 @@ namespace Core
         /// <summary>
         /// 显示组件 是否显示
         /// </summary>
+        [ShowInInspector]
+        [PropertyOrder(-100)]
         public bool View
         {
             get => _view;

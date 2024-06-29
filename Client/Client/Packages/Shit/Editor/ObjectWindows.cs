@@ -111,10 +111,6 @@ class ObjectWindows : OdinMenuEditorWindow
     }
     class WarpObject
     {
-        [ShowInInspector, EnableGUI] long rpc => obj.rpc;
-        [ShowInInspector, EnableGUI] long gid => obj.gid;
-        [ShowInInspector, EnableGUI] long tid => obj.tid;
-        [ShowInInspector, EnableGUI] bool View => obj.View;
         [ShowInInspector, EnableGUI] object target => obj;
 
         [ShowInInspector, EnableGUI]
