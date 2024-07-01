@@ -15,45 +15,41 @@ public abstract class UUI : UUIBase
     public sealed override RectTransform ui => this.ui;
     public sealed override STask onTask => task;
 
-    public sealed override STask LoadConfig(UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
-        base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
         this._ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
+        this._ui.gameObject.SetActive(false);
         this.canvas = this._ui.GetComponent<Canvas>();
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            this.OnEnter(data);
-        });
-        return STask.Completed;
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this._ui.gameObject.SetActive(true);
+        this.OnEnter(data);
     }
     public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
-        _ = base.LoadConfigAsync(config, completed, data);
+        await base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
-        GameObject g = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
-        g.SetActive(false);
-        this._ui = (RectTransform)g.transform;
+        this._ui = (RectTransform)(await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy)).transform;
+        this._ui.gameObject.SetActive(false);
         this.canvas = this._ui.GetComponent<Canvas>();
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            g.SetActive(true);
-            this.OnEnter(data);
-        });
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this._ui.gameObject.SetActive(true);
+        this.OnEnter(data);
     }
 
     void setConfig()

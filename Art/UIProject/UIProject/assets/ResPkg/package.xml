@@ -2,7 +2,7 @@
 <packageDescription id="b4meoqof">
   <resources>
     <image id="qqit0" name="Button.png" path="/" exported="true"/>
-    <image id="vq3t1" name="bg.jpg" path="/Texture/" exported="true"/>
+    <image id="vq3t1" name="bg.jpg" path="/Texture/" exported="true" atlas="alone_npot"/>
   </resources>
   <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ResPkg" packageCount="2"/>
 </packageDescription>

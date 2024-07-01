@@ -92,10 +92,8 @@ namespace Game
                     if (ui.uiStates < UIStates.Success)
                         InputHelper.EnableUIInput(true);
                 });
-                STask loadTask = ui.LoadConfigAsync(cfg, new STask<T>(), data);
+                await ui.LoadConfigAsync(cfg, new STask<T>(), data);
                 this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
-                await loadTask;
-                await ui.onTask;
                 if (ui.Disposed)
                     return ui;
 
@@ -110,62 +108,6 @@ namespace Game
                         break;
                     }
                 }
-                ui.EventEnable = true;
-                ui.TimerEnable = true;
-                ui.Show();
-                InputHelper.EnableUIInput(true);
-
-                ui.onCompleted.TrySetResult(ui);
-                return ui;
-            }
-        }
-
-        public T OpenSubUI<T>(UIBase parent, params object[] data) where T : UIBase, new()
-        {
-            T ui = parent.GetSubUI<T>();
-            if (ui != null)
-                return ui;
-
-            UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
-
-            ui = new();
-            parent.AddChild(ui);
-            ui.LoadConfig(cfg, new STask<T>(), data);
-            parent.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
-            ui.Show();
-            ui.onCompleted.TrySetResult(ui);
-
-            return ui;
-        }
-        public async STask<T> OpenSubUIAsync<T>(UIBase parent, params object[] data) where T : UIBase, new()
-        {
-            T ui = parent.GetSubUI<T>();
-            if (ui != null)
-            {
-                await ui.onCompleted;
-                return ui;
-            }
-            using (await STaskLocker.Lock(this))
-            {
-                UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
-
-                InputHelper.EnableUIInput(false);
-                ui = new();
-                //在执行异步的过程中有可能会关闭这个UI
-                ui.onDispose.Add(() =>
-                {
-                    if (ui.uiStates < UIStates.Success)
-                        InputHelper.EnableUIInput(true);
-                });
-                parent.AddChild(ui);
-                await ui.LoadConfigAsync(cfg, new STask<T>(), data);
-                parent.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
-                await ui.onTask;
-                if (ui.Disposed)
-                    return ui;
-
-                ui.EventEnable = true;
-                ui.TimerEnable = true;
                 ui.Show();
                 InputHelper.EnableUIInput(true);
 
@@ -214,16 +156,8 @@ namespace Game
                 ui.Dispose();
             }
         }
-        public void CloseAll()
-        {
-            foreach (var ui in this.ToChildren())
-            {
-                if (ui.Disposed) continue;
-                ui.Dispose();
-            }
-        }
 
         [Event(-101)]
-        void outScene(EC_OutScene e) => CloseAll();
+        void outScene(EC_OutScene e) => DisposeAllChildren();
     }
 }

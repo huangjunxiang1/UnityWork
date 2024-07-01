@@ -30,9 +30,9 @@ public abstract class FUI3D : FUIBase
     public GameObject goRoot { get; private set; }
     public UIPanel Panel { get; private set; }
 
-    public sealed override STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
     {
-        base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
@@ -42,17 +42,14 @@ public abstract class FUI3D : FUIBase
 
         this.Binding();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            this.OnEnter(data);
-        });
-        return STask.Completed;
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this.OnEnter(data);
     }
     public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
     {
-        _ = base.LoadConfigAsync(config, completed, data);
+        await base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
@@ -62,12 +59,10 @@ public abstract class FUI3D : FUIBase
 
         this.Binding();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            this.OnEnter(data);
-        });
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this.OnEnter(data);
     }
     public override void Dispose()
     {

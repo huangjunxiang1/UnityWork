@@ -154,11 +154,13 @@ namespace Core
         {
             get
             {
-                if (this is not STree) return null;
-                STree root = (STree)this;
-                while (!root.isCrucialRoot && root.Parent != null)
+                if (this is not STree root) root = this.Parent;
+                while (root != null)
+                {
+                    if (root.isCrucialRoot) return root;
                     root = root.Parent;
-                return root.isCrucialRoot ? root : null;
+                }
+                return null;
             }
         }
 

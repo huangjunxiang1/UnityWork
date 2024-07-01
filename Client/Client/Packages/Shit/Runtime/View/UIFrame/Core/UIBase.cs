@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Core;
@@ -8,12 +9,6 @@ using Game;
 
 public abstract class UIBase : STree
 {
-    public UIBase() : base()
-    {
-        this.EventEnable = false;
-        this.TimerEnable = false;
-    }
-
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
@@ -49,6 +44,56 @@ public abstract class UIBase : STree
         onCompleted = completed;
         return STask.Completed;
     }
+    public T OpenSubUI<T>(params object[] data) where T : UIBase, new()
+    {
+        T ui = this.GetSubUI<T>();
+        if (ui != null)
+            return ui;
+
+        UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
+
+        ui = new();
+        this.AddChild(ui);
+        ui.LoadConfig(cfg, new STask<T>(), data);
+        this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
+        ui.Show();
+        ui.onCompleted.TrySetResult(ui);
+
+        return ui;
+    }
+    public async STask<T> OpenSubUIAsync<T>(params object[] data) where T : UIBase, new()
+    {
+        T ui = this.GetSubUI<T>();
+        if (ui != null)
+        {
+            await ui.onCompleted;
+            return ui;
+        }
+        using (await STaskLocker.Lock(this))
+        {
+            UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
+
+            InputHelper.EnableUIInput(false);
+            ui = new();
+            //在执行异步的过程中有可能会关闭这个UI
+            ui.onDispose.Add(() =>
+            {
+                if (ui.uiStates < UIStates.Success)
+                    InputHelper.EnableUIInput(true);
+            });
+            this.AddChild(ui);
+            await ui.LoadConfigAsync(cfg, new STask<T>(), data);
+            this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
+            if (ui.Disposed)
+                return ui;
+
+            ui.Show();
+            InputHelper.EnableUIInput(true);
+
+            ui.onCompleted.TrySetResult(ui);
+            return ui;
+        }
+    }
     public T GetSubUI<T>() where T : UIBase
     {
         return this.GetChildren().Find(t => t is T) as T;
@@ -81,29 +126,21 @@ public abstract class UIBase : STree
     }
     public override void Dispose()
     {
-        //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
-        //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
-        var arr = this.Parent?.As<STree>().GetChildren();
-        if (this.uiStates == UIStates.Success && arr?.LastOrDefault() == this)
+        if (this.uiStates == UIStates.Success)
         {
-            for (int i = arr.Count - 2; i >= 0; i--)
+            //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
+            //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
+            var arr = this.Parent?.GetChildren();
+            if (arr?.LastOrDefault() == this)
             {
-                if (!arr[i].Disposed)
+                for (int i = arr.Count - 2; i >= 0; i--)
                 {
-#if FairyGUI
-                    if (arr[i] is FUI)
+                    if (!arr[i].Disposed)
                     {
-                        ((UIBase)arr[i]).Show();
+                        if (!arr[i].As<UIBase>().isShow)
+                            ((UIBase)arr[i]).Show();
                         break;
                     }
-#endif
-#if UGUI
-                    if (arr[i] is UUI)
-                    {
-                        ((UIBase)arr[i]).Show();
-                        break;
-                    }
-#endif
                 }
             }
         }
@@ -111,7 +148,7 @@ public abstract class UIBase : STree
         base.Dispose();
 
         //先执行退出逻辑
-        if (this.uiStates >= UIStates.OnTask)
+        if (this.uiStates >= UIStates.Success)
             this.OnExit();
     }
 
@@ -127,7 +164,7 @@ public abstract class UIBase : STree
     protected abstract void Binding();//UI元件绑定
 
     public sealed override void AcceptedEvent() { base.AcceptedEvent(); }
-    public sealed override bool EventEnable { get => base.EventEnable; set => base.EventEnable = value; }
+    public sealed override bool EventEnable { get => base.EventEnable && isShow; set => base.EventEnable = value; }
     public sealed override void AddChild(SObject child) => base.AddChild(child);
     public sealed override int GetChildIndex(SObject child) => base.GetChildIndex(child);
     public sealed override void Remove(SObject child) => base.Remove(child);

@@ -90,6 +90,7 @@ namespace Core
                 if (ti.wheel > this.wheel)
                 {
                     var u = timers[ti.wheel];
+                    timers.Remove(ti.wheel);
                     var q = ObjectPool.Get<Queue<TimerItem>>();
                     while (u.TryDequeue(out var t))
                     {
@@ -140,6 +141,7 @@ namespace Core
                 if (ti.wheel > this.utc_wheel)
                 {
                     var u = utc_timers[ti.wheel];
+                    utc_timers.Remove(ti.wheel);
                     var q = ObjectPool.Get<Queue<utcTimerItem>>();
                     while (u.TryDequeue(out var t))
                     {

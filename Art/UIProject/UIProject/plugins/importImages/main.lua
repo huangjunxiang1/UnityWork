@@ -29,24 +29,29 @@ function SyncDir(source,target,path,pkgName)
     end
 end
 
-
+function string.ends(String, End)
+    return End == '' or string.sub(String, -string.len(End)) == End
+end
 function DeleteFile(source,target,path,pkgName)
     local pkg = CS.FairyEditor.App.project:GetPackageByName(pkgName);
     local fs = CS.System.IO.Directory.GetFiles(target);
+
     for i=0,fs.Length-1 do
-    
-        local name =CS.System.IO.FileInfo(fs[i]).Name;
-        local ss = string.gsub(name,".jpg","");
-        ss = string.gsub(ss,".png","");
-        
-        if(CS.System.IO.File.Exists(fs[i])==true) then
-           if(CS.System.IO.File.Exists(source..name)==false) then
-              item=pkg:GetItemByPath(path..ss);
-              if(item~=nil) then
-                  pkg:DeleteItem(item);
-              end
-           end
-        end
+         local name =CS.System.IO.FileInfo(fs[i]).Name;
+         local igoner = string.ends(name, ".jta") or string.ends(name, ".fnt")  or string.ends(name, ".xml");
+         if(igoner==false) then
+             local ss = string.gsub(name,".jpg","");
+             ss = string.gsub(ss,".png","");
+             
+             if(CS.System.IO.File.Exists(fs[i])==true) then
+                if(CS.System.IO.File.Exists(source..name)==false) then
+                   item=pkg:GetItemByPath(path..ss);
+                   if(item~=nil) then
+                       pkg:DeleteItem(item);
+                   end
+                end
+             end
+         end
     end
 
     local ds = CS.System.IO.Directory.GetDirectories(target);
@@ -90,11 +95,21 @@ for i=0,ds.Length-1 do
          
          local items = pkg.items;
          for j=0,items.Count-1 do
-             if(items[j].type~="folder") then
+             if(items[j].type~="folder"and string.sub(items[j].name,1,1)~='@') then
                  items[j].exported =true;
+             else
+                 items[j].exported =false;
+             end
+
+             if(items[j].type=="image") then
+                 if(items[j].width*items[j].height >= 256*256) then
+                    items[j].folderAtlas="alone_npot";
+                 else
+                    items[j].folderAtlas=nil;
+                 end
              end
          end
-         
+
          pkg:SetChanged();
          pkg:Save();
       end);
@@ -124,6 +139,9 @@ toolMenu:AddItem("导入美术资源=所有包", "importImages", function(menuIt
             
             if(items[j].type=="image") then
                if(items[j].width*items[j].height >= 256*256) then
+                  items[j].folderAtlas="alone_npot";
+               else
+                  items[j].folderAtlas=nil;
                end
             end
         end

@@ -2,6 +2,7 @@
 
 #if FairyGUI
 using FairyGUI;
+using Game;
 public abstract class FUI : FUIBase
 {
     GComponent _ui;
@@ -23,9 +24,9 @@ public abstract class FUI : FUIBase
     public sealed override STask onTask => task;
     public GObject Close { get; private set; }
 
-    public sealed override STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
     {
-        base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
@@ -35,16 +36,15 @@ public abstract class FUI : FUIBase
             (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
         if (Close == null)
             (Close = this._ui.GetChild("_Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
+        this._ui.visible = false;
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            this.OnEnter(data);
-        });
-        return STask.Completed;
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this._ui.visible = true;
+        this.OnEnter(data);
     }
     public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
     {
@@ -68,13 +68,11 @@ public abstract class FUI : FUIBase
         this.Binding();
         this.setConfig();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            this._ui.visible = true;
-            this.OnEnter(data);
-        });
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this._ui.visible = true;
+        this.OnEnter(data);
     }
     public override void Dispose()
     {

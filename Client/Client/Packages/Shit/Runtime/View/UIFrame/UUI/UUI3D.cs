@@ -14,9 +14,9 @@ public abstract class UUI3D : UUIBase
     public sealed override RectTransform ui => this._ui;
     public sealed override STask onTask => task;
 
-    public sealed override STask LoadConfig(UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
-        base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
@@ -29,17 +29,14 @@ public abstract class UUI3D : UUIBase
 
         this.Binding();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            this.OnEnter(data);
-        });
-        return STask.Completed;
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this.OnEnter(data);
     }
     public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
-        _ = base.LoadConfigAsync(config, completed, data);
+        await base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
         this.states = UIStates.Loading;
@@ -53,12 +50,10 @@ public abstract class UUI3D : UUIBase
 
         this.Binding();
         this.states = UIStates.OnTask;
-        task = this.OnTask(data);
-        task.AddEvent(() =>
-        {
-            this.states = UIStates.Success;
-            this.OnEnter(data);
-        });
+        await (task = this.OnTask(data));
+        if (this.Disposed) return;
+        this.states = UIStates.Success;
+        this.OnEnter(data);
     }
 }
 #endif
