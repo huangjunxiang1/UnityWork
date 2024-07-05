@@ -18,8 +18,13 @@ public abstract class FUI : FUIBase
     }
     public sealed override bool isShow
     {
-        get { return this._ui.visible; }
-        set { this._ui.visible = value; }
+        get { return base.isShow; }
+        set
+        {
+            base.isShow = value;
+            if (this._ui != null)
+                this._ui.visible = value;
+        }
     }
     public sealed override STask onTask => task;
     public GObject Close { get; private set; }
@@ -43,7 +48,7 @@ public abstract class FUI : FUIBase
         await (task = this.OnTask(data));
         if (this.Disposed) return;
         this.states = UIStates.Success;
-        this._ui.visible = true;
+        this._ui.visible = this.isShow;
         this.OnEnter(data);
     }
     public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
@@ -71,7 +76,7 @@ public abstract class FUI : FUIBase
         await (task = this.OnTask(data));
         if (this.Disposed) return;
         this.states = UIStates.Success;
-        this._ui.visible = true;
+        this._ui.visible = this.isShow;
         this.OnEnter(data);
     }
     public override void Dispose()

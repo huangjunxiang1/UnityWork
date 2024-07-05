@@ -24,8 +24,13 @@ public abstract class UUIBase : UIBase
     }
     public sealed override bool isShow
     {
-        get { return this.ui.gameObject.activeSelf; }
-        set { this.ui.gameObject.SetActive(value); }
+        get { return base.isShow; }
+        set
+        {
+            base.isShow = value;
+            if (this.ui)
+                this.ui.gameObject.SetActive(value);
+        }
     }
 
     public sealed override async void Hide(bool playAnimation = true, Action callBack = null)
@@ -191,7 +196,6 @@ public abstract class UUIBase : UIBase
                     World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         InputHelper.EnableUIInput(true);
-                        this.isShow = true;
                         showTask.TrySetResult();
                     });
                     return showTask;

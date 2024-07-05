@@ -52,22 +52,22 @@ namespace Game
 
             ui = new() { isCrucialRoot = true };
             this.AddChild(ui);
-            ui.LoadConfig(cfg, new STask<T>(), data);
-            this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
-
-            for (int i = this.GetChildren().Count - 1; i >= 0; i--)
+            ui.LoadConfig(cfg, new STask<T>(), data).AddEvent(() =>
             {
-                UIBase tmp = (UIBase)this.GetChildren()[i];
-                if (tmp == ui)
-                    continue;
-                if (tmp.uiConfig.HideIfOpenOtherUI && tmp.isShow)
+                for (int i = this.GetChildren().Count - 1; i >= 0; i--)
                 {
-                    tmp.Hide();
-                    break;
+                    UIBase tmp = (UIBase)this.GetChildren()[i];
+                    if (tmp == ui)
+                        continue;
+                    if (tmp.uiConfig.HideIfOpenOtherUI && tmp.isShow)
+                    {
+                        tmp.Hide();
+                        break;
+                    }
                 }
-            }
-            ui.Show();
-            ui.onCompleted.TrySetResult(ui);
+                ui.Show();
+                ui.onCompleted.TrySetResult(ui);
+            });
 
             return ui;
         }
@@ -93,7 +93,6 @@ namespace Game
                         InputHelper.EnableUIInput(true);
                 });
                 await ui.LoadConfigAsync(cfg, new STask<T>(), data);
-                this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
                 if (ui.Disposed)
                     return ui;
 
@@ -136,12 +135,8 @@ namespace Game
                 T ui = new();
                 this.AddChild(ui);
                 await ui.LoadConfigAsync(cfg, new STask<T>(), data);
-                await ui.onTask;
                 if (ui.Disposed)
                     return ui;
-
-                ui.EventEnable = true;
-                ui.TimerEnable = true;
 
                 ui.onCompleted.TrySetResult(ui);
                 return ui;

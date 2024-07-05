@@ -23,7 +23,7 @@ public abstract class UUI3D : UUIBase
         this._ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
         this._ui.SetParent(Client.UI.UGUIRoot);
         this._ui.localScale = Vector3.one;
-        this._ui.rotation = default;
+        this._ui.rotation = Quaternion.identity;
         this._ui.anchoredPosition = default;
         this.canvas = this._ui.GetComponentInChildren<Canvas>();
 
@@ -44,7 +44,7 @@ public abstract class UUI3D : UUIBase
         this._ui = (RectTransform)ui.transform;
         this._ui.SetParent(Client.UI.UGUIRoot);
         this._ui.localScale = Vector3.one;
-        this._ui.rotation = default;
+        this._ui.rotation = Quaternion.identity;
         this._ui.anchoredPosition = default;
         this.canvas = this._ui.GetComponentInChildren<Canvas>();
 

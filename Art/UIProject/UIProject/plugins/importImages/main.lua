@@ -112,6 +112,33 @@ for i=0,ds.Length-1 do
 
          pkg:SetChanged();
          pkg:Save();
+
+         local items = pkg.items;
+         local xml=CS.FairyEditor.XMLExtension.Load(target..name.."/package.xml");
+         local elements = xml.elements[0].elements;
+         for j=0,items.Count-1 do
+             if(items[j].type=="image") then
+                local xmlItem = nil;
+                for k=0,elements.Count-1 do
+                   if(elements[k]:GetAttribute("id","")==items[j].id) then
+                      xmlItem=elements[k];
+                   end
+                end
+                
+                if (xmlItem~=nil) then
+                   if(items[j].width*items[j].height >= 256*256) then
+                       xmlItem:SetAttribute("atlas","alone_npot");
+                    else
+                       xmlItem:RemoveAttribute("atlas");
+                    end
+                end
+            end
+        end
+
+        CS.System.IO.File.WriteAllText(target..name.."/package.xml",xml:ToXMLString(true));
+
+        CS.FairyEditor.App.RefreshProject();
+
       end);
 end
 
@@ -148,6 +175,33 @@ toolMenu:AddItem("导入美术资源=所有包", "importImages", function(menuIt
         
         pkg:SetChanged();
         pkg:Save();
+
+        local items = pkg.items;
+         local xml=CS.FairyEditor.XMLExtension.Load(target..name.."/package.xml");
+         local elements = xml.elements[0].elements;
+         for j=0,items.Count-1 do
+             if(items[j].type=="image") then
+                local xmlItem = nil;
+                for k=0,elements.Count-1 do
+                   if(elements[k]:GetAttribute("id","")==items[j].id) then
+                      xmlItem=elements[k];
+                   end
+                end
+                
+                if (xmlItem~=nil) then
+                   if(items[j].width*items[j].height >= 256*256) then
+                       xmlItem:SetAttribute("atlas","alone_npot");
+                    else
+                       xmlItem:RemoveAttribute("atlas");
+                    end
+                end
+            end
+        end
+
+        CS.System.IO.File.WriteAllText(target..name.."/package.xml",xml:ToXMLString(true));
+
+        CS.FairyEditor.App.RefreshProject();
+
     end
 
 end)

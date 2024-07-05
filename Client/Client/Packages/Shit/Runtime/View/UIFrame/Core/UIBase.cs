@@ -33,20 +33,20 @@ public abstract class UIBase : STree
     public virtual STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
-        this.EventEnable = true;
-        this.TimerEnable = true;
+        this.Parent.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
         onCompleted = completed;
         return STask.Completed;
     }
     public virtual STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
+        this.Parent.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
         onCompleted = completed;
         return STask.Completed;
     }
-    public T OpenSubUI<T>(params object[] data) where T : UIBase, new()
+    public T OpenUI<T>(params object[] data) where T : UIBase, new()
     {
-        T ui = this.GetSubUI<T>();
+        T ui = this.GetChild<T>();
         if (ui != null)
             return ui;
 
@@ -54,16 +54,17 @@ public abstract class UIBase : STree
 
         ui = new();
         this.AddChild(ui);
-        ui.LoadConfig(cfg, new STask<T>(), data);
-        this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
-        ui.Show();
-        ui.onCompleted.TrySetResult(ui);
+        ui.LoadConfig(cfg, new STask<T>(), data).AddEvent(() =>
+        {
+            ui.Show();
+            ui.onCompleted.TrySetResult(ui);
+        });
 
         return ui;
     }
-    public async STask<T> OpenSubUIAsync<T>(params object[] data) where T : UIBase, new()
+    public async STask<T> OpenUIAsync<T>(params object[] data) where T : UIBase, new()
     {
-        T ui = this.GetSubUI<T>();
+        T ui = this.GetChild<T>();
         if (ui != null)
         {
             await ui.onCompleted;
@@ -83,7 +84,6 @@ public abstract class UIBase : STree
             });
             this.AddChild(ui);
             await ui.LoadConfigAsync(cfg, new STask<T>(), data);
-            this.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
             if (ui.Disposed)
                 return ui;
 
@@ -93,10 +93,6 @@ public abstract class UIBase : STree
             ui.onCompleted.TrySetResult(ui);
             return ui;
         }
-    }
-    public T GetSubUI<T>() where T : UIBase
-    {
-        return this.GetChildren().Find(t => t is T) as T;
     }
     public virtual void Hide(bool playAnimation = true, Action callBack = null)
     {
@@ -165,6 +161,7 @@ public abstract class UIBase : STree
 
     public sealed override void AcceptedEvent() { base.AcceptedEvent(); }
     public sealed override bool EventEnable { get => base.EventEnable && isShow; set => base.EventEnable = value; }
+    public sealed override bool TimerEnable { get => base.TimerEnable && isShow; set => base.TimerEnable = value; }
     public sealed override void AddChild(SObject child) => base.AddChild(child);
     public sealed override int GetChildIndex(SObject child) => base.GetChildIndex(child);
     public sealed override void Remove(SObject child) => base.Remove(child);

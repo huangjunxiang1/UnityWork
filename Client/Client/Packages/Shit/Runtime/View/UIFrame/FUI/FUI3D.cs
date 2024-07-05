@@ -23,8 +23,13 @@ public abstract class FUI3D : FUIBase
     }
     public sealed override bool isShow
     {
-        get { return this.goRoot.activeSelf; }
-        set { this.goRoot.SetActive(value); }
+        get { return base.isShow; }
+        set
+        {
+            base.isShow = value;
+            if (this.goRoot)
+                this.goRoot.SetActive(value);
+        }
     }
     public sealed override STask onTask => task;
     public GameObject goRoot { get; private set; }
@@ -45,6 +50,7 @@ public abstract class FUI3D : FUIBase
         await (task = this.OnTask(data));
         if (this.Disposed) return;
         this.states = UIStates.Success;
+        this.goRoot.SetActive(this.isShow);
         this.OnEnter(data);
     }
     public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
@@ -62,6 +68,7 @@ public abstract class FUI3D : FUIBase
         await (task = this.OnTask(data));
         if (this.Disposed) return;
         this.states = UIStates.Success;
+        this.goRoot.SetActive(this.isShow);
         this.OnEnter(data);
     }
     public override void Dispose()

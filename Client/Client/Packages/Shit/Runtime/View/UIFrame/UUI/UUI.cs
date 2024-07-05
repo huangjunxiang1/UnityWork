@@ -30,7 +30,7 @@ public abstract class UUI : UUIBase
         await (task = this.OnTask(data));
         if (this.Disposed) return;
         this.states = UIStates.Success;
-        this._ui.gameObject.SetActive(true);
+        this._ui.gameObject.SetActive(this.isShow);
         this.OnEnter(data);
     }
     public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
@@ -48,7 +48,7 @@ public abstract class UUI : UUIBase
         await (task = this.OnTask(data));
         if (this.Disposed) return;
         this.states = UIStates.Success;
-        this._ui.gameObject.SetActive(true);
+        this._ui.gameObject.SetActive(this.isShow);
         this.OnEnter(data);
     }
 
@@ -56,7 +56,7 @@ public abstract class UUI : UUIBase
     {
         this._ui.SetParent(Client.UI.UGUIRoot);
         this._ui.localScale = Vector3.one;
-        this._ui.rotation = default;
+        this._ui.rotation = Quaternion.identity;
         this._ui.sizeDelta = Client.UI.UGUIRoot.sizeDelta;
         this._ui.anchorMin = default;
         this._ui.anchorMax = Vector2.one;

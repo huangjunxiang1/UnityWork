@@ -138,7 +138,7 @@ namespace Core
 
         [ShowInInspector]
         [PropertyOrder(-100)]
-        public bool TimerEnable { get; set; } = true;
+        public virtual bool TimerEnable { get; set; } = true;
 
         /// <summary>
         /// 父节点
