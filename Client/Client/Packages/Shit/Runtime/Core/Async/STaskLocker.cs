@@ -16,7 +16,6 @@ public class STaskLocker : IDispose
     object key;
     long key2;
     STask next;
-    CancellationTokenSource cts;
 
     public bool Disposed { get; private set; }
 
@@ -105,7 +104,6 @@ public class STaskLocker : IDispose
     public void Dispose()
     {
         Disposed = true;
-        cts?.Cancel();
         if (key != null && locks.TryGetValue(key, out var v) && v == this)
             locks.Remove(key);
         if (key2 != 0 && locks2.TryGetValue(key2, out var v2) && v2 == this)
@@ -115,15 +113,8 @@ public class STaskLocker : IDispose
 
     async void timeout(int time)
     {
-        cts = new();
-        //取消异步会报错 所以这里加try 不打印错误
-        try
-        {
-            await Task.Delay(time, cts.Token);
-        }
-        catch (Exception)
-        {
-        }
+        await STask.Delay(time);
+        if (this.Disposed) return;
         this.Dispose();
     }
 }
