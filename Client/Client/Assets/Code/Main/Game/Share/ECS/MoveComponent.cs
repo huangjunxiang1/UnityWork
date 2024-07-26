@@ -31,7 +31,7 @@ namespace Game
                 var speed = t.t3.Get((int)KType.MoveSpeed);
                 var speed2 = t.t3.Get((int)KType.RotateSpeed);
                 t.t2.position += t.t.Direction * speed * t.t.World.DeltaTime;
-                t.t2.rotation = math.slerp(t.t2.rotation, quaternion.LookRotation(t.t.Direction, math.up()), t.t.World.DeltaTime * speed2);
+                t.t2.rotation = math.slerp(t.t2.rotation, quaternion.LookRotation(t.t.Direction, math.up()), math.clamp(t.t.World.DeltaTime * speed2, 0, 1));
             }
         }
     }
