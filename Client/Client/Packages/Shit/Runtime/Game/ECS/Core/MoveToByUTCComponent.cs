@@ -20,6 +20,17 @@ namespace Game
         long startTime;
         long endTime;
 
+        public quaternion rotation
+        {
+            get => r;
+            set
+            {
+                if (value.Equals(r)) return;
+                r = value;
+                this.SetChange();
+            }
+        }
+
         public void MoveTo(float3 start, float3 end, quaternion quaternion, long startTime, long endTime)
         {
             this.start = start;
@@ -32,6 +43,18 @@ namespace Game
             task = null;
             old?.TrySetResult(false);
         }
+        public void MoveTo(float3 start, float3 end, long startTime, long endTime)
+        {
+            this.start = start;
+            this.end = end;
+            this.startTime = math.min(startTime, endTime - 1);
+            this.endTime = endTime;
+            this.r = quaternion.LookRotation(math.normalize(end - start), math.up());
+            this.SetChange();
+            var old = task;
+            task = null;
+            old?.TrySetResult(false);
+        }
         public STask<bool> MoveToAsync(float3 start, float3 end, quaternion quaternion, long startTime, long endTime)
         {
             this.start = start;
@@ -39,6 +62,19 @@ namespace Game
             this.startTime = math.min(startTime, endTime - 1);
             this.endTime = endTime;
             this.r = quaternion;
+            this.SetChange();
+            var old = task;
+            task = new();
+            old?.TrySetResult(false);
+            return task;
+        }
+        public STask<bool> MoveToAsync(float3 start, float3 end, long startTime, long endTime)
+        {
+            this.start = start;
+            this.end = end;
+            this.startTime = math.min(startTime, endTime - 1);
+            this.endTime = endTime;
+            this.r = quaternion.LookRotation(math.normalize(end - start), math.up());
             this.SetChange();
             var old = task;
             task = new();

@@ -253,20 +253,20 @@ namespace Core
 #endif
             if (rpc != 0)
             {
-                world.System.EventWatcherRpc(rpc, data);
+                world.System.EventWatcherRpc(rpc, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), rpc, 0, type), out var queue))
                     queue.Run(data);
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data);
+                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, gid, type), out var queue))
                     queue.Run(data);
             }
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data);
+                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
                     queue.Run(data);
             }
@@ -279,14 +279,14 @@ namespace Core
 #endif
             if (rpc != 0)
             {
-                world.System.EventWatcherRpc(rpc, data);
+                world.System.EventWatcherRpc(rpc, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), rpc, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data);
+                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, gid, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
@@ -294,7 +294,7 @@ namespace Core
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data);
+                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
@@ -308,20 +308,20 @@ namespace Core
 #endif
             if (rpc != 0)
             {
-                world.System.EventWatcherRpc(rpc, data);
+                world.System.EventWatcherRpc(rpc, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, 0, type), out var queue))
                     queue.Run(data);
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data);
+                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, gid, type), out var queue))
                     queue.Run(data);
             }
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data);
+                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
                     queue.Run(data);
             }
@@ -334,14 +334,14 @@ namespace Core
 #endif
             if (rpc != 0)
             {
-                world.System.EventWatcherRpc(rpc, data);
+                world.System.EventWatcherRpc(rpc, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data);
+                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, gid, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
@@ -349,7 +349,7 @@ namespace Core
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data);
+                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;

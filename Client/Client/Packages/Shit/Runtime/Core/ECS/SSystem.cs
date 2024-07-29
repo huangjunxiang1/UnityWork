@@ -15,7 +15,7 @@ namespace Core
         internal Dictionary<Type, List<Action<SObject>>> inHandle = new();
         internal Dictionary<Type, List<(Action<Type, SComponent>, Action<SObject, Dictionary<Type, __OutHandle>>)>> outHandle = new();
         internal Dictionary<Type, List<Action<SObject>>> changeHandle = new();
-        internal Dictionary<Type, List<(Type, Action<object, SObject>)>> eventWatcherHandle = new();
+        internal Dictionary<Type, List<(Type, Action<object, SObject, int>)>> eventWatcherHandle = new();
         internal Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
         internal Dictionary<Type, List<Action<SObject>>> timerHandle = new();
         internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
@@ -98,7 +98,7 @@ namespace Core
         internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Add(h);
         internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
         internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
-        internal void EventWatcherRpc(long rpc, object e)
+        internal void EventWatcherRpc(long rpc, object e, int type)
         {
             if (!world.ObjectManager.TryGetByRpc(rpc, out var lst))
                 return;
@@ -110,20 +110,20 @@ namespace Core
                 for (int j = 0; j < len; j++)
                 {
                     if (lst[j].Disposed) continue;
-                    acts[i].Item2.Invoke(e, lst[j]);
+                    acts[i].Item2.Invoke(e, lst[j], type);
                 }
             }
         }
-        internal void EventWatcherGid(long gid, object e)
+        internal void EventWatcherGid(long gid, object e, int type)
         {
             if (!world.ObjectManager.TryGetByGid(gid, out var o))
                 return;
             if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
                 return;
             for (int i = 0; i < acts.Count; i++)
-                acts[i].Item2.Invoke(e, o);
+                acts[i].Item2.Invoke(e, o, type);
         }
-        internal void EventWatcher(object e)
+        internal void EventWatcher(object e, int type)
         {
             if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
                 return;
@@ -136,7 +136,7 @@ namespace Core
                     for (int j = 0; j < len; j++)
                     {
                         if (lst[j].Disposed) continue;
-                        acts[i].Item2.Invoke(e, lst[j]);
+                        acts[i].Item2.Invoke(e, lst[j], type);
                     }
                 }
             }
@@ -242,7 +242,7 @@ namespace Core
             foreach (var item in eventWatcher)
             {
                 var ts = item.GetGenericArguments();
-                var action = (Action<object, SObject>)item.GetMethod(nameof(EventWatcher<object, SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, SObject>));
+                var action = (Action<object, SObject, int>)item.GetMethod(nameof(EventWatcher<object, SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, SObject, int>));
                 if (!eventWatcherHandle.TryGetValue(ts[0], out var lst))
                     eventWatcherHandle[ts[0]] = lst = new();
                 lst.Add((ts[1], action));

@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 //    public EventWatcher(?[T] [t]+, ?) { ?this.[t] = [t];+ ? }
 //?    public [T] [t] { get; }+\r?
 //
-//    internal static void Invoke(object e, SObject o)
+//    internal static void Invoke(object e, SObject o, int type)
 //    {
 //?        if (!o.TryGetComponent<[T]>(out var [c]) || ![c].Enable) return;+\r#2?
-//        o.World.Event.RunEvent(new EventWatcher<?[T]+, ?>((T)e, ?[c]+, #2?));
+//        o.World.Event.RunEvent(new EventWatcher<?[T]+, ?>((T)e, ?[c]+, #2?), type: type);
 //    }
 //}
 //end

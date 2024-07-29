@@ -46,6 +46,13 @@ internal class EventWatcher
         if (e.v != 12) throw new Exception();
         Client.World.Event.RunEvent(e, gid: 5);
         if (e.v != 12) throw new Exception();
+
+        Client.World.Event.RunEvent(e, gid: o.gid, type: 1);
+        Client.World.Event.RunEvent(e, gid: o.gid, type: 2);
+        if (e.v != 13) throw new Exception();
+        Client.World.Event.RunEvent(e, rpc: 5, type: 1);
+        Client.World.Event.RunEvent(e, rpc: 5, type: 2);
+        if (e.v != 14) throw new Exception();
     }
 
     class Evt
@@ -58,6 +65,8 @@ internal class EventWatcher
 
     [Event]
     static void t1(EventWatcher<Evt, c1> t) => t.t.v++;
+    [Event(Type = 1)]
+    static void t11(EventWatcher<Evt, c1> t) => t.t.v++;
     [Event]
     static void t1(EventWatcher<Evt, c2> t) => t.t.v++;
     [Event]

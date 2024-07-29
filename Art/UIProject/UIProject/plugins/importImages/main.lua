@@ -100,14 +100,6 @@ for i=0,ds.Length-1 do
              else
                  items[j].exported =false;
              end
-
-             if(items[j].type=="image") then
-                 if(items[j].width*items[j].height >= 256*256) then
-                    items[j].folderAtlas="alone_npot";
-                 else
-                    items[j].folderAtlas=nil;
-                 end
-             end
          end
 
          pkg:SetChanged();
