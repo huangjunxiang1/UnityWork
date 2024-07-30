@@ -1,0 +1,12 @@
+{
+  "name": "com.unity.bakery",
+  "displayName": "Bakery",
+  "version": "1.0.0",
+  "unity": "2020.1",
+  "dependencies": {
+  },
+  "description": "Bakery",
+  "keywords": [],
+  "upmCi": {},
+  "repository": {}
+}
