@@ -27,7 +27,8 @@ namespace Game
             this.Mask = mask;
 
             SAsset.ReleasePoolsGameObjects();
-            await SAsset.LoadSceneAsync($"Scene/{name}.unity");
+            await SAsset.ReleaseAllUnuseObjects();
+            await SAsset.LoadSceneAsync($"scene_{name}");
             await STask.Delay(100);
 
             await World.Event.RunEventAsync(new EC_InScene { sceneId = SceneID, sceneType = this.Mask });

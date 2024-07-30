@@ -96,7 +96,7 @@ public class Tool
                     code.AppendLine($"partial class {go.name} : UUI3D");
 
                 code.AppendLine(@"{");
-                code.AppendLine($"    public sealed override string url => \"{AssetDatabase.GetAssetPath(go).Replace(Game.SAsset.Directory, "")}\";");
+                code.AppendLine($"    public sealed override string url => \"UI_{go.name}\";");
                 code.Append(fieldCode.ToString());
                 code.AppendLine(@"");
                 code.AppendLine(@"    protected sealed override void Binding()");
@@ -127,7 +127,7 @@ public class Tool
                     code.Append(getUICode.ToString());
                     code.AppendLine($"        this.Enter();");
                     code.AppendLine($"    }}");
-                    code.AppendLine($"    public U{go.name}(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Game.SAsset.LoadGameObject(\"{AssetDatabase.GetAssetPath(go).Replace(Game.SAsset.Directory, "")}\", mode).transform) {{ }}");
+                    code.AppendLine($"    public U{go.name}(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Game.SAsset.LoadGameObject(\"UI_{go.name}\", mode).transform) {{ }}");
                     code.AppendLine($"    partial void Enter();");
                     code.AppendLine($"    public void Dispose()");
                     code.AppendLine($"    {{");
@@ -172,7 +172,7 @@ public class Tool
     static void genFieldCode(GameObject go, Transform child, StringBuilder fieldCode, Dictionary<Type, Type> typeMap, StringBuilder getUICode, StringBuilder disposeStr)
     {
         var g = PrefabUtility.GetCorrespondingObjectFromSource(child.gameObject);
-        string p = g ? AssetDatabase.GetAssetPath(go).Replace(Game.SAsset.Directory, "") : null;
+        string p = g ? AssetDatabase.GetAssetPath(go) : null;
         if (child.name.StartsWith("_"))
         {
             var temp = child;
@@ -188,7 +188,7 @@ public class Tool
                 getUICode.Append($".GetChild({idxs[i]})");
             getUICode.AppendLine(";");
 
-            if (g && g.name.StartsWith("_") && p != null && p.StartsWith("UI/UUI/"))
+            if (g && g.name.StartsWith("_") && p != null && p.StartsWith("Assets/Res/UI/UUI/"))
             {
                 fieldCode.AppendLine($"    public U{g.name} {child.name} {{ get; private set; }}");
                 getUICode.AppendLine($"        this.{child.name} = new(c);");
@@ -239,7 +239,7 @@ public class Tool
         UIPackage.RemoveAllPackages();
         FontManager.Clear();
         FairyGUI.UIConfig.defaultFont = "Impact";
-        var pkg = UIPackage.AddPackage($"{Game.SAsset.Directory}/UI/FUI/ComPkg/ComPkg");
+        var pkg = UIPackage.AddPackage($"Assets/Res/UI/FUI/ComPkg/ComPkg");
         StringBuilder code = new StringBuilder(100000);
         code.AppendLine("using FairyGUI;");
         code.AppendLine("using FairyGUI.Utils;");
@@ -418,7 +418,7 @@ public class Tool
 
             code.AppendLine($"partial class {g.name} : FUI3D");
             code.AppendLine("{");
-            code.AppendLine($"    public sealed override string url => \"{ff}\";");
+            code.AppendLine($"    public sealed override string url => \"UI_{g.name}\";");
             code.AppendLine(fieldCode.ToString());
 
             code.AppendLine($"    protected sealed override void Binding()");
@@ -523,10 +523,9 @@ public class Tool
     }
     static void appendScriptObjectCode(ScriptableObject so, StringBuilder code)
     {
-        var url = AssetDatabase.GetAssetPath(so);
         string type = so.GetType().FullName;
         code.AppendLine($"\tstatic {type} _{so.name};");
-        code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})SAsset.Load<ScriptableObject>(\"{url.Replace(Game.SAsset.Directory, "")}\");");
+        code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})SAsset.Load<ScriptableObject>(\"config_{so.name}\");");
     }
 
 #if ENABLE_INPUT_SYSTEM
@@ -536,8 +535,7 @@ public class Tool
         str.AppendLine("{");
         str.AppendLine($"    public {input.name}()");
         str.AppendLine("    {");
-        var url = AssetDatabase.GetAssetPath(input);
-        str.AppendLine($"        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>(\"{url.Replace(Game.SAsset.Directory, "")}\");");
+        str.AppendLine($"        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>(\"config_{input.name}\");");
         str.AppendLine("        this.Asset.Enable();");
 
         foreach (var item in input.actionMaps)

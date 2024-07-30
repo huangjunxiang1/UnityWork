@@ -48,7 +48,7 @@ partial class FUIGame
         var v = t.info;
         SGameObject go = new() { rpc = v.id };
         Client.Scene.AddChild(go);
-        go.GameObject.SetGameObject("3D/Model/Unit/chan.prefab");
+        go.GameObject.SetGameObject("3D_chan");
         go.Transform.position = v.t.p;
         go.Transform.rotation = v.t.r;
         go.KV.Set(v.attribute);
@@ -69,7 +69,7 @@ partial class FUIGame
     async void _gen_cube()
     {
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        (Entity one, GameObject g) = await ECSHelper.LoadEntityAndPrefab(@"3D\Model\ECS\Cube.prefab");
+        (Entity one, GameObject g) = await ECSHelper.LoadEntityAndPrefab(@"3D_Cube");
         var d = Client.Data.Get<S2C_JoinRoom>();
 
         for (int h = 0; h < SettingM.RoomWeight; h++)

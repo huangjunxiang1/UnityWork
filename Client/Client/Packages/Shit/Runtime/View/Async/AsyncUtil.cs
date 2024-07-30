@@ -6,11 +6,14 @@ using UnityEngine.Events;
 
 #if Dotween
 using DG.Tweening;
-using Core;
 #endif
 
 #if FairyGUI
 using FairyGUI;
+#endif
+
+#if Yooasset
+using YooAsset;
 #endif
 
 namespace Game
@@ -124,6 +127,25 @@ namespace Game
                 task.TrySetResult(op.Result);
             else
                 op.Completed += e => task.TrySetResult(e.Result);
+            return task;
+        }
+#endif
+#if Yooasset
+        public static async STask AsTask(this HandleBase op)
+        {
+            STask<Object> task = new();
+            if (op.IsDone)
+                task.TrySetResult();
+            else
+                await op.Task;
+        }
+        public static STask AsTask(this AsyncOperationBase op)
+        {
+            STask task = new();
+            if (op.IsDone)
+                task.TrySetResult();
+            else
+                op.Completed += e => task.TrySetResult();
             return task;
         }
 #endif

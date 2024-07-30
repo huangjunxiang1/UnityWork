@@ -18,9 +18,9 @@ public class UIPkg
     static async STask Init(EC_GameStart e)
     {
         FairyGUI.UIConfig.defaultFont = "Impact";
-        UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ComPkg/ComPkg_fui.bytes")).bytes, "ComPkg", fguiLoader);
-        UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/ResPkg/ResPkg_fui.bytes")).bytes, "ResPkg", fguiLoader);
-        UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI/FUI/Items/Items_fui.bytes")).bytes, "Items", fguiLoader);
+        UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ComPkg_fui")).bytes, "ComPkg", fguiLoader);
+        UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
+        UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
         FUIBase.CreateUI += (t, s) => UIPkg.ComPkg.CreateObject(s).asCom;
         FUIBase.CreateUIAsync += (t, s) =>
         {
@@ -36,7 +36,7 @@ public class UIPkg
         {
             case PackageItemType.Sound:
             case PackageItemType.Atlas:
-                item.owner.SetItemAsset(item, await SAsset.LoadAsync<UnityEngine.Object>($"UI/FUI/{item.owner.name}/{name}{extension}"), DestroyMethod.Custom);
+                item.owner.SetItemAsset(item, await SAsset.LoadAsync<UnityEngine.Object>($"UI_{item.owner.name}/{name}"), DestroyMethod.Custom);
                 break;
             default:
                 Loger.Error("未定义加载->" + item.type);

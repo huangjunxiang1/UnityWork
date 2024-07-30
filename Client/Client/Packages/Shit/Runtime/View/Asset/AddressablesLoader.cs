@@ -66,6 +66,11 @@ namespace Game
         }
 
         public override void Release(UnityEngine.Object obj) => Addressables.Release(obj);
+
+        public override STask ReleaseAllUnuseObjects()
+        {
+            return STask.Completed;
+        }
     }
 #endif
 }

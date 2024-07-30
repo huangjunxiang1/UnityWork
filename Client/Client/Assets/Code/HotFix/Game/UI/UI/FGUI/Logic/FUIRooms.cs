@@ -62,7 +62,7 @@ partial class FUIRooms
             var v = s.units[i];
             SGameObject go = new() { rpc = v.id, ObjType = 1 };
             Client.Scene.AddChild(go);
-            go.GameObject.SetGameObject("3D/Model/Unit/chan.prefab");
+            go.GameObject.SetGameObject("3D_chan");
             go.Transform.position = v.t.p;
             go.Transform.rotation = v.t.r;
             if (go.rpc == s.myid)

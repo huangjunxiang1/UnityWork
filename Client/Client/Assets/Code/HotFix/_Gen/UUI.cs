@@ -17,7 +17,7 @@ partial class U_TestButton
         this._Text_TMPText = new((UnityEngine.UI.Text)c.GetComponent(typeof(UnityEngine.UI.Text)));
         this.Enter();
     }
-    public U_TestButton(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Game.SAsset.LoadGameObject("UI/UUI/Prefab/items/_TestButton.prefab", mode).transform) { }
+    public U_TestButton(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Game.SAsset.LoadGameObject("UI__TestButton", mode).transform) { }
     partial void Enter();
     public void Dispose()
     {
@@ -41,7 +41,7 @@ partial class U_TestButton2
         this._Text_TMPText = new((UnityEngine.UI.Text)c.GetComponent(typeof(UnityEngine.UI.Text)));
         this.Enter();
     }
-    public U_TestButton2(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Game.SAsset.LoadGameObject("UI/UUI/Prefab/items/_TestButton2.prefab", mode).transform) { }
+    public U_TestButton2(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Game.SAsset.LoadGameObject("UI__TestButton2", mode).transform) { }
     partial void Enter();
     public void Dispose()
     {
@@ -50,7 +50,7 @@ partial class U_TestButton2
 }
 partial class UUILoading : UUI
 {
-    public sealed override string url => "UI/UUI/Prefab/UUILoading.prefab";
+    public sealed override string url => "UI_UUILoading";
 
     public ImagePropertyBinding _fillImage { get; private set; }
     public TextPropertyBinding _txtText { get; private set; }
@@ -73,7 +73,7 @@ partial class UUILoading : UUI
 }
 partial class UUILogin : UUI
 {
-    public sealed override string url => "UI/UUI/Prefab/UUILogin.prefab";
+    public sealed override string url => "UI_UUILogin";
 
     public UnityEngine.UI.InputField _acInputField { get; private set; }
     public UnityEngine.UI.InputField _pwInputField { get; private set; }

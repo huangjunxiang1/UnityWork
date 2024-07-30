@@ -37,7 +37,7 @@ static partial class SettingL
     static async void loadLocationText()
     {
         var t = LanguageUtil.LanguageType;
-        DBuffer buff = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/Language_{LanguageUtil.LanguageType}.bytes")).bytes));
+        DBuffer buff = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"config_Language_{LanguageUtil.LanguageType}")).bytes));
         if (LanguageUtil.LanguageType != t)
         {
             buff.Dispose();

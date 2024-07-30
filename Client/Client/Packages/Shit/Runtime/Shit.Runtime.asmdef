@@ -12,7 +12,8 @@
         "GUID:72d1fea872bd7a449bf3818f2b0a6708",
         "GUID:df380645f10b7bc4b97d4f5eb6303d95",
         "GUID:457756d89b35d2941b3e7b37b4ece6f1",
-        "GUID:8c8f9d96103e94a7da84b012fd7e9f13"
+        "GUID:8c8f9d96103e94a7da84b012fd7e9f13",
+        "GUID:e34a5702dd353724aa315fb8011f08c3"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -56,6 +57,11 @@
             "name": "com.esotericsoftware.spine.spine-unity",
             "expression": "1.0.0",
             "define": "Spine"
+        },
+        {
+            "name": "com.tuyoogame.yooasset",
+            "expression": "1.0.0",
+            "define": "Yooasset"
         }
     ],
     "noEngineReferences": false

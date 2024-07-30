@@ -8,26 +8,78 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Cinemachine;
+using UnityEditor;
 using UnityEngine;
+using YooAsset;
 
 static class Handler
 {
-    [Event(-1)]
+    [Event(-100, Queue = true)]
     static async STask Init(EC_GameStart e)
     {
+        YooAssets.Initialize();
+        var loader = (YooassetLoader)SAsset.Loader;
+        loader.LoadPackage("Res");
+
+        var playMode = EPlayMode.EditorSimulateMode;
+        // 编辑器下的模拟模式
+        InitializationOperation initializationOperation = null;
+        if (playMode == EPlayMode.EditorSimulateMode)
+        {
+            var simulateBuildResult = EditorSimulateModeHelper.SimulateBuild(EDefaultBuildPipeline.ScriptableBuildPipeline, "Res");
+            var createParameters = new EditorSimulateModeParameters();
+            createParameters.EditorFileSystemParameters = FileSystemParameters.CreateDefaultEditorFileSystemParameters(simulateBuildResult);
+            initializationOperation = loader.Package.InitializeAsync(createParameters);
+        }
+
+        // 单机运行模式
+        if (playMode == EPlayMode.OfflinePlayMode)
+        {
+            /*var createParameters = new OfflinePlayModeParameters();
+            createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+            initializationOperation = package.InitializeAsync(createParameters);*/
+        }
+
+        // 联机运行模式
+        if (playMode == EPlayMode.HostPlayMode)
+        {
+            /*string defaultHostServer = GetHostServerURL();
+            string fallbackHostServer = GetHostServerURL();
+            IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+            var createParameters = new HostPlayModeParameters();
+            createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+            createParameters.CacheFileSystemParameters = FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
+            initializationOperation = package.InitializeAsync(createParameters);*/
+        }
+
+        // WebGL运行模式
+        if (playMode == EPlayMode.WebPlayMode)
+        {
+            /*var createParameters = new WebPlayModeParameters();
+            createParameters.WebFileSystemParameters = FileSystemParameters.CreateDefaultWebFileSystemParameters();
+            initializationOperation = package.InitializeAsync(createParameters);*/
+        }
+
+        await initializationOperation.AsTask();
+        var version = loader.Package.RequestPackageVersionAsync();
+        await version.AsTask();
+        await loader.Package.UpdatePackageManifestAsync(version.PackageVersion).AsTask();
+        var downloader = loader.Package.CreateResourceDownloader(10, 3);
+        YooAssets.SetDefaultPackage(loader.Package);
+
         DG.Tweening.DOTween.Init();
         SettingL.Languege = SystemLanguage.Chinese;
         Application.targetFrameRate = -1;
 
-        DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>($"Config/Tabs/{nameof(TabM_ST)}.bytes")).bytes));
+        DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>($"config_{nameof(TabM_ST)}")).bytes));
         if (buffM_ST.ReadHeaderInfo())
             TabM_ST.Init(buffM_ST);
 
-        DBuffer buffM = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/{nameof(TabM)}.bytes")).bytes));
+        DBuffer buffM = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"config_{nameof(TabM)}")).bytes));
         if (buffM.ReadHeaderInfo())
             TabM.Init(buffM, ConstDefCore.Debug);
 
-        DBuffer buffL = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"Config/Tabs/{nameof(TabL)}.bytes")).bytes));
+        DBuffer buffL = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"config_{nameof(TabL)}")).bytes));
         if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, ConstDefCore.Debug);
     }

@@ -21,6 +21,7 @@ partial class G_Box_YesOrNo
     public G_Box_YesOrNo() : this((GComponent)UIPkg.ComPkg.CreateObject("Box_YesOrNo")) { }
     public void Dispose()
     {
+        this.ui.Dispose();
     }
 }
 partial class FUIFighting : FUI
@@ -202,6 +203,7 @@ partial class G_test
     public G_test() : this((GComponent)UIPkg.ComPkg.CreateObject("test")) { }
     public void Dispose()
     {
+        this.ui.Dispose();
         _n0.Dispose();
     }
 }
@@ -218,11 +220,12 @@ partial class G_Tips
     public G_Tips() : this((GComponent)UIPkg.ComPkg.CreateObject("Tips")) { }
     public void Dispose()
     {
+        this.ui.Dispose();
     }
 }
 partial class FUI3DHeader : FUI3D
 {
-    public sealed override string url => "Assets/Res/UI/FUI/3DUI/FUI3DHeader.prefab";
+    public sealed override string url => "UI_FUI3DHeader";
     public GTextField _title { get; private set; }
 
     protected sealed override void Binding()

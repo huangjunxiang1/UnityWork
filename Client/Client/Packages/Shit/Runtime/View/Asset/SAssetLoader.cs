@@ -21,5 +21,6 @@ namespace Game
         public abstract void Release(GameObject obj);
         public abstract void Release(UnityEngine.SceneManagement.Scene obj);
         public abstract void Release(UnityEngine.Object obj);
+        public abstract STask ReleaseAllUnuseObjects();
     }
 }

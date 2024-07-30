@@ -31,13 +31,13 @@ partial class FUIFighting4
     ComputeBuffer targetP = new ComputeBuffer(playerCount, sizeof(int) * 2);
     protected override async STask OnTask(params object[] data)
     {
-        mat = await SAsset.LoadAsync<Material>(@"3D\Model\ECS\ECSLit2.mat");
-        var go = await SAsset.LoadGameObjectAsync(@"3D\Model\ECS\Cube.prefab");
+        mat = await SAsset.LoadAsync<Material>(@"other_ECSLit2");
+        var go = await SAsset.LoadGameObjectAsync(@"3D_Cube");
         mesh = go.GetComponent<MeshFilter>().mesh;
         SAsset.Release(go);
-        cs = await SAsset.LoadAsync<ComputeShader>(@"Shader/PathFinding.compute");
+        cs = await SAsset.LoadAsync<ComputeShader>(@"other_PathFinding");
 
-        Entity one = await ECSHelper.LoadEntity(@"3D\Model\ECS\Cube.prefab");
+        Entity one = await ECSHelper.LoadEntity(@"3D_Cube");
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
         em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor() { Value = new float3(0, 0, 1) });

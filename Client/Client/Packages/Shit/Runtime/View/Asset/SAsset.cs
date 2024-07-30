@@ -5,7 +5,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Core;
 
-
 #if FairyGUI
 using FairyGUI;
 #endif
@@ -23,59 +22,56 @@ namespace Game
                 _poolRoot.SetActive(false);
             }
         }
-
-#if Addressables
+#if Yooasset
+        public static SAssetLoader Loader = new YooassetLoader();
+#elif Addressables
         public static SAssetLoader Loader = new AddressablesLoader();
 #else
         public static SAssetLoader Loader;
 #endif
-
-        public static string Directory = "Assets/Res/";
 
         static readonly GameObject _poolRoot;
         static readonly Dictionary<string, Queue<GameObject>> _pool = new(50);
 
         public static GameObject LoadGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
-            string path = Directory + url;
             GameObject g;
-            if (_pool.TryGetValue(path, out var pool) && pool.Count > 0)
+            if (_pool.TryGetValue(url, out var pool) && pool.Count > 0)
             {
                 g = pool.Dequeue();
                 g.transform.parent = Client.transform;
             }
             else
-                g = Loader.LoadGameObject(path);
+                g = Loader.LoadGameObject(url);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-            r.fullPath = path;
+            r.fullPath = url;
             r.isFromLoad = true;
             r.mode = releaseMode;
             return g;
         }
         public static async STask<GameObject> LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
-            string path = Directory + url;
             GameObject g;
-            if (_pool.TryGetValue(path, out var pool) && pool.Count > 0)
+            if (_pool.TryGetValue(url, out var pool) && pool.Count > 0)
             {
                 g = pool.Dequeue();
                 g.transform.parent = Client.transform;
             }
             else
-                g = await Loader.LoadGameObjectAsync(path);
+                g = await Loader.LoadGameObjectAsync(url);
             UrlRef r = g.GetComponent<UrlRef>() ?? g.AddComponent<UrlRef>();
-            r.fullPath = path;
+            r.fullPath = url;
             r.isFromLoad = true;
             r.mode = releaseMode;
             return g;
         }
         public static UnityEngine.SceneManagement.Scene LoadScene(string url, LoadSceneMode mode = LoadSceneMode.Single)
         {
-            return Loader.LoadScene(Directory + url, mode);
+            return Loader.LoadScene(url, mode);
         }
         public static STask<UnityEngine.SceneManagement.Scene> LoadSceneAsync(string url, LoadSceneMode mode = LoadSceneMode.Single)
         {
-            return Loader.LoadSceneAsync(Directory + url, mode);
+            return Loader.LoadSceneAsync(url, mode);
         }
         public static T Load<T>(string url) where T : UnityEngine.Object
         {
@@ -87,7 +83,7 @@ namespace Game
                 return default;
             }
 #endif
-            return (T)Loader.LoadObject(Directory + url);
+            return (T)Loader.LoadObject(url);
         }
         public static async STask<T> LoadAsync<T>(string url) where T : UnityEngine.Object
         {
@@ -99,7 +95,7 @@ namespace Game
                 return default;
             }
 #endif
-            return (T)await Loader.LoadObjectAsync(Directory + url);
+            return (T)await Loader.LoadObjectAsync(url);
         }
 
         public static void Release(UnityEngine.Object target, bool check = true)
@@ -142,6 +138,10 @@ namespace Game
                     Loader.Release(go);
             }
             _pool.Clear();
+        }
+        public static STask ReleaseAllUnuseObjects()
+        {
+            return Loader.ReleaseAllUnuseObjects();
         }
         static void ReleaseGameObject(UrlRef r)
         {

@@ -5,14 +5,14 @@ using System;
 public static partial class SettingM
 {
 	static FreedomCameraSetting _FreedomCameraSetting;
-	public static FreedomCameraSetting FreedomCameraSetting => _FreedomCameraSetting ??= (FreedomCameraSetting)SAsset.Load<ScriptableObject>("Config/SO/Main/FreedomCameraSetting.asset");
+	public static FreedomCameraSetting FreedomCameraSetting => _FreedomCameraSetting ??= (FreedomCameraSetting)SAsset.Load<ScriptableObject>("config_FreedomCameraSetting");
 }
 
 public class CMInput
 {
     public CMInput()
     {
-        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>("Config/SO/Main/CMInput.inputactions");
+        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>("config_CMInput");
         this.Asset.Enable();
         this.CMEditor = this.Asset.FindActionMap(new Guid(0x8ab7c044, 0xb1d5, 0x4d00, 0xad, 0xd9, 0xb5, 0xad, 0x34, 0x65, 0x1f, 0xb2));
         this.CMEditorMouseClick = this.CMEditor.FindAction(new Guid(0xf6e24bbd, 0xe3fa, 0x44d8, 0x92, 0x3a, 0x92, 0x48, 0xbd, 0xef, 0xed, 0xc6));
@@ -44,7 +44,7 @@ public class PlayerControl
 {
     public PlayerControl()
     {
-        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>("Config/SO/Main/PlayerControl.inputactions");
+        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>("config_PlayerControl");
         this.Asset.Enable();
         this.Player = this.Asset.FindActionMap(new Guid(0x63cce95c, 0xfd08, 0x4620, 0xb2, 0xf4, 0x09, 0xfd, 0x85, 0x44, 0xfc, 0x42));
         this.PlayerMove = this.Player.FindAction(new Guid(0x3ad895d5, 0x5f1b, 0x48ec, 0x9e, 0x02, 0xd7, 0x3e, 0xee, 0x99, 0xca, 0x3f));
