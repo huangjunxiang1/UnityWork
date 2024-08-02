@@ -1,4 +1,5 @@
 ﻿using Core;
+using Spine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,8 @@ namespace Game
     public abstract class Playing
     {
         public PlayingComponent playing { get; internal set; }
+        public abstract float time { get; set; }
+        public abstract float time01 { get; set; }
         public abstract void Play(string name, float fade);
         public abstract void SetSpeed();
         public abstract float GetTime(string name);
@@ -29,6 +32,32 @@ namespace Game
                 _speed = value;
                 play?.SetSpeed();
                 this.SetChange();
+            }
+        }
+        public float time
+        {
+            get
+            {
+                if (play == null) return 0;
+                return play.time;
+            }
+            set
+            {
+                if (play == null) return;
+                play.time = value;
+            }
+        }
+        public float time01
+        {
+            get
+            {
+                if (play == null) return 0;
+                return play.time01;
+            }
+            set
+            {
+                if (play == null) return;
+                play.time01 = value;
             }
         }
 
@@ -74,7 +103,7 @@ namespace Game
                 if (t.t.gameObject.TryGetComponent<UnityEngine.Animation>(out var c2))
                     t.t2.Set(new A_Animation() { ani = c2 });
                 else if (t.t.gameObject.TryGetComponent<UnityEngine.Animator>(out var c3))
-                    t.t2.Set(new A_Animator() { ani = c3 });
+                    t.t2.Set(new A_Animator() { ani = c3, clips = c3.runtimeAnimatorController.animationClips });
 #if Spine
                 else if (t.t.gameObject.TryGetComponent<Spine.Unity.SkeletonAnimation>(out var c4))
                     t.t2.Set(new A_Spine() { ani = c4 });
@@ -91,6 +120,34 @@ namespace Game
         {
             Animancer.AnimancerState state;
             public Animancer.NamedAnimancerComponent ani;
+
+            public override float time
+            {
+                get
+                {
+                    if (state == null) return 0;
+                    return state.Time;
+                }
+                set
+                {
+                    if (state == null) return;
+                    state.Time = value;
+                }
+            }
+            public override float time01
+            {
+                get
+                {
+                    if (state == null) return 0;
+                    return state.Time % state.Length / state.Length;
+                }
+                set
+                {
+                    if (state == null) return;
+                    state.Time = value * state.Length;
+                }
+            }
+
             public override void Play(string name, float fade)
             {
                 state = ani.TryPlay(name, fade);
@@ -113,6 +170,34 @@ namespace Game
         class A_Animation : Playing
         {
             public UnityEngine.Animation ani;
+            UnityEngine.AnimationState state;
+
+            public override float time
+            {
+                get
+                {
+                    if (state == null) return 0;
+                    return state.time;
+                }
+                set
+                {
+                    if (state == null) return;
+                    state.time = value;
+                }
+            }
+            public override float time01
+            {
+                get
+                {
+                    if (state == null) return 0;
+                    return state.time % state.length / state.length;
+                }
+                set
+                {
+                    if (state == null) return;
+                    state.time = value * state.length;
+                }
+            }
 
             public override float GetTime(string name)
             {
@@ -125,11 +210,11 @@ namespace Game
             public override void Play(string name, float fade)
             {
                 ani.CrossFade(name, fade);
+                state = ani[playing.name];
             }
 
             public override void SetSpeed()
             {
-                var state = ani[playing.name];
                 if (state != null)
                     state.speed = playing.Speed;
             }
@@ -137,10 +222,33 @@ namespace Game
         class A_Animator : Playing
         {
             public UnityEngine.Animator ani;
+            public AnimationClip[] clips;
+            AnimationClip clip;
+            public override float time
+            {
+                get
+                {
+                    return 0;
+                }
+                set
+                {
+                    ani.Play(playing.name, -1, value / clip.length);
+                }
+            }
+            public override float time01
+            {
+                get
+                {
+                    return 0;
+                }
+                set
+                {
+                    ani.Play(playing.name, -1, value);
+                }
+            }
 
             public override float GetTime(string name)
             {
-                AnimationClip[] clips = ani.runtimeAnimatorController.animationClips;
                 for (int i = 0; i < clips.Length; i++)
                 {
                     if (clips[i].name == name)
@@ -152,6 +260,14 @@ namespace Game
             public override void Play(string name, float fade)
             {
                 ani.CrossFade(name, fade);
+                for (int i = 0; i < clips.Length; i++)
+                {
+                    if (clips[i].name == name)
+                    {
+                        clip = clips[i];
+                        break;
+                    }
+                }
             }
 
             public override void SetSpeed()
@@ -163,6 +279,41 @@ namespace Game
         class A_Spine : Playing
         {
             public Spine.Unity.SkeletonAnimation ani;
+            Spine.Animation animation;
+            public override float time
+            {
+                get
+                {
+                    if (animation == null) return 0;
+                    var track = ani.AnimationState.GetCurrent(0);
+                    if (track != null)
+                        return track.TrackTime;
+                    return 0;
+                }
+                set
+                {
+                    var track = ani.AnimationState.GetCurrent(0);
+                    if (track != null)
+                        track.TrackTime = value;
+                }
+            }
+            public override float time01
+            {
+                get
+                {
+                    if (animation == null) return 0;
+                    var track = ani.AnimationState.GetCurrent(0);
+                    if (track != null)
+                        return track.TrackTime / animation.Duration;
+                    return 0;
+                }
+                set
+                {
+                    var track = ani.AnimationState.GetCurrent(0);
+                    if (track != null)
+                        track.TrackTime = value * animation.Duration;
+                }
+            }
 
             public override float GetTime(string name)
             {
@@ -174,6 +325,7 @@ namespace Game
             public override void Play(string name, float fade)
             {
                 ani.AnimationName = name;
+                animation = ani.AnimationState.Data.SkeletonData.FindAnimation(name);
             }
 
             public override void SetSpeed()

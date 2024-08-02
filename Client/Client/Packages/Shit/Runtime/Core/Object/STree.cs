@@ -77,16 +77,7 @@ namespace Core
                 else
                     Loger.Error($"Already Contains Child this={this} child={child}");
             }
-            if (child.ObjType != 0)
-            {
-                var cr = this.CrucialRoot;
-                if (cr != null)
-                {
-                    if (!cr._typeMap.TryGetValue(child.ObjType, out var lst))
-                        cr._typeMap[child.ObjType] = lst = ObjectPool.Get<List<SObject>>();
-                    lst.Add(child);
-                }
-            }
+            _addToCrucialRoot(child);
             _children.Add(child);
 
             child.Parent = this;
@@ -147,15 +138,7 @@ namespace Core
             _childrenGMap.Remove(child.gid);
             if (child.rpc != 0)
                 _childrenRMap.Remove(child.rpc);
-            if (child.ObjType != 0)
-            {
-                var cr = this.CrucialRoot;
-                if (cr != null)
-                {
-                    if (cr._typeMap.TryGetValue(child.ObjType, out var lst))
-                        lst.Remove(child);
-                }
-            }
+            _removeFromCrucialRoot(child);
             _children.Remove(child);
             child.Parent = null;
         }
@@ -252,6 +235,49 @@ namespace Core
                 }
                 tmp.Clear();
                 ObjectPool.Return(tmp);
+            }
+        }
+        void _addToCrucialRoot(SObject child)
+        {
+            if (child.ObjType != 0)
+            {
+                var cr = this.CrucialRoot;
+                if (cr != null)
+                {
+                    if (!cr._typeMap.TryGetValue(child.ObjType, out var lst))
+                        cr._typeMap[child.ObjType] = lst = ObjectPool.Get<List<SObject>>();
+                    lst.Add(child);
+                }
+            }
+            if (child is STree tree && !tree.isCrucialRoot)
+            {
+                for (int i = 0; i < tree._children.Count; i++)
+                {
+                    var c = tree._children[i];
+                    if (c is not STree tree2 || !tree2.isCrucialRoot)
+                        _addToCrucialRoot(c);
+                }
+            }
+        }
+        void _removeFromCrucialRoot(SObject child)
+        {
+            if (child.ObjType != 0)
+            {
+                var cr = this.CrucialRoot;
+                if (cr != null)
+                {
+                    if (cr._typeMap.TryGetValue(child.ObjType, out var lst))
+                        lst.Remove(child);
+                }
+            }
+            if (child is STree tree && !tree.isCrucialRoot)
+            {
+                for (int i = 0; i < tree._children.Count; i++)
+                {
+                    var c = tree._children[i];
+                    if (c is not STree tree2 || !tree2.isCrucialRoot)
+                        _removeFromCrucialRoot(c);
+                }
             }
         }
     }

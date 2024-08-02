@@ -8,7 +8,7 @@ namespace Core
         public STimer(float wheelInterval = 1f, int utc_wheelInterval = 1000)
         {
             this.wheelInterval = Math.Max(wheelInterval, 0.1f);
-            this.utc_wheelInterval = utc_wheelInterval;
+            this.utc_wheelInterval = Math.Max(utc_wheelInterval, 1);
         }
 
         bool isSetUtc = false;
@@ -28,16 +28,17 @@ namespace Core
                     isSetUtc = true;
                     this.utc_wheel = utc / utc_wheelInterval;
                 }
-#if DebugEnable
                 else
                 {
+                    this.utc_wheel = Math.Min(this.utc_wheel, utc / utc_wheelInterval);
+#if DebugEnable
                     if (Math.Abs(old - _timeOffset) > 1000 * 60)
-                        Loger.Error($"utc 连续两次偏移 超出预期 old={old} new={_timeOffset} abs={Math.Abs(old - _timeOffset)}");
-                }
+                        Loger.Error($"utc 连续两次偏移 超出预期 old={old} new={_timeOffset} abs={old - _timeOffset}");
 #endif
+                }
             }
         }
-        long getNow() => (DateTime.Now.Ticks - _dt1970.Ticks) / 10000;
+        long getNow() => (DateTime.UtcNow.Ticks - _dt1970.Ticks) / 10000;
 
         float wheelInterval;//轮间隔
         long wheel;//时间轮的当前轮
@@ -165,8 +166,8 @@ namespace Core
         {
             time += deltatime;
             long i = wheel;
-            wheel = (long)(time / wheelInterval);
-            for (; i <= wheel; ++i)
+            long max = wheel = (long)(time / wheelInterval);
+            for (; i <= max; ++i)
             {
                 if (timers.TryGetValue(i, out var queue))
                 {
@@ -226,8 +227,8 @@ namespace Core
             long utc = this.utc;
             i = utc_wheel;
             utc_wheel = utc / utc_wheelInterval;
-            utc_wheel = Math.Min(utc_wheel, i + 5);//单次最多循环5
-            for (; i <= utc_wheel; ++i)
+            max = utc_wheel = Math.Min(utc_wheel, i + 10000);//单次最多循环10000 以免循环量太大 导致卡死
+            for (; i <= max; ++i)
             {
                 if (utc_timers.TryGetValue(i, out var queue))
                 {

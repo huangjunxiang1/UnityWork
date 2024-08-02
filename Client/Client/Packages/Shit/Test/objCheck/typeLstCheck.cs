@@ -74,6 +74,27 @@ internal class typeLstCheck
         if (v2_o2.GetChildrenByObjType(2).Count != 0)
             throw new Exception();
 
+        {
+            v2_o1.DisposeAllChildren();
+            var s = new STree { isCrucialRoot = true };
+            var s2 = new STree { isCrucialRoot = true };
+            v2_o1.AddChild(s);
+            v2_o1.AddChild(s2);
+            var ss1 = new STree { };
+            var oo1 = new SObject() { ObjType = 1 };
+            s.AddChild(ss1);
+            ss1.AddChild(oo1);
+            if (oo1.CrucialRoot != s)
+                throw new Exception();
+            s2.AddChild(ss1);
+            if (oo1.CrucialRoot != s2)
+                throw new Exception();
+            if (s.GetChildrenByObjType(1).Count != 0)
+                throw new Exception();
+            if (s2.GetChildrenByObjType(1).Count != 1)
+                throw new Exception();
+        }
+
         v2_o1.Dispose();
     }
 

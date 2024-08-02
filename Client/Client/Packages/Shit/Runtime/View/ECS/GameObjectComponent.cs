@@ -30,6 +30,7 @@ namespace Game
 
         string _url;
         int _resVersion;
+        bool _isSelfSet = false;
 
         [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
@@ -39,7 +40,7 @@ namespace Game
 
         [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
-        /// 逻辑节点 WObjectLoadStyle.Resource模式 Root==Res
+        /// 逻辑节点 SGameObjectType.Resource模式下 gameRoot==gameObject
         /// </summary>
         public GameObject gameRoot { get; private set; }
 
@@ -61,7 +62,13 @@ namespace Game
         /// <param name="res"></param>
         public virtual void SetGameObject(GameObject res, bool release = true)
         {
-            ++_resVersion;
+            if (!_isSelfSet)
+            {
+                ++_resVersion;
+                _url = null;
+            }
+            else
+                _isSelfSet = false;
             var old = this.gameObject;
             switch (gameObjectType)
             {
@@ -154,10 +161,18 @@ namespace Game
                 Loger.Error("静态类型不能动态加载");
                 return;
             }
+            if (string.IsNullOrEmpty(url))
+            {
+                _url = url;
+                ++_resVersion;
+                SetGameObject(res: null);
+                return;
+            }
             if (_url == url)
                 return;
             _url = url;
             ++_resVersion;
+            _isSelfSet = true;
             SetGameObject(SAsset.LoadGameObject(_url, releaseMode));
         }
         public async STask LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
@@ -165,6 +180,13 @@ namespace Game
             if (this.gameObjectType == SGameObjectType.Static)
             {
                 Loger.Error("静态类型不能动态加载");
+                return;
+            }
+            if (string.IsNullOrEmpty(url))
+            {
+                _url = url;
+                ++_resVersion;
+                SetGameObject(res: null);
                 return;
             }
             if (_url == url)
@@ -177,6 +199,7 @@ namespace Game
                 SAsset.Release(res);
                 return;
             }
+            _isSelfSet = true;
             SetGameObject(res);
         }
 

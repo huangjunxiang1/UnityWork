@@ -13,21 +13,20 @@ namespace Game
         [Sirenix.OdinInspector.ShowInInspector]
         quaternion _r = quaternion.identity;
         [Sirenix.OdinInspector.ShowInInspector]
-        float3[] paths;
+        float3[] _paths;
         [Sirenix.OdinInspector.ShowInInspector]
-        int index;
+        int _index;
 
-        STask<bool> task;
-        float3[] pool = new float3[1];
-        bool moving = false;
+        STask<bool> _task;
+        float3[] _pool = new float3[1];
 
         public float3 point
         {
-            get => paths[0];
+            get => _paths[0];
             set
             {
-                if (math.all(value == paths[0])) return;
-                paths[0] = value;
+                if (math.all(value == _paths[0])) return;
+                _paths[0] = value;
                 this.SetChange();
             }
         }
@@ -50,116 +49,107 @@ namespace Game
 
         public void MoveTo(float3 p, quaternion r)
         {
-            this.pool[0] = p;
-            this.paths = pool;
-            this.index = 0;
+            this._pool[0] = p;
+            this._paths = _pool;
+            this._index = 0;
             this.rotation = r;
-            this.moving = true;
-            var old = task;
-            task = null;
+            var old = _task;
+            _task = null;
             old?.TrySetResult(false);
         }
         public void MoveTo(float3 p)
         {
-            this.pool[0] = p;
-            this.paths = pool;
-            this.index = 0;
-            this.moving = true;
-            var old = task;
-            task = null;
+            this._pool[0] = p;
+            this._paths = _pool;
+            this._index = 0;
+            var old = _task;
+            _task = null;
             old?.TrySetResult(false);
         }
         public void MoveTo(float3[] ps, quaternion r)
         {
-            this.paths = ps;
-            this.index = 0;
+            this._paths = ps;
+            this._index = 0;
             this.rotation = r;
-            this.moving = true;
-            var old = task;
-            task = null;
+            var old = _task;
+            _task = null;
             old?.TrySetResult(false);
         }
         public void MoveTo(float3[] ps)
         {
-            this.paths = ps;
-            this.index = 0;
-            this.moving = true;
-            var old = task;
-            task = null;
+            this._paths = ps;
+            this._index = 0;
+            var old = _task;
+            _task = null;
             old?.TrySetResult(false);
         }
         public STask<bool> MoveToAsync(float3 p, quaternion r)
         {
-            this.pool[0] = p;
-            this.paths = pool;
-            this.index = 0;
+            this._pool[0] = p;
+            this._paths = _pool;
+            this._index = 0;
             this.rotation = r;
-            this.moving = true;
-            var old = task;
-            task = new();
+            var old = _task;
+            _task = new();
             old?.TrySetResult(false);
-            return task;
+            return _task;
         }
         public STask<bool> MoveToAsync(float3 p)
         {
-            this.pool[0] = p;
-            this.paths = pool;
-            this.index = 0;
-            this.moving = true;
-            var old = task;
-            task = new();
+            this._pool[0] = p;
+            this._paths = _pool;
+            this._index = 0;
+            var old = _task;
+            _task = new();
             old?.TrySetResult(false);
-            return task;
+            return _task;
         }
         public STask<bool> MoveToAsync(float3[] ps, quaternion r)
         {
-            this.paths = ps;
-            this.index = 0;
+            this._paths = ps;
+            this._index = 0;
             this.rotation = r;
-            this.moving = true;
-            var old = task;
-            task = new();
+            var old = _task;
+            _task = new();
             old?.TrySetResult(false);
-            return task;
+            return _task;
         }
         public STask<bool> MoveToAsync(float3[] ps)
         {
-            this.paths = ps;
-            this.index = 0;
-            this.moving = true;
-            var old = task;
-            task = new();
+            this._paths = ps;
+            this._index = 0;
+            var old = _task;
+            _task = new();
             old?.TrySetResult(false);
-            return task;
+            return _task;
         }
 
         [Event]
         static void In(In<MoveToComponent, TransformComponent> t)
         {
-            t.t.paths = t.t.pool;
-            t.t.index = 0;
+            t.t._paths = t.t._pool;
+            t.t._index = 0;
             t.t.point = t.t2.position;
-            t.t.forward = t.t2.forward;
+            t.t.rotation = t.t2.rotation;
         }
         [Event]
         static void Update(Update<MoveToComponent, TransformComponent, KVComponent> t)
         {
-            if (!t.t.moving) return;
             var speed = t.t3.Get((int)KType.MoveSpeed);
             var speed2 = t.t3.Get((int)KType.RotateSpeed);
             float3 now = t.t2.position;
-            float3 p = t.t.paths[t.t.index];
+            float3 next = t.t._paths[t.t._index];
             float moveStep = t.t.World.DeltaTime * speed;
-            float distance = math.distance(p, now);
+            float distance = math.distance(next, now);
             while (distance < moveStep)
             {
                 moveStep -= distance;
-                if (t.t.index < t.t.paths.Length - 1)
+                if (t.t._index < t.t._paths.Length - 1)
                 {
-                    t.t.index++;
-                    now = p;
-                    p = t.t.paths[t.t.index];
-                    distance = math.distance(p, now);
+                    t.t._index++;
+                    now = next;
+                    next = t.t._paths[t.t._index];
+                    distance = math.distance(next, now);
                 }
                 else
                 {
@@ -169,18 +159,17 @@ namespace Game
             }
             if (moveStep > 0)
             {
-                var dir = math.normalize(p - now);
+                var dir = math.normalize(next - now);
                 var r = quaternion.LookRotation(dir, math.up());
                 t.t2.rotation = math.slerp(t.t2.rotation, r, math.clamp(t.t.World.DeltaTime * speed2, 0, 1));
                 t.t2.position = now + dir * moveStep;
             }
             else
             {
-                t.t2.position = p;
+                t.t2.position = next;
                 t.t2.rotation = math.slerp(t.t2.rotation, t.t.rotation, math.clamp(t.t.World.DeltaTime * speed2, 0, 1));
-                t.t.moving = false;
-                var old = t.t.task;
-                t.t.task = null;
+                var old = t.t._task;
+                t.t._task = null;
                 old?.TrySetResult(true);
             }
         }
