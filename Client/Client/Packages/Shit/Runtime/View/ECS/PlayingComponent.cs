@@ -12,6 +12,7 @@ namespace Game
     public abstract class Playing
     {
         public PlayingComponent playing { get; internal set; }
+        public abstract float length { get; }
         public abstract float time { get; set; }
         public abstract float time01 { get; set; }
         public abstract void Play(string name, float fade);
@@ -32,6 +33,14 @@ namespace Game
                 _speed = value;
                 play?.SetSpeed();
                 this.SetChange();
+            }
+        }
+        public float length
+        {
+            get
+            {
+                if (play == null) return 1;
+                return play.length;
             }
         }
         public float time
@@ -121,6 +130,7 @@ namespace Game
             Animancer.AnimancerState state;
             public Animancer.NamedAnimancerComponent ani;
 
+            public override float length => state == null ? 1 : state.Length;
             public override float time
             {
                 get
@@ -139,14 +149,15 @@ namespace Game
                 get
                 {
                     if (state == null) return 0;
-                    return state.Time % state.Length / state.Length;
+                    return state.Time % length / length;
                 }
                 set
                 {
                     if (state == null) return;
-                    state.Time = value * state.Length;
+                    state.Time = value * length;
                 }
             }
+
 
             public override void Play(string name, float fade)
             {
@@ -172,6 +183,7 @@ namespace Game
             public UnityEngine.Animation ani;
             UnityEngine.AnimationState state;
 
+            public override float length => state == null ? 1 : state.length;
             public override float time
             {
                 get
@@ -190,12 +202,12 @@ namespace Game
                 get
                 {
                     if (state == null) return 0;
-                    return state.time % state.length / state.length;
+                    return state.time % length / length;
                 }
                 set
                 {
                     if (state == null) return;
-                    state.time = value * state.length;
+                    state.time = value * length;
                 }
             }
 
@@ -224,6 +236,8 @@ namespace Game
             public UnityEngine.Animator ani;
             public AnimationClip[] clips;
             AnimationClip clip;
+
+            public override float length => clip == null ? 1 : clip.length;
             public override float time
             {
                 get
@@ -232,7 +246,7 @@ namespace Game
                 }
                 set
                 {
-                    ani.Play(playing.name, -1, value / clip.length);
+                    ani.Play(playing.name, -1, value / length);
                 }
             }
             public override float time01
@@ -280,6 +294,8 @@ namespace Game
         {
             public Spine.Unity.SkeletonAnimation ani;
             Spine.Animation animation;
+
+            public override float length => animation == null ? 1 : animation.Duration;
             public override float time
             {
                 get
@@ -301,17 +317,16 @@ namespace Game
             {
                 get
                 {
-                    if (animation == null) return 0;
                     var track = ani.AnimationState.GetCurrent(0);
                     if (track != null)
-                        return track.TrackTime / animation.Duration;
+                        return track.TrackTime / length;
                     return 0;
                 }
                 set
                 {
                     var track = ani.AnimationState.GetCurrent(0);
                     if (track != null)
-                        track.TrackTime = value * animation.Duration;
+                        track.TrackTime = value * length;
                 }
             }
 
