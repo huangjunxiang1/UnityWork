@@ -577,13 +577,14 @@ namespace Core
 
             STask invoke<T>(EvtData e, T data, EventHandler eh)
             {
+                STask task = default;
                 if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return default;
                 try
                 {
                     if (!e.setHandler)
                     {
                         if (e.isTask)
-                            return ((Func<T, STask>)e.action).Invoke(data);
+                            task = ((Func<T, STask>)e.action).Invoke(data);
                         else
                         {
                             if (e.isField)
@@ -595,7 +596,7 @@ namespace Core
                     else
                     {
                         if (e.isTask)
-                            return ((Func<T, EventHandler, STask>)e.action).Invoke(data, eh);
+                            task = ((Func<T, EventHandler, STask>)e.action).Invoke(data, eh);
                         else
                             ((Action<T, EventHandler>)e.action).Invoke(data, eh);
                     }
@@ -605,7 +606,7 @@ namespace Core
                     Loger.Error("Event Execute Error :" + ex.ToString());
                 }
                 e.target?.AcceptedEvent();
-                return default;
+                return task;
             }
             STask invoke(EvtData e, object data, EventHandler eh)
             {
