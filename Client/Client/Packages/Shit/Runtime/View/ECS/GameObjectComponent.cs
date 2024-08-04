@@ -32,6 +32,26 @@ namespace Game
         int _resVersion;
         bool _isSelfSet = false;
 
+        public sealed override SObject Entity
+        {
+            get => base.Entity;
+            internal set
+            {
+                base.Entity = value;
+#if UNITY_EDITOR
+                if (this.gameRoot && this.gameObjectType != SGameObjectType.Static)
+                {
+                    string s = this.Entity.GetType().Name;
+                    if (this.rpc != 0)
+                        s += $"_rpc={this.rpc}";
+                    if (this.Entity.tid != 0)
+                        s += $"_tid={this.Entity.tid}";
+                    this.gameRoot.name = s;
+                }
+#endif
+            }
+        }
+
         [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
         ///  

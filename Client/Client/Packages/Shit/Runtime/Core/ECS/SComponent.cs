@@ -14,7 +14,7 @@ namespace Core
         internal List<__KVWatcher> _kvWatcherHandles;
         internal bool _setChanged = false;
 
-        public SObject Entity { get; internal set; }
+        public virtual SObject Entity { get; internal set; }
         public bool Disposed { get; internal set; }
 
         public virtual World World

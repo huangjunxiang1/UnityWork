@@ -14,25 +14,15 @@ namespace Core
         [ShowInInspector]
         Dictionary<long, SObject> _childrenRMap = ObjectPool.Get<Dictionary<long, SObject>>();
         [ShowInInspector]
-        Dictionary<int, List<SObject>> _typeMap;
+        Dictionary<int, List<SObject>> _typeMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
         internal List<SObject> _children = ObjectPool.Get<List<SObject>>();
-        bool _isCrucialRoot;
 
         /// <summary>
         /// 关键节点
         /// </summary>
         [ShowInInspector]
         [PropertyOrder(-100)]
-        public bool isCrucialRoot
-        {
-            get => _isCrucialRoot;
-            init
-            {
-                _isCrucialRoot = value;
-                if (value)
-                    _typeMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
-            }
-        }
+        public bool isCrucialRoot { get; init; }
 
         public override void Dispose()
         {
@@ -77,7 +67,12 @@ namespace Core
                 else
                     Loger.Error($"Already Contains Child this={this} child={child}");
             }
-            _addToCrucialRoot(child);
+            if (child.ObjType != 0)
+            {
+                if (!this._typeMap.TryGetValue(child.ObjType, out var lst))
+                    this._typeMap[child.ObjType] = lst = ObjectPool.Get<List<SObject>>();
+                lst.Add(child);
+            }
             _children.Add(child);
 
             child.Parent = this;
@@ -121,7 +116,6 @@ namespace Core
         public List<SObject> GetChildren() => _children;
         public List<SObject> GetChildrenByObjType(int objType)
         {
-            if (!this.isCrucialRoot) return null;
             _typeMap.TryGetValue(objType, out var lst);
             return lst;
         }
@@ -138,7 +132,11 @@ namespace Core
             _childrenGMap.Remove(child.gid);
             if (child.rpc != 0)
                 _childrenRMap.Remove(child.rpc);
-            _removeFromCrucialRoot(child);
+            if (child.ObjType != 0)
+            {
+                if (this._typeMap.TryGetValue(child.ObjType, out var lst))
+                    lst.Remove(child);
+            }
             _children.Remove(child);
             child.Parent = null;
         }
@@ -183,17 +181,14 @@ namespace Core
                 ObjectPool.Return(_childrenRMap);
                 _childrenRMap = null;
 
-                if (this.isCrucialRoot)
+                foreach (var item in _typeMap)
                 {
-                    foreach (var item in _typeMap)
-                    {
-                        item.Value.Clear();
-                        ObjectPool.Return(item.Value);
-                    }
-                    _typeMap.Clear();
-                    ObjectPool.Return(_typeMap);
-                    _typeMap = null;
+                    item.Value.Clear();
+                    ObjectPool.Return(item.Value);
                 }
+                _typeMap.Clear();
+                ObjectPool.Return(_typeMap);
+                _typeMap = null;
 
                 List<SObject> tmp = _children;
                 _children = null;
@@ -215,16 +210,13 @@ namespace Core
 
                 _childrenGMap.Clear();
                 _childrenRMap.Clear();
-                if (this.isCrucialRoot)
+                foreach (var item in _typeMap)
                 {
-                    foreach (var item in _typeMap)
-                    {
-                        item.Value.Clear();
-                        ObjectPool.Return(item.Value);
-                    }
-                    _typeMap.Clear();
-                    ObjectPool.Return(_typeMap);
+                    item.Value.Clear();
+                    ObjectPool.Return(item.Value);
                 }
+                _typeMap.Clear();
+                ObjectPool.Return(_typeMap);
 
                 List<SObject> tmp = _children;
                 _children = ObjectPool.Get<List<SObject>>();
@@ -235,49 +227,6 @@ namespace Core
                 }
                 tmp.Clear();
                 ObjectPool.Return(tmp);
-            }
-        }
-        void _addToCrucialRoot(SObject child)
-        {
-            if (child.ObjType != 0)
-            {
-                var cr = this.CrucialRoot;
-                if (cr != null)
-                {
-                    if (!cr._typeMap.TryGetValue(child.ObjType, out var lst))
-                        cr._typeMap[child.ObjType] = lst = ObjectPool.Get<List<SObject>>();
-                    lst.Add(child);
-                }
-            }
-            if (child is STree tree && !tree.isCrucialRoot)
-            {
-                for (int i = 0; i < tree._children.Count; i++)
-                {
-                    var c = tree._children[i];
-                    if (c is not STree tree2 || !tree2.isCrucialRoot)
-                        _addToCrucialRoot(c);
-                }
-            }
-        }
-        void _removeFromCrucialRoot(SObject child)
-        {
-            if (child.ObjType != 0)
-            {
-                var cr = this.CrucialRoot;
-                if (cr != null)
-                {
-                    if (cr._typeMap.TryGetValue(child.ObjType, out var lst))
-                        lst.Remove(child);
-                }
-            }
-            if (child is STree tree && !tree.isCrucialRoot)
-            {
-                for (int i = 0; i < tree._children.Count; i++)
-                {
-                    var c = tree._children[i];
-                    if (c is not STree tree2 || !tree2.isCrucialRoot)
-                        _removeFromCrucialRoot(c);
-                }
             }
         }
     }

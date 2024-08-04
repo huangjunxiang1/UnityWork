@@ -16,10 +16,13 @@ namespace Game
             this.Transform = this.AddComponent<TransformComponent>();
             this.GameObject = this.AddComponent(new GameObjectComponent(type));
             this.Playing = this.AddComponent<PlayingComponent>();
+            this.PlayingStep = this.AddComponent<PlayingStepComponent>();
+            this.PlayingStep.Enable = false;
         }
 #endif
 
         public GameObjectComponent GameObject { get; private set; }
         public PlayingComponent Playing { get; private set; }
+        public PlayingStepComponent PlayingStep { get; private set; }
     }
 }

@@ -18,11 +18,6 @@ internal class typeLstCheck
         Client.World.Root.AddChild(v_o2);
         Client.World.Root.AddChild(v_o3);
 
-        if (Client.World.Root.GetChildrenByObjType(1) != null)
-            throw new Exception();
-        if (Client.World.Root.GetChildrenByObjType(2) != null)
-            throw new Exception();
-
         o2 v2_o1 = new() { isCrucialRoot = true };
         {
             Client.World.Root.AddChild(v2_o1);
@@ -89,9 +84,9 @@ internal class typeLstCheck
             s2.AddChild(ss1);
             if (oo1.CrucialRoot != s2)
                 throw new Exception();
-            if (s.GetChildrenByObjType(1).Count != 0)
+            if (s.GetChildrenByObjType(1) != null)
                 throw new Exception();
-            if (s2.GetChildrenByObjType(1).Count != 1)
+            if (s2.GetChildrenByObjType(1) != null)
                 throw new Exception();
         }
 

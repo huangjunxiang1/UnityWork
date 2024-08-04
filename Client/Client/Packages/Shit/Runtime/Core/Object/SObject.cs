@@ -88,6 +88,8 @@ namespace Core
             }
         }
 
+        public sealed override SObject Entity { get => base.Entity; internal set => base.Entity = value; }
+
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
