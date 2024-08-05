@@ -38,7 +38,7 @@ namespace Game
                 C2S_SyncTransform p = new();
                 p.dir = dir;
                 NetComponent.Inst.Send(p);
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
        

@@ -69,7 +69,7 @@ public class KVComponent : SComponent
             ComputeTotalValue(k);
         ck.Clear();
         ObjectPool.Return(ck);
-        this.SetChange();
+        this.SetChangeFlag();
     }
     public void Set(int id, long v, int Source = 1)
     {
@@ -90,7 +90,7 @@ public class KVComponent : SComponent
         Keys.Add(bk);
         Values[rk] = v;
         ComputeTotalValue(bk);
-        this.SetChange();
+        this.SetChangeFlag();
     }
     public void Add(int id, long v, int Source = 1)
     {
@@ -110,7 +110,7 @@ public class KVComponent : SComponent
         Keys.Add(bk);
         Values[rk] = old + v;
         ComputeTotalValue(bk);
-        this.SetChange();
+        this.SetChangeFlag();
     }
     public void Remove(int id, int Source = 1)
     {
@@ -127,7 +127,7 @@ public class KVComponent : SComponent
 
         Values.Remove(rk);
         ComputeTotalValue(bk);
-        this.SetChange();
+        this.SetChangeFlag();
     }
     public void RemoveAllBySource(int Source)
     {
@@ -166,7 +166,7 @@ public class KVComponent : SComponent
         Values.Clear();
         Max = 1;
 
-        this.SetChange();
+        this.SetChangeFlag();
     }
 
     public bool Has(int id) => Values.TryGetValue(id, out var v) && v != 0;

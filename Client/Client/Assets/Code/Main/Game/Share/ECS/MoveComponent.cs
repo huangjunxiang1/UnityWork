@@ -19,7 +19,7 @@ namespace Game
             {
                 if (math.all(_t == value)) return;
                 _t = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
 

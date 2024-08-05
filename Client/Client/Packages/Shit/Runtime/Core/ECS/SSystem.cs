@@ -20,7 +20,7 @@ namespace Core
         internal Dictionary<Type, List<Action<SObject>>> timerHandle = new();
         internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
 
-        HashSet<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<HashSet<__ChangeHandle>>();
+        Queue<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<Queue<__ChangeHandle>>();
         HashSet<SComponent> changeWaitRemove = new();
         HashSet<SComponent> kvWaitRemove = new();
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
@@ -95,7 +95,7 @@ namespace Core
                 catch (Exception e) { Loger.Error("Out Error " + e); }
             }
         }
-        internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Add(h);
+        internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Enqueue(h);
         internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
         internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
         internal void EventWatcherRpc(long rpc, object e, int type)
@@ -314,12 +314,15 @@ namespace Core
 
             if (changeWaitInvoke.Count > 0)
             {
-                var tmp = changeWaitInvoke;
-                changeWaitInvoke = ObjectPool.Get<HashSet<__ChangeHandle>>();
-                foreach (var c in tmp)
+                var change = changeWaitInvoke;
+                changeWaitInvoke = ObjectPool.Get<Queue<__ChangeHandle>>();
+                while (change.TryDequeue(out var c))
+                {
+                    if (!c.setInvokeWaiting || c.Disposed) continue;
+                    c.setInvokeWaiting = false;
                     c.Invoke();
-                tmp.Clear();
-                ObjectPool.Return(tmp);
+                }
+                ObjectPool.Return(change);
             }
         }
         internal void AfterUpdate()

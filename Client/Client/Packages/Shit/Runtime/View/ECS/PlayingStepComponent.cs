@@ -21,7 +21,7 @@ namespace Game
                 if (_startTime == value) return;
                 _startTime = value;
                 this.Enable = true;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         public long endTime
@@ -32,7 +32,7 @@ namespace Game
                 if (_endTime == value) return;
                 _endTime = value;
                 this.Enable = true;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         public int count
@@ -43,7 +43,7 @@ namespace Game
                 if (_count == value) return;
                 _count = value;
                 this.Enable = true;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
 

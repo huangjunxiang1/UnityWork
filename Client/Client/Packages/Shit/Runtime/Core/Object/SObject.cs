@@ -133,7 +133,7 @@ namespace Core
                 if (value)
                 {
                     foreach (var c in _components.Values)
-                        c.SetChange();
+                        c.SetChangeFlag();
                 }
             }
         }
@@ -242,7 +242,7 @@ namespace Core
                 for (int i = 0; i < lst.Count; i++)
                 {
                     if (!lst[i].Disposed)
-                        lst[i].SetChange();
+                        lst[i].SetChangeFlag();
                 }
                 lst.Clear();
                 ObjectPool.Return(lst);
@@ -265,6 +265,7 @@ namespace Core
 
         public override void AcceptedEvent() { }
         public sealed override void SetChange() => base.SetChange();
+        public sealed override void SetChangeFlag() => base.SetChangeFlag();
 
         public virtual void AddChild(SObject child) { throw new NotSupportedException(); }
         public virtual void Remove(SObject child) { }
@@ -467,7 +468,7 @@ namespace Core
             if (c.Disposed) return;
             if (c.Enable)
                 World.System.In(type, this);
-            c.SetChange();
+            c.SetChangeFlag();
         }
         internal bool RemoveComponentInternal(Type type)
         {

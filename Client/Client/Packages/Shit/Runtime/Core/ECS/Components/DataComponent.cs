@@ -15,7 +15,7 @@ namespace Core
             set
             {
                 _value = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
     }

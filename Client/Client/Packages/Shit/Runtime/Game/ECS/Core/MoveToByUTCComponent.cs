@@ -27,7 +27,7 @@ namespace Game
             {
                 if (value.Equals(_r)) return;
                 _r = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
 
@@ -38,7 +38,7 @@ namespace Game
             this._startTime = math.min(startTime, endTime - 1);
             this._endTime = endTime;
             this._r = quaternion;
-            this.SetChange();
+            this.SetChangeFlag();
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -50,7 +50,7 @@ namespace Game
             this._startTime = math.min(startTime, endTime - 1);
             this._endTime = endTime;
             this._r = quaternion.LookRotation(math.normalize(end - start), math.up());
-            this.SetChange();
+            this.SetChangeFlag();
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -62,7 +62,7 @@ namespace Game
             this._startTime = math.min(startTime, endTime - 1);
             this._endTime = endTime;
             this._r = quaternion;
-            this.SetChange();
+            this.SetChangeFlag();
             var old = _task;
             _task = new();
             old?.TrySetResult(false);
@@ -75,7 +75,7 @@ namespace Game
             this._startTime = math.min(startTime, endTime - 1);
             this._endTime = endTime;
             this._r = quaternion.LookRotation(math.normalize(end - start), math.up());
-            this.SetChange();
+            this.SetChangeFlag();
             var old = _task;
             _task = new();
             old?.TrySetResult(false);

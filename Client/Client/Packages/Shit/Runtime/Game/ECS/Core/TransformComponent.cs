@@ -31,7 +31,7 @@ namespace Game
                 value = math.clamp(value, _aabb.Min, _aabb.Max);
                 if (math.all(_p == value)) return;
                 _p = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         public float3 scale
@@ -41,7 +41,7 @@ namespace Game
             {
                 if (math.all(_s == value)) return;
                 _s = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         public quaternion rotation
@@ -51,7 +51,7 @@ namespace Game
             {
                 if (math.all(_r.value == value.value)) return;
                 _r = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         public float3 forward
@@ -67,7 +67,7 @@ namespace Game
                 if (_aabb.Equals(value)) return;
                 _aabb = value;
                 _p = math.clamp(_p, _aabb.Min, _aabb.Max);
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
 

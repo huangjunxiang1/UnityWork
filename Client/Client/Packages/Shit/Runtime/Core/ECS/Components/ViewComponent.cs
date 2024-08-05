@@ -24,4 +24,9 @@ public abstract class ViewComponent : SComponent
         base.SetChange();
         this.View(this.Enable);
     }
+    public override void SetChangeFlag()
+    {
+        base.SetChangeFlag();
+        this.View(this.Enable);
+    }
 }

@@ -15,9 +15,7 @@ public class Change<T> : __ChangeHandle where T : SComponent
     {
         if (!o.TryGetComponent<T>(out var c)) return;
         var v = new Change<T>(c);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -25,8 +23,7 @@ public class Change<T> : __ChangeHandle where T : SComponent
     }
     internal override void Invoke()
     {
-        t._setChanged = false;
-        if (this.Disposed || !t.Enable) return;
+        if (!t.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -42,9 +39,7 @@ public class Change<T, T2> : __ChangeHandle where T : SComponent where T2 : SCom
         if (!o.TryGetComponent<T>(out var c)) return;
         if (!o.TryGetComponent<T2>(out var c2)) return;
         var v = new Change<T, T2>(c, c2);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -52,8 +47,7 @@ public class Change<T, T2> : __ChangeHandle where T : SComponent where T2 : SCom
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable) return;
+        if (!t.Enable || !t2.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -71,9 +65,7 @@ public class Change<T, T2, T3> : __ChangeHandle where T : SComponent where T2 : 
         if (!o.TryGetComponent<T2>(out var c2)) return;
         if (!o.TryGetComponent<T3>(out var c3)) return;
         var v = new Change<T, T2, T3>(c, c2, c3);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -81,8 +73,7 @@ public class Change<T, T2, T3> : __ChangeHandle where T : SComponent where T2 : 
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -102,9 +93,7 @@ public class Change<T, T2, T3, T4> : __ChangeHandle where T : SComponent where T
         if (!o.TryGetComponent<T3>(out var c3)) return;
         if (!o.TryGetComponent<T4>(out var c4)) return;
         var v = new Change<T, T2, T3, T4>(c, c2, c3, c4);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -112,8 +101,7 @@ public class Change<T, T2, T3, T4> : __ChangeHandle where T : SComponent where T
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -135,9 +123,7 @@ public class Change<T, T2, T3, T4, T5> : __ChangeHandle where T : SComponent whe
         if (!o.TryGetComponent<T4>(out var c4)) return;
         if (!o.TryGetComponent<T5>(out var c5)) return;
         var v = new Change<T, T2, T3, T4, T5>(c, c2, c3, c4, c5);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -145,8 +131,7 @@ public class Change<T, T2, T3, T4, T5> : __ChangeHandle where T : SComponent whe
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -170,9 +155,7 @@ public class Change<T, T2, T3, T4, T5, T6> : __ChangeHandle where T : SComponent
         if (!o.TryGetComponent<T5>(out var c5)) return;
         if (!o.TryGetComponent<T6>(out var c6)) return;
         var v = new Change<T, T2, T3, T4, T5, T6>(c, c2, c3, c4, c5, c6);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -180,8 +163,7 @@ public class Change<T, T2, T3, T4, T5, T6> : __ChangeHandle where T : SComponent
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -207,9 +189,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7> : __ChangeHandle where T : SCompo
         if (!o.TryGetComponent<T6>(out var c6)) return;
         if (!o.TryGetComponent<T7>(out var c7)) return;
         var v = new Change<T, T2, T3, T4, T5, T6, T7>(c, c2, c3, c4, c5, c6, c7);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -217,8 +197,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7> : __ChangeHandle where T : SCompo
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -246,9 +225,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8> : __ChangeHandle where T : SC
         if (!o.TryGetComponent<T7>(out var c7)) return;
         if (!o.TryGetComponent<T8>(out var c8)) return;
         var v = new Change<T, T2, T3, T4, T5, T6, T7, T8>(c, c2, c3, c4, c5, c6, c7, c8);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -256,8 +233,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8> : __ChangeHandle where T : SC
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = t8._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -287,9 +263,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8, T9> : __ChangeHandle where T 
         if (!o.TryGetComponent<T8>(out var c8)) return;
         if (!o.TryGetComponent<T9>(out var c9)) return;
         var v = new Change<T, T2, T3, T4, T5, T6, T7, T8, T9>(c, c2, c3, c4, c5, c6, c7, c8, c9);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -297,8 +271,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8, T9> : __ChangeHandle where T 
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = t8._setChanged = t9._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }
@@ -330,9 +303,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __ChangeHandle whe
         if (!o.TryGetComponent<T9>(out var c9)) return;
         if (!o.TryGetComponent<T10>(out var c10)) return;
         var v = new Change<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>(c, c2, c3, c4, c5, c6, c7, c8, c9, c10);
-        if (c._changeHandles == null) c._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();
-        c._changeHandles.Add(v);
-        o.World.System.AddToChangeWaitInvoke(v);
+        c.AddChangeHandler(v);
     }
     internal override void Dispose()
     {
@@ -340,8 +311,7 @@ public class Change<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __ChangeHandle whe
     }
     internal override void Invoke()
     {
-        t._setChanged = t2._setChanged = t3._setChanged = t4._setChanged = t5._setChanged = t6._setChanged = t7._setChanged = t8._setChanged = t9._setChanged = t10._setChanged = false;
-        if (this.Disposed || !t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable || !t10.Enable) return;
+        if (!t.Enable || !t2.Enable || !t3.Enable || !t4.Enable || !t5.Enable || !t6.Enable || !t7.Enable || !t8.Enable || !t9.Enable || !t10.Enable) return;
         t.World.Event.RunEventNoGCAndFaster(this);
     }
 }

@@ -12,7 +12,6 @@ namespace Core
         bool _enable = true;
         internal List<__ChangeHandle> _changeHandles;
         internal List<__KVWatcher> _kvWatcherHandles;
-        internal bool _setChanged = false;
 
         public virtual SObject Entity { get; internal set; }
         public bool Disposed { get; internal set; }
@@ -54,7 +53,7 @@ namespace Core
                 if (World != null)
                 {
                     if (this.Enable)
-                        this.SetChange();
+                        this.SetChangeFlag();
                     if (!enable && this.Enable)
                         World.System.In(this.GetType(), this.Entity);
                     if (enable && !this.Enable)
@@ -67,10 +66,26 @@ namespace Core
 
         public virtual void SetChange()
         {
-            if (_changeHandles == null || _setChanged || !_enable || World == null) return;
-            _setChanged = true;
+            if (_changeHandles == null || !_enable || World == null) return;
             for (int i = 0; i < _changeHandles.Count; i++)
-                World.System.AddToChangeWaitInvoke(_changeHandles[i]);
+            {
+                if (_changeHandles[i].Disposed) continue;
+                _changeHandles[i].setInvokeWaiting = false;
+                _changeHandles[i].Invoke();
+            }
+        }
+        public virtual void SetChangeFlag()
+        {
+            if (_changeHandles == null || !_enable || World == null) return;
+            int len = _changeHandles.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (!_changeHandles[i].setInvokeWaiting)
+                {
+                    _changeHandles[i].setInvokeWaiting = true;
+                    World.System.AddToChangeWaitInvoke(_changeHandles[i]);
+                }
+            }
         }
         public virtual void Dispose()
         {
@@ -111,7 +126,18 @@ namespace Core
 
         public virtual void AcceptedEvent()
         {
-            this.SetChange();
+            this.SetChangeFlag();
+        }
+
+        internal void AddChangeHandler(__ChangeHandle c)
+        {
+            this._changeHandles ??= ObjectPool.Get<List<__ChangeHandle>>();
+            this._changeHandles.Add(c);
+            if (!c.setInvokeWaiting)
+            {
+                c.setInvokeWaiting = true;
+                this.World.System.AddToChangeWaitInvoke(c);
+            }
         }
     }
 }

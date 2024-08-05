@@ -32,7 +32,7 @@ namespace Game
                 if (_speed == value) return;
                 _speed = value;
                 play?.SetSpeed();
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         public float length
@@ -80,7 +80,7 @@ namespace Game
             if (play == null || string.IsNullOrEmpty(name)) return;
             play.Play(name, fade);
             play.SetSpeed();
-            this.SetChange();
+            this.SetChangeFlag();
         }
         public void Set(Playing play)
         {

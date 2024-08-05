@@ -14,6 +14,7 @@ public abstract class __OutHandle : __SystemHandle
 public abstract class __ChangeHandle : __SystemHandle
 {
     internal abstract bool Disposed { get; }
+    internal bool setInvokeWaiting = false;
     internal abstract void Dispose();
     internal abstract void Invoke();
 }

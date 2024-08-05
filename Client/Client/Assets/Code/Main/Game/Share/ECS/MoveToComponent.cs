@@ -27,7 +27,7 @@ namespace Game
             {
                 if (math.all(value == _paths[0])) return;
                 _paths[0] = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         public quaternion rotation
@@ -37,7 +37,7 @@ namespace Game
             {
                 if (math.all(value.value == _r.value)) return;
                 _r = value;
-                this.SetChange();
+                this.SetChangeFlag();
             }
         }
         [Sirenix.OdinInspector.ShowInInspector]

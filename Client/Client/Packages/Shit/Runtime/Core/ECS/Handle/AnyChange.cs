@@ -16,8 +16,7 @@ using System.Threading.Tasks;
 //    {
 //?        if (!target.TryGetComponent<[T]>(out var [c])) return;+\r?
 //        var v = new AnyChange<?[T]+, ?>(?[c]+, ?);
-//?        if ([c]._changeHandles == null) [c]._changeHandles = ObjectPool.Get<List<__ChangeHandle>>();+\r?
-//?        [c]._changeHandles.Add(v);+\r?
+//?        [c].AddChangeHandler(v);+\r?
 //    }
 //    internal override void Dispose()
 //    {
@@ -25,8 +24,7 @@ using System.Threading.Tasks;
 //    }
 //    internal override void Invoke()
 //    {
-//        ?[t]._setChanged+ = ? = false;
-//        if (this.Disposed || ?![t].Enable+ || ?) return;
+//        if (?![t].Enable+ || ?) return;
 //        t.World.Event.RunEventNoGCAndFaster(this);
 //    }
 //}
