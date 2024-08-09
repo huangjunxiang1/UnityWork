@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Core
 {
@@ -407,6 +408,7 @@ namespace Core
                 this.target = target;
                 this.isQueue = this.Attribute.Queue;
                 this.setHandler = m.parameters != null && m.parameters.Length == 2;
+                this.multiThreading = this.Attribute.MultiThreading;
 
                 if (!this.isTask)
                 {
@@ -459,6 +461,7 @@ namespace Core
             public IEvent target;
             public bool isQueue;
             public bool setHandler;
+            public bool multiThreading;
 
             public Delegate action;
         }
@@ -652,7 +655,12 @@ namespace Core
                 try
                 {
                     if (!e.setHandler)
-                        ((Action<T>)e.action).Invoke(data);
+                    {
+                        if (e.multiThreading)
+                            ThreadPool.QueueUserWorkItem((Action<T>)e.action, data, false);
+                        else
+                            ((Action<T>)e.action).Invoke(data);
+                    }
                     else
                         ((Action<T, EventHandler>)e.action).Invoke(data, eh);
                 }

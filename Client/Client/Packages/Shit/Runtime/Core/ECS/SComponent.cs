@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Core
@@ -52,6 +53,11 @@ namespace Core
                 _enable = value;
                 if (World != null)
                 {
+                    if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
+                    {
+                        Loger.Error($"canot {nameof(Enable)} in other thread");
+                        return;
+                    }
                     if (this.Enable)
                         this.SetChangeFlag();
                     if (!enable && this.Enable)
@@ -67,6 +73,11 @@ namespace Core
         public virtual void SetChange()
         {
             if (_changeHandles == null || !_enable || World == null) return;
+            if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
+            {
+                Loger.Error($"canot {nameof(SetChange)} in other thread");
+                return;
+            }
             for (int i = 0; i < _changeHandles.Count; i++)
             {
                 if (_changeHandles[i].Disposed) continue;
@@ -92,6 +103,11 @@ namespace Core
             if (this.Disposed)
             {
                 Loger.Error("重复Dispose->" + this);
+                return;
+            }
+            if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
+            {
+                Loger.Error($"canot {nameof(Dispose)} in other thread");
                 return;
             }
             World.Event.RemoveEvent(this);

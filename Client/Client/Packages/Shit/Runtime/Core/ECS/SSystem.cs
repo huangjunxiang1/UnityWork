@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Core
         internal Dictionary<Type, List<Action<SObject>>> timerHandle = new();
         internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
 
-        Queue<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<Queue<__ChangeHandle>>();
+        ConcurrentQueue<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<ConcurrentQueue<__ChangeHandle>>();
         HashSet<SComponent> changeWaitRemove = new();
         HashSet<SComponent> kvWaitRemove = new();
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
@@ -315,7 +316,7 @@ namespace Core
             if (changeWaitInvoke.Count > 0)
             {
                 var change = changeWaitInvoke;
-                changeWaitInvoke = ObjectPool.Get<Queue<__ChangeHandle>>();
+                changeWaitInvoke = ObjectPool.Get<ConcurrentQueue<__ChangeHandle>>();
                 while (change.TryDequeue(out var c))
                 {
                     if (!c.setInvokeWaiting || c.Disposed) continue;
