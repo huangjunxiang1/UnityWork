@@ -357,8 +357,8 @@ namespace Core
             }
         }
 
-        public void RunGenericEvent(Type baseType, object o, Type elementType = null) => GenericEvent.Invoke(baseType, o, elementType);
-        public void RunGenericEventAndBaseType(Type baseType, object o) => GenericEvent.InvokeAndBaseType(baseType, o);
+        public void RunGenericEvent(Type baseType, object[] os, Type elementType = null) => GenericEvent.Invoke(baseType, os, elementType);
+        public void RunGenericEventAndBaseType(Type baseType, object[] os) => GenericEvent.InvokeAndBaseType(baseType, os);
         internal void RunEventNoGCAndFaster<T>(T data, int type = 0)
         {
             if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue)) return;

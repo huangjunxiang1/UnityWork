@@ -12,16 +12,35 @@ namespace Game
 {
     public class ColliderClickComponent : SComponent
     {
-        class Click : MonoBehaviour, IPointerClickHandler
+        class Click : MonoBehaviour, IPointerClickHandler, IPointerDownHandler
         {
             public long gid;
             public ColliderClickComponent target;
+
+            public void OnPointerDown(PointerEventData eventData)
+            {
+                if (TouchHelper.isTouchUI != null && TouchHelper.isTouchUI()) return;
+                if (target.World.ObjectManager.TryGetByGid(gid, out var o))
+                {
+                    var os = ArrayCache.Get<object>(2);
+                    os[0] = o;
+                    os[1] = eventData;
+                    target.World.Event.RunGenericEventAndBaseType(typeof(EC_PointerDown<>), os);
+                }
+                else
+                    Loger.Error("Not contains " + gid);
+            }
 
             public void OnPointerClick(PointerEventData eventData)
             {
                 if (TouchHelper.isTouchUI != null && TouchHelper.isTouchUI()) return;
                 if (target.World.ObjectManager.TryGetByGid(gid, out var o))
-                    target.World.Event.RunGenericEventAndBaseType(typeof(EC_ClickSObject<>), o);
+                {
+                    var os = ArrayCache.Get<object>(2);
+                    os[0] = o;
+                    os[1] = eventData;
+                    target.World.Event.RunGenericEventAndBaseType(typeof(EC_PointerClick<>), os);
+                }
                 else
                     Loger.Error("Not contains " + gid);
             }

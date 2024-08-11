@@ -26,7 +26,7 @@ namespace Core
                     var element = m.mainKey.GetGenericArguments()[0];
                     var ctor = m.mainKey.GetConstructors().FirstOrDefault();
 #if DebugEnable
-                    if (ctor == null || ctor.GetParameters().Length != 1 || ctor.GetParameters()[0].ParameterType != element)
+                    if (ctor == null || ctor.GetParameters()[0].ParameterType != element)
                         Loger.Error($"{m.mainKey} 没有匹配的构造函数");
 #endif
                     Keys k = new() { a = m.mainKey.GetGenericTypeDefinition(), b = element };
@@ -39,20 +39,16 @@ namespace Core
         EventSystem Event;
         Dictionary<Keys, ConstructorInfo> map = new();
 
-        public void Invoke(Type genericType, object o, Type elementType = null)
+        public void Invoke(Type genericType, object[] os, Type elementType = null)
         {
-            elementType ??= o.GetType();
+            elementType ??= os[0].GetType();
             Keys k = new() { a = genericType, b = elementType };
             if (map.TryGetValue(k, out var v))
-            {
-                var os = ArrayCache.Get<object>(1);
-                os[0] = o;
                 Event.RunEvent(v.Invoke(os));
-            }
         }
-        public void InvokeAndBaseType(Type genericType, object o)
+        public void InvokeAndBaseType(Type genericType, object[] os)
         {
-            var elementType = o.GetType();
+            var elementType = os[0].GetType();
             List<Type> ts = ObjectPool.Get<List<Type>>();
 
             var t = elementType;
@@ -61,15 +57,11 @@ namespace Core
                 ts.Add(t);
                 t = t.BaseType;
             }
-            var os = ArrayCache.Get<object>(1);
             for (int i = ts.Count - 1; i >= 0; i--)
             {
                 Keys k = new() { a = genericType, b = ts[i] };
                 if (map.TryGetValue(k, out var v))
-                {
-                    os[0] = o;
                     Event.RunEvent(v.Invoke(os));
-                }
             }
 
             ts.Clear();

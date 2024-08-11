@@ -1,6 +1,7 @@
 ﻿using Core;
 using Game;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Event
 {
@@ -16,10 +17,25 @@ namespace Event
         public int sceneId;
         public int sceneType;
     }
-    public class EC_ClickSObject<T> : GenericEvent where T : SObject
+    public class EC_PointerClick<T> : GenericEvent where T : SObject
     {
-        public EC_ClickSObject(T t) => this.target = t;
+        public EC_PointerClick(T t, PointerEventData d)
+        {
+            this.target = t;
+            this.Pointer = d;
+        }
         public T target { get; }
+        public PointerEventData Pointer { get; }
+    }
+    public class EC_PointerDown<T> : GenericEvent where T : SObject
+    {
+        public EC_PointerDown(T t, PointerEventData d)
+        {
+            this.target = t;
+            this.Pointer = d;
+        }
+        public T target { get; }
+        public PointerEventData Pointer { get; }
     }
     public class EC_GameObjectReplace
     {

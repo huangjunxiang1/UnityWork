@@ -464,7 +464,9 @@ namespace Core
             if (World.Event.GetEventQueue(typeof(Awake<>).MakeGenericType(type), out var queue))
                 _Awake.AddRange(queue);
 #endif
-            World.Event.RunGenericEvent(typeof(Awake<>), c, type);
+            var os = ArrayCache.Get<object>(1);
+            os[0] = c;
+            World.Event.RunGenericEvent(typeof(Awake<>), os, type);
             if (c.Disposed) return;
             if (c.Enable)
                 World.System.In(type, this);
@@ -521,7 +523,9 @@ namespace Core
                     item.Value.dispose(false);
                     World.Event.RemoveEvent(item.Value);
                 }
-                World.Event.RunGenericEvent(typeof(Dispose<>), item.Value, item.Key);
+                var os = ArrayCache.Get<object>(1);
+                os[0] = item.Value;
+                World.Event.RunGenericEvent(typeof(Dispose<>), os, item.Key);
             }
             tmp.Clear();
             ObjectPool.Return(tmp);

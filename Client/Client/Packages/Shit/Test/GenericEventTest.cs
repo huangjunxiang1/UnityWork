@@ -11,14 +11,14 @@ internal static class GenericEventTest
     public static void test()
     {
         v = 0;
-        Client.World.Event.RunGenericEvent(typeof(Event<>), new a());
+        Client.World.Event.RunGenericEvent(typeof(Event<>), new object[] { new a() });
         if (v != 1)
             throw new Exception();
-        Client.World.Event.RunGenericEvent(typeof(Event<>), new b());
+        Client.World.Event.RunGenericEvent(typeof(Event<>), new object[] { new b() });
         if (v != 2)
             throw new Exception();
 
-        Client.World.Event.RunGenericEventAndBaseType(typeof(Event<>), new b());
+        Client.World.Event.RunGenericEventAndBaseType(typeof(Event<>), new object[] { new b() });
         if (v != 4)
             throw new Exception();
     }

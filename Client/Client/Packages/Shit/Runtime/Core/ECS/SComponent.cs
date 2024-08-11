@@ -112,7 +112,9 @@ namespace Core
             }
             World.Event.RemoveEvent(this);
             this.dispose(true);
-            World.Event.RunGenericEvent(typeof(Dispose<>), this, this.GetType());
+            var os = ArrayCache.Get<object>(1);
+            os[0] = this;
+            World.Event.RunGenericEvent(typeof(Dispose<>), os, this.GetType());
             World.System.Out(this.GetType(), this);
         }
         public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";
