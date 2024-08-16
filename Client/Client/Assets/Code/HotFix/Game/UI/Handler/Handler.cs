@@ -8,12 +8,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Cinemachine;
-using UnityEditor;
 using UnityEngine;
 using YooAsset;
 
 static class Handler
 {
+    class RemoteServices : IRemoteServices
+    {
+        public string url;
+        public string fallBackUrl;
+        public string GetRemoteFallbackURL(string fileName) => fallBackUrl + fileName;
+        public string GetRemoteMainURL(string fileName) => url + fileName;
+    }
     [Event(-100, Queue = true)]
     static async STask Init(EC_GameStart e)
     {
@@ -21,10 +27,12 @@ static class Handler
         var loader = (YooassetLoader)SAsset.Loader;
         loader.LoadPackage("Res");
 
-        var playMode = EPlayMode.EditorSimulateMode;
+        var mode = APPConfig.Inst.EPlayMode;
+        if (Application.isEditor)
+            mode = EPlayMode.EditorSimulateMode;
         // 编辑器下的模拟模式
         InitializationOperation initializationOperation = null;
-        if (playMode == EPlayMode.EditorSimulateMode)
+        if (mode == EPlayMode.EditorSimulateMode)
         {
             var simulateBuildResult = EditorSimulateModeHelper.SimulateBuild(EDefaultBuildPipeline.ScriptableBuildPipeline, "Res");
             var createParameters = new EditorSimulateModeParameters();
@@ -33,39 +41,47 @@ static class Handler
         }
 
         // 单机运行模式
-        if (playMode == EPlayMode.OfflinePlayMode)
+        if (mode == EPlayMode.OfflinePlayMode)
         {
-            /*var createParameters = new OfflinePlayModeParameters();
+            var createParameters = new OfflinePlayModeParameters();
             createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
-            initializationOperation = package.InitializeAsync(createParameters);*/
+            initializationOperation = loader.Package.InitializeAsync(createParameters);
         }
 
         // 联机运行模式
-        if (playMode == EPlayMode.HostPlayMode)
+        if (mode == EPlayMode.HostPlayMode)
         {
-            /*string defaultHostServer = GetHostServerURL();
-            string fallbackHostServer = GetHostServerURL();
-            IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+            IRemoteServices remoteServices = new RemoteServices()
+            {
+                url = APPConfig.Inst.resUrl,
+                fallBackUrl = APPConfig.Inst.resUrl
+            };
             var createParameters = new HostPlayModeParameters();
             createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
             createParameters.CacheFileSystemParameters = FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
-            initializationOperation = package.InitializeAsync(createParameters);*/
+            initializationOperation = loader.Package.InitializeAsync(createParameters);
         }
 
         // WebGL运行模式
-        if (playMode == EPlayMode.WebPlayMode)
+        if (mode == EPlayMode.WebPlayMode)
         {
-            /*var createParameters = new WebPlayModeParameters();
+            var createParameters = new WebPlayModeParameters();
             createParameters.WebFileSystemParameters = FileSystemParameters.CreateDefaultWebFileSystemParameters();
-            initializationOperation = package.InitializeAsync(createParameters);*/
+            initializationOperation = loader.Package.InitializeAsync(createParameters);
         }
 
         await initializationOperation.AsTask();
+        YooAssets.SetDefaultPackage(loader.Package);
         var version = loader.Package.RequestPackageVersionAsync();
         await version.AsTask();
         await loader.Package.UpdatePackageManifestAsync(version.PackageVersion).AsTask();
-        var downloader = loader.Package.CreateResourceDownloader(10, 3);
-        YooAssets.SetDefaultPackage(loader.Package);
+        if (mode == EPlayMode.HostPlayMode)
+        {
+            var downloader = loader.Package.CreateResourceDownloader(10, 3);
+            downloader.BeginDownload();
+            await downloader.AsTask();
+        }
+        await Resources.UnloadUnusedAssets();
 
         DG.Tweening.DOTween.Init();
         SettingL.Languege = SystemLanguage.Chinese;

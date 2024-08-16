@@ -13,9 +13,9 @@ public class EventAttribute : SAttribute
     public int Type { get; set; }
 
     /// <summary>
-    /// 多线程执行
+    /// excute in other thread
     /// </summary>
-    public bool MultiThreading { get; set; } = false;
+    public bool Parallel { get; set; }
 
     public EventAttribute(int sortOrder = 0) => this.SortOrder = sortOrder;
 

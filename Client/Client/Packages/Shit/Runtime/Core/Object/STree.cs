@@ -15,7 +15,7 @@ namespace Core
         Dictionary<long, SObject> _childrenRMap = ObjectPool.Get<Dictionary<long, SObject>>();
         [ShowInInspector]
         Dictionary<int, List<SObject>> _typeMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
-        internal List<SObject> _children = ObjectPool.Get<List<SObject>>();
+        internal List<SObject> _children = new();//外部能访问到的对象不用池
 
         /// <summary>
         /// 关键节点
@@ -67,10 +67,10 @@ namespace Core
                 else
                     Loger.Error($"Already Contains Child this={this} child={child}");
             }
-            if (child.ObjType != 0)
+            if (child.objType != 0)
             {
-                if (!this._typeMap.TryGetValue(child.ObjType, out var lst))
-                    this._typeMap[child.ObjType] = lst = ObjectPool.Get<List<SObject>>();
+                if (!this._typeMap.TryGetValue(child.objType, out var lst))
+                    this._typeMap[child.objType] = lst = new();
                 lst.Add(child);
             }
             _children.Add(child);
@@ -132,9 +132,9 @@ namespace Core
             _childrenGMap.Remove(child.gid);
             if (child.rpc != 0)
                 _childrenRMap.Remove(child.rpc);
-            if (child.ObjType != 0)
+            if (child.objType != 0)
             {
-                if (this._typeMap.TryGetValue(child.ObjType, out var lst))
+                if (this._typeMap.TryGetValue(child.objType, out var lst))
                     lst.Remove(child);
             }
             _children.Remove(child);
@@ -181,11 +181,6 @@ namespace Core
                 ObjectPool.Return(_childrenRMap);
                 _childrenRMap = null;
 
-                foreach (var item in _typeMap)
-                {
-                    item.Value.Clear();
-                    ObjectPool.Return(item.Value);
-                }
                 _typeMap.Clear();
                 ObjectPool.Return(_typeMap);
                 _typeMap = null;
@@ -200,8 +195,6 @@ namespace Core
                         tmp[i].Dispose();
                     }
                 }
-                tmp.Clear();
-                ObjectPool.Return(tmp);
             }
             else
             {
@@ -210,23 +203,15 @@ namespace Core
 
                 _childrenGMap.Clear();
                 _childrenRMap.Clear();
-                foreach (var item in _typeMap)
-                {
-                    item.Value.Clear();
-                    ObjectPool.Return(item.Value);
-                }
                 _typeMap.Clear();
-                ObjectPool.Return(_typeMap);
 
                 List<SObject> tmp = _children;
-                _children = ObjectPool.Get<List<SObject>>();
+                _children = new();
                 for (int i = tmp.Count - 1; i >= 0; i--)
                 {
                     if (!tmp[i].Disposed && tmp[i].Parent == this)
                         tmp[i].Dispose();
                 }
-                tmp.Clear();
-                ObjectPool.Return(tmp);
             }
         }
     }

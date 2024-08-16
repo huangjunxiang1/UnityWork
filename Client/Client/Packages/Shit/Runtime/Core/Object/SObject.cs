@@ -116,7 +116,7 @@ namespace Core
         /// </summary>
         [ShowInInspector]
         [PropertyOrder(-100)]
-        public int ObjType { get; init; }
+        public int objType { get; init; }
 
         /// <summary>
         /// 事件监听

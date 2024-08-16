@@ -10,9 +10,9 @@ internal class typeLstCheck
 {
     public static void test()
     {
-        o1 v_o1 = new() { ObjType = 1 };
+        o1 v_o1 = new() { objType = 1 };
         o1 v_o2 = new();
-        o1 v_o3 = new() { ObjType = 2 };
+        o1 v_o3 = new() { objType = 2 };
 
         Client.World.Root.AddChild(v_o1);
         Client.World.Root.AddChild(v_o2);
@@ -76,7 +76,7 @@ internal class typeLstCheck
             v2_o1.AddChild(s);
             v2_o1.AddChild(s2);
             var ss1 = new STree { };
-            var oo1 = new SObject() { ObjType = 1 };
+            var oo1 = new SObject() { objType = 1 };
             s.AddChild(ss1);
             ss1.AddChild(oo1);
             if (oo1.CrucialRoot != s)

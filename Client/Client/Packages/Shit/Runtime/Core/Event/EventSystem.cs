@@ -406,9 +406,7 @@ namespace Core
                 this.field = m.field;
                 this.sortOrder = this.Attribute.SortOrder;
                 this.target = target;
-                this.isQueue = this.Attribute.Queue;
                 this.setHandler = m.parameters != null && m.parameters.Length == 2;
-                this.multiThreading = this.Attribute.MultiThreading;
 
                 if (!this.isTask)
                 {
@@ -459,9 +457,7 @@ namespace Core
             public FieldInfo field;
             public int sortOrder;
             public IEvent target;
-            public bool isQueue;
             public bool setHandler;
-            public bool multiThreading;
 
             public Delegate action;
         }
@@ -501,7 +497,7 @@ namespace Core
                 {
                     EvtData e = evts[i];
                     STask task = invoke(e, data, eh);
-                    if (task != null && e.isQueue) await task;
+                    if (task != null && e.Attribute.Queue) await task;
                 }
                 --counter;
             }
@@ -517,7 +513,7 @@ namespace Core
                     STask task = invoke(e, data, eh);
                     if (task != null)
                     {
-                        if (e.isQueue) await task;
+                        if (e.Attribute.Queue) await task;
                         else ts.Add(task);
                     }
                 }
@@ -538,7 +534,7 @@ namespace Core
                 {
                     EvtData e = evts[i];
                     STask task = invoke(e, data, eh);
-                    if (task != null && e.isQueue) await task;
+                    if (task != null && e.Attribute.Queue) await task;
                 }
                 --counter;
             }
@@ -554,7 +550,7 @@ namespace Core
                     STask task = invoke(e, data, eh);
                     if (task != null)
                     {
-                        if (e.isQueue) await task;
+                        if (e.Attribute.Queue) await task;
                         else ts.Add(task);
                     }
                 }
@@ -656,7 +652,7 @@ namespace Core
                 {
                     if (!e.setHandler)
                     {
-                        if (e.multiThreading)
+                        if (e.Attribute.Parallel)
                             ThreadPool.QueueUserWorkItem((Action<T>)e.action, data, false);
                         else
                             ((Action<T>)e.action).Invoke(data);

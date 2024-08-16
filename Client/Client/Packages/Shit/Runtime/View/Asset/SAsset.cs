@@ -163,10 +163,7 @@ namespace Game
                     }
 #endif
                     if (!_pool.TryGetValue(r.fullPath, out var lst))
-                    {
-                        lst = new();
-                        _pool[r.fullPath] = lst;
-                    }
+                        _pool[r.fullPath] = lst = new();
                     lst.Enqueue(r.gameObject);
                     r.gameObject.transform.SetParent(_poolRoot.transform);
                     break;

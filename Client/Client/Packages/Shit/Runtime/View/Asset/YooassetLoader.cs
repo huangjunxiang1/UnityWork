@@ -12,8 +12,14 @@ namespace Game
 {
     public class YooassetLoader : SAssetLoader
     {
-        Dictionary<UnityEngine.GameObject, AssetHandle> gobjMap = new();
-        Dictionary<UnityEngine.Object, (AssetHandle, int)> objMap = new();
+        class Item
+        {
+            public string url;
+            public AssetHandle asset;
+            public int num;
+        }
+        Dictionary<string, Item> urlMap = new();
+        Dictionary<UnityEngine.Object, Item> objMap = new();
 
         public ResourcePackage Package { get; private set; }
 
@@ -23,38 +29,44 @@ namespace Game
         }
         public override GameObject LoadGameObject(string url)
         {
-            var handle = Package.LoadAssetSync<GameObject>(url);
-            var go = handle.InstantiateSync();
-            gobjMap[go] = handle;
+            if (!urlMap.TryGetValue(url, out var item))
+                urlMap[url] = item = new Item { url = url, asset = Package.LoadAssetAsync<GameObject>(url) };
+            item.asset.WaitForAsyncComplete();
+            var go = item.asset.InstantiateSync();
+            objMap[go] = item;
+            item.num++;
             return go;
         }
 
         public override async STask<GameObject> LoadGameObjectAsync(string url)
         {
-            var handle = Package.LoadAssetAsync<GameObject>(url);
-            var op = handle.InstantiateAsync();
+            if (!urlMap.TryGetValue(url, out var item))
+                urlMap[url] = item = new Item { url = url, asset = Package.LoadAssetAsync<GameObject>(url) };
+            var op = item.asset.InstantiateAsync();
             await op.Task;
-            gobjMap[op.Result] = handle;
+            objMap[op.Result] = item;
+            item.num++;
             return op.Result;
         }
 
         public override UnityEngine.Object LoadObject(string url)
         {
-            var handle = Package.LoadAssetSync(url);
-            if (!objMap.TryGetValue(handle.AssetObject, out var v2))
-                objMap[handle.AssetObject] = v2 = (handle, 0);
-            v2.Item2++;
-            return handle.AssetObject;
+            if (!urlMap.TryGetValue(url, out var item))
+                urlMap[url] = item = new Item { url = url, asset = Package.LoadAssetAsync(url) };
+            item.asset.WaitForAsyncComplete();
+            objMap[item.asset.AssetObject] = item;
+            item.num++;
+            return item.asset.AssetObject;
         }
 
         public override async STask<UnityEngine.Object> LoadObjectAsync(string url)
         {
-            var handle = Package.LoadAssetAsync(url);
-            await handle.Task;
-            if (!objMap.TryGetValue(handle.AssetObject, out var v2))
-                objMap[handle.AssetObject] = v2 = (handle, 0);
-            v2.Item2++;
-            return handle.AssetObject;
+            if (!urlMap.TryGetValue(url, out var item))
+                urlMap[url] = item = new Item { url = url, asset = Package.LoadAssetAsync(url) };
+            await item.asset.Task;
+            objMap[item.asset.AssetObject] = item;
+            item.num++;
+            return item.asset.AssetObject;
         }
 
         public override UnityEngine.SceneManagement.Scene LoadScene(string url, LoadSceneMode mode)
@@ -71,10 +83,15 @@ namespace Game
 
         public override void Release(GameObject obj)
         {
-            if (gobjMap.TryGetValue(obj, out var handle))
+            if (objMap.TryGetValue(obj, out var item))
             {
-                handle.Dispose();
-                gobjMap.Remove(obj);
+                objMap.Remove(obj);
+                item.num--;
+                if (item.num == 0)
+                {
+                    item.asset.Dispose();
+                    urlMap.Remove(item.url);
+                }
                 GameObject.DestroyImmediate(obj);
             }
         }
@@ -86,11 +103,15 @@ namespace Game
 
         public override void Release(UnityEngine.Object obj)
         {
-            if (objMap.TryGetValue(obj, out var v2))
+            if (objMap.TryGetValue(obj, out var item))
             {
-                v2.Item2--;
-                if (v2.Item2 == 0) v2.Item1.Dispose();
-                objMap.Remove(obj);
+                item.num--;
+                if (item.num == 0)
+                {
+                    objMap.Remove(obj);
+                    item.asset.Dispose();
+                    urlMap.Remove(item.url);
+                }
             }
         }
 
