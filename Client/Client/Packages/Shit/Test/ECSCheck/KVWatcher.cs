@@ -42,26 +42,43 @@ internal class KVWatcherTest
         if (kv.Get(1) != 150)
             throw new Exception();
 
-        kv.Clear();
-        kv.Set(1, 10, 3);
-        kv.Set(1, 10, 4);
-        if (kv.Get(1) != 20)
-            throw new Exception();
-        kv.Add(10001, 1000, 5);
-        if (kv.Get(1) != 22)
-            throw new Exception();
+        {
+            kv.Clear();
+            kv.Set(1, 10, 3);
+            kv.Set(1, 10, 4);
+            if (kv.Get(1) != 20)
+                throw new Exception();
+            kv.Add(10001, 1000, 5);
+            if (kv.Get(1) != 22)
+                throw new Exception();
 
-        kv.RemoveAllBySource(4);
-        if (kv.Get(1) != 11)
-            throw new Exception();
+            kv.RemoveAllBySource(4);
+            if (kv.Get(1) != 11)
+                throw new Exception();
 
-        kv.Remove(10001, 5);
-        if (kv.Get(1) != 10)
-            throw new Exception();
+            kv.Remove(10001, 5);
+            if (kv.Get(1) != 10)
+                throw new Exception();
 
-        kv.RemoveAllByID(1);
-        if (kv.Get(1) != 0)
-            throw new Exception();
+            kv.RemoveAllByID(1);
+            if (kv.Get(1) != 0)
+                throw new Exception();
+        }
+
+        {
+            kv.Clear();
+            kv.Set(1, 10, 3);
+            kv.Set(1, 10, 4);
+            if (kv.Get(1) != 20)
+                throw new Exception();
+            kv.Add(10001, 1000, 3);
+            if (kv.Get(1) != 22)
+                throw new Exception();
+
+            kv.RemoveAllBySource(3);
+            if (kv.Get(1) != 10)
+                throw new Exception();
+        }
 
         o.Dispose();
         o.World.Update(0);

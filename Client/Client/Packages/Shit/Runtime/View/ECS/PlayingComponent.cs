@@ -1,90 +1,117 @@
 ﻿using Core;
-using Spine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Game
 {
     public abstract class Playing
     {
+        bool _enable = true;
+        internal float _speed = 1;
+        internal int _layer = 0;
+        internal string name;
         public PlayingComponent playing { get; internal set; }
+        public bool enable
+        {
+            get => _enable;
+            set
+            {
+                if (_enable == value)
+                    return;
+                _enable = value;
+                this.SetEnable();
+            }
+        }
         public abstract float length { get; }
         public abstract float time { get; set; }
         public abstract float time01 { get; set; }
-        public abstract void Play(string name, float fade);
-        public abstract void SetSpeed();
-        public abstract float GetTime(string name);
-    }
-
-    public class PlayingComponent : SComponent
-    {
-        float _speed = 1;
-
-        public float Speed
+        public virtual float Speed
         {
             get => _speed;
             set
             {
-                if (_speed == value) return;
+                if (_speed == value)
+                    return;
                 _speed = value;
-                play?.SetSpeed();
+                this.SetSpeed();
+            }
+        }
+        public abstract void SetSpeed();
+        public virtual void SetEnable() { }
+        public virtual void Play(string name, float fade) => this.name = name;
+        public virtual void SetAvatarMask(AvatarMask mask, int layer) { }
+        public abstract float GetTime(string name);
+        public abstract Playing Clone(int layer);
+    }
+
+    public class PlayingComponent : SComponent
+    {
+        Playing[] _plays = new Playing[1];
+
+        public int Layer
+        {
+            get => _plays.Length;
+            set
+            {
+                value = math.max(value, 1);
+
+                int len = _plays.Length;
+                Array.Resize(ref _plays, value);
+                for (int i = value; i < len; i++)
+                    _plays[i].enable = false;
+                for (int i = len; i < value; i++)
+                {
+                    if (_plays[i] == null && _plays[0] != null)
+                        _plays[i] = _plays[0].Clone(i);
+                }
+
                 this.SetChangeFlag();
             }
         }
-        public float length
+        public float speed
         {
-            get
-            {
-                if (play == null) return 1;
-                return play.length;
-            }
+            get => _plays[0].Speed;
+            set => _plays[0].Speed = value;
         }
+        public float length => _plays[0].length;
         public float time
         {
             get
             {
-                if (play == null) return 0;
-                return play.time;
+                if (_plays[0] == null) return 0;
+                return _plays[0].time;
             }
             set
             {
-                if (play == null) return;
-                play.time = value;
+                if (_plays[0] == null) return;
+                _plays[0].time = value;
             }
         }
         public float time01
         {
             get
             {
-                if (play == null) return 0;
-                return play.time01;
+                if (_plays[0] == null) return 0;
+                return _plays[0].time01;
             }
             set
             {
-                if (play == null) return;
-                play.time01 = value;
+                if (_plays[0] == null) return;
+                _plays[0].time01 = value;
             }
         }
 
-        public string name { get; private set; }
-        public Playing play { get; private set; }
+        public string name => play[0].name;
+        public Playing[] play { get; private set; }
 
-        public void Play(string name, float fade = 0.2f)
+        public void Set(Playing play, int layer = 0)
         {
-            if (this.name == name) return;
-            this.name = name;
-            if (play == null || string.IsNullOrEmpty(name)) return;
-            play.Play(name, fade);
-            play.SetSpeed();
-            this.SetChangeFlag();
-        }
-        public void Set(Playing play)
-        {
-            this.play = play;
+            this.play[layer] = play;
             if (play == null) return;
             play.playing = this;
             if (!string.IsNullOrEmpty(name))
@@ -92,12 +119,32 @@ namespace Game
             play.SetSpeed();
             //this.SetChange(); 这里不能调用 因为会陷入AnyChange的递归
         }
-        public float GetTime(string name)
+        public void EnableLayer(int layer, bool enable) => _plays[layer].enable = enable;
+        public void Play(string name, float fade = 0.2f, int layer = 0)
         {
-            if (play == null) return 1;
-            return play.GetTime(name);
+            if (play[layer].name == name) return;
+            if (name == null || string.IsNullOrEmpty(name)) return;
+            play[layer].Play(name, fade);
+            play[layer].SetSpeed();
+            this.SetChangeFlag();
         }
-        public float GetTime() => GetTime(this.name);
+
+        public void SetSpeed(float speed, int layer = 0) => _plays[layer].Speed = speed;
+        public float GetSpeed(int layer = 0) => _plays[layer].Speed;
+
+        public float GetLength(int layer = 0) => _plays[layer].length;
+
+        public void SetTime(float time, int layer = 0) => _plays[layer].time = time;
+        public float GetTime(int layer) => _plays[layer].time;
+
+        public void SetTime01(float time, int layer = 0) => _plays[layer].time01 = time;
+        public float GetTime01(int layer) => _plays[layer].time01;
+
+        public float GetTime(string name, int layer = 0)
+        {
+            if (play[layer] == null) return 1;
+            return play[layer].GetTime(name);
+        }
 
         [Event]
         static void AnyChange(AnyChange<GameObjectComponent, PlayingComponent> t)
@@ -161,14 +208,19 @@ namespace Game
 
             public override void Play(string name, float fade)
             {
-                state = ani.TryPlay(name, fade);
+                base.Play(name, fade);
+                state = ani.Layers[_layer].TryPlay(name, fade);
             }
+
+            public override void SetAvatarMask(AvatarMask mask, int layer) => ani.Layers[_layer].SetMask(mask);
 
             public override void SetSpeed()
             {
                 if (state != null)
-                    state.Speed = playing.Speed;
+                    state.Speed = Speed;
             }
+
+            public override void SetEnable() => ani.Layers[_layer].IsAdditive = this.enable;
 
             public override float GetTime(string name)
             {
@@ -176,6 +228,8 @@ namespace Game
                     return s.Length;
                 return 1;
             }
+
+            public override Playing Clone(int layer) => new A_Animancer { ani = this.ani, _layer = layer };
         }
 #endif
         class A_Animation : Playing
@@ -221,6 +275,7 @@ namespace Game
 
             public override void Play(string name, float fade)
             {
+                base.Play(name, fade);
                 ani.CrossFade(name, fade);
                 state = ani[playing.name];
             }
@@ -228,8 +283,9 @@ namespace Game
             public override void SetSpeed()
             {
                 if (state != null)
-                    state.speed = playing.Speed;
+                    state.speed = Speed;
             }
+            public override Playing Clone(int layer) => new A_Animation { ani = this.ani, _layer = layer };
         }
         class A_Animator : Playing
         {
@@ -240,25 +296,13 @@ namespace Game
             public override float length => clip == null ? 1 : clip.length;
             public override float time
             {
-                get
-                {
-                    return 0;
-                }
-                set
-                {
-                    ani.Play(playing.name, -1, value / length);
-                }
+                get => 0;
+                set => ani.Play(playing.name, -1, value / length);
             }
             public override float time01
             {
-                get
-                {
-                    return 0;
-                }
-                set
-                {
-                    ani.Play(playing.name, -1, value);
-                }
+                get => 0;
+                set => ani.Play(playing.name, -1, value);
             }
 
             public override float GetTime(string name)
@@ -273,6 +317,7 @@ namespace Game
 
             public override void Play(string name, float fade)
             {
+                base.Play(name, fade);
                 ani.CrossFade(name, fade);
                 for (int i = 0; i < clips.Length; i++)
                 {
@@ -284,10 +329,8 @@ namespace Game
                 }
             }
 
-            public override void SetSpeed()
-            {
-                ani.speed = playing.Speed;
-            }
+            public override void SetSpeed() => ani.speed = Speed;
+            public override Playing Clone(int layer) => new A_Animator { ani = this.ani, clips = this.clips, _layer = layer };
         }
 #if Spine
         class A_Spine : Playing
@@ -339,14 +382,13 @@ namespace Game
 
             public override void Play(string name, float fade)
             {
+                base.Play(name, fade);
                 ani.AnimationName = name;
                 animation = ani.AnimationState.Data.SkeletonData.FindAnimation(name);
             }
 
-            public override void SetSpeed()
-            {
-                ani.timeScale = playing.Speed;
-            }
+            public override void SetSpeed() => ani.timeScale = Speed;
+            public override Playing Clone(int layer) => new A_Spine { ani = this.ani, _layer = layer };
         }
 #endif
     }

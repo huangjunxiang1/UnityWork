@@ -4,58 +4,82 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Mathematics;
 
 namespace Game
 {
     public class PlayingStepComponent : SComponent
     {
-        long _startTime;
-        long _endTime;
-        int _count = 1;
+        struct LayerData
+        {
+            public bool isPlaying;
+            public long _startTime;
+            public long _endTime;
+            public int _count;
+        }
+        LayerData[] layers = new LayerData[1]
+        {
+            new LayerData { _count = 1 },
+        };
+        int min = 1;
 
-        public long startTime
+        public long GetStartTime(int layer = 0) => layers[layer]._startTime;
+        public long GetEndTime(int layer = 0) => layers[layer]._endTime;
+        public long GetCount(int layer = 0) => layers[layer]._count;
+
+        public void Play(long startTime, long endTime, int count = 1, int layer = 0)
         {
-            get => _startTime;
-            set
-            {
-                if (_startTime == value) return;
-                _startTime = value;
-                this.Enable = true;
-                this.SetChangeFlag();
-            }
+            if (this.layers.Length < layer + 1)
+                Array.Resize(ref this.layers, layer + 1);
+            this.layers[layer].isPlaying = true;
+            this.layers[layer]._startTime = startTime;
+            this.layers[layer]._endTime = endTime;
+            this.layers[layer]._count = count;
+            this.Enable = true;
+            this.SetChangeFlag();
+            if (this.min <= layer)
+                this.min = layer + 1;
         }
-        public long endTime
+        public void Stop(int layer = 0)
         {
-            get => _endTime;
-            set
-            {
-                if (_endTime == value) return;
-                _endTime = value;
-                this.Enable = true;
-                this.SetChangeFlag();
-            }
-        }
-        public int count
-        {
-            get => _count;
-            set
-            {
-                if (_count == value) return;
-                _count = value;
-                this.Enable = true;
-                this.SetChangeFlag();
-            }
+            if (layer >= this.layers.Length)
+                return;
+            this.layers[layer].isPlaying = false;
         }
 
+        [Event]
+        static void Change(Change<PlayingStepComponent, PlayingComponent> t)
+        {
+            int old = t.t.layers.Length;
+            if (old == t.t2.Layer) 
+                return;
+            Array.Resize(ref t.t.layers, t.t2.Layer);
+            for (int i = old; i < t.t.layers.Length; i++)
+                t.t.layers[i] = new LayerData { _count = 1 };
+        }
         [Event]
         static void Update(Update<PlayingStepComponent, PlayingComponent> t)
         {
             long utc = t.t.World.Timer.utc;
-            t.t2.time01 = (((utc - t.t.startTime) * t.t.count / (float)(t.t.endTime - t.t.startTime))) % 1;
-            if (utc >= t.t.endTime)
+            for (int i = 0; i < t.t.min; i++)
             {
-                t.t.Enable = false;
-                t.t._count = 1;
+                var d = t.t.layers[i];
+                if (!d.isPlaying)
+                {
+                    if (i == t.t.min - 1)
+                    {
+                        t.t.min--;
+                        if (t.t.min == 0)
+                            t.t.Enable = false;
+                    }
+                    continue;
+                }
+                t.t2.SetTime01(((utc - d._startTime) * d._count / (float)(d._endTime - d._startTime)) % 1, i);
+                if (utc >= d._endTime)
+                {
+                    t.t.layers[i].isPlaying = false;
+                    d._count = 1;
+                }
             }
         }
     }

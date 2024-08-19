@@ -22,17 +22,14 @@ public class KVComponent : SComponent
 
     [Sirenix.OdinInspector.ShowInInspector]
     SortedDictionary<int, long> Values = ObjectPool.Get<SortedDictionary<int, long>>();
-
-    SortedDictionary<int, long> Changed = ObjectPool.Get<SortedDictionary<int, long>>();
 #else
     [Sirenix.OdinInspector.ShowInInspector]
     HashSet<int> Keys = ObjectPool.Get<HashSet<int>>();
 
     [Sirenix.OdinInspector.ShowInInspector]
     Dictionary<int, long> Values = ObjectPool.Get<Dictionary<int, long>>();
-
-    Dictionary<int, long> Changed = ObjectPool.Get<Dictionary<int, long>>();
 #endif
+    Dictionary<int, long> Changed = ObjectPool.Get<Dictionary<int, long>>();
 
     public void Set(IDictionary<int, long> kvs)
     {
@@ -138,8 +135,30 @@ public class KVComponent : SComponent
         if (Source > Max) return;
         foreach (var bk in Keys)
         {
-            Remove(bk, Source);
-            Remove(bk, Source);
+            bool set = false;
+            {
+                int rk = GetRealKey(bk, Source + 0);
+                if (Values.TryGetValue(rk, out var old) && old != 0)
+                {
+                    Values.Remove(rk);
+                    set = true;
+                }
+            }
+            {
+                int rk = GetRealKey(bk, Source + PercentStart);
+                if (Values.TryGetValue(rk, out var old) && old != 0)
+                {
+                    Values.Remove(rk);
+                    set = true;
+                }
+            }
+            if (set)
+            {
+                if (!Changed.ContainsKey(bk))
+                    Changed.Add(bk, Get(bk));
+                ComputeTotalValue(bk);
+                this.SetChangeFlag();
+            }
         }
     }
     public void RemoveAllByID(int id)
@@ -259,11 +278,7 @@ public class KVComponent : SComponent
         if (t.t._kvWatcherHandles != null)
         {
             var tmp = t.t.Changed;
-#if UNITY_EDITOR
-            t.t.Changed = ObjectPool.Get<SortedDictionary<int, long>>();
-#else
             t.t.Changed = ObjectPool.Get<Dictionary<int, long>>();
-#endif
             foreach (var kv in tmp)
             {
                 int len = t.t._kvWatcherHandles.Count;

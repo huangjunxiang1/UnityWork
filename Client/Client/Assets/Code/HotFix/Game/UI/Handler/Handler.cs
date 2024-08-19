@@ -81,7 +81,7 @@ static class Handler
             downloader.BeginDownload();
             await downloader.AsTask();
         }
-        await Resources.UnloadUnusedAssets();
+        await Resources.UnloadUnusedAssets().AsTask();
 
         DG.Tweening.DOTween.Init();
         SettingL.Languege = SystemLanguage.Chinese;

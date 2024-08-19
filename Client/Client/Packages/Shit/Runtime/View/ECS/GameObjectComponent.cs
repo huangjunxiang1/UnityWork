@@ -259,7 +259,6 @@ namespace Game
                 t.t.gameRoot.transform.position = t.t2.position;
                 t.t.gameRoot.transform.localScale = t.t2.scale;
                 t.t.gameRoot.transform.rotation = t.t2.rotation;
-                t.t.gameRoot.transform.forward = t.t2.forward;
             }
         }
     }
