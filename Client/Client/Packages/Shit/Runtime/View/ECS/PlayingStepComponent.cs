@@ -29,8 +29,6 @@ namespace Game
 
         public void Play(long startTime, long endTime, int count = 1, int layer = 0)
         {
-            if (this.layers.Length < layer + 1)
-                Array.Resize(ref this.layers, layer + 1);
             this.layers[layer].isPlaying = true;
             this.layers[layer]._startTime = startTime;
             this.layers[layer]._endTime = endTime;
@@ -42,20 +40,18 @@ namespace Game
         }
         public void Stop(int layer = 0)
         {
-            if (layer >= this.layers.Length)
-                return;
             this.layers[layer].isPlaying = false;
         }
 
         [Event]
-        static void Change(Change<PlayingStepComponent, PlayingComponent> t)
+        static void Change(Change<PlayingComponent, PlayingStepComponent> t)
         {
-            int old = t.t.layers.Length;
-            if (old == t.t2.Layer) 
+            int old = t.t2.layers.Length;
+            if (old == t.t.Layer) 
                 return;
-            Array.Resize(ref t.t.layers, t.t2.Layer);
-            for (int i = old; i < t.t.layers.Length; i++)
-                t.t.layers[i] = new LayerData { _count = 1 };
+            Array.Resize(ref t.t2.layers, t.t.Layer);
+            for (int i = old; i < t.t2.layers.Length; i++)
+                t.t2.layers[i] = new LayerData { _count = 1 };
         }
         [Event]
         static void Update(Update<PlayingStepComponent, PlayingComponent> t)

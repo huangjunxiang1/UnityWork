@@ -1,6 +1,7 @@
 ﻿using Core;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,13 +10,13 @@ using UnityEngine;
 
 namespace Game
 {
-    public abstract class Playing
+    public class Playing
     {
         bool _enable = true;
         internal float _speed = 1;
         internal int _layer = 0;
-        internal string name;
-        public PlayingComponent playing { get; internal set; }
+        internal string _name;
+       
         public bool enable
         {
             get => _enable;
@@ -27,10 +28,10 @@ namespace Game
                 this.SetEnable();
             }
         }
-        public abstract float length { get; }
-        public abstract float time { get; set; }
-        public abstract float time01 { get; set; }
-        public virtual float Speed
+        public virtual float length { get; }
+        public virtual float time { get; set; }
+        public virtual float time01 { get; set; }
+        public float Speed
         {
             get => _speed;
             set
@@ -41,17 +42,25 @@ namespace Game
                 this.SetSpeed();
             }
         }
-        public abstract void SetSpeed();
+        public virtual void SetSpeed() { }
         public virtual void SetEnable() { }
-        public virtual void Play(string name, float fade) => this.name = name;
-        public virtual void SetAvatarMask(AvatarMask mask, int layer) { }
-        public abstract float GetTime(string name);
-        public abstract Playing Clone(int layer);
+        public virtual void Play(string name, float fade) => this._name = name;
+        public virtual void SetAvatarMask(AvatarMask mask) { }
+        public virtual float GetTime(string name) => 1;
+        public virtual Playing Clone(int layer) => CopyTo(new Playing());
+        internal Playing CopyTo(Playing playing)
+        {
+            playing._enable = this._enable;
+            playing._speed = this._speed;
+            playing._layer = this._layer;
+            playing._name = this._name;
+            return playing;
+        }
     }
 
     public class PlayingComponent : SComponent
     {
-        Playing[] _plays = new Playing[1];
+        Playing[] _plays = new Playing[1] { new Playing() };
 
         public int Layer
         {
@@ -61,16 +70,16 @@ namespace Game
                 value = math.max(value, 1);
 
                 int len = _plays.Length;
-                Array.Resize(ref _plays, value);
                 for (int i = value; i < len; i++)
                     _plays[i].enable = false;
+                Array.Resize(ref _plays, value);
                 for (int i = len; i < value; i++)
                 {
                     if (_plays[i] == null && _plays[0] != null)
                         _plays[i] = _plays[0].Clone(i);
                 }
 
-                this.SetChangeFlag();
+                this.SetChange();
             }
         }
         public float speed
@@ -106,28 +115,37 @@ namespace Game
             }
         }
 
-        public string name => play[0].name;
-        public Playing[] play { get; private set; }
+        public string name => play[0]._name;
+        public Playing[] play => _plays;
 
-        public void Set(Playing play, int layer = 0)
+        public void Set(Playing play)
         {
-            this.play[layer] = play;
-            if (play == null) return;
-            play.playing = this;
-            if (!string.IsNullOrEmpty(name))
-                play.Play(name, 0.2f);
-            play.SetSpeed();
+            if (this.play[0] != null)
+            {
+                this.play[0].CopyTo(play);
+                this.play[0].enable = false;
+            }
+            this.play[0] = play;
+            for (int i = 1; i < _plays.Length; i++)
+                _plays[i] = play.Clone(i);
+            for (int i = 0; i < _plays.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(_plays[i]._name))
+                    _plays[i].Play(_plays[i]._name, 0.2f);
+                _plays[i].SetSpeed();
+            }
             //this.SetChange(); 这里不能调用 因为会陷入AnyChange的递归
         }
         public void EnableLayer(int layer, bool enable) => _plays[layer].enable = enable;
         public void Play(string name, float fade = 0.2f, int layer = 0)
         {
-            if (play[layer].name == name) return;
+            if (play[layer]._name == name) return;
             if (name == null || string.IsNullOrEmpty(name)) return;
             play[layer].Play(name, fade);
             play[layer].SetSpeed();
             this.SetChangeFlag();
         }
+        public void SetAvatarMask(AvatarMask mask, int layer) => play[layer].SetAvatarMask(mask);
 
         public void SetSpeed(float speed, int layer = 0) => _plays[layer].Speed = speed;
         public float GetSpeed(int layer = 0) => _plays[layer].Speed;
@@ -147,7 +165,7 @@ namespace Game
         }
 
         [Event]
-        static void AnyChange(AnyChange<GameObjectComponent, PlayingComponent> t)
+        static void Change(Change<GameObjectComponent, PlayingComponent> t)
         {
             if (t.t.gameObject)
             {
@@ -165,10 +183,10 @@ namespace Game
                     t.t2.Set(new A_Spine() { ani = c4 });
 #endif
                 else
-                    t.t2.Set(null);
+                    t.t2.Set(new Playing());
             }
             else
-                t.t2.Set(null);
+                t.t2.Set(new Playing());
         }
 
 #if Animancer
@@ -182,7 +200,7 @@ namespace Game
             {
                 get
                 {
-                    if (state == null) return 0;
+                    if (state == null) return 1;
                     return state.Time;
                 }
                 set
@@ -212,7 +230,7 @@ namespace Game
                 state = ani.Layers[_layer].TryPlay(name, fade);
             }
 
-            public override void SetAvatarMask(AvatarMask mask, int layer) => ani.Layers[_layer].SetMask(mask);
+            public override void SetAvatarMask(AvatarMask mask) => ani.Layers[_layer].SetMask(mask);
 
             public override void SetSpeed()
             {
@@ -229,7 +247,7 @@ namespace Game
                 return 1;
             }
 
-            public override Playing Clone(int layer) => new A_Animancer { ani = this.ani, _layer = layer };
+            public override Playing Clone(int layer) => CopyTo(new A_Animancer { ani = this.ani });
         }
 #endif
         class A_Animation : Playing
@@ -267,7 +285,7 @@ namespace Game
 
             public override float GetTime(string name)
             {
-                var state = ani[playing.name];
+                var state = ani[name];
                 if (state != null)
                     return state.length;
                 return 1;
@@ -277,7 +295,7 @@ namespace Game
             {
                 base.Play(name, fade);
                 ani.CrossFade(name, fade);
-                state = ani[playing.name];
+                state = ani[name];
             }
 
             public override void SetSpeed()
@@ -297,12 +315,12 @@ namespace Game
             public override float time
             {
                 get => 0;
-                set => ani.Play(playing.name, -1, value / length);
+                set => ani.Play(_name, -1, value / length);
             }
             public override float time01
             {
                 get => 0;
-                set => ani.Play(playing.name, -1, value);
+                set => ani.Play(_name, -1, value);
             }
 
             public override float GetTime(string name)

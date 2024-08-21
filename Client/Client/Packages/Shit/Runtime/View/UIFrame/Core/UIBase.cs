@@ -33,18 +33,28 @@ public abstract class UIBase : STree
     public virtual STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
-        this.Parent.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
+        this.Parent.GetChildren().Sort((x, y) =>
+        {
+            int vx = (x is UIBase) ? ((UIBase)x).uiConfig.SortOrder : 0;
+            int vy = (y is UIBase) ? ((UIBase)y).uiConfig.SortOrder : 0;
+            return vx - vy;
+        });
         onCompleted = completed;
         return STask.Completed;
     }
     public virtual STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
-        this.Parent.GetChildren().Sort((x, y) => ((UIBase)x).uiConfig.SortOrder - ((UIBase)y).uiConfig.SortOrder);
+        this.Parent.GetChildren().Sort((x, y) =>
+        {
+            int vx = (x is UIBase) ? ((UIBase)x).uiConfig.SortOrder : 0;
+            int vy = (y is UIBase) ? ((UIBase)y).uiConfig.SortOrder : 0;
+            return vx - vy;
+        });
         onCompleted = completed;
         return STask.Completed;
     }
-    public T OpenUI<T>(params object[] data) where T : UIBase, new()
+    public T Open<T>(params object[] data) where T : UIBase, new()
     {
         T ui = this.GetChild<T>();
         if (ui != null)
@@ -62,7 +72,7 @@ public abstract class UIBase : STree
 
         return ui;
     }
-    public async STask<T> OpenUIAsync<T>(params object[] data) where T : UIBase, new()
+    public async STask<T> OpenAsync<T>(params object[] data) where T : UIBase, new()
     {
         T ui = this.GetChild<T>();
         if (ui != null)
@@ -98,26 +108,38 @@ public abstract class UIBase : STree
     {
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).Hide(playAnimation);
+        {
+            if (uis[i] is UIBase)
+                ((UIBase)uis[i]).Hide(playAnimation);
+        }
     }
     public virtual STask HideAsync(bool playAnimation = true)
     {
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).HideAsync(playAnimation);
+        {
+            if (uis[i] is UIBase)
+                ((UIBase)uis[i]).HideAsync(playAnimation);
+        }
         return STask.Completed;
     }
     public virtual void Show(bool playAnimation = true, Action callBack = null)
     {
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).Show(playAnimation);
+        {
+            if (uis[i] is UIBase)
+                ((UIBase)uis[i]).Show(playAnimation);
+        }
     }
     public virtual STask ShowAsync(bool playAnimation = true)
     {
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
-            ((UIBase)uis[i]).ShowAsync(playAnimation);
+        {
+            if (uis[i] is UIBase)
+                ((UIBase)uis[i]).ShowAsync(playAnimation);
+        }
         return STask.Completed;
     }
     public override void Dispose()
@@ -126,15 +148,15 @@ public abstract class UIBase : STree
         {
             //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
             //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
-            var arr = this.Parent?.GetChildren();
-            if (arr?.LastOrDefault() == this)
+            var lst = this.Parent?.GetChildren();
+            if (lst?.FindLast(t => t is UIBase) == this)
             {
-                for (int i = arr.Count - 2; i >= 0; i--)
+                for (int i = lst.Count - 2; i >= 0; i--)
                 {
-                    if (!arr[i].Disposed)
+                    if (lst[i] is UIBase && !lst[i].Disposed)
                     {
-                        if (!arr[i].As<UIBase>().isShow)
-                            ((UIBase)arr[i]).Show();
+                        if (!lst[i].As<UIBase>().isShow)
+                            ((UIBase)lst[i]).Show();
                         break;
                     }
                 }

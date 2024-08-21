@@ -117,9 +117,9 @@ namespace Core
                 Loger.Error("还未设置当前 utc 不可添加timer");
                 return;
             }
-            RemoveUTC(call);
             if (utc < this.utc)
                 Loger.Error($"{call.Method.ReflectedType} {call.Method.Name} utc时间小于当前");
+            RemoveUTC(call);
 
             utcTimerItem ti = ObjectPool.Get<utcTimerItem>();
             ti.utc = utc;
