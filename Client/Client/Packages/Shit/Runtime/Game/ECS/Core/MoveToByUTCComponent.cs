@@ -19,6 +19,7 @@ namespace Game
         quaternion _r;
         long _startTime;
         long _endTime;
+        bool _isMoving = false;
 
         public quaternion rotation
         {
@@ -33,6 +34,7 @@ namespace Game
 
         public void MoveTo(float3 start, float3 end, quaternion quaternion, long startTime, long endTime)
         {
+            this._isMoving = true;
             this._start = start;
             this._end = end;
             this._startTime = math.min(startTime, endTime - 1);
@@ -45,6 +47,7 @@ namespace Game
         }
         public void MoveTo(float3 start, float3 end, long startTime, long endTime)
         {
+            this._isMoving = true;
             this._start = start;
             this._end = end;
             this._startTime = math.min(startTime, endTime - 1);
@@ -57,6 +60,7 @@ namespace Game
         }
         public STask<bool> MoveToAsync(float3 start, float3 end, quaternion quaternion, long startTime, long endTime)
         {
+            this._isMoving = true;
             this._start = start;
             this._end = end;
             this._startTime = math.min(startTime, endTime - 1);
@@ -70,6 +74,7 @@ namespace Game
         }
         public STask<bool> MoveToAsync(float3 start, float3 end, long startTime, long endTime)
         {
+            this._isMoving = true;
             this._start = start;
             this._end = end;
             this._startTime = math.min(startTime, endTime - 1);
@@ -85,6 +90,7 @@ namespace Game
         [Event]
         static void In(In<MoveToByUTCComponent, TransformComponent> t)
         {
+            t.t._isMoving = false;
             t.t._start = t.t._end = t.t2.position;
             t.t.rotation = t.t2.rotation;
             t.t._startTime = t.t.World.Timer.utc - 1;
@@ -93,6 +99,7 @@ namespace Game
         [Event]
         static void Update(Update<MoveToByUTCComponent, TransformComponent> t)
         {
+            if (!t.t._isMoving) return;
             float lerp = (t.t.World.Timer.utc - t.t._startTime) / (float)(t.t._endTime - t.t._startTime);
             lerp = math.clamp(lerp, 0, 1);
             t.t2.position = math.lerp(t.t._start, t.t._end, lerp);
@@ -108,6 +115,7 @@ namespace Game
                 {
                     var old = t.t._task;
                     t.t._task = null;
+                    t.t._isMoving = true;
                     old.TrySetResult(true);
                 }
             }

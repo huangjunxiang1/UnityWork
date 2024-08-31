@@ -25,6 +25,8 @@ namespace Game
                 if (_enable == value)
                     return;
                 _enable = value;
+                if (!value)
+                    _name = null;
                 this.SetEnable();
             }
         }
@@ -227,7 +229,7 @@ namespace Game
             public override void Play(string name, float fade)
             {
                 base.Play(name, fade);
-                state = ani.Layers[_layer].TryPlay(name, fade);
+                state = ani.Layers[_layer].TryPlay(name, fade); 
             }
 
             public override void SetAvatarMask(AvatarMask mask) => ani.Layers[_layer].SetMask(mask);
@@ -238,7 +240,10 @@ namespace Game
                     state.Speed = Speed;
             }
 
-            public override void SetEnable() => ani.Layers[_layer].IsAdditive = this.enable;
+            public override void SetEnable()
+            {
+                ani.Layers[_layer].IsAdditive = this.enable;
+            }
 
             public override float GetTime(string name)
             {

@@ -30,7 +30,7 @@ namespace Game
         public void Play(long startTime, long endTime, int count = 1, int layer = 0)
         {
             this.layers[layer].isPlaying = true;
-            this.layers[layer]._startTime = startTime;
+            this.layers[layer]._startTime = math.min(startTime, endTime - 1);
             this.layers[layer]._endTime = endTime;
             this.layers[layer]._count = count;
             this.Enable = true;
