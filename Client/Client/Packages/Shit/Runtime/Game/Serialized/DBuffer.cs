@@ -46,6 +46,7 @@ public class DBuffer : IDisposable
     /// 数据是否压缩
     /// </summary>
     public bool Compress { get; set; } = true;
+    public string Hash { get; private set; }
 
     public byte Readbyte()
     {
@@ -310,7 +311,18 @@ public class DBuffer : IDisposable
 #endif
             return false;
         }
-        this.Compress = Readbool();
+        var compress = Readbool();
+        char[] hash = new char[6];
+        for (int i = 0; i < hash.Length; i++)
+        {
+            var b = this.Readbyte() % 36;
+            //用ascll码转换成数字和小写字母
+            if (b < 10) b = 48 + b;
+            else b = 97 + b - 10;
+            hash[i] = Convert.ToChar(b);
+        }
+        this.Hash = new string(hash);
+        this.Compress = compress;
         return true;
     }
     public float2[] Readfloat2s()
@@ -970,6 +982,14 @@ public class DBuffer : IDisposable
         this.Write(Verify);
         this.Compress = c;
         this.Write(this.Compress);
+        int pos = this.Position;
+        this.Seek(pos + 6);
+        byte[] hash = new byte[6];
+        for (int i = 11; i < this.Length; i++)
+            hash[(i - 11) % 6] ^= this.Readbyte();
+        this.Seek(pos);
+        for (int i = 0; i < hash.Length; i++)
+            this.Write(hash[i]);
     }
 
     public byte[] ToBytes()

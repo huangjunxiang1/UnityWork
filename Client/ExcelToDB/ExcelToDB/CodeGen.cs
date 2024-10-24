@@ -451,10 +451,14 @@ class CodeGen
                     data.Write(tmpC);
                 }
             }
-            buffer.WriteHeaderInfo();
+            buffer.Seek(11);
             buffer.Write(stringIndex.Count);
             buffer.Write(stringData);
             buffer.Write(data);
+            int len2 = buffer.Length;
+            buffer.Seek(0);
+            buffer.WriteHeaderInfo();
+            buffer.Seek(len2);
 
             //ecs
             if (genEcs)
@@ -584,7 +588,7 @@ class CodeGen
                     }
                 }
 
-                bufferEcs.WriteHeaderInfo();
+                bufferEcs.Seek(11);
                 for (int i = 0; i < cs.Count; i++)
                 {
                     var c = cs[i];
@@ -618,20 +622,18 @@ class CodeGen
                         }
                     }
                 }
+                int len = bufferEcs.Length;
+                bufferEcs.Seek(0);
+                bufferEcs.WriteHeaderInfo();
+                bufferEcs.Seek(len);
             }
 
+            File.WriteAllBytes(dataPath + name + ".bytes", buffer.ToBytes());
+            File.WriteAllText(codePath + name + ".cs", rw.ToString());
             if (genEcs)
             {
-                File.WriteAllBytes(dataPath + name + ".bytes", buffer.ToBytes());
                 File.WriteAllBytes(dataPath + name + "_ST.bytes", bufferEcs.ToBytes());
-
-                File.WriteAllText(codePath + name + ".cs", rw.ToString());
                 File.WriteAllText(codePath + name + "_ST.cs", erw.ToString());
-            }
-            else
-            {
-                File.WriteAllBytes(dataPath + name + ".bytes", buffer.ToBytes());
-                File.WriteAllText(codePath + name + ".cs", rw.ToString());
             }
 
             Console.WriteLine("写入完成");

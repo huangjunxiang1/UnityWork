@@ -172,8 +172,7 @@ class Program
             DBuffer buffer = new DBuffer(100000);
             foreach (var item in lan)
             {
-                buffer.Seek(0);
-                buffer.WriteHeaderInfo();
+                buffer.Seek(11);
 
                 buffer.Write(item.Value.kv.Count);
                 for (int i = 0; i < item.Value.kv.Count; i++)
@@ -193,6 +192,10 @@ class Program
                     buffer.Write(item.Value.kv3[i].key);
                     buffer.Write(item.Value.kv3[i].v);
                 }
+                int len = buffer.Length;
+                buffer.Seek(0);
+                buffer.WriteHeaderInfo();
+                buffer.Seek(len);
 
                 File.WriteAllBytes(assetsPath + $"/Language_{item.Key}.bytes", buffer.ToBytes());
             }
