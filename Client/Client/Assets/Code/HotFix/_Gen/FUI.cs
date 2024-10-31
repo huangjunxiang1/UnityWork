@@ -1,27 +1,34 @@
 using FairyGUI;
 using FairyGUI.Utils;
-partial class G_Box_YesOrNo
+class FUIBinder
 {
-    public GComponent ui { get; }
+    public static void Binding()
+    {
+        UIObjectFactory.SetPackageItemExtension("ui://zvziziwirjgbf", typeof(G_Box_YesOrNo));
+        UIObjectFactory.SetPackageItemExtension("ui://zvziziwioxwqn", typeof(G_test));
+        UIObjectFactory.SetPackageItemExtension("ui://zvziziwiqnthd", typeof(G_Tips));
+    }
+}
+partial class G_Box_YesOrNo : GComponent
+{
     public GButton _yes { get; private set; }
     public GButton _no { get; private set; }
     public GTextField _title { get; private set; }
     public GTextField _text { get; private set; }
 
-    public G_Box_YesOrNo(GComponent ui)
+    public override void ConstructFromXML(XML xml)
     {
-        this.ui = ui;
-        _yes = (GButton)ui.GetChildAt(1);
-        _no = (GButton)ui.GetChildAt(2);
-        _title = (GTextField)ui.GetChildAt(3);
-        _text = (GTextField)ui.GetChildAt(4);
+        _yes = (GButton)this.GetChildAt(1);
+        _no = (GButton)this.GetChildAt(2);
+        _title = (GTextField)this.GetChildAt(3);
+        _text = (GTextField)this.GetChildAt(4);
         this.Enter();
     }
     partial void Enter();
-    public G_Box_YesOrNo() : this((GComponent)UIPkg.ComPkg.CreateObject("Box_YesOrNo")) { }
-    public void Dispose()
+    public static G_Box_YesOrNo Create() => (G_Box_YesOrNo)UIPackage.CreateObject("ComPkg", "Box_YesOrNo");
+    public override void Dispose()
     {
-        this.ui.Dispose();
+        base.Dispose();
     }
 }
 partial class FUIFighting : FUI
@@ -108,11 +115,13 @@ partial class FUIGame : FUI
 {
     public sealed override string url => "FUIGame";
     public GButton _replay { get; private set; }
+    public G_Tips _tips2 { get; private set; }
 
     protected sealed override void Binding()
     {
         GComponent ui = this.ui;
         _replay = (GButton)ui.GetChildAt(1);
+        _tips2 = (G_Tips)ui.GetChildAt(2);
     }
     public override void Dispose()
     {
@@ -182,45 +191,43 @@ partial class FUIRooms : FUI
         base.Dispose();
     }
 }
-partial class G_test
+partial class G_test : GLabel
 {
-    public GComponent ui { get; }
     public GTextFieldPropertyBinding _n0 { get; private set; }
     public GLoader _a { get; private set; }
+    public G_Tips _tips { get; private set; }
     public Controller _c2 { get; private set; }
     public Transition _t0 { get; private set; }
 
-    public G_test(GComponent ui)
+    public override void ConstructFromXML(XML xml)
     {
-        this.ui = ui;
-        _n0 = new((GTextField)ui.GetChildAt(0));
-        _a = (GLoader)ui.GetChildAt(2);
-        _c2 = ui.GetControllerAt(1);
-        _t0 = ui.GetTransitionAt(0);
+        _n0 = new((GTextField)this.GetChildAt(0));
+        _a = (GLoader)this.GetChildAt(2);
+        _tips = (G_Tips)this.GetChildAt(3);
+        _c2 = this.GetControllerAt(1);
+        _t0 = this.GetTransitionAt(0);
         this.Enter();
     }
     partial void Enter();
-    public G_test() : this((GComponent)UIPkg.ComPkg.CreateObject("test")) { }
-    public void Dispose()
+    public static G_test Create() => (G_test)UIPackage.CreateObject("ComPkg", "test");
+    public override void Dispose()
     {
-        this.ui.Dispose();
+        base.Dispose();
         _n0.Dispose();
     }
 }
-partial class G_Tips
+partial class G_Tips : GComponent
 {
-    public GComponent ui { get; }
 
-    public G_Tips(GComponent ui)
+    public override void ConstructFromXML(XML xml)
     {
-        this.ui = ui;
         this.Enter();
     }
     partial void Enter();
-    public G_Tips() : this((GComponent)UIPkg.ComPkg.CreateObject("Tips")) { }
-    public void Dispose()
+    public static G_Tips Create() => (G_Tips)UIPackage.CreateObject("ComPkg", "Tips");
+    public override void Dispose()
     {
-        this.ui.Dispose();
+        base.Dispose();
     }
 }
 partial class FUI3DHeader : FUI3D

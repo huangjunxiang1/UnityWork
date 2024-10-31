@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 public class KVComponent : SComponent
 {
     public static Func<int, (bool, int)> Parse = id => (id > 10000, id > 10000 ? id / 10000 : id);
+    public static Func<int, long, long, long> Compute = (k, v, pv) => v + v * pv / 10000;
 
     public const int SourceLength = 100;
     public const int Step = 10000;
@@ -242,7 +243,7 @@ public class KVComponent : SComponent
         }
         Values[GetRealKey(key, PercentStart)] = pv;
 
-        Values[key] = v + v * pv / 10000;
+        Values[key] = Compute(key, v, pv);
     }
     void RemoveKey(int key)
     {

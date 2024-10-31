@@ -17,6 +17,7 @@ public class UIPkg
     [Event(-1)]
     static async STask Init(EC_GameStart e)
     {
+        FUIBinder.Binding();
         FairyGUI.UIConfig.defaultFont = "Impact";
         UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ComPkg_fui")).bytes, "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);

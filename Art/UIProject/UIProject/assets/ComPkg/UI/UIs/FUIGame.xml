@@ -7,6 +7,7 @@
     <component id="n3_pivy" name="_replay" src="qgu27" fileName="Common/btn/btn.xml" xy="1067,156">
       <Button title="重新播放"/>
     </component>
+    <component id="n4_pwce" name="_tips2" src="qnthd" fileName="UI/Box/Tips.xml" xy="21,15"/>
   </displayList>
   <transition name="open">
     <item time="0" type="XY" target="n2_n68q" value="1071,-"/>
