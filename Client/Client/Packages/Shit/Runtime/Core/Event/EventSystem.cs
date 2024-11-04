@@ -370,7 +370,7 @@ namespace Core
             _evtMap.Clear();
         }
 
-        internal void AfterUpdate()
+        internal void LateUpdate()
         {
             if (removed.Count > 0)
             {

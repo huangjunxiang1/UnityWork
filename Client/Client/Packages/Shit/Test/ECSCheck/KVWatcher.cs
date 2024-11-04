@@ -14,23 +14,23 @@ internal class KVWatcherTest
         SObject o = new();
         Client.World.Root.AddChild(o);
 
-        o.World.Update(0);
+        o.World.Update();
         if (a != 0) throw new Exception();
 
         var kv = o.AddComponent<KVComponent>();
-        o.World.Update(0);
+        o.World.Update();
         if (a != 0) throw new Exception();
 
         kv.Set(1, 5);
-        o.World.Update(0);
+        o.World.Update();
         if (a != 1) throw new Exception();
         kv.Set(1, 5);
-        o.World.Update(0);
+        o.World.Update();
         if (a != 1) throw new Exception();
 
         o.AddComponent<c1>();
         kv.Set(1, 6);
-        o.World.Update(0);
+        o.World.Update();
         if (a != 3) throw new Exception();
 
         kv.Clear();
@@ -81,7 +81,7 @@ internal class KVWatcherTest
         }
 
         o.Dispose();
-        o.World.Update(0);
+        o.World.Update();
     }
 
     static int a = 0;

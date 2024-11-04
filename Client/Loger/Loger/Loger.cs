@@ -15,7 +15,7 @@ public static class Loger
         UnityEngine.Debug.Log(o);
 #else
         Console.ForegroundColor = ConsoleColor.White;
-        Console.WriteLine($"{o}");
+        Console.WriteLine($"{DateTime.Now:G}:{o}");
 #endif
     }
 
@@ -29,7 +29,7 @@ public static class Loger
         UnityEngine.Debug.LogWarning(o);
 #else
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"warning:{o}");
+        Console.WriteLine($"{DateTime.Now:G}:warning:{o}");
 #endif
     }
 
@@ -43,7 +43,7 @@ public static class Loger
         UnityEngine.Debug.LogError(o);
 #else
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"error:{o}");
+        Console.WriteLine($"{DateTime.Now:G}:error:{o}");
 #endif
     }
 

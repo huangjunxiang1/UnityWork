@@ -139,7 +139,7 @@ class Program
                             var str = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], 1].Text;
                             if (item.isCommonTab)
                             {
-                                if (pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], 3].Text == "[]")
+                                if (pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], 2].Text == "[]")
                                 {
                                     string text = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], x].Text;
                                     string[] arr = text.Split(Common.arraySplit, StringSplitOptions.RemoveEmptyEntries);
@@ -213,7 +213,10 @@ class Program
                     for (int j = 0; j < dataLines.Count; j++)
                     {
                         string s = pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 1].Text;
-                        if (pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 3].Text == "[]")
+                        str.AppendLine("    /// <summary>");
+                        str.AppendLine($"    /// {pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 3].Text}");
+                        str.AppendLine("    /// </summary>");
+                        if (pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 2].Text == "[]")
                             str.AppendLine($"    public static string[] {s} => \"gk_{s}\".ToLans();");
                         else
                             str.AppendLine($"    public static string {s} => \"gk_{s}\".ToLan();");

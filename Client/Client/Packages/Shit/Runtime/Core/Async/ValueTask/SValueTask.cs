@@ -64,14 +64,15 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
     public void TrySetResult()
     {
         if (this.Disposed) return;
+        Action act;
         lock (taskItems)
         {
             poolIndexs.Enqueue(this.index);
             ++taskItems[index].version;
-            var act = taskItems[index].action;
+            act = taskItems[index].action;
             taskItems[index].action = null;
-            act?.Invoke();
         }
+        act?.Invoke();
     }
     public void Dispose() => this.TryCancel();
 

@@ -16,23 +16,23 @@ internal class TimerCheck
         Client.World.Root.AddChild(o);
 
         o.AddComponent<c1>();
-        Client.World.Update(0);
+        Client.World.Update();
         if (v != 2) throw new Exception();
 
-        Client.World.Update(0);
+        Client.World.Update();
         if (v != 4) throw new Exception();
 
-        Client.World.Update(0);
+        Client.World.Update();
         if (v != 5) throw new Exception();
 
         o.AddComponent<c2>();
-        Client.World.Update(0);
+        Client.World.Update();
         if (v != 8) throw new Exception();
 
-        Client.World.Update(0);
+        Client.World.Update();
         if (v != 11) throw new Exception();
 
-        Client.World.Update(0);
+        Client.World.Update();
         if (v != 13) throw new Exception();
 
         o.Dispose();

@@ -1,9 +1,17 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Text;
 
 public static class PrintField
 {
+    static Newtonsoft.Json.JsonSerializerSettings settings = new Newtonsoft.Json.JsonSerializerSettings
+    {
+        Formatting = Newtonsoft.Json.Formatting.Indented,
+        ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore, // 处理循环引用
+        Converters = Game.UnityMathematicsJsonConverter.Converters,
+    };
     [Conditional(ConstDefCore.DebugEnableString)]
     public static void Print(string format, object o)
     {
@@ -13,26 +21,21 @@ public static class PrintField
             return;
         }
 #if !Server
-        StringBuilder str = new StringBuilder(100);
-        str.AppendLine(o.GetType().Name + ":");
+        var str = string.Empty;
         try
         {
-            WriteField(str, o, 1);
+            settings.Formatting = Formatting.Indented;
+            str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Loger.Error(ex);
         }
 #else
-        Newtonsoft.Json.JsonSerializerSettings settings = new Newtonsoft.Json.JsonSerializerSettings
-        {
-            Formatting = Newtonsoft.Json.Formatting.None, // 缩进输出
-            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore, // 处理循环引用
-            Converters = Game.UnityMathematicsJsonConverter.Converters,
-        };
         var str = string.Empty;
         try
         {
+            settings.Formatting = Formatting.None;
             str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
         }
         catch (Exception ex)
@@ -51,26 +54,21 @@ public static class PrintField
             return;
         }
 #if !Server
-        StringBuilder str = new StringBuilder(100);
-        str.AppendLine(o.GetType().Name + ":");
+        var str = string.Empty;
         try
         {
-            WriteField(str, o, 1);
+            settings.Formatting = Formatting.Indented;
+            str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Loger.Error(ex);
         }
 #else
-        Newtonsoft.Json.JsonSerializerSettings settings = new Newtonsoft.Json.JsonSerializerSettings
-        {
-            Formatting = Newtonsoft.Json.Formatting.None, // 缩进输出
-            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore, // 处理循环引用
-            Converters = Game.UnityMathematicsJsonConverter.Converters,
-        };
         var str = string.Empty;
         try
         {
+            settings.Formatting = Formatting.None;
             str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
         }
         catch (Exception ex)

@@ -46,7 +46,7 @@ internal static class In
             var o = new o1();
 
             o.AddComponent<c_1>();
-            Client.World.Update(0);
+            Client.World.Update();
             if (v != 7)
                 throw new System.Exception();
             Client.World.Root.AddChild(o);

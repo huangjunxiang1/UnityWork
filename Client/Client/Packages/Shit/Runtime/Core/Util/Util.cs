@@ -19,12 +19,12 @@ public static class Util
 
     public static long ToUtc(DateTime time)
     {
-        TimeSpan ts = time - new DateTime(1970, 1, 1).ToLocalTime();
+        TimeSpan ts = time - DateTime.UnixEpoch.ToLocalTime();
         return (long)ts.TotalMilliseconds;
     }
     public static DateTime ToDateTime(long utc)
     {
-        DateTime t = new DateTime(1970, 1, 1).ToLocalTime();
+        DateTime t = DateTime.UnixEpoch.ToLocalTime();
         return t.AddMilliseconds(utc);
     }
     public static IPEndPoint ToIPEndPoint(string host, int port)

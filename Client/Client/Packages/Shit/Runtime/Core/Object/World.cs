@@ -36,17 +36,22 @@ namespace Core
         internal static List<World> Worlds = new();
         internal static Action Close;
 
-        public void Update(float time)
+        public void BeforeUpdate(float time)
         {
             this.DeltaTime = time;
             Thread.Update();
-
+            System.beforeUpdate();
+        }
+        public void Update()
+        {
             System.update();
-            Timer.Update(time);
-
-            System.AfterUpdate();
-            Event.AfterUpdate();
-            ObjectManager.AfterUpdate();
+            Timer.Update(this.DeltaTime);
+        }
+        public void LateUpdate()
+        {
+            System.lateUpdate();
+            Event.LateUpdate();
+            ObjectManager.LateUpdate();
         }
         public void Dispose()
         {
