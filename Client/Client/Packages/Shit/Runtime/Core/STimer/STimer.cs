@@ -12,7 +12,6 @@ namespace Core
         }
 
         bool isSetUtc = false;
-        readonly DateTime _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         long _timeOffset;
         public long utc
         {
@@ -38,7 +37,8 @@ namespace Core
                 }
             }
         }
-        long getNow() => (DateTime.UtcNow.Ticks - _dt1970.Ticks) / 10000;
+        public DateTime utcDateTime => DateTime.UnixEpoch.AddMilliseconds(this.utc);
+        long getNow() => (DateTime.UtcNow.Ticks - DateTime.UnixEpoch.Ticks) / 10000;
 
         float wheelInterval;//轮间隔
         long wheel;//时间轮的当前轮

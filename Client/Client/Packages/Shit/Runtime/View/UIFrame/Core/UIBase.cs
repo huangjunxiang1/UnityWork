@@ -169,6 +169,14 @@ public abstract class UIBase : STree
         if (this.uiStates >= UIStates.Success)
             this.OnExit();
     }
+    public void CloseUI(Func<UIBase, bool> test = null)
+    {
+        foreach (var ui in this.ToChildren().FindAll(t => t is UIBase u && (test == null || test(u))))
+        {
+            if (ui.Disposed) continue;
+            ui.Dispose();
+        }
+    }
 
     protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用
     protected virtual STask OnTask(params object[] data)//自定义何时界面可以打开

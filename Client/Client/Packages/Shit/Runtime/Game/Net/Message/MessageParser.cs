@@ -43,7 +43,7 @@ namespace Game
         public static Type GetCMDType(int cmd)
         {
             if (!_cmdType.TryGetValue(cmd, out var type))
-                Loger.Error($"cmd没有类型 cmd: [{(ushort)cmd},{cmd >> 16}]");
+                Loger.Error($"cmd没有类型 cmd: [{cmd}]");
             return type;
         }
         public static Type GetResponseType(Type request)

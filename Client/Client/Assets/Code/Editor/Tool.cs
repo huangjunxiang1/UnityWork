@@ -236,6 +236,7 @@ public class Tool
     [MenuItem("Shit/生成FGUI代码", false, int.MaxValue - 100)]
     static void CreateFUICode()
     {
+        UIObjectFactory.Clear();
         UIPackage.RemoveAllPackages();
         FontManager.Clear();
         FairyGUI.UIConfig.defaultFont = "Impact";
@@ -250,6 +251,21 @@ public class Tool
             if (item.BaseType != null && item.BaseType.IsGenericType && item.BaseType.GetGenericTypeDefinition() == typeof(UIPropertyBinding<,>) && typeof(UIPropertyBinding<,>) != item)
                 typeMap[item.BaseType.GetGenericArguments()[0]] = item;
         }
+        code.AppendLine("class FUIBinder");
+        code.AppendLine("{");
+        code.AppendLine("    public static void Binding()");
+        code.AppendLine("    {");
+        foreach (var item in pkg.GetItems())
+        {
+            if (item.exported)
+            {
+                if (item.name.StartsWith("FUI"))
+                    continue;
+                code.AppendLine($"        UIObjectFactory.SetPackageItemExtension(\"{UIPackage.GetItemURL(item.owner.name, item.name)}\", typeof(G_{item.name}));");
+            }
+        }
+        code.AppendLine("    }");
+        code.AppendLine("}");
         foreach (var item in pkg.GetItems())
         {
             if (item.exported)
@@ -266,10 +282,10 @@ public class Tool
                 StringBuilder fieldCode = new();
                 StringBuilder bindingCode = new();
                 StringBuilder disposeCode = new();
-                appendField("", "ui", obj, fieldCode, bindingCode, disposeCode, typeMap);
 
                 if (item.name.StartsWith("FUI"))
                 {
+                    appendField("", "ui", obj, fieldCode, bindingCode, disposeCode, typeMap);
                     code.AppendLine($"partial class {item.name} : FUI");
                     code.AppendLine("{");
                     code.AppendLine($"    public sealed override string url => \"{item.name}\";");
@@ -289,22 +305,21 @@ public class Tool
                 }
                 else
                 {
-                    code.AppendLine($"partial class G_{item.name}");
+                    appendField("", "this", obj, fieldCode, bindingCode, disposeCode, typeMap);
+                    code.AppendLine($"partial class G_{item.name} : {obj.GetType().Name}");
                     code.AppendLine("{");
-                    code.AppendLine($"    public {obj.GetType().Name} ui {{ get; }}");
                     code.AppendLine(fieldCode.ToString());
 
-                    code.AppendLine($"    public G_{item.name}({obj.GetType().Name} ui)");
+                    code.AppendLine($"    public override void ConstructFromXML(XML xml)");
                     code.AppendLine("    {");
-                    code.AppendLine("        this.ui = ui;");
                     code.Append(bindingCode.ToString());
                     code.AppendLine("        this.Enter();");
                     code.AppendLine("    }");
                     code.AppendLine("    partial void Enter();");
-                    code.AppendLine($"    public G_{item.name}() : this(({obj.GetType().Name})UIPkg.{item.owner.name}.CreateObject(\"{item.name}\")) {{ }}");
-                    code.AppendLine("    public void Dispose()");
+                    code.AppendLine($"    public static G_{item.name} Create() => (G_{item.name})UIPackage.CreateObject(\"{item.owner.name}\", \"{item.name}\");");
+                    code.AppendLine("    public override void Dispose()");
                     code.AppendLine("    {");
-                    code.AppendLine("        this.ui.Dispose();");
+                    code.AppendLine("        base.Dispose();");
                     code.Append(disposeCode.ToString());
                     code.AppendLine("    }");
 
@@ -343,8 +358,7 @@ public class Tool
                 if (c.packageItem != null && c.packageItem.exported)
                 {
                     field.AppendLine($"    public G_{c.packageItem.name} {name + c.name} {{ get; private set; }}");
-                    binding.AppendLine($"        {name + c.name} = new G_{c.packageItem.name}(({c.GetType().Name}){path}.GetChildAt({i}));");
-                    dispose.AppendLine($"        {name + c.name}.Dispose();");
+                    binding.AppendLine($"        {name + c.name} = (G_{c.packageItem.name}){path}.GetChildAt({i});");
                 }
                 else
                 {

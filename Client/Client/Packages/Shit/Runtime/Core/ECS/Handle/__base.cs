@@ -23,6 +23,8 @@ public abstract class __UpdateHandle : __SystemHandle
     internal abstract bool Disposed { get; }
     internal abstract void Invoke();
 }
+public abstract class __BeforeUpdateHandle : __UpdateHandle { }
+public abstract class __LateUpdateHandle : __UpdateHandle { }
 public abstract class __EventWatcher : __SystemHandle { }
 public abstract class __KVWatcher : __SystemHandle
 {

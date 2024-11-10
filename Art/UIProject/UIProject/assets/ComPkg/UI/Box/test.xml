@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component size="800,600">
+<component size="800,600" extention="Label">
   <controller name="c1" pages="0,,1," selected="0"/>
   <controller name="_c2" pages="0,,1," selected="0"/>
   <displayList>
     <text id="n0_ntjl" name="_n0_b" xy="142,155" size="173,58" fontSize="12" autoSize="none" text=""/>
     <text id="n1_ntjl" name="n1" xy="405,306" size="87,19" fontSize="12" text="item.exported"/>
     <loader id="n2_85m5" name="_a" xy="156,350" size="50,50"/>
+    <component id="n3_pwce" name="_tips" src="qnthd" fileName="UI/Box/Tips.xml" xy="387,85"/>
   </displayList>
   <transition name="_t0"/>
   <transition name="t1"/>

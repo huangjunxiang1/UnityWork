@@ -59,7 +59,9 @@ namespace Game
                 {
                     float time = (tick2 - tick) / 10000000f;
                     time = Math.Min(time, 0.3f);
-                    w.Update(time);
+                    w.BeforeUpdate(time);
+                    w.Update();
+                    w.LateUpdate();
                 }
                 catch (Exception ex)
                 {

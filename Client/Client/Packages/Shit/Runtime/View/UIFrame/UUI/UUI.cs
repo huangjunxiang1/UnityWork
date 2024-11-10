@@ -62,13 +62,19 @@ public abstract class UUI : UUIBase
         this._ui.anchorMax = Vector2.one;
         this._ui.anchoredPosition = default;
 
-        int layer = this.Layer - 2;
-        if (layer > 3)
-            Loger.Error("层级太深");
+        const int max = 3;
         if (this.Parent is not UIBase)
-            this.canvas.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
+        {
+            int layer = 0;
+            this.canvas.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, max - layer);
+        }
         else
-            this.canvas.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, 3 - layer);
+        {
+            int layer = this.CrucialLayer;
+            if (layer > max)
+                Loger.Error("层级太深 layer=" + layer);
+            this.canvas.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, max - layer);
+        }
     }
 }
 #endif

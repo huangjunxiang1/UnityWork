@@ -46,7 +46,8 @@ namespace Game
             {
                 World.Root.AddChild(UI = new());
                 gameObject = new(nameof(World));
-                gameObject.AddComponent<Engine>();
+                gameObject.AddComponent<OnBeforeUpdate>().world = World;
+                gameObject.AddComponent<OnUpdate>().world = World;
                 transform = gameObject.transform;
                 UnityEngine.Object.DontDestroyOnLoad(gameObject);
             }
@@ -58,6 +59,7 @@ namespace Game
             var w = World;
             World = null;
             w.Dispose();
+            GameObject.Destroy(gameObject);
         }
 
         static void delayHandle(int ms, STask task)
@@ -65,24 +67,6 @@ namespace Game
             if (World == null || World.Root.Disposed)
                 throw new Exception("World is Close");
             World.Timer.Add(ms / 1000f, 1, task.TrySetResult);
-        }
-
-        class Engine : MonoBehaviour
-        {
-            void Update()
-            {
-                Profiler.BeginSample($"{nameof(World)}.{nameof(World.Update)}");
-                try
-                {
-                    World.Update(Time.deltaTime);
-                }
-                catch (Exception ex)
-                {
-                    Loger.Error($"update error " + ex);
-                }
-                Profiler.EndSample();
-            }
-            void OnApplicationQuit() => World?.Event?.RunEvent(new EC_QuitGame());
         }
     }
 }

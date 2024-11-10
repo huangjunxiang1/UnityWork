@@ -14,39 +14,39 @@ internal class AnyChange
         Client.World.Root.AddChild(o);
 
         o.AddComponent<c_1>();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 0) throw new System.Exception();
 
         o.AddComponent<c_2>();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 1) throw new System.Exception();
 
         o.GetComponent<c_1>().SetChangeFlag();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 2) throw new System.Exception();
 
         o.GetComponent<c_2>().SetChangeFlag();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 3) throw new System.Exception();
 
         o.GetComponent<c_1>().Dispose();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 3) throw new System.Exception();
 
         o.AddComponent<c_1>();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 4) throw new System.Exception();
 
         o.GetComponent<c_2>().Dispose();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 4) throw new System.Exception();
 
         o.AddComponent<c_2>();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 5) throw new System.Exception();
 
         o.Dispose();
-        Client.World.Update(0);
+        Client.World.Update();
         if (o.v != 5) throw new System.Exception();
 
         {
@@ -55,21 +55,21 @@ internal class AnyChange
 
             o.AddComponent<c_1>();
             o.AddComponent<c_2>();
-            Client.World.Update(0);
+            Client.World.Update();
             if (o.v != 1) throw new System.Exception();
 
             o.GetComponent<c_1>().SetChangeFlag();
             if (o.v != 1) throw new System.Exception();
             o.GetComponent<c_1>().SetChange();
             if (o.v != 2) throw new System.Exception();
-            Client.World.Update(0);
+            Client.World.Update();
             if (o.v != 2) throw new System.Exception();
 
             o.GetComponent<c_1>().SetChangeFlag();
             o.GetComponent<c_2>().SetChangeFlag();
             o.GetComponent<c_2>().SetChange();
             if (o.v != 3) throw new System.Exception();
-            Client.World.Update(0);
+            Client.World.Update();
             if (o.v != 3) throw new System.Exception();
         }
     }

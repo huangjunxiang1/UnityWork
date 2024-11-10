@@ -143,16 +143,13 @@ namespace Game
             }
         }
 
-        public void CloseAll(Func<UIBase, bool> test)
+        public void CloseUI(Func<UIBase, bool> test = null)
         {
-            foreach (var ui in this.ToChildren().FindAll(t => test((UIBase)t)))
+            foreach (var ui in this.ToChildren().FindAll(t => t is UIBase u && (test == null || test(u))))
             {
                 if (ui.Disposed) continue;
                 ui.Dispose();
             }
         }
-
-        [Event(-101)]
-        void outScene(EC_OutScene e) => DisposeAllChildren();
     }
 }

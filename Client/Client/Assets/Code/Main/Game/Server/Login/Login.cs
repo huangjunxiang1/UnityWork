@@ -17,7 +17,14 @@ public class Login : STree
     static async void Awake(Awake<Login> t)
     {
         TcpListener tcp = new(t.t.ip);
-        tcp.Start();
+        try
+        {
+            tcp.Start();
+        }
+        catch (Exception e)
+        {
+            Loger.Error("ip 绑定出错 =" + e);
+        }
         while (true)
         {
             var client = await tcp.AcceptTcpClientAsync();

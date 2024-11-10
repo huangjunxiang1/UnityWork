@@ -50,7 +50,7 @@ namespace Core
         internal bool TryGetByRpc(long rpc, out List<SObject> lst) => rpcMap.TryGetValue(rpc, out lst);
         public bool TryGetByGid(long gid, out SObject o) => gidMap.TryGetValue(gid, out o);
 
-        internal void AfterUpdate()
+        internal void LateUpdate()
         {
             while (removed.TryDequeue(out var o))
             {

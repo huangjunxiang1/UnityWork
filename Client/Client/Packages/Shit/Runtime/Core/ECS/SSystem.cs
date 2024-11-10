@@ -19,12 +19,16 @@ namespace Core
         internal Dictionary<Type, List<(Type, Action<object, SObject, int>)>> eventWatcherHandle = new();
         internal Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
         internal Dictionary<Type, List<Action<SObject>>> timerHandle = new();
+        internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> beforeUpdateHandlerCreater = new();
         internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
+        internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> lateUpdateHandlerCreater = new();
 
         ConcurrentQueue<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<ConcurrentQueue<__ChangeHandle>>();
         HashSet<SComponent> changeWaitRemove = new();
         HashSet<SComponent> kvWaitRemove = new();
+        Queue<__UpdateHandle> beforeUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
         Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
+        Queue<__UpdateHandle> lateUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
 
         internal void RigisterHandler(Type type, SComponent c)
         {
@@ -53,6 +57,22 @@ namespace Core
                 }
             }
             {
+                if (beforeUpdateHandlerCreater.TryGetValue(type, out var list))
+                {
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var v = list[i].Invoke(c.Entity);
+                        if (v != null)
+                        {
+                            beforeUpdateHandles.Enqueue(v);
+#if UNITY_EDITOR
+                            c.Entity._updates.Add(v);
+#endif
+                        }
+                    }
+                }
+            }
+            {
                 if (updateHandlerCreater.TryGetValue(type, out var list))
                 {
                     for (int i = 0; i < list.Count; i++)
@@ -61,6 +81,22 @@ namespace Core
                         if (v != null)
                         {
                             updateHandles.Enqueue(v);
+#if UNITY_EDITOR
+                            c.Entity._updates.Add(v);
+#endif
+                        }
+                    }
+                }
+            }
+            {
+                if (lateUpdateHandlerCreater.TryGetValue(type, out var list))
+                {
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var v = list[i].Invoke(c.Entity);
+                        if (v != null)
+                        {
+                            lateUpdateHandles.Enqueue(v);
 #if UNITY_EDITOR
                             c.Entity._updates.Add(v);
 #endif
@@ -293,11 +329,41 @@ namespace Core
                 for (int j = 0; j < ts.Length; j++)
                 {
                     var key = ts[j];
-                    if (!updateHandlerCreater.TryGetValue(key, out var lst))
-                        updateHandlerCreater[key] = lst = new();
-                    lst.Add(action);
+                    if (typeof(__BeforeUpdateHandle).IsAssignableFrom(item))
+                    {
+                        if (!beforeUpdateHandlerCreater.TryGetValue(key, out var lst))
+                            beforeUpdateHandlerCreater[key] = lst = new();
+                        lst.Add(action);
+                    }
+                    else if (typeof(__LateUpdateHandle).IsAssignableFrom(item))
+                    {
+                        if (!lateUpdateHandlerCreater.TryGetValue(key, out var lst))
+                            lateUpdateHandlerCreater[key] = lst = new();
+                        lst.Add(action);
+                    }
+                    else
+                    {
+                        if (!updateHandlerCreater.TryGetValue(key, out var lst))
+                            updateHandlerCreater[key] = lst = new();
+                        lst.Add(action);
+                    }
                 }
             }
+        }
+
+        internal void beforeUpdate()
+        {
+            BeforeUpdate.Invoke(world);
+            var update = beforeUpdateHandles;
+            beforeUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
+            while (update.TryDequeue(out var u))
+            {
+                if (u.Disposed)
+                    continue;
+                u.Invoke();
+                beforeUpdateHandles.Enqueue(u);
+            }
+            ObjectPool.Return(update);
         }
         internal void update()
         {
@@ -326,8 +392,20 @@ namespace Core
                 ObjectPool.Return(change);
             }
         }
-        internal void AfterUpdate()
+        internal void lateUpdate()
         {
+            LateUpdate.Invoke(world);
+            var update = lateUpdateHandles;
+            lateUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
+            while (update.TryDequeue(out var u))
+            {
+                if (u.Disposed)
+                    continue;
+                u.Invoke();
+                lateUpdateHandles.Enqueue(u);
+            }
+            ObjectPool.Return(update);
+
             if (changeWaitRemove.Count > 0)
             {
                 foreach (var c in changeWaitRemove)

@@ -17,7 +17,7 @@ static class MessageLog
 #if Server
             PrintField.Print($"发送消息 msg:[{e.message.GetType().Name}]  content:{{0}}", e.message);
 #else
-            PrintField.Print($"<Color=#FF0000>发送消息</Color> msg:[{e.message.GetType().Name}]  content:{{0}}", e.message);
+            PrintField.Print($"<Color=#FF0000>发送消息</Color> msg:[{e.message.GetType().Name}]  content:\n{{0}}", e.message);
 #endif
         }
     }
@@ -29,7 +29,7 @@ static class MessageLog
 #if Server
             PrintField.Print($"收到消息 msg:[{e.message.GetType().Name}]  content:{{0}}", e.message);
 #else
-            PrintField.Print($"<Color=#00FF00>收到消息</Color> msg:[{e.message.GetType().Name}]  content:{{0}}", e.message);
+            PrintField.Print($"<Color=#00FF00>收到消息</Color> msg:[{e.message.GetType().Name}]  content:\n{{0}}", e.message);
 #endif
         }
     }
