@@ -29,9 +29,9 @@ namespace Core
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
-        public virtual long rpc
+        public virtual long ActorId
         {
-            get => this.Entity.rpc;
+            get => this.Entity.ActorId;
             init => throw new NotSupportedException();
         }
 

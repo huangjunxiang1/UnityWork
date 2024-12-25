@@ -28,7 +28,7 @@ public class Login : STree
         while (true)
         {
             var client = await tcp.AcceptTcpClientAsync();
-            Player o = new() { rpc = (uint)Util.RandomInt() };
+            Player o = new() { ActorId = (uint)Util.RandomInt() };
             t.t.AddChild(o);
             o.AddComponent(new NetComponent(false)).SetSession(new STCP(client)).Work();
         }
@@ -45,7 +45,7 @@ public class Login : STree
             t.t2.Send(s);
             return;
         }
-        login.TryGetChildRpc(t.t2.rpc,out var c);
+        login.TryGetChildActorId(t.t2.ActorId,out var c);
         c.As<Player>().acc = t.t.acc;
         t.t2.Send(s);
     }

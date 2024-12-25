@@ -11,7 +11,9 @@ namespace PB
     public abstract class PBMessage : IMessage
     {
         [Sirenix.OdinInspector.ShowInInspector]
-        public uint rpc { get; set; }
+        public long rpc { get; set; }
+        [Sirenix.OdinInspector.ShowInInspector]
+        public long actorId { get; set; }
         [Sirenix.OdinInspector.ShowInInspector]
         public string error { get; set; }
 

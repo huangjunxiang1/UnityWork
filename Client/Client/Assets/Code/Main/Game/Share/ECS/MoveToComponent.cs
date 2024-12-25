@@ -52,7 +52,7 @@ namespace Game
             this._pool[0] = p;
             this._paths = _pool;
             this._index = 0;
-            this.rotation = r;
+            this._r = r;
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -70,7 +70,7 @@ namespace Game
         {
             this._paths = ps;
             this._index = 0;
-            this.rotation = r;
+            this._r = r;
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -88,7 +88,7 @@ namespace Game
             this._pool[0] = p;
             this._paths = _pool;
             this._index = 0;
-            this.rotation = r;
+            this._r = r;
             var old = _task;
             _task = new();
             old?.TrySetResult(false);
@@ -108,7 +108,7 @@ namespace Game
         {
             this._paths = ps;
             this._index = 0;
-            this.rotation = r;
+            this._r = r;
             var old = _task;
             _task = new();
             old?.TrySetResult(false);
@@ -130,7 +130,7 @@ namespace Game
             t.t._paths = t.t._pool;
             t.t._index = 0;
             t.t.point = t.t2.position;
-            t.t.rotation = t.t2.rotation;
+            t.t._r = t.t2.rotation;
         }
         [Event]
         static void Update(Update<MoveToComponent, TransformComponent, KVComponent> t)

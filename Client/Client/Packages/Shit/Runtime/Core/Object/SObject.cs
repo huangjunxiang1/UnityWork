@@ -95,7 +95,7 @@ namespace Core
         /// </summary>
         [ShowInInspector]
         [PropertyOrder(-100)]
-        public sealed override long rpc { get; init; }
+        public sealed override long ActorId { get; init; }
 
         /// <summary>
         /// 随机生成的ID
@@ -116,7 +116,7 @@ namespace Core
         /// </summary>
         [ShowInInspector]
         [PropertyOrder(-100)]
-        public int objType { get; init; }
+        public int ObjType { get; init; }
 
         /// <summary>
         /// 事件监听
@@ -544,7 +544,7 @@ namespace Core
 
         public override string ToString()
         {
-            if (this.rpc != 0) return $"{{rpc={this.rpc} gid={this.gid} {this.GetType().FullName}}}";
+            if (this.ActorId != 0) return $"{{actorId={this.ActorId} gid={this.gid} {this.GetType().FullName}}}";
             else return $"{{gid={this.gid} {this.GetType().FullName}}}";
         }
     }

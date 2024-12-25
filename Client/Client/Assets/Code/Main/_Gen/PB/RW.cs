@@ -346,10 +346,9 @@ namespace main
     {
         public override void Write(PB.PBWriter writer)
         {
-            writer.Writestring(10, this.error);
-            writer.Writefixed64(17, this.token);
-            writer.Writestring(26, this.ip);
-            writer.Writeint32(32, this.port);
+            writer.Writefixed64(9, this.token);
+            writer.Writestring(18, this.ip);
+            writer.Writeint32(24, this.port);
         }
         public override void Read(PB.PBReader reader)
         {
@@ -358,10 +357,9 @@ namespace main
             {
                 switch (tag)
                 {
-                    case 10: this.error = reader.Readstring(); break;
-                    case 17: this.token = reader.Readfixed64(); break;
-                    case 26: this.ip = reader.Readstring(); break;
-                    case 32: this.port = reader.Readint32(); break;
+                    case 9: this.token = reader.Readfixed64(); break;
+                    case 18: this.ip = reader.Readstring(); break;
+                    case 24: this.port = reader.Readint32(); break;
                     default: reader.SeekNext(tag); break;
                 }
             }
@@ -390,7 +388,6 @@ namespace main
     {
         public override void Write(PB.PBWriter writer)
         {
-            writer.Writestring(10, this.error);
         }
         public override void Read(PB.PBReader reader)
         {
@@ -399,7 +396,6 @@ namespace main
             {
                 switch (tag)
                 {
-                    case 10: this.error = reader.Readstring(); break;
                     default: reader.SeekNext(tag); break;
                 }
             }

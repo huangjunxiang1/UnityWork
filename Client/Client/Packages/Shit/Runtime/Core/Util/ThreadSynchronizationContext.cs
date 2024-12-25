@@ -9,8 +9,7 @@ namespace Core
         public readonly int threadId;
 
         // 线程同步队列,发送接收socket回调都放到该队列,由poll线程统一执行
-        private readonly ConcurrentQueue<Action> queue = new();
-        private Action a;
+        private readonly ConcurrentQueue<(SendOrPostCallback, object)> queue = new();
 
         static ConcurrentDictionary<int, ThreadSynchronizationContext> map = new();
 
@@ -32,12 +31,12 @@ namespace Core
         {
             while (true)
             {
-                if (!this.queue.TryDequeue(out a))
+                if (!this.queue.TryDequeue(out var a))
                     return;
 
                 try
                 {
-                    a();
+                    a.Item1(a.Item2);
                 }
                 catch (Exception e)
                 {
@@ -46,18 +45,13 @@ namespace Core
             }
         }
 
-        public override void Post(SendOrPostCallback callback, object state)
-        {
-            this.Post(() => callback(state));
-        }
-
-        public void Post(Action action)
+        public override void Post(SendOrPostCallback callback, object state = null)
         {
             if (Environment.CurrentManagedThreadId == this.threadId)
             {
                 try
                 {
-                    action();
+                    callback(state);
                 }
                 catch (Exception e)
                 {
@@ -66,12 +60,11 @@ namespace Core
 
                 return;
             }
-            this.queue.Enqueue(action);
+            this.queue.Enqueue((callback, state));
         }
-		
-        public void PostNext(Action action)
+        public void PostNext(SendOrPostCallback callback, object state = null)
         {
-            this.queue.Enqueue(action);
+            this.queue.Enqueue((callback, state));
         }
     }
 }

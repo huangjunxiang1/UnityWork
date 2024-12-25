@@ -42,8 +42,8 @@ namespace Game
                 if (this.gameRoot && this.gameObjectType != SGameObjectType.Static)
                 {
                     string s = this.Entity.GetType().Name;
-                    if (this.rpc != 0)
-                        s += $"_rpc={this.rpc}";
+                    if (this.ActorId != 0)
+                        s += $"_actorId={this.ActorId}";
                     if (this.Entity.tid != 0)
                         s += $"_tid={this.Entity.tid}";
                     this.gameRoot.name = s;
@@ -156,8 +156,8 @@ namespace Game
             if (this.gameRoot && this.gameObjectType != SGameObjectType.Static)
             {
                 string s = this.Entity.GetType().Name;
-                if (this.rpc != 0)
-                    s += $"_rpc={this.rpc}";
+                if (this.ActorId != 0)
+                    s += $"_actorId={this.ActorId}";
                 if (this.Entity.tid != 0)
                     s += $"_tid={this.Entity.tid}";
                 this.gameRoot.name = s;

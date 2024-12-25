@@ -60,17 +60,17 @@ namespace Core
                 child.Parent.Remove(child);
 
             _childrenGMap.Add(child.gid, child);
-            if (child.rpc != 0)
+            if (child.ActorId != 0)
             {
-                if (!_childrenRMap.ContainsKey(child.rpc))
-                    _childrenRMap[child.rpc] = child;
+                if (!_childrenRMap.ContainsKey(child.ActorId))
+                    _childrenRMap[child.ActorId] = child;
                 else
                     Loger.Error($"Already Contains Child this={this} child={child}");
             }
-            if (child.objType != 0)
+            if (child.ObjType != 0)
             {
-                if (!this._typeMap.TryGetValue(child.objType, out var lst))
-                    this._typeMap[child.objType] = lst = new();
+                if (!this._typeMap.TryGetValue(child.ObjType, out var lst))
+                    this._typeMap[child.ObjType] = lst = new();
                 lst.Add(child);
             }
             _children.Add(child);
@@ -91,26 +91,26 @@ namespace Core
             _childrenGMap.TryGetValue(gid, out var child);
             return child;
         }
-        public SObject GetChildRpc(long rpc)
+        public SObject GetChildActorId(long actorId)
         {
-            if (rpc == 0)
+            if (actorId == 0)
             {
-                Loger.Error("无效rpc");
+                Loger.Error("无效actorId");
                 return null;
             }
-            _childrenRMap.TryGetValue(rpc, out var child);
+            _childrenRMap.TryGetValue(actorId, out var child);
             return child;
         }
         public bool TryGetChildGid(long gid, out SObject child) => _childrenGMap.TryGetValue(gid, out child);
-        public bool TryGetChildRpc(long rpc, out SObject child)
+        public bool TryGetChildActorId(long actorId, out SObject child)
         {
-            if (rpc == 0)
+            if (actorId == 0)
             {
-                Loger.Error("无效rpc");
+                Loger.Error("无效actorId");
                 child = null;
                 return false;
             }
-            return _childrenRMap.TryGetValue(rpc, out child);
+            return _childrenRMap.TryGetValue(actorId, out child);
         }
         public List<SObject> ToChildren() => new(_children);
         public List<SObject> GetChildren() => _children;
@@ -130,11 +130,11 @@ namespace Core
             if (!_childrenGMap.ContainsKey(child.gid))
                 return;
             _childrenGMap.Remove(child.gid);
-            if (child.rpc != 0)
-                _childrenRMap.Remove(child.rpc);
-            if (child.objType != 0)
+            if (child.ActorId != 0)
+                _childrenRMap.Remove(child.ActorId);
+            if (child.ObjType != 0)
             {
-                if (this._typeMap.TryGetValue(child.objType, out var lst))
+                if (this._typeMap.TryGetValue(child.ObjType, out var lst))
                     lst.Remove(child);
             }
             _children.Remove(child);
@@ -151,14 +151,14 @@ namespace Core
             }
             this.Remove(child);
         }
-        public void RemoveRpc(long rpc, bool dispose = true)
+        public void RemoveActorId(long actorId, bool dispose = true)
         {
-            if (rpc == 0)
+            if (actorId == 0)
             {
-                Loger.Error("无效rpc");
+                Loger.Error("无效actorId");
                 return;
             }
-            if (!_childrenRMap.TryGetValue(rpc, out var child))
+            if (!_childrenRMap.TryGetValue(actorId, out var child))
                 return;
             if (dispose)
             {

@@ -9,7 +9,8 @@ namespace Game
 {
     public interface IMessage : IData
     {
-        public uint rpc { get; set; }
+        public long rpc { get; set; }
+        public long actorId { get; set; }
         public string error { get; set; }
         public abstract void Write(PBWriter writer);
         public abstract void Read(PBReader reader);

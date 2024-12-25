@@ -75,16 +75,14 @@ message C2S_Login{
 	string pw=2;
 }
 message S2C_Login{
-	string error=1;
-	fixed64 token=2;
-	string ip=3;
-	int32 port=4;
+	fixed64 token=1;
+	string ip=2;
+	int32 port=3;
 }
 message C2S_LoginGame{
  fixed64 token=1;
 }
 message S2C_LoginGame{
-	string error=1;
 }
 
 message RoomInfo

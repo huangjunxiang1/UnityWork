@@ -72,9 +72,9 @@ namespace Game
                     int len;
                     try
                     {
-                        int index = 0;
-                        while (index < 2)
-                            index += await _client.GetStream().ReadAsync(_rBuffer, index, 2 - index);
+                        int read = 0;
+                        while (read < 2)
+                            read += await _client.GetStream().ReadAsync(_rBuffer, read, 2 - read);
                         len = (_rBuffer[0] | _rBuffer[1] << 8) + 2;
 
                         if (len < 8 || len > ushort.MaxValue)
@@ -83,9 +83,9 @@ namespace Game
                             break;
                         }
 
-                        index = 2;
-                        while (index < len)
-                            index += await _client.GetStream().ReadAsync(_rBuffer, index, len - index);
+                        read = 2;
+                        while (read < len)
+                            read += await _client.GetStream().ReadAsync(_rBuffer, read, len - read);
                     }
                     catch (Exception ex)
                     {
@@ -93,10 +93,9 @@ namespace Game
                         break;
                     }
 
-                    int cmd = _rBuffer[4]
-                        | (int)_rBuffer[5] << 8
-                        | (int)_rBuffer[6] << 16
-                        | (int)_rBuffer[7] << 24;
+                    reader.SetMax(len);
+                    reader.Seek(3);
+                    int cmd = reader.Readfixed32();
 
                     byte checkCode = _rBuffer[2];
                     for (int i = 3; i < len; i++)
@@ -104,31 +103,20 @@ namespace Game
 
                     if (checkCode != 0)
                     {
-                        Error(NetError.DataError, new Exception($"数据校验不正确 cmd:[{(ushort)cmd},{cmd >> 16}]"));
+                        Error(NetError.DataError, new Exception($"数据校验不正确 cmd:[{cmd}]"));
                         break;
-                    }
-
-                    byte msgType = _rBuffer[3];
-                    uint rpcid = 0;
-                    if (msgType == 1)
-                    {
-                        rpcid = _rBuffer[8]
-                            | (uint)_rBuffer[9] << 8
-                            | (uint)_rBuffer[10] << 16
-                            | (uint)_rBuffer[11] << 24;
                     }
 
                     try
                     {
                         Type t = MessageParser.GetCMDType(cmd);
-                        int index = msgType == 0 ? 8 : 12;
-                        reader.SetMinMax(index, len);
-                        reader.Seek(index);
-                        var msg = (PB.PBMessage)Activator.CreateInstance(t);
-                        msg.rpc = rpcid;
-                        msg.Read(reader);
+                        var message = (PB.PBMessage)Activator.CreateInstance(t);
+                        message.rpc = reader.Readint64();
+                        message.actorId = reader.Readint64();
+                        message.error = reader.Readstring();
+                        message.Read(reader);
 
-                        this.ReceiveMessage(msg);
+                        this.ReceiveMessage(message);
                     }
                     catch (Exception ex)
                     {
@@ -152,10 +140,12 @@ namespace Game
                 {
                     try
                     {
-                        if (message.rpc > 0)
-                            writer.Seek(12);
-                        else
-                            writer.Seek(8);
+                        int cmd = MessageParser.GetCMDCode(message.GetType());
+                        writer.Seek(3);
+                        writer.Writefixed32(cmd);
+                        writer.Writeint64(message.rpc);
+                        writer.Writeint64(message.actorId);
+                        writer.Writestring(message.error);
 
                         try
                         {
@@ -174,21 +164,9 @@ namespace Game
                             continue;
                         }
 
-                        int cmd = MessageParser.GetCMDCode(message.GetType());
                         _sBuffer[0] = (byte)(len - 2);
                         _sBuffer[1] = (byte)((len - 2) >> 8);
-                        _sBuffer[3] = (byte)(message.rpc > 0 ? 1 : 0);
-                        _sBuffer[4] = (byte)cmd;
-                        _sBuffer[5] = (byte)(cmd >> 8);
-                        _sBuffer[6] = (byte)(cmd >> 16);
-                        _sBuffer[7] = (byte)(cmd >> 24);
-                        if (message.rpc > 0)
-                        {
-                            _sBuffer[8] = (byte)message.rpc;
-                            _sBuffer[9] = (byte)(message.rpc >> 8);
-                            _sBuffer[10] = (byte)(message.rpc >> 16);
-                            _sBuffer[11] = (byte)(message.rpc >> 24);
-                        }
+
                         byte checkCode = 0;
                         for (int i = 3; i < len; i++)
                             checkCode += _sBuffer[i];

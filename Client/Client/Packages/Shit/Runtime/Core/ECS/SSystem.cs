@@ -135,9 +135,9 @@ namespace Core
         internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Enqueue(h);
         internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
         internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
-        internal void EventWatcherRpc(long rpc, object e, int type)
+        internal void EventWatcherActorId(long actorId, object e, int type)
         {
-            if (!world.ObjectManager.TryGetByRpc(rpc, out var lst))
+            if (!world.ObjectManager.TryGetByActorId(actorId, out var lst))
                 return;
             if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
                 return;

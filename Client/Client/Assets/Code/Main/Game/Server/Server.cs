@@ -29,7 +29,7 @@ namespace Game
             STask task = new();
             new Thread(() => Run(types, () =>
             {
-                ThreadSynchronizationContext.GetOrCreate(id).Post(() => task.TrySetResult());
+                ThreadSynchronizationContext.GetOrCreate(id).Post(s => task.TrySetResult());
             }))
             { IsBackground = true }.Start();
             return task;

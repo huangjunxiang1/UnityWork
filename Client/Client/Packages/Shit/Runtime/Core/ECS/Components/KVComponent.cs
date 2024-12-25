@@ -287,7 +287,6 @@ public class KVComponent : SComponent
                 {
                     if (t.t._kvWatcherHandles[i].Disposed || t.t.Disposed) continue;
                     var v = t.t.Get(kv.Key);
-                    if (kv.Value == v) continue;
                     t.t._kvWatcherHandles[i].Old = kv.Value;
                     t.t._kvWatcherHandles[i].New = v;
                     t.t._kvWatcherHandles[i].Invoke(kv.Key);

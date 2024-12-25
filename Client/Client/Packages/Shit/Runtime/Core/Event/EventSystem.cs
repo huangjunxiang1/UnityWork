@@ -12,22 +12,22 @@ namespace Core
     {
         struct EventKey : IEquatable<EventKey>
         {
-            public EventKey(Type k, long rpc = 0, long gid = 0, int type = 0)
+            public EventKey(Type k, long actorId = 0, long gid = 0, int type = 0)
             {
                 this.keyType = k;
-                this.rpc = rpc;
+                this.actorid = actorId;
                 this.gid = gid;
                 this.type = type;
             }
 
             public Type keyType;
-            public long rpc;
+            public long actorid;
             public long gid;
             public int type;
 
-            public bool Equals(EventKey other) => other.keyType == keyType && other.rpc == rpc && other.gid == gid && other.type == type;
-            public override int GetHashCode() => keyType.GetHashCode() ^ rpc.GetHashCode() ^ gid.GetHashCode() ^ type;
-            public override string ToString() => $"key={keyType} rpc={rpc} gid={gid} type={type}";
+            public bool Equals(EventKey other) => other.keyType == keyType && other.actorid == actorid && other.gid == gid && other.type == type;
+            public override int GetHashCode() => keyType.GetHashCode() ^ actorid.GetHashCode() ^ gid.GetHashCode() ^ type;
+            public override string ToString() => $"key={keyType} actorid={actorid} gid={gid} type={type}";
         }
         internal EventSystem(World world) => this.world = world;
 
@@ -93,9 +93,9 @@ namespace Core
                             _evtMap[k] = queue = new();
                         queue.Add(e);
                     }
-                    if (target.rpc != 0)
+                    if (target.ActorId != 0)
                     {
-                        EventKey k = new(m.mainKey, target.rpc, 0, ea.Type);
+                        EventKey k = new(m.mainKey, target.ActorId, 0, ea.Type);
                         if (!_evtMap.TryGetValue(k, out var queue))
                             _evtMap[k] = queue = new();
                         queue.Add(e);
@@ -109,10 +109,10 @@ namespace Core
                 }
             }
         }
-        public void RigisteEvent<T>(Action<T> callBack, long rpc = 0, int sortOrder = 0)
+        public void RigisteEvent<T>(Action<T> callBack, long actorId = 0, int sortOrder = 0)
         {
             Checker.Check(callBack.Method);
-            EventKey k = new(typeof(T), rpc);
+            EventKey k = new(typeof(T), actorId);
             if (!_evtMap.TryGetValue(k, out var queue))
                 _evtMap[k] = queue = new();
 
@@ -121,11 +121,11 @@ namespace Core
             e.sortOrder = sortOrder;
             queue.Add(e);
         }
-        public void RigisteEvent(Delegate callBack, long rpc = 0, int sortOrder = 0)
+        public void RigisteEvent(Delegate callBack, long actorId = 0, int sortOrder = 0)
         {
             Checker.Check(callBack.Method);
             Type[] gs = callBack.GetType().GetGenericArguments();
-            EventKey k = new(gs[0], rpc);
+            EventKey k = new(gs[0], actorId);
             if (!_evtMap.TryGetValue(k, out var queue))
                 _evtMap[k] = queue = new();
 
@@ -170,9 +170,9 @@ namespace Core
                             }
                         }
                     }
-                    if (target.rpc != 0)
+                    if (target.ActorId != 0)
                     {
-                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, target.rpc, 0, ea.Type), out var queue))
+                        if (_evtMap.TryGetValue(new EventKey(m.mainKey, target.ActorId, 0, ea.Type), out var queue))
                         {
                             if (!queue.addToQueue)
                             {
@@ -194,10 +194,10 @@ namespace Core
                 }
             }
         }
-        public void RemoveEvent<T>(Action<T> callBack, long rpc = 0)
+        public void RemoveEvent<T>(Action<T> callBack, long actorId = 0)
         {
             Checker.Check(callBack.Method);
-            if (!_evtMap.TryGetValue(new EventKey(typeof(T), rpc), out var queue))
+            if (!_evtMap.TryGetValue(new EventKey(typeof(T), actorId), out var queue))
                 return;
 
             if (queue.Remove(callBack))
@@ -209,10 +209,10 @@ namespace Core
                 }
             }
         }
-        public void RemoveEvent(Delegate callBack, long rpc = 0)
+        public void RemoveEvent(Delegate callBack, long actorId = 0)
         {
             Checker.Check(callBack.Method);
-            if (!_evtMap.TryGetValue(new EventKey(callBack.GetType().GetGenericArguments()[0], rpc), out var queue))
+            if (!_evtMap.TryGetValue(new EventKey(callBack.GetType().GetGenericArguments()[0], actorId), out var queue))
                 return;
 
             if (queue.Remove(callBack))
@@ -246,16 +246,16 @@ namespace Core
         /// 执行事件
         /// </summary>
         /// <param name="data"></param>
-        public void RunEvent<T>(T data, long rpc = 0, long gid = 0, int type = 0)
+        public void RunEvent<T>(T data, long actorId = 0, long gid = 0, int type = 0)
         {
 #if DebugEnable
-            if (rpc != 0 && gid != 0)
-                Loger.Error($"rpc 和 gid  不可同时为有效值");
+            if (actorId != 0 && gid != 0)
+                Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            if (rpc != 0)
+            if (actorId != 0)
             {
-                world.System.EventWatcherRpc(rpc, data, type);
-                if (_evtMap.TryGetValue(new EventKey(typeof(T), rpc, 0, type), out var queue))
+                world.System.EventWatcherActorId(actorId, data, type);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), actorId, 0, type), out var queue))
                     queue.Run(data);
             }
             else if (gid != 0)
@@ -272,16 +272,16 @@ namespace Core
                     queue.Run(data);
             }
         }
-        public STask RunEventAsync<T>(T data, long rpc = 0, long gid = 0, int type = 0)
+        public STask RunEventAsync<T>(T data, long actorId = 0, long gid = 0, int type = 0)
         {
 #if DebugEnable
-            if (rpc != 0 && gid != 0)
-                Loger.Error($"rpc 和 gid  不可同时为有效值");
+            if (actorId != 0 && gid != 0)
+                Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            if (rpc != 0)
+            if (actorId != 0)
             {
-                world.System.EventWatcherRpc(rpc, data, type);
-                if (_evtMap.TryGetValue(new EventKey(typeof(T), rpc, 0, type), out var queue))
+                world.System.EventWatcherActorId(actorId, data, type);
+                if (_evtMap.TryGetValue(new EventKey(typeof(T), actorId, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
             }
@@ -301,16 +301,16 @@ namespace Core
                 else return STask.Completed;
             }
         }
-        public void RunEvent(object data, long rpc = 0, long gid = 0, int type = 0)
+        public void RunEvent(object data, long actorId = 0, long gid = 0, int type = 0)
         {
 #if DebugEnable
-            if (rpc != 0 && gid != 0)
-                Loger.Error($"rpc 和 gid  不可同时为有效值");
+            if (actorId != 0 && gid != 0)
+                Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            if (rpc != 0)
+            if (actorId != 0)
             {
-                world.System.EventWatcherRpc(rpc, data, type);
-                if (_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, 0, type), out var queue))
+                world.System.EventWatcherActorId(actorId, data, type);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), actorId, 0, type), out var queue))
                     queue.Run(data);
             }
             else if (gid != 0)
@@ -327,16 +327,16 @@ namespace Core
                     queue.Run(data);
             }
         }
-        public STask RunEventAsync(object data, long rpc = 0, long gid = 0, int type = 0)
+        public STask RunEventAsync(object data, long actorId = 0, long gid = 0, int type = 0)
         {
 #if DebugEnable
-            if (rpc != 0 && gid != 0)
-                Loger.Error($"rpc 和 gid  不可同时为有效值");
+            if (actorId != 0 && gid != 0)
+                Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            if (rpc != 0)
+            if (actorId != 0)
             {
-                world.System.EventWatcherRpc(rpc, data, type);
-                if (_evtMap.TryGetValue(new EventKey(data.GetType(), rpc, 0, type), out var queue))
+                world.System.EventWatcherActorId(actorId, data, type);
+                if (_evtMap.TryGetValue(new EventKey(data.GetType(), actorId, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
             }

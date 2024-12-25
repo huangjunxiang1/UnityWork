@@ -60,12 +60,12 @@ partial class FUIRooms
         for (int i = 0; i < s.units.Count; i++)
         {
             var v = s.units[i];
-            SGameObject go = new() { rpc = v.id, objType = 1 };
+            SGameObject go = new() { ActorId = v.id, ObjType = 1 };
             Client.Scene.AddChild(go);
             go.GameObject.SetGameObject("3D_chan");
             go.Transform.position = v.t.p;
             go.Transform.rotation = v.t.r;
-            if (go.rpc == s.myid)
+            if (go.ActorId == s.myid)
                 go.AddComponent<GameInputComponent>();
             go.KV.Set(v.attribute);
             go.AddComponent<ColliderClickComponent>();

@@ -46,7 +46,7 @@ partial class FUIGame
     void join(S2C_PlayerJoinRoom t)
     {
         var v = t.info;
-        SGameObject go = new() { rpc = v.id };
+        SGameObject go = new() { ActorId = v.id };
         Client.Scene.AddChild(go);
         go.GameObject.SetGameObject("3D_chan");
         go.Transform.position = v.t.p;
@@ -56,7 +56,7 @@ partial class FUIGame
     [Event]
     void S2C_PlayerQuit(S2C_PlayerQuit e)
     {
-        Client.Scene.GetChildRpc(e.id)?.Dispose();
+        Client.Scene.GetChildActorId(e.id)?.Dispose();
     }
 
     void replay()

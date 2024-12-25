@@ -53,7 +53,7 @@ class ObjectWindows : OdinMenuEditorWindow
 
     void reload()
     {
-        ThreadSynchronizationContext.MainThread?.Post(() =>
+        ThreadSynchronizationContext.MainThread?.Post(s =>
         {
             World.Close -= reload;
             World.Close += reload;

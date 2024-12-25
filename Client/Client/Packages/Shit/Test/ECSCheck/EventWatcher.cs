@@ -10,8 +10,8 @@ internal class EventWatcher
 {
     public static void test()
     {
-        SObject o = new() { rpc = 5 };
-        SObject o2 = new() { rpc = 6 };
+        SObject o = new() { ActorId = 5 };
+        SObject o2 = new() { ActorId = 6 };
         Client.World.Root.AddChild(o);
         Client.World.Root.AddChild(o2);
         Evt e = new();
@@ -19,18 +19,18 @@ internal class EventWatcher
         o.AddComponent<c1>();
         o2.AddComponent<c1>();
 
-        Client.World.Event.RunEvent(e, rpc: 5);
+        Client.World.Event.RunEvent(e, actorId: 5);
         if (e.v != 1) throw new Exception();
 
-        Client.World.Event.RunEvent(e, rpc: 4);
+        Client.World.Event.RunEvent(e, actorId: 4);
         if (e.v != 1) throw new Exception();
 
         o.AddComponent<c2>();
         o2.AddComponent<c1>();
 
-        Client.World.Event.RunEvent(e, rpc: 5);
+        Client.World.Event.RunEvent(e, actorId: 5);
         if (e.v != 4) throw new Exception();
-        Client.World.Event.RunEvent(e, rpc: 4);
+        Client.World.Event.RunEvent(e, actorId: 4);
         if (e.v != 4) throw new Exception();
 
         Client.World.Event.RunEvent(e);
@@ -50,8 +50,8 @@ internal class EventWatcher
         Client.World.Event.RunEvent(e, gid: o.gid, type: 1);
         Client.World.Event.RunEvent(e, gid: o.gid, type: 2);
         if (e.v != 13) throw new Exception();
-        Client.World.Event.RunEvent(e, rpc: 5, type: 1);
-        Client.World.Event.RunEvent(e, rpc: 5, type: 2);
+        Client.World.Event.RunEvent(e, actorId: 5, type: 1);
+        Client.World.Event.RunEvent(e, actorId: 5, type: 2);
         if (e.v != 14) throw new Exception();
     }
 

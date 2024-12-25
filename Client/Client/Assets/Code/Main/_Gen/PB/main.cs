@@ -85,7 +85,6 @@ namespace main
     [Message(908352881)]
     public partial class S2C_Login
     {
-        public string error;
         public long token;
         public string ip;
         public int port;
@@ -100,7 +99,6 @@ namespace main
     [Message(1531255316)]
     public partial class S2C_LoginGame
     {
-        public string error;
     }
 
     [Message(34144539)]

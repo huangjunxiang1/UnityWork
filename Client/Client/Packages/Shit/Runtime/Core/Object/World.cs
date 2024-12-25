@@ -57,7 +57,7 @@ namespace Core
         {
             Worlds.Remove(this);
             Close?.Invoke();
-            Thread.Post(Root.Dispose);
+            Thread.Post(s => Root.Dispose());
         }
     }
 }

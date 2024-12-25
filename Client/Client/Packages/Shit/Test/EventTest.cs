@@ -86,7 +86,7 @@ class EventTest
             if (e != null) throw new System.Exception();
             if (eee != null) throw new System.Exception();
 
-            SObject s = new() { rpc = 999 };
+            SObject s = new() { ActorId = 999 };
             var c = s.AddComponent<c1>();
             Client.World.Root.AddChild(s);
             c.test2();

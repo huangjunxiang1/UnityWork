@@ -37,9 +37,9 @@ namespace Game
         {
             foreach (var item in t.t3.room.GetChildren())
             {
-                if (item.rpc != t.t2.rpc)
+                if (item.ActorId != t.t2.ActorId)
                 {
-                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = t.t2.rpc });
+                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = t.t2.ActorId });
                 }
             }
             t.t2.Entity.Dispose();
@@ -49,9 +49,9 @@ namespace Game
         {
             foreach (var item in t.t3.room.GetChildren())
             {
-                if (item.rpc != t.t2.rpc)
+                if (item.ActorId != t.t2.ActorId)
                 {
-                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = t.t2.rpc });
+                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = t.t2.ActorId });
                 }
             }
             t.t2.Entity.Dispose();
@@ -80,12 +80,12 @@ namespace Game
 
             string acc = t.t3.acc;
 
-            room.As<RoomItem>().AddUnit(t.t2.rpc, acc, t.t2.Session);
+            room.As<RoomItem>().AddUnit(t.t2.ActorId, acc, t.t2.Session);
 
             S2C_JoinRoom s = new();
             s.info = room.As<RoomItem>().GetRoomInfo(true);
             s.units = room.As<RoomItem>().GetUnitInfo2s();
-            s.myid = t.t2.rpc;
+            s.myid = t.t2.ActorId;
             t.t2.Send(s);
 
             t.t2.SetSession(null, false);//不断开链接 将就现在的用
@@ -141,11 +141,11 @@ namespace Game
         }
         public Dictionary<int, RoomLinkItem> linkMap = new();
 
-        public Unit AddUnit(long rpc, string name, SBaseNet session)
+        public Unit AddUnit(long actorId, string name, SBaseNet session)
         {
-            if (!this.TryGetChildRpc(rpc, out var o))
+            if (!this.TryGetChildActorId(actorId, out var o))
             {
-                o = new Unit() { rpc = rpc };
+                o = new Unit() { ActorId = actorId };
                 o.As<Unit>().name = name;
                 this.AddChild(o);
 
@@ -165,7 +165,7 @@ namespace Game
             join.info = o.As<Unit>().GetUnitInfo2();
             foreach (var item in this.GetChildren())
             {
-                if (item.rpc != rpc)
+                if (item.ActorId != actorId)
                 {
                     item.GetComponent<NetComponent>().Send(join);
                 }
@@ -209,14 +209,14 @@ namespace Game
         public UnitInfo GetUnitInfo()
         {
             UnitInfo ui = new();
-            ui.id = this.rpc;
+            ui.id = this.ActorId;
             ui.name = name;
             return ui;
         }
         public UnitInfo2 GetUnitInfo2()
         {
             UnitInfo2 ui = new();
-            ui.id = this.rpc;
+            ui.id = this.ActorId;
             var t = this.GetComponent<TransformComponent>();
             ui.t.p = t.position;
             ui.t.r = t.rotation.value;
@@ -239,7 +239,7 @@ namespace Game
             {
                 t.t2.Direction = 0;
                 S2C_SyncTransform sync = new();
-                sync.rpc = (uint)t.t2.rpc;
+                sync.actorId = t.t2.ActorId;
                 sync.p = t.t3.position;
                 sync.r = t.t3.rotation.value;
                 sync.isMoving = false;
@@ -254,7 +254,7 @@ namespace Game
         static void change(Change<TransformComponent, BelongRoom> t)
         {
             S2C_SyncTransform sync = new();
-            sync.rpc = (uint)t.t.rpc;
+            sync.actorId = t.t.ActorId;
             sync.p = t.t.position;
             sync.r = t.t.rotation.value;
             sync.isMoving = true;

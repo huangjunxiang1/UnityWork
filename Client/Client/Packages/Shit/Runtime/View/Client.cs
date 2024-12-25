@@ -56,6 +56,7 @@ namespace Game
         public static void Close()
         {
             if (World == null) return;
+            STask.DelayHandle -= delayHandle;
             var w = World;
             World = null;
             w.Dispose();
