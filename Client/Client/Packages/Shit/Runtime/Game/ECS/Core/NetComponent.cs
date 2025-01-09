@@ -131,7 +131,7 @@ namespace Game
             this.World.Event.RunEvent(new EC_SendMesssage { message = message });
             Session.Send(message);
         }
-        public STask<IMessage> SendRpcAsync(IMessage message, bool ignoreError = true)
+        public STask<IMessage> SendRpcAsync(IMessage message)
         {
             Type k = message.GetType();
             var v = MessageParser.GetResponseType(k);

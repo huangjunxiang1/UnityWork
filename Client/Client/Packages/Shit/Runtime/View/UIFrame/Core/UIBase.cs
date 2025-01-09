@@ -33,7 +33,7 @@ public abstract class UIBase : STree
     public virtual STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
-        this.Parent.GetChildren().Sort((x, y) =>
+        this.Parent._children.Sort((x, y) =>
         {
             int vx = (x is UIBase) ? ((UIBase)x).uiConfig.SortOrder : 0;
             int vy = (y is UIBase) ? ((UIBase)y).uiConfig.SortOrder : 0;
@@ -45,7 +45,7 @@ public abstract class UIBase : STree
     public virtual STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
         this.uiConfig = config;
-        this.Parent.GetChildren().Sort((x, y) =>
+        this.Parent._children.Sort((x, y) =>
         {
             int vx = (x is UIBase) ? ((UIBase)x).uiConfig.SortOrder : 0;
             int vy = (y is UIBase) ? ((UIBase)y).uiConfig.SortOrder : 0;

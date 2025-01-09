@@ -46,7 +46,7 @@ namespace Game
         }
         public virtual void SetSpeed() { }
         public virtual void SetEnable() { }
-        public virtual void Play(string name, float fade) => this._name = name;
+        public virtual void Play(string name, float fade, Action completeCallBack = null) => this._name = name;
         public virtual void SetAvatarMask(AvatarMask mask) { }
         public virtual float GetTime(string name) => 1;
         public virtual Playing Clone(int layer) => CopyTo(new Playing());
@@ -57,6 +57,10 @@ namespace Game
             playing._layer = this._layer;
             playing._name = this._name;
             return playing;
+        }
+        internal virtual void Dispose()
+        {
+
         }
     }
 
@@ -127,9 +131,13 @@ namespace Game
                 this.play[0].CopyTo(play);
                 this.play[0].enable = false;
             }
+            this.play[0]?.Dispose();
             this.play[0] = play;
             for (int i = 1; i < _plays.Length; i++)
+            {
+                _plays[i]?.Dispose();
                 _plays[i] = play.Clone(i);
+            }
             for (int i = 0; i < _plays.Length; i++)
             {
                 if (!string.IsNullOrEmpty(_plays[i]._name))
@@ -139,13 +147,24 @@ namespace Game
             //this.SetChange(); 这里不能调用 因为会陷入AnyChange的递归
         }
         public void EnableLayer(int layer, bool enable) => _plays[layer].enable = enable;
-        public void Play(string name, float fade = 0.2f, int layer = 0)
+        public void Play(string name, float fade = 0.2f, int layer = 0, Action completeCallBack = null)
         {
             if (play[layer]._name == name) return;
             if (name == null || string.IsNullOrEmpty(name)) return;
-            play[layer].Play(name, fade);
+            play[layer].Play(name, fade, completeCallBack);
             play[layer].SetSpeed();
             this.SetChangeFlag();
+        }
+        public STask PlayAsync(string name, float fade = 0.2f, int layer = 0, Action completeCallBack = null)
+        {
+            if (play[layer]._name == name) return STask.Completed;
+            if (name == null || string.IsNullOrEmpty(name)) return STask.Completed;
+            STask task = new();
+            play[layer].Play(name, fade, completeCallBack);
+            play[layer].SetSpeed();
+            this.SetChangeFlag();
+            task.AddEvent(completeCallBack);
+            return task;
         }
         public void SetAvatarMask(AvatarMask mask, int layer) => play[layer].SetAvatarMask(mask);
 
@@ -182,7 +201,7 @@ namespace Game
                     t.t2.Set(new A_Animator() { ani = c3, clips = c3.runtimeAnimatorController.animationClips });
 #if Spine
                 else if (t.t.gameObject.TryGetComponent<Spine.Unity.SkeletonAnimation>(out var c4))
-                    t.t2.Set(new A_Spine() { ani = c4 });
+                    t.t2.Set(new A_Spine(c4));
 #endif
                 else
                     t.t2.Set(new Playing());
@@ -226,10 +245,12 @@ namespace Game
             }
 
 
-            public override void Play(string name, float fade)
+            public override void Play(string name, float fade, Action completeCallBack = null)
             {
                 base.Play(name, fade);
-                state = ani.Layers[_layer].TryPlay(name, fade); 
+                state = ani.Layers[_layer].TryPlay(name, fade);
+                if (state != null)
+                    state.Events.OnEnd += completeCallBack;
             }
 
             public override void SetAvatarMask(AvatarMask mask) => ani.Layers[_layer].SetMask(mask);
@@ -296,7 +317,7 @@ namespace Game
                 return 1;
             }
 
-            public override void Play(string name, float fade)
+            public override void Play(string name, float fade, Action completeCallBack = null)
             {
                 base.Play(name, fade);
                 ani.CrossFade(name, fade);
@@ -338,7 +359,7 @@ namespace Game
                 return 1;
             }
 
-            public override void Play(string name, float fade)
+            public override void Play(string name, float fade, Action completeCallBack = null)
             {
                 base.Play(name, fade);
                 ani.CrossFade(name, fade);
@@ -358,8 +379,22 @@ namespace Game
 #if Spine
         class A_Spine : Playing
         {
+            public A_Spine(Spine.Unity.SkeletonAnimation ani)
+            {
+                this.ani = ani;
+                ani.AnimationState.Complete += onComplete;
+            }
             public Spine.Unity.SkeletonAnimation ani;
             Spine.Animation animation;
+            Action completeCallBack;
+
+            void onComplete(Spine.TrackEntry track)
+            {
+                var act = completeCallBack;
+                completeCallBack = null;
+                if (act != null)
+                    act.Invoke();
+            }
 
             public override float length => animation == null ? 1 : animation.Duration;
             public override float time
@@ -403,15 +438,21 @@ namespace Game
                 return 1;
             }
 
-            public override void Play(string name, float fade)
+            public override void Play(string name, float fade, Action completeCallBack = null)
             {
                 base.Play(name, fade);
                 ani.AnimationName = name;
                 animation = ani.AnimationState.Data.SkeletonData.FindAnimation(name);
+                this.completeCallBack = completeCallBack;
             }
 
             public override void SetSpeed() => ani.timeScale = Speed;
-            public override Playing Clone(int layer) => new A_Spine { ani = this.ani, _layer = layer };
+            public override Playing Clone(int layer) => new A_Spine(this.ani) { _layer = layer, completeCallBack = this.completeCallBack };
+            internal override void Dispose()
+            {
+                base.Dispose();
+                ani.AnimationState.Complete -= onComplete;
+            }
         }
 #endif
     }

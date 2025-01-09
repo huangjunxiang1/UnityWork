@@ -334,7 +334,6 @@ namespace Core
             }
             if (_components.TryGetValue(typeof(T), out var c))
                 return (T)c;
-            Loger.Error($"未包含 component={typeof(T)}");
             return default;
         }
         public IEnumerable<T> GetComponentIfIs<T>() where T : SComponent
@@ -359,7 +358,6 @@ namespace Core
             }
             if (_components.TryGetValue(type, out var c))
                 return c;
-            Loger.Error($"未包含 component={type}");
             return default;
         }
         public bool TryGetComponent<T>(out T c) where T : SComponent
@@ -398,12 +396,7 @@ namespace Core
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            if (!RemoveComponentInternal(typeof(T)))
-            {
-                Loger.Error($"未包含 component={typeof(T)}");
-                return false;
-            }
-            return true;
+            return RemoveComponentInternal(typeof(T));
         }
         public bool RemoveComponent(Type type)
         {
@@ -412,12 +405,7 @@ namespace Core
                 Loger.Error($"实体已经销毁 entity={this}");
                 return false;
             }
-            if (!RemoveComponentInternal(type))
-            {
-                Loger.Error($"未包含 component={type}");
-                return false;
-            }
-            return true;
+            return RemoveComponentInternal(type);
         }
         public bool HasComponent<T>() where T : SComponent
         {
@@ -477,7 +465,7 @@ namespace Core
             if (typeof(SObject).IsAssignableFrom(type))
             {
                 Loger.Error($"不能卸载实体组件 ={type}");
-                return default;
+                return false;
             }
             if (!_components.TryGetValue(type, out var c))
                 return false;

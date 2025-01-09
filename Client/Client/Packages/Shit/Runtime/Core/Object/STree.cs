@@ -1,6 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace Core
         [ShowInInspector]
         Dictionary<long, SObject> _childrenGMap = ObjectPool.Get<Dictionary<long, SObject>>();
         [ShowInInspector]
-        Dictionary<long, SObject> _childrenRMap = ObjectPool.Get<Dictionary<long, SObject>>();
+        Dictionary<long, SObject> _childrenAMap = ObjectPool.Get<Dictionary<long, SObject>>();
         [ShowInInspector]
         Dictionary<int, List<SObject>> _typeMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
         internal List<SObject> _children = new();//外部能访问到的对象不用池
@@ -62,8 +63,8 @@ namespace Core
             _childrenGMap.Add(child.gid, child);
             if (child.ActorId != 0)
             {
-                if (!_childrenRMap.ContainsKey(child.ActorId))
-                    _childrenRMap[child.ActorId] = child;
+                if (!_childrenAMap.ContainsKey(child.ActorId))
+                    _childrenAMap[child.ActorId] = child;
                 else
                     Loger.Error($"Already Contains Child this={this} child={child}");
             }
@@ -98,7 +99,7 @@ namespace Core
                 Loger.Error("无效actorId");
                 return null;
             }
-            _childrenRMap.TryGetValue(actorId, out var child);
+            _childrenAMap.TryGetValue(actorId, out var child);
             return child;
         }
         public bool TryGetChildGid(long gid, out SObject child) => _childrenGMap.TryGetValue(gid, out child);
@@ -110,14 +111,14 @@ namespace Core
                 child = null;
                 return false;
             }
-            return _childrenRMap.TryGetValue(actorId, out child);
+            return _childrenAMap.TryGetValue(actorId, out child);
         }
         public List<SObject> ToChildren() => new(_children);
         public List<SObject> GetChildren() => _children;
-        public List<SObject> GetChildrenByObjType(int objType)
+        public ReadOnlyCollection<SObject> GetChildrenByObjType(int objType)
         {
             _typeMap.TryGetValue(objType, out var lst);
-            return lst;
+            return new ReadOnlyCollection<SObject>(lst == null ? Array.Empty<SObject>() : lst);
         }
         public T GetChild<T>() where T : SObject => _children.Find(t => t is T) as T;
 
@@ -131,7 +132,7 @@ namespace Core
                 return;
             _childrenGMap.Remove(child.gid);
             if (child.ActorId != 0)
-                _childrenRMap.Remove(child.ActorId);
+                _childrenAMap.Remove(child.ActorId);
             if (child.ObjType != 0)
             {
                 if (this._typeMap.TryGetValue(child.ObjType, out var lst))
@@ -158,7 +159,7 @@ namespace Core
                 Loger.Error("无效actorId");
                 return;
             }
-            if (!_childrenRMap.TryGetValue(actorId, out var child))
+            if (!_childrenAMap.TryGetValue(actorId, out var child))
                 return;
             if (dispose)
             {
@@ -177,9 +178,9 @@ namespace Core
                 ObjectPool.Return(_childrenGMap);
                 _childrenGMap = null;
 
-                _childrenRMap.Clear();
-                ObjectPool.Return(_childrenRMap);
-                _childrenRMap = null;
+                _childrenAMap.Clear();
+                ObjectPool.Return(_childrenAMap);
+                _childrenAMap = null;
 
                 _typeMap.Clear();
                 ObjectPool.Return(_typeMap);
@@ -202,7 +203,7 @@ namespace Core
                     return;
 
                 _childrenGMap.Clear();
-                _childrenRMap.Clear();
+                _childrenAMap.Clear();
                 _typeMap.Clear();
 
                 List<SObject> tmp = _children;

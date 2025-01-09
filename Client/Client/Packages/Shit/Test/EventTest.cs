@@ -177,6 +177,7 @@ class EventTest
     class ObjTest3 : ObjTest2 { }
 
     [Event]
+    [Event]
     static void r1(EC_Event2 e)
     {
         e.v1 = 1;

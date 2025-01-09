@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36e87f22c57e88f4e8ab284b56b36015, type: 3}
   m_Name: APPConfig
   m_EditorClassIdentifier: 
-  EPlayMode: 2
+  EPlayMode: 0
   resUrl: 

@@ -28,15 +28,13 @@ static class Handler
         loader.LoadPackage("Res");
 
         var mode = APPConfig.Inst.EPlayMode;
-        if (Application.isEditor)
-            mode = EPlayMode.EditorSimulateMode;
         // 编辑器下的模拟模式
         InitializationOperation initializationOperation = null;
         if (mode == EPlayMode.EditorSimulateMode)
         {
-            var simulateBuildResult = EditorSimulateModeHelper.SimulateBuild(EDefaultBuildPipeline.ScriptableBuildPipeline, "Res");
+            var simulateBuildResult = EditorSimulateModeHelper.SimulateBuild("Res");
             var createParameters = new EditorSimulateModeParameters();
-            createParameters.EditorFileSystemParameters = FileSystemParameters.CreateDefaultEditorFileSystemParameters(simulateBuildResult);
+            createParameters.EditorFileSystemParameters = FileSystemParameters.CreateDefaultEditorFileSystemParameters(simulateBuildResult.PackageRootDirectory);
             initializationOperation = loader.Package.InitializeAsync(createParameters);
         }
 
@@ -66,7 +64,14 @@ static class Handler
         if (mode == EPlayMode.WebPlayMode)
         {
             var createParameters = new WebPlayModeParameters();
-            createParameters.WebFileSystemParameters = FileSystemParameters.CreateDefaultWebFileSystemParameters();
+#if UNITY_WEBGL && WEIXINMINIGAME && !UNITY_EDITOR
+			string defaultHostServer = GetHostServerURL();
+            string fallbackHostServer = GetHostServerURL();
+            IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+            createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
+#else
+            createParameters.WebServerFileSystemParameters = FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
+#endif
             initializationOperation = loader.Package.InitializeAsync(createParameters);
         }
 

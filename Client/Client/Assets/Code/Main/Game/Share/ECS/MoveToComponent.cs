@@ -53,6 +53,7 @@ namespace Game
             this._paths = _pool;
             this._index = 0;
             this._r = r;
+            this.Enable = true;
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -62,6 +63,9 @@ namespace Game
             this._pool[0] = p;
             this._paths = _pool;
             this._index = 0;
+            TransformComponent t = this.Entity.GetComponent<TransformComponent>();
+            this._r = quaternion.LookRotation(p - (t == null ? 0 : t.position), math.up());
+            this.Enable = true;
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -71,6 +75,7 @@ namespace Game
             this._paths = ps;
             this._index = 0;
             this._r = r;
+            this.Enable = true;
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -79,6 +84,9 @@ namespace Game
         {
             this._paths = ps;
             this._index = 0;
+            TransformComponent t = this.Entity.GetComponent<TransformComponent>();
+            this._r = quaternion.LookRotation(ps[^1] - (t == null ? 0 : t.position), math.up());
+            this.Enable = true;
             var old = _task;
             _task = null;
             old?.TrySetResult(false);
@@ -89,6 +97,7 @@ namespace Game
             this._paths = _pool;
             this._index = 0;
             this._r = r;
+            this.Enable = true;
             var old = _task;
             _task = new();
             old?.TrySetResult(false);
@@ -99,6 +108,9 @@ namespace Game
             this._pool[0] = p;
             this._paths = _pool;
             this._index = 0;
+            TransformComponent t = this.Entity.GetComponent<TransformComponent>();
+            this._r = quaternion.LookRotation(p - (t == null ? 0 : t.position), math.up());
+            this.Enable = true;
             var old = _task;
             _task = new();
             old?.TrySetResult(false);
@@ -109,6 +121,7 @@ namespace Game
             this._paths = ps;
             this._index = 0;
             this._r = r;
+            this.Enable = true;
             var old = _task;
             _task = new();
             old?.TrySetResult(false);
@@ -118,6 +131,9 @@ namespace Game
         {
             this._paths = ps;
             this._index = 0;
+            TransformComponent t = this.Entity.GetComponent<TransformComponent>();
+            this._r = quaternion.LookRotation(ps[^1] - (t == null ? 0 : t.position), math.up());
+            this.Enable = true;
             var old = _task;
             _task = new();
             old?.TrySetResult(false);
@@ -125,12 +141,9 @@ namespace Game
         }
 
         [Event]
-        static void In(In<MoveToComponent, TransformComponent> t)
+        static void Awake(Awake<MoveToComponent> t)
         {
-            t.t._paths = t.t._pool;
-            t.t._index = 0;
-            t.t.point = t.t2.position;
-            t.t._r = t.t2.rotation;
+            t.t.Enable = false;
         }
         [Event]
         static void Update(Update<MoveToComponent, TransformComponent, KVComponent> t)
@@ -168,9 +181,13 @@ namespace Game
             {
                 t.t2.position = next;
                 t.t2.rotation = math.slerp(t.t2.rotation, t.t.rotation, math.clamp(t.t.World.DeltaTime * speed2, 0, 1));
-                var old = t.t._task;
-                t.t._task = null;
-                old?.TrySetResult(true);
+                if (math.abs(math.angle(t.t2.rotation, t.t.rotation)) < 1)
+                {
+                    t.t.Enable = false;
+                    var old = t.t._task;
+                    t.t._task = null;
+                    old?.TrySetResult(true);
+                }
             }
         }
     }

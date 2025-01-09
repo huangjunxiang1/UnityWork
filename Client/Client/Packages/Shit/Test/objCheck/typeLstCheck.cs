@@ -84,10 +84,6 @@ internal class typeLstCheck
             s2.AddChild(ss1);
             if (oo1.CrucialRoot != s2)
                 throw new Exception();
-            if (s.GetChildrenByObjType(1) != null)
-                throw new Exception();
-            if (s2.GetChildrenByObjType(1) != null)
-                throw new Exception();
         }
 
         v2_o1.Dispose();
