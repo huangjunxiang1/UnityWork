@@ -155,15 +155,14 @@ namespace Game
             play[layer].SetSpeed();
             this.SetChangeFlag();
         }
-        public STask PlayAsync(string name, float fade = 0.2f, int layer = 0, Action completeCallBack = null)
+        public STask PlayAsync(string name, float fade = 0.2f, int layer = 0)
         {
             if (play[layer]._name == name) return STask.Completed;
             if (name == null || string.IsNullOrEmpty(name)) return STask.Completed;
             STask task = new();
-            play[layer].Play(name, fade, completeCallBack);
+            play[layer].Play(name, fade, task.TrySetResult);
             play[layer].SetSpeed();
             this.SetChangeFlag();
-            task.AddEvent(completeCallBack);
             return task;
         }
         public void SetAvatarMask(AvatarMask mask, int layer) => play[layer].SetAvatarMask(mask);
