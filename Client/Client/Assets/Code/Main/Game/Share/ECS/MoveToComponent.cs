@@ -181,7 +181,7 @@ namespace Game
             {
                 t.t2.position = next;
                 t.t2.rotation = math.slerp(t.t2.rotation, t.t.rotation, math.clamp(t.t.World.DeltaTime * speed2, 0, 1));
-                if (math.abs(math.angle(t.t2.rotation, t.t.rotation)) < 1)
+                if (math.abs(math.angle(t.t2.rotation, t.t.rotation)) < 0.1f)
                 {
                     t.t.Enable = false;
                     var old = t.t._task;
