@@ -42,4 +42,9 @@ namespace Event
         public GameObjectComponent Component;
         public GameObject old;
     }
+    public class EC_NetworkReconnection { }
+    /// <summary>
+    /// 模块测试
+    /// </summary>
+    public class EC_ModuleTest { }
 }

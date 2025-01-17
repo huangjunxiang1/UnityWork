@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-static class _test
+static class EcsSystem
 {
     public static void test()
     {

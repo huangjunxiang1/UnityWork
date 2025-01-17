@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-internal class typeLstCheck
+internal class TypeLstCheck
 {
     public static void test()
     {

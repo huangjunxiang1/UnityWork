@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Core;
+using Event;
 using Game;
 
 public abstract class UIBase : STree
@@ -12,7 +13,7 @@ public abstract class UIBase : STree
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
-    public abstract UIStates uiStates { get; }
+    public abstract UIStatus uiStates { get; }
     /// <summary>
     /// UI层级
     /// </summary>
@@ -89,7 +90,7 @@ public abstract class UIBase : STree
             //在执行异步的过程中有可能会关闭这个UI
             ui.onDispose.Add(() =>
             {
-                if (ui.uiStates < UIStates.Success)
+                if (ui.uiStates < UIStatus.Success)
                     InputHelper.EnableUIInput(true);
             });
             this.AddChild(ui);
@@ -144,7 +145,7 @@ public abstract class UIBase : STree
     }
     public override void Dispose()
     {
-        if (this.uiStates == UIStates.Success)
+        if (this.uiStates == UIStatus.Success)
         {
             //enter异步正在执行过程中 关闭了UI 则不播放上一个动画的打开
             //先显示上一个UI 这样可以在_onDispose事件里面访问到当前显示的UI
@@ -166,7 +167,7 @@ public abstract class UIBase : STree
         base.Dispose();
 
         //先执行退出逻辑
-        if (this.uiStates >= UIStates.Success)
+        if (this.uiStates >= UIStatus.Success)
             this.OnExit();
     }
     public void CloseUI(Func<UIBase, bool> test = null)
@@ -188,6 +189,12 @@ public abstract class UIBase : STree
     protected virtual void OnShow() { }//UI每次重显示调用 包括第一次打开
     protected virtual void OnHide() { }//UI每次隐藏时调用 
     protected abstract void Binding();//UI元件绑定
+
+    /// <summary>
+    /// 网络重连上则重新刷新UI
+    /// </summary>
+    /// <param name="e"></param>
+    [Event(10)] void EC_NetworkReconnection(EC_NetworkReconnection e) => this.OnShow();
 
     public sealed override void AcceptedEvent() { base.AcceptedEvent(); }
     public sealed override bool EventEnable { get => base.EventEnable && isShow; set => base.EventEnable = value; }

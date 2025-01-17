@@ -22,8 +22,8 @@ public class UIPkg
         UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ComPkg_fui")).bytes, "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
         UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
-        FUIBase.CreateUI += (t, s) => UIPkg.ComPkg.CreateObject(s).asCom;
-        FUIBase.CreateUIAsync += (t, s) =>
+        UIGlobalConfig.CreateUI += (t, s) => UIPkg.ComPkg.CreateObject(s).asCom;
+        UIGlobalConfig.CreateUIAsync += (t, s) =>
         {
             STask<GComponent> task = new();
             UIPkg.ComPkg.CreateObjectAsync(s, obj => task.TrySetResult(obj));

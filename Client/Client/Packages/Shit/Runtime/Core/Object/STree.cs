@@ -17,6 +17,7 @@ namespace Core
         [ShowInInspector]
         Dictionary<int, List<SObject>> _typeMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
         internal List<SObject> _children = new();//外部能访问到的对象不用池
+        static ReadOnlyCollection<SObject> _emptyTypeChildren = new(Array.Empty<SObject>());
 
         /// <summary>
         /// 关键节点
@@ -87,12 +88,12 @@ namespace Core
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public SObject GetChildGid(long gid)
+        public SObject GetChildByGid(long gid)
         {
             _childrenGMap.TryGetValue(gid, out var child);
             return child;
         }
-        public SObject GetChildActorId(long actorId)
+        public SObject GetChildByActorId(long actorId)
         {
             if (actorId == 0)
             {
@@ -102,8 +103,8 @@ namespace Core
             _childrenAMap.TryGetValue(actorId, out var child);
             return child;
         }
-        public bool TryGetChildGid(long gid, out SObject child) => _childrenGMap.TryGetValue(gid, out child);
-        public bool TryGetChildActorId(long actorId, out SObject child)
+        public bool TryGetChildByGid(long gid, out SObject child) => _childrenGMap.TryGetValue(gid, out child);
+        public bool TryGetChildByActorId(long actorId, out SObject child)
         {
             if (actorId == 0)
             {
@@ -117,8 +118,9 @@ namespace Core
         public List<SObject> GetChildren() => _children;
         public ReadOnlyCollection<SObject> GetChildrenByObjType(int objType)
         {
-            _typeMap.TryGetValue(objType, out var lst);
-            return new ReadOnlyCollection<SObject>(lst == null ? Array.Empty<SObject>() : lst);
+            if (_typeMap.TryGetValue(objType, out var lst))
+                return new ReadOnlyCollection<SObject>(lst);
+            return _emptyTypeChildren;
         }
         public T GetChild<T>() where T : SObject => _children.Find(t => t is T) as T;
 
@@ -141,7 +143,7 @@ namespace Core
             _children.Remove(child);
             child.Parent = null;
         }
-        public void RemoveGid(long gid, bool dispose = true)
+        public void RemoveByGid(long gid, bool dispose = true)
         {
             if (!_childrenGMap.TryGetValue(gid, out var child))
                 return;
@@ -152,7 +154,7 @@ namespace Core
             }
             this.Remove(child);
         }
-        public void RemoveActorId(long actorId, bool dispose = true)
+        public void RemoveByActorId(long actorId, bool dispose = true)
         {
             if (actorId == 0)
             {

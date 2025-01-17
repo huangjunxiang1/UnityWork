@@ -9,7 +9,7 @@ public enum UIModel
     UGUI,
     FGUI,
 }
-public enum UIStates
+public enum UIStatus
 {
     Loading,
     OnTask,
@@ -89,7 +89,7 @@ namespace Game
                 //在执行异步的过程中有可能会关闭这个UI
                 ui.onDispose.Add(() =>
                 {
-                    if (ui.uiStates < UIStates.Success)
+                    if (ui.uiStates < UIStatus.Success)
                         InputHelper.EnableUIInput(true);
                 });
                 await ui.LoadConfigAsync(cfg, new STask<T>(), data);

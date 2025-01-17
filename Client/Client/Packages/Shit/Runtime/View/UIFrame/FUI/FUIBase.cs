@@ -10,8 +10,6 @@ public abstract class FUIBase : UIBase
     bool isHiding = false;
     STask hideTask;
 
-    public static Func<FUIBase, string, GComponent> CreateUI;
-    public static Func<FUIBase, string, STask<GComponent>> CreateUIAsync;
     public abstract GComponent ui { get; }
 
     public sealed override async void Hide(bool playAnimation = true, Action callBack = null)

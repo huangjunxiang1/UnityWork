@@ -5,6 +5,7 @@ class FUIBinder
     public static void Binding()
     {
         UIObjectFactory.SetPackageItemExtension("ui://zvziziwirjgbf", typeof(G_Box_YesOrNo));
+        UIObjectFactory.SetPackageItemExtension("ui://zvziziwik8hcu", typeof(G_Connecting));
         UIObjectFactory.SetPackageItemExtension("ui://zvziziwioxwqn", typeof(G_test));
         UIObjectFactory.SetPackageItemExtension("ui://zvziziwiqnthd", typeof(G_Tips));
     }
@@ -26,6 +27,20 @@ partial class G_Box_YesOrNo : GComponent
     }
     partial void Enter();
     public static G_Box_YesOrNo Create() => (G_Box_YesOrNo)UIPackage.CreateObject("ComPkg", "Box_YesOrNo");
+    public override void Dispose()
+    {
+        base.Dispose();
+    }
+}
+partial class G_Connecting : GLabel
+{
+
+    public override void ConstructFromXML(XML xml)
+    {
+        this.Enter();
+    }
+    partial void Enter();
+    public static G_Connecting Create() => (G_Connecting)UIPackage.CreateObject("ComPkg", "Connecting");
     public override void Dispose()
     {
         base.Dispose();

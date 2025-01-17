@@ -208,7 +208,12 @@ public abstract class UUIBase : UIBase
     {
         //ui不做池管理
         if (this.ui)
-            this.Hide(true, () => SAsset.Release(this.ui.gameObject));
+        {
+            if (this.uiStates == UIStatus.Success)
+                this.Hide(true, () => SAsset.Release(this.ui.gameObject));
+            else
+                SAsset.Release(this.ui.gameObject);
+        }
         base.Dispose();
     }
 }

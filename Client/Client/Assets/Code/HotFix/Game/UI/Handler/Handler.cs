@@ -1,5 +1,6 @@
 ﻿using Core;
 using Event;
+using FairyGUI;
 using Game;
 using System;
 using System.Collections.Generic;
@@ -91,6 +92,24 @@ static class Handler
         DG.Tweening.DOTween.Init();
         SettingL.Languege = SystemLanguage.Chinese;
         Application.targetFrameRate = -1;
+
+        G_Connecting g_Connecting = null;
+        UIGlobalConfig.LoadingViewHandle += view =>
+        {
+            if (view)
+            {
+                g_Connecting = G_Connecting.Create();
+                g_Connecting.sortingOrder = int.MaxValue - 2;
+                GRoot.inst.AddChild(g_Connecting);
+                g_Connecting.MakeFullScreen();
+                g_Connecting.AddRelation(GRoot.inst, RelationType.Size);
+            }
+            else
+            {
+                g_Connecting.Dispose();
+                g_Connecting = null;
+            }
+        };
 
         DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>($"config_{nameof(TabM_ST)}")).bytes));
         if (buffM_ST.ReadHeaderInfo())

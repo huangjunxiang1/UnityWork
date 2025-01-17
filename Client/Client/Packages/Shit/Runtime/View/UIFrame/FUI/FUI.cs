@@ -6,10 +6,11 @@ using Game;
 public abstract class FUI : FUIBase
 {
     GComponent _ui;
-    STask task;
-    UIStates states;
+    STask _task;
+    UIStatus _states;
+    bool _loadingView = false;
 
-    public sealed override UIStates uiStates => states;
+    public sealed override UIStatus uiStates => _states;
     public sealed override GComponent ui => this._ui;
     public sealed override int sortOrder
     {
@@ -26,7 +27,7 @@ public abstract class FUI : FUIBase
                 this._ui.visible = value;
         }
     }
-    public sealed override STask onTask => task;
+    public sealed override STask onTask => _task;
     public GObject Close { get; private set; }
 
     public sealed override async STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
@@ -34,8 +35,8 @@ public abstract class FUI : FUIBase
         await base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
-        this.states = UIStates.Loading;
-        this._ui = FUIBase.CreateUI(this, this.url);
+        this._states = UIStatus.Loading;
+        this._ui = UIGlobalConfig.CreateUI(this, this.url);
         (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
         if (Close == null)
             (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
@@ -44,21 +45,23 @@ public abstract class FUI : FUIBase
         this._ui.visible = false;
         this.Binding();
         this.setConfig();
-        this.states = UIStates.OnTask;
-        await (task = this.OnTask(data));
-        if (this.Disposed) return;
-        this.states = UIStates.Success;
-        this._ui.visible = this.isShow;
-        this.OnEnter(data);
+        this._states = UIStatus.OnTask;
+        _taskHandle();
+        if (this.uiStates != UIStatus.Success)
+        {
+            _delay1Handle();
+            _delay2Handle();
+        }
+        await this._task;
     }
     public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
     {
         await base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
-        this.states = UIStates.Loading;
+        this._states = UIStatus.Loading;
 
-        this._ui = await FUIBase.CreateUIAsync(this, this.url);
+        this._ui = await UIGlobalConfig.CreateUIAsync(this, this.url);
         if (this.Disposed)
         {
             this._ui.Dispose();
@@ -72,17 +75,25 @@ public abstract class FUI : FUIBase
         this._ui.visible = false;
         this.Binding();
         this.setConfig();
-        this.states = UIStates.OnTask;
-        await (task = this.OnTask(data));
-        if (this.Disposed) return;
-        this.states = UIStates.Success;
-        this._ui.visible = this.isShow;
-        this.OnEnter(data);
+        this._states = UIStatus.OnTask;
+        _taskHandle();
+        if (this.uiStates != UIStatus.Success)
+        {
+            _delay1Handle();
+            _delay2Handle();
+        }
+        await this._task;
     }
     public override void Dispose()
     {
-        if (this._ui != null && this.uiStates == UIStates.Success)
-            this.Hide(true, this._ui.Dispose);
+        _task.TryCancel();
+        if (this._ui != null)
+        {
+            if (this.uiStates == UIStatus.Success)
+                this.Hide(true, this._ui.Dispose);
+            else
+                this._ui.Dispose();
+        }
         base.Dispose();
     }
 
@@ -107,6 +118,31 @@ public abstract class FUI : FUIBase
                 Loger.Error("层级太深 layer=" + layer);
             this._ui.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, max - layer);
         }
+    }
+    async void _taskHandle()
+    {
+        this._task = this.OnTask(data) ?? STask.Completed;
+        await this._task;
+        if (this.Disposed) return;
+        this._states = UIStatus.Success;
+        this._ui.visible = this.isShow;
+        this.OnEnter(data);
+        if (_loadingView)
+            UIGlobalConfig.LoadingView(this, false);
+    }
+    async void _delay1Handle()
+    {
+        await STask.Delay(UIGlobalConfig.LoadingViewDelay1TimeMs);
+        if (this.Disposed || this._states == UIStatus.Success) return;
+        _loadingView = true;
+        UIGlobalConfig.LoadingView(this, true);
+    }
+    async void _delay2Handle()
+    {
+        await STask.Delay(UIGlobalConfig.LoadingViewDelay2TimeMs);
+        if (this.Disposed || this._states == UIStatus.Success) return;
+        UIGlobalConfig.LoadingView(this, false);
+        this.Dispose();
     }
 }
 #endif

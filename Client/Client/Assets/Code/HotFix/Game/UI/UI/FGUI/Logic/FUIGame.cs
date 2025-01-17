@@ -56,7 +56,7 @@ partial class FUIGame
     [Event]
     void S2C_PlayerQuit(S2C_PlayerQuit e)
     {
-        Client.Scene.GetChildActorId(e.id)?.Dispose();
+        Client.Scene.GetChildByActorId(e.id)?.Dispose();
     }
 
     void replay()

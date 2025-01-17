@@ -22,6 +22,15 @@ public static class Program
         UnityEngine.Debug.Log("游戏初始化成功");
         UnityEngine.Debug.Log($"耗时:{(tick3 - tick2) / 10000}ms");
 
+        //先运行单元测试
+        if (AppSetting.Debug)
+        {
+            long tick4 = DateTime.Now.Ticks;
+            Client.World.Event.RunEvent(new EC_ModuleTest());
+            UnityEngine.Debug.Log("单元测试完成");
+            UnityEngine.Debug.Log($"耗时:{(tick4 - tick3) / 10000}ms");
+        }
+
         await Client.Scene.InLoginScene();
     }
 }

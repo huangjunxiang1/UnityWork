@@ -1,4 +1,5 @@
 ﻿using Core;
+using Event;
 using Game;
 using NUnit.Framework;
 using System;
@@ -18,8 +19,8 @@ static class _main
         types.AddRange(typeof(_main).Assembly.GetTypes());
         Client.Load(types);
 
-        typeLstCheck.test();
-        _test.test();
+        TypeLstCheck.test();
+        EcsSystem.test();
         GenericEventTest.test();
         EventTest2.test();
         EventTest.test();

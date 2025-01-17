@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1334,750" extention="Label">
+  <displayList>
+    <graph id="n0_k8hc" name="n0" xy="0,0" size="1334,750" type="rect" lineSize="0" fillColor="#4c000000">
+      <relation target="" sidePair="width-width,height-height"/>
+    </graph>
+    <text id="n1_k8hc" name="title" xy="385,317" size="563,116" fontSize="30" color="#ffffff" align="center" vAlign="middle" autoSize="none" text="连接中...">
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </text>
+  </displayList>
+</component>

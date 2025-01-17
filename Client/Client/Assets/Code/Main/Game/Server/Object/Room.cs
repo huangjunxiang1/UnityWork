@@ -76,7 +76,7 @@ namespace Game
         [Event]
         void join(EventWatcher<C2S_JoinRoom, NetComponent, Player> t)
         {
-            if (!this.TryGetChildGid(t.t.id, out var room)) return;
+            if (!this.TryGetChildByGid(t.t.id, out var room)) return;
 
             string acc = t.t3.acc;
 
@@ -94,7 +94,7 @@ namespace Game
         [Event]
         void dis(EventWatcher<C2S_DisRoom, NetComponent> t)
         {
-            if (!this.TryGetChildGid(t.t.id, out var room)) return;
+            if (!this.TryGetChildByGid(t.t.id, out var room)) return;
 
             S2C_DisRoom s = new();
             s.id = room.gid;
@@ -143,7 +143,7 @@ namespace Game
 
         public Unit AddUnit(long actorId, string name, SBaseNet session)
         {
-            if (!this.TryGetChildActorId(actorId, out var o))
+            if (!this.TryGetChildByActorId(actorId, out var o))
             {
                 o = new Unit() { ActorId = actorId };
                 o.As<Unit>().name = name;

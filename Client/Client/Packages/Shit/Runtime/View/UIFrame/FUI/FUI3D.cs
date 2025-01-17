@@ -12,9 +12,9 @@ using Game;
 public abstract class FUI3D : FUIBase
 {
     STask task;
-    UIStates states;
+    UIStatus states;
 
-    public sealed override UIStates uiStates => states;
+    public sealed override UIStatus uiStates => states;
     public sealed override GComponent ui => this.Panel.ui;
     public sealed override int sortOrder
     {
@@ -40,16 +40,16 @@ public abstract class FUI3D : FUIBase
         await base.LoadConfig(config, completed, data);
 
         this.OnAwake(data);
-        this.states = UIStates.Loading;
+        this.states = UIStatus.Loading;
         this.goRoot = SAsset.LoadGameObject(url, ReleaseMode.Destroy);
         this.goRoot.transform.SetParent(Client.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
-        this.states = UIStates.OnTask;
+        this.states = UIStatus.OnTask;
         await (task = this.OnTask(data));
         if (this.Disposed) return;
-        this.states = UIStates.Success;
+        this.states = UIStatus.Success;
         this.goRoot.SetActive(this.isShow);
         this.OnEnter(data);
     }
@@ -58,23 +58,28 @@ public abstract class FUI3D : FUIBase
         await base.LoadConfigAsync(config, completed, data);
 
         this.OnAwake(data);
-        this.states = UIStates.Loading;
+        this.states = UIStatus.Loading;
         this.goRoot = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
         this.goRoot.transform.SetParent(Client.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
-        this.states = UIStates.OnTask;
+        this.states = UIStatus.OnTask;
         await (task = this.OnTask(data));
         if (this.Disposed) return;
-        this.states = UIStates.Success;
+        this.states = UIStatus.Success;
         this.goRoot.SetActive(this.isShow);
         this.OnEnter(data);
     }
     public override void Dispose()
     {
-        if (this.goRoot != null)
-            this.Hide(true, () => SAsset.Release(this.goRoot));
+        if (this.goRoot)
+        {
+            if (this.uiStates == UIStatus.Success)
+                this.Hide(true, () => SAsset.Release(this.goRoot));
+            else
+                SAsset.Release(this.goRoot);
+        }
         base.Dispose();
     }
 }

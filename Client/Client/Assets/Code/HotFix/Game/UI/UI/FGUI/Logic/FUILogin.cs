@@ -57,7 +57,6 @@ partial class FUILogin
     }
     async void enter()
     {
-        this.Dispose();
         await Client.UI.OpenAsync<FUIRooms>();
     }
     async void asServer()

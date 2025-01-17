@@ -45,7 +45,7 @@ public class Login : STree
             t.t2.Send(s);
             return;
         }
-        login.TryGetChildActorId(t.t2.ActorId,out var c);
+        login.TryGetChildByActorId(t.t2.ActorId,out var c);
         c.As<Player>().acc = t.t.acc;
         t.t2.Send(s);
     }

@@ -24,6 +24,7 @@
     <component id="pivyr" name="lable.xml" path="/Common/labble/"/>
     <component id="pivys" name="input.xml" path="/Common/labble/"/>
     <component id="pivyt" name="FUIRooms.xml" path="/UI/UIs/" exported="true"/>
+    <component id="k8hcu" name="Connecting.xml" path="/UI/Box/" exported="true"/>
   </resources>
   <publish name="" path="..\..\..\Client\Client\Assets\Res\UI\FUI\ComPkg" packageCount="2"/>
 </packageDescription>
