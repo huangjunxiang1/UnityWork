@@ -8,6 +8,7 @@ using UnityEngine;
 [Serializable]
 public class DirectoryItem
 {
+    public bool rootIsAppDataPath;
     public string self;
     public string target;
 }

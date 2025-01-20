@@ -106,7 +106,7 @@ internal class Tools
         for (int i = 0; i < ShitSettings.Inst.SyncDirs.Count; i++)
         {
             var d = ShitSettings.Inst.SyncDirs[i];
-            FileHelper.SyncDirectories(d.self, d.target);
+            FileHelper.SyncDirectories((d.rootIsAppDataPath ? Application.dataPath : null) + d.self, (d.rootIsAppDataPath ? Application.dataPath : null) + d.target);
         }
     }
     [MenuItem("Shit/文件夹 从x同步", priority = int.MaxValue - 10)]
@@ -115,7 +115,7 @@ internal class Tools
         for (int i = 0; i < ShitSettings.Inst.SyncDirs.Count; i++)
         {
             var d = ShitSettings.Inst.SyncDirs[i];
-            FileHelper.SyncDirectories(d.target, d.self);
+            FileHelper.SyncDirectories((d.rootIsAppDataPath ? Application.dataPath : null) + d.target, (d.rootIsAppDataPath ? Application.dataPath : null) + d.self);
         }
     }
 }
