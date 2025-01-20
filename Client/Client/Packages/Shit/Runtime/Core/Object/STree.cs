@@ -78,7 +78,7 @@ namespace Core
             _children.Add(child);
 
             child.Parent = this;
-            child.World = this.World;
+            child.World ??= this.World;
             child.View = this.View;
         }
         public override int GetChildIndex(SObject child) => _children.IndexOf(child);

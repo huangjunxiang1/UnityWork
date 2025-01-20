@@ -30,9 +30,11 @@ public abstract class UIBase : STree
     /// 加载中异步
     /// </summary>
     public STask onCompleted { get; private set; }
+    public object[] ParamObjects { get; private set; }
 
     public virtual STask LoadConfig(UIConfig config, STask completed, params object[] data)
     {
+        this.ParamObjects = data;
         this.uiConfig = config;
         this.Parent._children.Sort((x, y) =>
         {
@@ -45,6 +47,7 @@ public abstract class UIBase : STree
     }
     public virtual STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
+        this.ParamObjects = data;
         this.uiConfig = config;
         this.Parent._children.Sort((x, y) =>
         {

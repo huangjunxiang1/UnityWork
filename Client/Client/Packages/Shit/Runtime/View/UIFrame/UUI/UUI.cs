@@ -83,12 +83,12 @@ public abstract class UUI : UUIBase
     }
     async void _taskHandle()
     {
-        this._task = this.OnTask(data) ?? STask.Completed;
+        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
         await this._task;
         if (this.Disposed) return;
         this._states = UIStatus.Success;
         this._ui.gameObject.SetActive(this.isShow);
-        this.OnEnter(data);
+        this.OnEnter(this.ParamObjects);
         if (_loadingView)
             UIGlobalConfig.LoadingView(this, false);
     }

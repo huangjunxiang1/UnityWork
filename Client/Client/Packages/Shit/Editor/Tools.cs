@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -98,5 +99,23 @@ internal class Tools
             File.WriteAllText(path + "/_gen/gen_" + fi.Name, code.ToString());
         }
         AssetDatabase.Refresh();
+    }
+    [MenuItem("Shit/文件夹 同步到x", priority = int.MaxValue - 10)]
+    static void SyncDirsTo()
+    {
+        for (int i = 0; i < ShitSettings.Inst.SyncDirs.Count; i++)
+        {
+            var d = ShitSettings.Inst.SyncDirs[i];
+            FileHelper.SyncDirectories(d.self, d.target);
+        }
+    }
+    [MenuItem("Shit/文件夹 从x同步", priority = int.MaxValue - 10)]
+    static void SyncDirsFrom()
+    {
+        for (int i = 0; i < ShitSettings.Inst.SyncDirs.Count; i++)
+        {
+            var d = ShitSettings.Inst.SyncDirs[i];
+            FileHelper.SyncDirectories(d.target, d.self);
+        }
     }
 }

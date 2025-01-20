@@ -54,32 +54,34 @@ namespace Core
             get => _world;
             internal set
             {
-                if (_world == value || this.Disposed) return;
+                if (this.Disposed) return;
                 if (_world != null)
                 {
-                    Loger.Error("所属世界不能切换");
+                    Loger.Error("canot change the world");
+                    return;
+                }
+                if (value == null)
+                {
+                    Loger.Error("canot set null world");
                     return;
                 }
                 _world = value;
-                if (value != null)
-                {
-                    value.ObjectManager.Add(this);
-                    value.Event.RigisteEvent(this);
-                    _timerRigisterd = value.Timer.RigisterTimer(this);
+                value.ObjectManager.Add(this);
+                value.Event.RigisteEvent(this);
+                _timerRigisterd = value.Timer.RigisterTimer(this);
 
-                    if (!this.Disposed)
+                if (!this.Disposed)
+                {
+                    var cs = _components;
+                    _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
+                    foreach (var c in cs)
                     {
-                        var cs = _components;
-                        _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
-                        foreach (var c in cs)
-                        {
-                            if (c.Value.Disposed) continue;
-                            _components[c.Key] = c.Value;
-                            RigisterComponent(c.Value, c.Key);
-                        }
-                        cs.Clear();
-                        ObjectPool.Return(cs);
+                        if (c.Value.Disposed) continue;
+                        _components[c.Key] = c.Value;
+                        RigisterComponent(c.Value, c.Key);
                     }
+                    cs.Clear();
+                    ObjectPool.Return(cs);
                 }
 #if UNITY_EDITOR
                 if (objChange != null)
