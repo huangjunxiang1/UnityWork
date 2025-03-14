@@ -19,7 +19,7 @@ namespace Game
 
             public void OnPointerDown(PointerEventData eventData)
             {
-                if (TouchHelper.isTouchUI != null && TouchHelper.isTouchUI()) return;
+                if (UIGlobalConfig.isTouchUI != null && UIGlobalConfig.isTouchUI()) return;
                 if (target.World.ObjectManager.TryGetByGid(gid, out var o))
                 {
                     var os = ArrayCache.Get<object>(2);
@@ -33,7 +33,7 @@ namespace Game
 
             public void OnPointerClick(PointerEventData eventData)
             {
-                if (TouchHelper.isTouchUI != null && TouchHelper.isTouchUI()) return;
+                if (UIGlobalConfig.isTouchUI != null && UIGlobalConfig.isTouchUI()) return;
                 if (target.World.ObjectManager.TryGetByGid(gid, out var o))
                 {
                     var os = ArrayCache.Get<object>(2);

@@ -88,13 +88,13 @@ public abstract class UIBase : STree
         {
             UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
-            InputHelper.EnableUIInput(false);
+            UIGlobalConfig.EnableUIInput(false);
             ui = new();
             //在执行异步的过程中有可能会关闭这个UI
             ui.onDispose.Add(() =>
             {
                 if (ui.uiStates < UIStatus.Success)
-                    InputHelper.EnableUIInput(true);
+                    UIGlobalConfig.EnableUIInput(true);
             });
             this.AddChild(ui);
             await ui.LoadConfigAsync(cfg, new STask<T>(), data);
@@ -102,7 +102,7 @@ public abstract class UIBase : STree
                 return ui;
 
             ui.Show();
-            InputHelper.EnableUIInput(true);
+            UIGlobalConfig.EnableUIInput(true);
 
             ui.onCompleted.TrySetResult(ui);
             return ui;
@@ -113,8 +113,8 @@ public abstract class UIBase : STree
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
         {
-            if (uis[i] is UIBase)
-                ((UIBase)uis[i]).Hide(playAnimation);
+            if (uis[i] is UIBase ui)
+                ui.Hide(playAnimation);
         }
     }
     public virtual STask HideAsync(bool playAnimation = true)
@@ -122,8 +122,8 @@ public abstract class UIBase : STree
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
         {
-            if (uis[i] is UIBase)
-                ((UIBase)uis[i]).HideAsync(playAnimation);
+            if (uis[i] is UIBase ui)
+                ui.HideAsync(playAnimation);
         }
         return STask.Completed;
     }
@@ -132,18 +132,20 @@ public abstract class UIBase : STree
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
         {
-            if (uis[i] is UIBase)
-                ((UIBase)uis[i]).Show(playAnimation);
+            if (uis[i] is UIBase ui)
+                ui.Show(playAnimation);
         }
+        this.OnView();
     }
     public virtual STask ShowAsync(bool playAnimation = true)
     {
         var uis = this.GetChildren();
         for (int i = uis.Count - 1; i >= 0; i--)
         {
-            if (uis[i] is UIBase)
-                ((UIBase)uis[i]).ShowAsync(playAnimation);
+            if (uis[i] is UIBase ui)
+                ui.ShowAsync(playAnimation);
         }
+        this.OnView();
         return STask.Completed;
     }
     public override void Dispose()
@@ -157,10 +159,10 @@ public abstract class UIBase : STree
             {
                 for (int i = lst.Count - 2; i >= 0; i--)
                 {
-                    if (lst[i] is UIBase && !lst[i].Disposed)
+                    if (lst[i] is UIBase ui && !ui.Disposed)
                     {
-                        if (!lst[i].As<UIBase>().isShow)
-                            ((UIBase)lst[i]).Show();
+                        if (!ui.isShow)
+                            ui.Show();
                         break;
                     }
                 }
@@ -187,17 +189,21 @@ public abstract class UIBase : STree
     {
         return STask.Completed;
     }
+
     protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用
     protected virtual void OnExit() { }//UI关闭调用
+
     protected virtual void OnShow() { }//UI每次重显示调用 包括第一次打开
     protected virtual void OnHide() { }//UI每次隐藏时调用 
+
+    protected virtual void OnView() { }//UI刷新
     protected abstract void Binding();//UI元件绑定
 
     /// <summary>
     /// 网络重连上则重新刷新UI
     /// </summary>
     /// <param name="e"></param>
-    [Event(10)] void EC_NetworkReconnection(EC_NetworkReconnection e) => this.OnShow();
+    [Event(10)] void EC_NetworkReconnection(EC_NetworkReconnection e) => this.OnView();
 
     public sealed override void AcceptedEvent() { base.AcceptedEvent(); }
     public sealed override bool EventEnable { get => base.EventEnable && isShow; set => base.EventEnable = value; }

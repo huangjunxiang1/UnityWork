@@ -95,7 +95,10 @@ class ObjectWindows : OdinMenuEditorWindow
             for (int i = 0; i < list.Count; i++)
             {
                 var o = list[i];
-                add(tree, o,  $"{path}/[{i}] {o.GetType().Name}");
+                if (o.ActorId != 0)
+                    add(tree, o, $"{path}/[{i}] {o.GetType().Name} Actor:{o.ActorId} Gid:{o.gid}");
+                else
+                    add(tree, o, $"{path}/[{i}] {o.GetType().Name} Gid:{o.gid}");
             }
         }
     }

@@ -83,14 +83,14 @@ namespace Game
             {
                 UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
-                InputHelper.EnableUIInput(false);
+                UIGlobalConfig.EnableUIInput(false);
                 ui = new() { isCrucialRoot = true };
                 this.AddChild(ui);
                 //在执行异步的过程中有可能会关闭这个UI
                 ui.onDispose.Add(() =>
                 {
                     if (ui.uiStates < UIStatus.Success)
-                        InputHelper.EnableUIInput(true);
+                        UIGlobalConfig.EnableUIInput(true);
                 });
                 await ui.LoadConfigAsync(cfg, new STask<T>(), data);
                 if (ui.Disposed)
@@ -108,7 +108,7 @@ namespace Game
                     }
                 }
                 ui.Show();
-                InputHelper.EnableUIInput(true);
+                UIGlobalConfig.EnableUIInput(true);
 
                 ui.onCompleted.TrySetResult(ui);
                 return ui;

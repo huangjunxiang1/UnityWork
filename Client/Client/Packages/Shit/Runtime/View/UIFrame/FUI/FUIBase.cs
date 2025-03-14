@@ -30,11 +30,11 @@ public abstract class FUIBase : UIBase
             {
                 isHiding = true;
                 hideTask = new();
-                InputHelper.EnableUIInput(false);
+                UIGlobalConfig.EnableUIInput(false);
                 close.Play(() =>
                 {
                     isHiding = false;
-                    InputHelper.EnableUIInput(true);
+                    UIGlobalConfig.EnableUIInput(true);
                     this.isShow = false;
                     callBack?.Invoke();
                     hideTask.TrySetResult();
@@ -49,11 +49,11 @@ public abstract class FUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     open.Stop(false, true);
-                    InputHelper.EnableUIInput(false);
+                    UIGlobalConfig.EnableUIInput(false);
                     open.PlayReverse(() =>
                     {
                         isHiding = false;
-                        InputHelper.EnableUIInput(true);
+                        UIGlobalConfig.EnableUIInput(true);
                         this.isShow = false;
                         callBack?.Invoke();
                         hideTask.TrySetResult();
@@ -79,11 +79,11 @@ public abstract class FUIBase : UIBase
             {
                 isHiding = true;
                 hideTask = new();
-                InputHelper.EnableUIInput(false);
+                UIGlobalConfig.EnableUIInput(false);
                 close.Play(() =>
                 {
                     isHiding = false;
-                    InputHelper.EnableUIInput(true);
+                    UIGlobalConfig.EnableUIInput(true);
                     this.isShow = false;
                     hideTask.TrySetResult();
                 });
@@ -97,11 +97,11 @@ public abstract class FUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     open.Stop(false, true);
-                    InputHelper.EnableUIInput(false);
+                    UIGlobalConfig.EnableUIInput(false);
                     open.PlayReverse(() =>
                     {
                         isHiding = false;
-                        InputHelper.EnableUIInput(true);
+                        UIGlobalConfig.EnableUIInput(true);
                         this.isShow = false;
                         hideTask.TrySetResult();
                     });
@@ -132,11 +132,11 @@ public abstract class FUIBase : UIBase
                 isShowing = true;
                 showTask = new();
                 open.Stop(false, true);
-                InputHelper.EnableUIInput(false);
+                UIGlobalConfig.EnableUIInput(false);
                 open.Play(() =>
                 {
                     isShowing = false;
-                    InputHelper.EnableUIInput(true);
+                    UIGlobalConfig.EnableUIInput(true);
                     callBack?.Invoke();
                     showTask.TrySetResult();
                 });
@@ -161,11 +161,11 @@ public abstract class FUIBase : UIBase
                 isShowing = true;
                 showTask = new();
                 open.Stop(false, true);
-                InputHelper.EnableUIInput(false);
+                UIGlobalConfig.EnableUIInput(false);
                 open.Play(() =>
                 {
                     isShowing = false;
-                    InputHelper.EnableUIInput(true);
+                    UIGlobalConfig.EnableUIInput(true);
                     showTask.TrySetResult();
                 });
                 return showTask;

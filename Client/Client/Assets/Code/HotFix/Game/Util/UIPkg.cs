@@ -29,7 +29,7 @@ public class UIPkg
             UIPkg.ComPkg.CreateObjectAsync(s, obj => task.TrySetResult(obj));
             return task;
         };
-        TouchHelper.isTouchUI += UIHelper.IsOnTouchFUI;
+        UIGlobalConfig.isTouchUI += UIHelper.IsOnTouchFUI;
     }
     static async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
     {

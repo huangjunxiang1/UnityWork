@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Game
 {
@@ -21,7 +20,6 @@ namespace Game
             if (SceneID == sceneId) return;
 
             this.DisposeAllChildren();
-            Client.UI.CloseUI();
             await World.Event.RunEventAsync(new EC_OutScene { sceneId = SceneID, sceneType = this.Mask });
 
             this.SceneID = sceneId;

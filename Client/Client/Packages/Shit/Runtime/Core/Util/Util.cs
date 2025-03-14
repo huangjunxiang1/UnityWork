@@ -34,8 +34,8 @@ public static class Util
     public static IPEndPoint ToIPEndPoint(string address)
     {
         int index = address.LastIndexOf(':');
-        string host = address.Substring(0, index);
-        string p = address.Substring(index + 1);
+        string host = address[..index];
+        string p = address[(index + 1)..];
         int port = int.Parse(p);
         return ToIPEndPoint(host, port);
     }

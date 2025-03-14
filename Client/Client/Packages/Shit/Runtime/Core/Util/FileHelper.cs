@@ -9,7 +9,7 @@ namespace Core
 {
     public static class FileHelper
     {
-        public static void SyncDirectories(string sourceDir, string destinationDir, string searchPattern = "*", string exclude=null)
+        public static void SyncDirectories(string sourceDir, string destinationDir, string searchPattern = "*", string exclude = null)
         {
             // 确保目标目录存在
             Directory.CreateDirectory(destinationDir);
@@ -41,7 +41,7 @@ namespace Core
                         continue;
                 }
                 var relativePath = file.Substring(destinationDir.Length);
-                var sourceFile = sourceDir +"/"+ relativePath;
+                var sourceFile = sourceDir + "/" + relativePath;
 
                 if (!File.Exists(sourceFile))
                 {
@@ -82,6 +82,16 @@ namespace Core
                 // 递归调用同步子目录
                 SyncDirectories(subDir, destinationSubDir, searchPattern);
             }
+        }
+        public static string ToAssetsDataPath(this string path)
+        {
+            var ps = path.Split("Assets");
+            if (ps.Length != 2)
+            {
+                Loger.Error("非AssetsPath");
+                return path;
+            }
+            return "Assets" + ps[1];
         }
     }
 }

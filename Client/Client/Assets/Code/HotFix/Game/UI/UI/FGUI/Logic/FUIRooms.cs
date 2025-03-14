@@ -56,6 +56,7 @@ partial class FUIRooms
         c.id = d.id;
         var s = (S2C_JoinRoom)await NetComponent.Inst.SendAsync(c);
         int id = 10001;
+        Client.UI.CloseUI();
         await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
         for (int i = 0; i < s.units.Count; i++)
         {
