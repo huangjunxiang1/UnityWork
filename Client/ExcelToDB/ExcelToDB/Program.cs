@@ -62,14 +62,7 @@ class Program
             Console.WriteLine("--->Language");
             List<string> mains = Common.getFiles(excelPath);
 
-            var _common = mains.Find(t => new FileInfo(t).Name == "_Common.xlsx");
-            if (_common == null)
-            {
-                Console.WriteLine("没有包含定义表 _Common.xlsx");
-                Console.ReadLine();
-                return;
-            }
-            FileInfo fih = new FileInfo(_common);
+            FileInfo fih = new FileInfo(mains.FirstOrDefault());
             ExcelPackage pkgh = new ExcelPackage(fih);
             List<string> tag = new();
             Common.GetHead(tag, pkgh);
@@ -99,8 +92,8 @@ class Program
 
                     tt.dataLines.Add((i, lines));
                 }
-               
-                tt.isCommonTab = fi.Name == "_Common.xlsx";
+
+                tt.genCS = fi.Name.StartsWith("_");
 
                 temp3Lst.Add(tt);
             }
@@ -137,7 +130,7 @@ class Program
                         for (int i = 0; i < dataLines.Count; i++)
                         {
                             var str = pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], 1].Text;
-                            if (item.isCommonTab)
+                            if (item.genCS)
                             {
                                 if (pkg.Workbook.Worksheets[sheet].Cells[dataLines[i], 2].Text == "[]")
                                 {
@@ -159,7 +152,7 @@ class Program
                             {
                                 if (str.StartsWith("gk_"))
                                 {
-                                    Console.WriteLine($"以[gk_]开头的id是_Common表的保留id 请勿使用 ->{item.fi.Name}");
+                                    Console.WriteLine($"以[gk_]开头的id是代码导出表的保留id 请勿使用 ->{item.fi.Name}");
                                     Console.ReadLine();
                                     return;
                                 }
@@ -200,30 +193,35 @@ class Program
                 File.WriteAllBytes(assetsPath + $"/Language_{item.Key}.bytes", buffer.ToBytes());
             }
             {
-                var item = temp3Lst.Find(t => t.fi.Name == "_Common.xlsx");
                 StringBuilder str = new(10000);
                 str.AppendLine("using System.Collections.Generic;");
                 str.AppendLine("using System;");
-                str.AppendLine("static class TabCommonLanguage");
+                str.AppendLine("static class TabText");
                 str.AppendLine("{");
-                for (int i = 0; i < item.dataLines.Count; i++)
+                for (int index = 0; index < temp3Lst.Count; index++)
                 {
-                    int sheet = item.dataLines[i].Item1;
-                    var dataLines = item.dataLines[i].Item2;
-                    for (int j = 0; j < dataLines.Count; j++)
+                    var item = temp3Lst[index];
+                    if (!item.genCS) continue;
+                    ExcelPackage pkg = new ExcelPackage(item.fi);
+                    for (int i = 0; i < item.dataLines.Count; i++)
                     {
-                        string s = pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 1].Text;
-                        str.AppendLine("    /// <summary>");
-                        str.AppendLine($"    /// {pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 3].Text}");
-                        str.AppendLine("    /// </summary>");
-                        if (pkgh.Workbook.Worksheets[sheet].Cells[dataLines[j], 2].Text == "[]")
-                            str.AppendLine($"    public static string[] {s} => \"gk_{s}\".ToLans();");
-                        else
-                            str.AppendLine($"    public static string {s} => \"gk_{s}\".ToLan();");
+                        int sheet = item.dataLines[i].Item1;
+                        var dataLines = item.dataLines[i].Item2;
+                        for (int j = 0; j < dataLines.Count; j++)
+                        {
+                            string s = pkg.Workbook.Worksheets[sheet].Cells[dataLines[j], 1].Text;
+                            str.AppendLine("    /// <summary>");
+                            str.AppendLine($"    /// {pkg.Workbook.Worksheets[sheet].Cells[dataLines[j], 3].Text}");
+                            str.AppendLine("    /// </summary>");
+                            if (pkg.Workbook.Worksheets[sheet].Cells[dataLines[j], 2].Text == "[]")
+                                str.AppendLine($"    public static string[] {s} => \"gk_{s}\".ToLans();");
+                            else
+                                str.AppendLine($"    public static string {s} => \"gk_{s}\".ToLan();");
+                        }
                     }
                 }
                 str.AppendLine("}");
-                File.WriteAllText(codePath + "TabCommonLanguage.cs", str.ToString());
+                File.WriteAllText(codePath + "TabText.cs", str.ToString());
             }
         }
 

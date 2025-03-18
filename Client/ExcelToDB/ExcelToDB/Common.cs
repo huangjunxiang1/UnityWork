@@ -1142,7 +1142,7 @@ class temp3
 {
     public FileInfo fi;
     public List<(int, List<int>)> dataLines = new();
-    public bool isCommonTab = false;
+    public bool genCS = false;
 }
 struct KV
 {
