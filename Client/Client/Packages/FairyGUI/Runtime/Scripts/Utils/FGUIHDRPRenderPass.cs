@@ -1,5 +1,8 @@
 ﻿using UnityEngine.Rendering;
 using UnityEngine;
+using FairyGUI;
+
+
 #if HDRP
 using UnityEngine.Rendering.HighDefinition;
 #endif
@@ -9,6 +12,7 @@ class FGUIHDRPRenderPass : CustomPass
 {
     public LayerMask layer;
 
+    Vector3 origin;
     Matrix4x4 worldToCameraMatrix;
     Matrix4x4 projectionMatrix;
     Matrix4x4 cullingMatrix;
@@ -16,12 +20,17 @@ class FGUIHDRPRenderPass : CustomPass
 
     public void ApplyChange(Transform stage)
     {
-        var cm = stage.GetComponent<Camera>();
-        var v3 = stage.position;
-        worldToCameraMatrix = Matrix4x4.TRS(-stage.position, Quaternion.identity, new Vector3(1, 1, -1));
-        projectionMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(2 / (v3.x * 2 - 0), 2 / -(v3.y * 2 - 0), 0));
+        origin = stage.position;
+        origin.z = -100;
+        worldToCameraMatrix = Matrix4x4.TRS(-origin, Quaternion.identity, new Vector3(1, 1, 1));
+        projectionMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(2 / (origin.x * 2 - 0), 2 / -(origin.y * 2 - 0), 0));
         cullingMatrix = projectionMatrix * worldToCameraMatrix;
         GeometryUtility.CalculateFrustumPlanes(cullingMatrix, planes);
+        if (StageCamera.main)
+        {
+            StageCamera.main.enabled = true;
+            StageCamera.main.enabled = false;
+        }
     }
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
@@ -32,7 +41,6 @@ class FGUIHDRPRenderPass : CustomPass
         if (hdCamera.camera.cameraType == CameraType.Game)
         {
             cullingParameters.cullingMask |= (uint)layer.value;
-            cullingParameters.origin = new Vector3(0, 0, -100);
             cullingParameters.cullingMatrix = cullingMatrix;
 
             for (int i = 0; i < 6; i++)
@@ -43,19 +51,15 @@ class FGUIHDRPRenderPass : CustomPass
     {
         if (ctx.hdCamera.camera.cameraType == CameraType.Game)
         {
-            var pm = ctx.hdCamera.camera.projectionMatrix;
-            var vm = ctx.hdCamera.camera.worldToCameraMatrix;
-
             ctx.cmd.SetViewProjectionMatrices(worldToCameraMatrix, projectionMatrix);
 
+            CoreUtils.SetRenderTarget(ctx.cmd, ctx.cameraColorBuffer, this.clearFlags);
             CustomPassUtils.DrawRenderers(ctx, layer);
-            CoreUtils.SetRenderTarget(ctx.cmd, ctx.cameraColorBuffer, ClearFlag.None);
 
             //还原矩阵
-            ctx.cmd.SetViewProjectionMatrices(vm, pm);
+            ctx.cmd.SetViewProjectionMatrices(ctx.hdCamera.camera.worldToCameraMatrix, ctx.hdCamera.camera.projectionMatrix);
         }
     }
-
     protected override void Cleanup()
     {
         
