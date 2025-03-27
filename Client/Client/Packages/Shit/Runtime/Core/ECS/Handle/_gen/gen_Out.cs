@@ -22,7 +22,7 @@ public class Out<T> : __OutHandle where T : SComponent
         if (!o.Entity.TryGetComponent<T>(out var c) || !c.Enable) return;
         record.Add(typeof(Out<T>), new Out<T>(c));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2> : __OutHandle where T : SComponent where T2 : SComponent
 {
@@ -44,7 +44,7 @@ public class Out<T, T2> : __OutHandle where T : SComponent where T2 : SComponent
         if (!o.Entity.TryGetComponent<T2>(out var c2) || !c2.Enable) return;
         record.Add(typeof(Out<T, T2>), new Out<T, T2>(c, c2));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent
 {
@@ -69,7 +69,7 @@ public class Out<T, T2, T3> : __OutHandle where T : SComponent where T2 : SCompo
         if (!o.Entity.TryGetComponent<T3>(out var c3) || !c3.Enable) return;
         record.Add(typeof(Out<T, T2, T3>), new Out<T, T2, T3>(c, c2, c3));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3, T4> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent
 {
@@ -97,7 +97,7 @@ public class Out<T, T2, T3, T4> : __OutHandle where T : SComponent where T2 : SC
         if (!o.Entity.TryGetComponent<T4>(out var c4) || !c4.Enable) return;
         record.Add(typeof(Out<T, T2, T3, T4>), new Out<T, T2, T3, T4>(c, c2, c3, c4));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3, T4, T5> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent
 {
@@ -128,7 +128,7 @@ public class Out<T, T2, T3, T4, T5> : __OutHandle where T : SComponent where T2 
         if (!o.Entity.TryGetComponent<T5>(out var c5) || !c5.Enable) return;
         record.Add(typeof(Out<T, T2, T3, T4, T5>), new Out<T, T2, T3, T4, T5>(c, c2, c3, c4, c5));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3, T4, T5, T6> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent
 {
@@ -162,7 +162,7 @@ public class Out<T, T2, T3, T4, T5, T6> : __OutHandle where T : SComponent where
         if (!o.Entity.TryGetComponent<T6>(out var c6) || !c6.Enable) return;
         record.Add(typeof(Out<T, T2, T3, T4, T5, T6>), new Out<T, T2, T3, T4, T5, T6>(c, c2, c3, c4, c5, c6));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3, T4, T5, T6, T7> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent
 {
@@ -199,7 +199,7 @@ public class Out<T, T2, T3, T4, T5, T6, T7> : __OutHandle where T : SComponent w
         if (!o.Entity.TryGetComponent<T7>(out var c7) || !c7.Enable) return;
         record.Add(typeof(Out<T, T2, T3, T4, T5, T6, T7>), new Out<T, T2, T3, T4, T5, T6, T7>(c, c2, c3, c4, c5, c6, c7));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3, T4, T5, T6, T7, T8> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent
 {
@@ -239,7 +239,7 @@ public class Out<T, T2, T3, T4, T5, T6, T7, T8> : __OutHandle where T : SCompone
         if (!o.Entity.TryGetComponent<T8>(out var c8) || !c8.Enable) return;
         record.Add(typeof(Out<T, T2, T3, T4, T5, T6, T7, T8>), new Out<T, T2, T3, T4, T5, T6, T7, T8>(c, c2, c3, c4, c5, c6, c7, c8));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3, T4, T5, T6, T7, T8, T9> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent where T9 : SComponent
 {
@@ -282,7 +282,7 @@ public class Out<T, T2, T3, T4, T5, T6, T7, T8, T9> : __OutHandle where T : SCom
         if (!o.Entity.TryGetComponent<T9>(out var c9) || !c9.Enable) return;
         record.Add(typeof(Out<T, T2, T3, T4, T5, T6, T7, T8, T9>), new Out<T, T2, T3, T4, T5, T6, T7, T8, T9>(c, c2, c3, c4, c5, c6, c7, c8, c9));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }
 public class Out<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __OutHandle where T : SComponent where T2 : SComponent where T3 : SComponent where T4 : SComponent where T5 : SComponent where T6 : SComponent where T7 : SComponent where T8 : SComponent where T9 : SComponent where T10 : SComponent
 {
@@ -328,5 +328,5 @@ public class Out<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : __OutHandle where T :
         if (!o.Entity.TryGetComponent<T10>(out var c10) || !c10.Enable) return;
         record.Add(typeof(Out<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>), new Out<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>(c, c2, c3, c4, c5, c6, c7, c8, c9, c10));
     }
-    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 }

@@ -81,6 +81,8 @@ namespace Core
                 {
                     if (ps[1].ParameterType != typeof(EventHandler))
                         Loger.Error($"无法解析的参数类型 class:{method.ReflectedType.FullName} method:{method.Name}");
+                    if (typeof(__SystemHandle).IsAssignableFrom(ps[0].ParameterType))
+                        Loger.Error($"System处理系统 不可使用{nameof(EventHandler)} class:{method.ReflectedType.FullName} method:{method.Name}");
                 }
                 if (ps.Length == 1)
                 {
@@ -89,7 +91,7 @@ namespace Core
 
                     if (typeof(__ChangeHandle).IsAssignableFrom(ps[0].ParameterType))
                     {
-                        if (method != null && method.ReturnType == typeof(STask))
+                        if (method.ReturnType == typeof(STask))
                             Loger.Error($"change处理事件不可使用task class:{method.ReflectedType.FullName} method:{method.Name}");
                     }
                     if (typeof(__KVWatcher).IsAssignableFrom(ps[0].ParameterType))
@@ -99,7 +101,7 @@ namespace Core
                     }
                     if (typeof(__UpdateHandle).IsAssignableFrom(ps[0].ParameterType))
                     {
-                        if (method != null && method.ReturnType == typeof(STask))
+                        if (method.ReturnType == typeof(STask))
                             Loger.Error($"update处理事件不可使用task class:{method.ReflectedType.FullName}    method:   {method.Name}");
                     }
                 }

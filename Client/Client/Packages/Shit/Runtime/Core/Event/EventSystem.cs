@@ -564,20 +564,15 @@ namespace Core
             }
             public void RunNoGCAndFaster<T>(T data)
             {
-                ++counter;
                 int cnt = evts.Count;
-                EventHandler eh = ObjectPool.Get<EventHandler>();
-                for (int i = 0; i < cnt && !eh.isBreak; ++i)
-                    invokeNoGCAndFaster(evts[i], data, eh);
-                eh.Reset();
-                ObjectPool.Return(eh);
-                --counter;
+                for (int i = 0; i < cnt; ++i)
+                    invokeNoGCAndFaster(evts[i], data);
             }
 
             STask invoke<T>(EvtData e, T data, EventHandler eh)
             {
                 STask task = default;
-                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return default;
+                if (e.disposed || (e.target != null && (e.target.Disposed || !e.target.EventEnable))) return default;
                 try
                 {
                     if (!e.setHandler)
@@ -610,7 +605,7 @@ namespace Core
             STask invoke(EvtData e, object data, EventHandler eh)
             {
                 STask task = default;
-                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return task;
+                if (e.disposed || (e.target != null && (e.target.Disposed || !e.target.EventEnable))) return task;
                 try
                 {
                     if (!e.setHandler)
@@ -645,20 +640,15 @@ namespace Core
                 e.target?.AcceptedEvent();
                 return task;
             }
-            void invokeNoGCAndFaster<T>(EvtData e, T data, EventHandler eh)
+            void invokeNoGCAndFaster<T>(EvtData e, T data)
             {
-                if (e.target != null && (e.target.Disposed || !e.target.EventEnable)) return;
+                if (e.disposed || (e.target != null && (e.target.Disposed || !e.target.EventEnable))) return;
                 try
                 {
-                    if (!e.setHandler)
-                    {
-                        if (e.Attribute.Parallel)
-                            ThreadPool.QueueUserWorkItem((Action<T>)e.action, data, false);
-                        else
-                            ((Action<T>)e.action).Invoke(data);
-                    }
+                    if (e.Attribute.Parallel)
+                        ThreadPool.QueueUserWorkItem((Action<T>)e.action, data, false);
                     else
-                        ((Action<T, EventHandler>)e.action).Invoke(data, eh);
+                        ((Action<T>)e.action).Invoke(data);
                 }
                 catch (Exception ex)
                 {

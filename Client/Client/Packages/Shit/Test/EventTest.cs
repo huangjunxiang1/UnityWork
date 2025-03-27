@@ -189,7 +189,7 @@ class EventTest
         if (isEnd) throw new System.Exception();
     }
     [Event]
-    static async STask r3(EC_Event3 e)
+    static void r3(EC_Event3 e)
     {
         e.v1 = 3;
         if (isEnd) throw new System.Exception();

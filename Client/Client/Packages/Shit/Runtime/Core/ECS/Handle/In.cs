@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 //        o.World.Event.GetEventQueue(typeof(In<?[T]+, ?>), out var v);
 //        o._In.AddRange(v);
 // #endif
-//        o.World.Event.RunEvent(new In<?[T]+, ?>(?[c]+, ?));
+//        o.World.Event.RunEventNoGCAndFaster(new In<?[T]+, ?>(?[c]+, ?));
 //    }
 //}
 //end

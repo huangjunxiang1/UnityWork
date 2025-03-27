@@ -23,6 +23,6 @@ using System.Threading.Tasks;
 //?        if (!o.Entity.TryGetComponent<[T]>(out var [c]) || ![c].Enable) return;+\r?
 //        record.Add(typeof(Out<?[T]+, ?>), new Out<?[T]+, ?>(?[c]+, ?));
 //    }
-//    internal override void Invoke(SObject o) => o.World.Event.RunEvent(this);
+//    internal override void Invoke(SObject o) => o.World.Event.RunEventNoGCAndFaster(this);
 //}
 //end
