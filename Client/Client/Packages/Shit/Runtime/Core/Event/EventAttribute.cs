@@ -21,13 +21,3 @@ public class EventAttribute : SAttribute
 
     public readonly static EventAttribute Default = new();
 }
-public class TimerAttribute : SAttribute
-{
-    public float delay { get; }
-    public int count { get; }
-    public TimerAttribute(float delay, int count)
-    {
-        this.delay = delay;
-        this.count = count;
-    }
-}

@@ -140,28 +140,28 @@ namespace Game
             return _task;
         }
 
-        [Event]
-        static void Awake(Awake<MoveToComponent> t)
+        [AwakeSystem]
+        static void Awake(MoveToComponent t)
         {
-            t.t.Enable = false;
+            t.Enable = false;
         }
-        [Event]
-        static void Update(Update<MoveToComponent, TransformComponent, KVComponent> t)
+        [UpdateSystem]
+        static void Update(MoveToComponent a, TransformComponent b, KVComponent c)
         {
-            var speed = t.t3.Get((int)KType.MoveSpeed);
-            var speed2 = t.t3.Get((int)KType.RotateSpeed);
-            float3 now = t.t2.position;
-            float3 next = t.t._paths[t.t._index];
-            float moveStep = t.t.World.DeltaTime * speed;
+            var speed = c.Get((int)KType.MoveSpeed);
+            var speed2 = c.Get((int)KType.RotateSpeed);
+            float3 now = b.position;
+            float3 next = a._paths[a._index];
+            float moveStep = a.World.DeltaTime * speed;
             float distance = math.distance(next, now);
             while (distance < moveStep)
             {
                 moveStep -= distance;
-                if (t.t._index < t.t._paths.Length - 1)
+                if (a._index < a._paths.Length - 1)
                 {
-                    t.t._index++;
+                    a._index++;
                     now = next;
-                    next = t.t._paths[t.t._index];
+                    next = a._paths[a._index];
                     distance = math.distance(next, now);
                 }
                 else
@@ -174,18 +174,18 @@ namespace Game
             {
                 var dir = math.normalize(next - now);
                 var r = quaternion.LookRotation(dir, math.up());
-                t.t2.rotation = math.slerp(t.t2.rotation, r, math.clamp(t.t.World.DeltaTime * speed2, 0, 1));
-                t.t2.position = now + dir * moveStep;
+                b.rotation = math.slerp(b.rotation, r, math.clamp(a.World.DeltaTime * speed2, 0, 1));
+                b.position = now + dir * moveStep;
             }
             else
             {
-                t.t2.position = next;
-                t.t2.rotation = math.slerp(t.t2.rotation, t.t.rotation, math.clamp(t.t.World.DeltaTime * speed2, 0, 1));
-                if (math.abs(math.angle(t.t2.rotation, t.t.rotation)) < 0.1f)
+                b.position = next;
+                b.rotation = math.slerp(b.rotation, a.rotation, math.clamp(a.World.DeltaTime * speed2, 0, 1));
+                if (math.abs(math.angle(b.rotation, a.rotation)) < 0.1f)
                 {
-                    t.t.Enable = false;
-                    var old = t.t._task;
-                    t.t._task = null;
+                    a.Enable = false;
+                    var old = a._task;
+                    a._task = null;
                     old?.TrySetResult(true);
                 }
             }

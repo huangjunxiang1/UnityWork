@@ -13,10 +13,10 @@ using System.Threading.Tasks;
 public class Login : STree
 {
     public IPEndPoint ip { get; set; }
-    [Event]
-    static async void Awake(Awake<Login> t)
+    [AwakeSystem]
+    static async void Awake(Login t)
     {
-        TcpListener tcp = new(t.t.ip);
+        TcpListener tcp = new(t.ip);
         try
         {
             tcp.Start();
@@ -29,30 +29,30 @@ public class Login : STree
         {
             var client = await tcp.AcceptTcpClientAsync();
             Player o = new() { ActorId = (uint)Util.RandomInt() };
-            t.t.AddChild(o);
+            t.AddChild(o);
             o.AddComponent(new NetComponent(false)).SetSession(new STCP(client)).Work();
         }
     }
-    [Event]
-    static void login(EventWatcher<C2S_Login, NetComponent> t)
+    [EventWatcherSystem]
+    static void login(C2S_Login a, NetComponent b)
     {
-        if (string.IsNullOrEmpty(t.t.acc) || string.IsNullOrEmpty(t.t.pw)) return;
-        var login = t.t2.Entity.Parent.As<Login>();
+        if (string.IsNullOrEmpty(a.acc) || string.IsNullOrEmpty(a.pw)) return;
+        var login = b.Entity.Parent.As<Login>();
         S2C_Login s = new();
-        if (login.GetChildren().Find(c => c.As<Player>().acc == t.t.acc) != null)
+        if (login.GetChildren().Find(c => c.As<Player>().acc == a.acc) != null)
         {
             s.error = "账号已被登录";
-            t.t2.Send(s);
+            b.Send(s);
             return;
         }
-        login.TryGetChildByActorId(t.t2.ActorId,out var c);
-        c.As<Player>().acc = t.t.acc;
-        t.t2.Send(s);
+        login.TryGetChildByActorId(b.ActorId,out var c);
+        c.As<Player>().acc = a.acc;
+        b.Send(s);
     }
-    [Event]
-    static void EC_Disconnect(EventWatcher<EC_Disconnect, NetComponent, Player> t)
+    [EventWatcherSystem]
+    static void EC_Disconnect(EC_Disconnect a, Player b)
     {
-        t.t2.Entity.Dispose();
+        b.Dispose();
     }
 }
 public class Player : SObject

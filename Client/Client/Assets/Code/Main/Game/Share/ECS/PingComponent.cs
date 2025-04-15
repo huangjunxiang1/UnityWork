@@ -14,10 +14,11 @@ class PingComponent : SComponent
     static S2C_Ping s_p = new();
     int counter;
 
-    static async void Awake(Awake<NetComponent> t)
+    [AwakeSystem]
+    static async void Awake(NetComponent t)
     {
-        if (t.t.isClient) return;
-        var ping = t.t.Entity.AddComponent<PingComponent>();
+        if (t.isClient) return;
+        var ping = t.Entity.AddComponent<PingComponent>();
         while (true)
         {
             await STask.Delay(3000);
@@ -26,26 +27,26 @@ class PingComponent : SComponent
                 if (ping.counter > 5)
                 {
                     ping.Dispose();
-                    t.t.Session.DisConnect();
+                    t.Session.DisConnect();
                     break;
                 }
-                t.t.Send(s_p);
+                t.Send(s_p);
                 ping.counter++;
             }
             else break;
         }
     }
 
-    [Event]
-    static void watcher(EventWatcher<C2S_Ping, PingComponent, NetComponent> t)
+    [EventWatcherSystem]
+    static void watcher(C2S_Ping a, PingComponent b, NetComponent c)
     {
-        if (t.t3.isClient) return;
-        t.t2.counter = 0;
+        if (c.isClient) return;
+        b.counter = 0;
     }
-    [Event]
-    static void ping(EventWatcher<S2C_Ping, NetComponent> t)
+    [EventWatcherSystem]
+    static void ping(S2C_Ping a, NetComponent b)
     {
-        if (!t.t2.isClient) return;
-        t.t2.Send(c_p);
+        if (!b.isClient) return;
+        b.Send(c_p);
     }
 }

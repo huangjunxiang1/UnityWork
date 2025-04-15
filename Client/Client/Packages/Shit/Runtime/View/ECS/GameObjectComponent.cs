@@ -223,42 +223,42 @@ namespace Game
             SetGameObject(res);
         }
 
-        [Event]
-        static void Dispose(Dispose<GameObjectComponent> t)
+        [DisposeSystem]
+        static void Dispose(GameObjectComponent t)
         {
-            ++t.t._resVersion;
-            switch (t.t.gameObjectType)
+            ++t._resVersion;
+            switch (t.gameObjectType)
             {
                 case SGameObjectType.Static:
                     break;
                 case SGameObjectType.Resource:
-                    if (t.t.gameObject)
-                        SAsset.Release(t.t.gameObject);
+                    if (t.gameObject)
+                        SAsset.Release(t.gameObject);
                     break;
                 case SGameObjectType.LogicRoot:
-                    if (t.t.gameObject)
+                    if (t.gameObject)
                     {
-                        t.t.gameRoot.transform.localScale = Vector3.one;
-                        SAsset.Release(t.t.gameObject);
+                        t.gameRoot.transform.localScale = Vector3.one;
+                        SAsset.Release(t.gameObject);
                     }
-                    GameObject.DestroyImmediate(t.t.gameRoot);
+                    GameObject.DestroyImmediate(t.gameRoot);
                     break;
                 default:
                     break;
             }
-            t.t.gameObject = null;
-            t.t.gameRoot = null;
+            t.gameObject = null;
+            t.gameRoot = null;
         }
 
-        [Event]
-        static void AnyChange(AnyChange<GameObjectComponent, TransformComponent> t)
+        [AnyChangeSystem]
+        static void AnyChange(GameObjectComponent a, TransformComponent b)
         {
-            if (t.t.gameObjectType == SGameObjectType.Static) return;
-            if (t.t.gameRoot)
+            if (a.gameObjectType == SGameObjectType.Static) return;
+            if (a.gameRoot)
             {
-                t.t.gameRoot.transform.position = t.t2.position;
-                t.t.gameRoot.transform.localScale = t.t2.scale;
-                t.t.gameRoot.transform.rotation = t.t2.rotation;
+                a.gameRoot.transform.position = b.position;
+                a.gameRoot.transform.localScale = b.scale;
+                a.gameRoot.transform.rotation = b.rotation;
             }
         }
     }

@@ -6,54 +6,31 @@ using System.Text;
 using System.Threading.Tasks;
 
 //begin#1
-//public class KVWatcher<?[T]+, ?> : __KVWatcher ?where [T] : SComponent+ ?
+//internal partial class KVWatcher<?[T]+, ?> : __KVWatcher ?where [T] : SComponent+ ?
 //{
-//    public KVWatcher(KVComponent kv, ?[T] [t]+, ?) { this.kv = kv; ?this.[t] = [t];+ ? }
-//    public KVComponent kv { get; }
-//?    public [T] [t] { get; }+\r?
+//    internal Dictionary<int, List<Action<?[T]+, ?>>> sys = new();
 //
-//    internal static void TryCreateHandle(SObject o)
+//    public override ComponentFilter Filter(SObject o, bool addToQueue = false)
 //    {
-//        var kv = o.GetComponent<KVComponent>();
-//?        if (!o.TryGetComponent<[T]>(out var [c])) return;+\r?
-//        var v = new KVWatcher<?[T]+, ?>(kv, ?[c]+, ?);
-//        if (kv._kvWatcherHandles == null) kv._kvWatcherHandles = ObjectPool.Get<List<__KVWatcher>>();
-//?        if ([c]._kvWatcherHandles == null) [c]._kvWatcherHandles = ObjectPool.Get<List<__KVWatcher>>();+\r?
-//        kv._kvWatcherHandles.Add(v);
-//?        [c]._kvWatcherHandles.Add(v);+\r?
+//        if (!o.TryGetComponent<KVComponent>(out var kv)) return null;
+//?        if (!o.TryGetComponent<[T]>(out var [c])) return null;+\r?
+//        var v = new ComponentFilter<?[T]+, ?>() { system = this, kv = kv, ?[t] = [c]+, ? };
+//?        if (![c].Enable) v.EnableCounter %= 1;+\r?
+//        return v;
 //    }
-//    internal override void Dispose()
+//    public override void Add(int key, Delegate d)
 //    {
-//        base.Dispose();
-//        kv.World.System.AddToKVWaitRemove(kv);
-//?        [t].World.System.AddToKVWaitRemove([t]);+\r?
+//        if (!sys.TryGetValue(key, out var lst))
+//            sys[key] = lst = new(1);
+//        lst.Add((Action<?[T]+, ?>)d);
 //    }
-//    internal override void Invoke(int type)
+//    public override void _invoke_kvWatcher(int key, ComponentFilter cf)
 //    {
-//        if (!kv.Enable || ?![t].Enable+ || ?) return;
-//        kv.World.Event.RunEventNoGCAndFaster(this, type);
+//        if (!sys.TryGetValue(key, out var lst))
+//            return;
+//        var cs = (ComponentFilter<?[T]+, ?>)cf;
+//        for (int i = 0; i < lst.Count; i++)
+//            lst[i].Invoke(?cs.[t]+, ?);
 //    }
 //}
 //end
-public class KVWatcher : __KVWatcher
-{
-    public KVWatcher(KVComponent kv) { this.kv = kv; }
-    public KVComponent kv { get; }
-
-    internal static void TryCreateHandle(SObject target)
-    {
-        var kv = target.GetComponent<KVComponent>();
-        var v = new KVWatcher(kv);
-        (kv._kvWatcherHandles ??= ObjectPool.Get<List<__KVWatcher>>()).Add(v);
-    }
-    internal override void Dispose()
-    {
-        base.Dispose();
-        kv.World.System.AddToKVWaitRemove(kv);
-    }
-    internal override void Invoke(int type)
-    {
-        if (!kv.Enable) return;
-        kv.World.Event.RunEventNoGCAndFaster(this, type);
-    }
-}

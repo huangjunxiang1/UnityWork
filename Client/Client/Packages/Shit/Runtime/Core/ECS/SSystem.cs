@@ -1,351 +1,536 @@
-﻿using System;
+﻿using Animancer;
+using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Core
 {
+    enum SystemType
+    {
+        None,
+        Change,
+        AnyChange,
+        KvWatcher,
+        Update,
+    }
     internal class SSystem
     {
         public SSystem(World world) => this.world = world;
-
         World world;
-        internal Dictionary<Type, List<Action<SObject>>> inHandle = new();
-        internal Dictionary<Type, List<(Action<Type, SComponent>, Action<SObject, Dictionary<Type, __OutHandle>>)>> outHandle = new();
-        internal Dictionary<Type, List<Action<SObject>>> changeHandle = new();
-        internal Dictionary<Type, List<(Type, Action<object, SObject, int>)>> eventWatcherHandle = new();
-        internal Dictionary<Type, List<Action<SObject>>> kvWatcherHandle = new();
-        internal Dictionary<Type, List<Action<SObject>>> timerHandle = new();
-        internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> beforeUpdateHandlerCreater = new();
-        internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> updateHandlerCreater = new();
-        internal Dictionary<Type, List<Func<SObject, __UpdateHandle>>> lateUpdateHandlerCreater = new();
 
-        ConcurrentQueue<__ChangeHandle> changeWaitInvoke = ObjectPool.Get<ConcurrentQueue<__ChangeHandle>>();
-        HashSet<SComponent> changeWaitRemove = new();
-        HashSet<SComponent> kvWaitRemove = new();
-        Queue<__UpdateHandle> beforeUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
-        Queue<__UpdateHandle> updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
-        Queue<__UpdateHandle> lateUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
+        internal Dictionary<Type, __SystemHandle> _AwakeSystem = new();
+        internal Dictionary<Type, __SystemHandle> _DisposeSystem = new();
+        internal Dictionary<Type, __SystemHandle> _BeforeUpdateSystem = new();
+        internal Dictionary<Type, __SystemHandle> _UpdateSystem = new();
+        internal Dictionary<Type, __SystemHandle> _LateUpdateSystem = new();
+        internal Dictionary<Type, __SystemHandle> _ChangeSystem = new();
+        internal Dictionary<Type, __SystemHandle> _AnyChangeSystem = new();
+        internal Dictionary<Type, __SystemHandle> _InSystem = new();
+        internal Dictionary<Type, __SystemHandle> _OutSystem = new();
+        internal Dictionary<Type, __KVWatcher> _KvWatcherSystem = new();
+
+        internal Dictionary<Type, List<__SystemHandle>> _beforeUpdateHandlerCreater = new();
+        internal Dictionary<Type, List<__SystemHandle>> _updateHandlerCreater = new();
+        internal Dictionary<Type, List<__SystemHandle>> _lateUpdateHandlerCreater = new();
+        internal Dictionary<Type, List<__SystemHandle>> _changeHandlerCreater = new();
+        internal Dictionary<Type, List<__SystemHandle>> _anyChangeHandlerCreater = new();
+        internal Dictionary<Type, List<__SystemHandle>> _inCreater = new();
+        internal Dictionary<Type, List<__SystemHandle>> _outCreater = new();
+        internal Dictionary<Type, List<__SystemHandle>> _eventWatcherCreater = new();
+        internal Dictionary<Type, List<__KVWatcher>> _kvWatcherCreater = new();
+
+        ConcurrentQueue<ComponentFilter> changeWaitInvoke = ObjectPool.Get<ConcurrentQueue<ComponentFilter>>();
+        internal HashSet<SComponent> waitRemove = new();
+        Dictionary<Type, List<SObject>> eventWatcherFirstType = new(100);
+        HashSet<Type> eventWatcherWaitRemove = new();
+
+        internal void Load(List<MethodParseData> methods)
+        {
+            Type[] _systemHandlerGT = new Type[10]
+            {
+                typeof(SystemHandler<>),
+                typeof(SystemHandler<,>),
+                typeof(SystemHandler<,,>),
+                typeof(SystemHandler<,,,>),
+                typeof(SystemHandler<,,,,>),
+                typeof(SystemHandler<,,,,,>),
+                typeof(SystemHandler<,,,,,,>),
+                typeof(SystemHandler<,,,,,,,>),
+                typeof(SystemHandler<,,,,,,,,>),
+                typeof(SystemHandler<,,,,,,,,,>),
+            }; 
+            Type[] _eventWatcherGT = new Type[9]
+            {
+                typeof(EventWatcher<,>),
+                typeof(EventWatcher<,,>),
+                typeof(EventWatcher<,,,>),
+                typeof(EventWatcher<,,,,>),
+                typeof(EventWatcher<,,,,,>),
+                typeof(EventWatcher<,,,,,,>),
+                typeof(EventWatcher<,,,,,,,>),
+                typeof(EventWatcher<,,,,,,,,>),
+                typeof(EventWatcher<,,,,,,,,,>),
+            };
+            Type[] _kvWatcherGT = new Type[10]
+            {
+                typeof(KVWatcher<>),
+                typeof(KVWatcher<,>),
+                typeof(KVWatcher<,,>),
+                typeof(KVWatcher<,,,>),
+                typeof(KVWatcher<,,,,>),
+                typeof(KVWatcher<,,,,,>),
+                typeof(KVWatcher<,,,,,,>),
+                typeof(KVWatcher<,,,,,,,>),
+                typeof(KVWatcher<,,,,,,,,>),
+                typeof(KVWatcher<,,,,,,,,,>),
+            };
+            Type[] _actionGT = new Type[10]
+            {
+                 typeof(Action<>),
+                 typeof(Action<,>),
+                 typeof(Action<,,>),
+                 typeof(Action<,,,>),
+                 typeof(Action<,,,,>),
+                 typeof(Action<,,,,,>),
+                 typeof(Action<,,,,,,>),
+                 typeof(Action<,,,,,,,>),
+                 typeof(Action<,,,,,,,,>),
+                 typeof(Action<,,,,,,,,,>),
+            };
+            Dictionary<Type, __SystemHandle> _EventWatcherSystem = new();
+
+            for (int i = 0; i < methods.Count; i++)
+            {
+                var m = methods[i];
+                if (m.attribute is AwakeSystem)
+                {
+                    var ts = ArrayCache.Get<Type>(1);
+                    ts[0] = m.mainKey;
+                    if (!_AwakeSystem.TryGetValue(m.mainKey, out var v))
+                        _AwakeSystem[m.mainKey] = v = (__SystemHandle)Activator.CreateInstance(typeof(SystemHandler<>).MakeGenericType(ts));
+                    v.Add(m.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is DisposeSystem)
+                {
+                    var ts = ArrayCache.Get<Type>(1);
+                    ts[0] = m.mainKey;
+                    if (!_DisposeSystem.TryGetValue(m.mainKey, out var v))
+                        _DisposeSystem[m.mainKey] = v = (__SystemHandle)Activator.CreateInstance(typeof(SystemHandler<>).MakeGenericType(ts));
+                    v.Add(m.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is BeforeUpdateSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _systemHandlerGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_BeforeUpdateSystem.TryGetValue(st, out var v))
+                    {
+                        _BeforeUpdateSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_beforeUpdateHandlerCreater.TryGetValue(key, out var lst))
+                                _beforeUpdateHandlerCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is UpdateSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _systemHandlerGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_UpdateSystem.TryGetValue(st, out var v))
+                    {
+                        _UpdateSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_updateHandlerCreater.TryGetValue(key, out var lst))
+                                _updateHandlerCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is LateUpdateSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _systemHandlerGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_LateUpdateSystem.TryGetValue(st, out var v))
+                    {
+                        _LateUpdateSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_lateUpdateHandlerCreater.TryGetValue(key, out var lst))
+                                _lateUpdateHandlerCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is ChangeSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _systemHandlerGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_ChangeSystem.TryGetValue(st, out var v))
+                    {
+                        _ChangeSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_changeHandlerCreater.TryGetValue(key, out var lst))
+                                _changeHandlerCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is AnyChangeSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _systemHandlerGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_AnyChangeSystem.TryGetValue(st, out var v))
+                    {
+                        _AnyChangeSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_anyChangeHandlerCreater.TryGetValue(key, out var lst))
+                                _anyChangeHandlerCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is InSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _systemHandlerGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_InSystem.TryGetValue(st, out var v))
+                    {
+                        _InSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_inCreater.TryGetValue(key, out var lst))
+                                _inCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is OutSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _systemHandlerGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_OutSystem.TryGetValue(st, out var v))
+                    {
+                        _OutSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_outCreater.TryGetValue(key, out var lst))
+                                _outCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is EventWatcherSystem)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _eventWatcherGT[ts.Length - 2].MakeGenericType(ts);
+
+                    if (!_EventWatcherSystem.TryGetValue(st, out var v))
+                    {
+                        _EventWatcherSystem[st] = v = (__SystemHandle)Activator.CreateInstance(st);
+                        var key = ts[0];
+                        if (!_eventWatcherCreater.TryGetValue(key, out var lst))
+                            _eventWatcherCreater[key] = lst = new();
+                        if (!eventWatcherFirstType.TryGetValue(ts[1], out var os))
+                            eventWatcherFirstType[ts[1]] = os = new();
+                        lst.Add(v);
+                    }
+                    v.Add(m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+                if (m.attribute is KVWatcherSystem ks)
+                {
+                    var ts = m.parameters.Select(t => t.ParameterType).ToArray();
+                    var st = _kvWatcherGT[ts.Length - 1].MakeGenericType(ts);
+
+                    if (!_KvWatcherSystem.TryGetValue(st, out var v))
+                    {
+                        _KvWatcherSystem[st] = v = (__KVWatcher)Activator.CreateInstance(st);
+                        for (int j = 0; j < ts.Length; j++)
+                        {
+                            var key = ts[j];
+                            if (!_kvWatcherCreater.TryGetValue(key, out var lst))
+                                _kvWatcherCreater[key] = lst = new();
+                            lst.Add(v);
+                        }
+                        if (!ts.Contains(typeof(KVComponent)))
+                        {
+                            if (!_kvWatcherCreater.TryGetValue(typeof(KVComponent), out var lst))
+                                _kvWatcherCreater[typeof(KVComponent)] = lst = new();
+                            lst.Add(v);
+                        }
+                    }
+                    v.Add(ks.K, m.method.CreateDelegate(_actionGT[ts.Length - 1].MakeGenericType(ts)));
+                    continue;
+                }
+            }
+        }
 
         internal void RigisterHandler(Type type, SComponent c)
         {
             {
-                if (changeHandle.TryGetValue(type, out var list))
+                if (_beforeUpdateHandlerCreater.TryGetValue(type, out var lst))
                 {
-                    for (int i = 0; i < list.Count; i++)
-                        list[i].Invoke(c.Entity);
-                }
-            }
-            {
-                if (c.Entity._components.ContainsKey(typeof(KVComponent)))
-                {
-                    if (kvWatcherHandle.TryGetValue(type, out var list))
+                    for (int i = 0; i < lst.Count; i++)
                     {
-                        for (int i = 0; i < list.Count; i++)
-                            list[i].Invoke(c.Entity);
-                    }
-                }
-            }
-            {
-                if (timerHandle.TryGetValue(type, out var list))
-                {
-                    for (int i = 0; i < list.Count; i++)
-                        list[i].Invoke(c.Entity);
-                }
-            }
-            {
-                if (beforeUpdateHandlerCreater.TryGetValue(type, out var list))
-                {
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var v = list[i].Invoke(c.Entity);
-                        if (v != null)
+                        var o = lst[i].Filter(c.Entity, true);
+                        if (o != null)
                         {
-                            beforeUpdateHandles.Enqueue(v);
+                            o.type = SystemType.Update;
+                            o._addTo_HandlesList();
 #if UNITY_EDITOR
-                            c.Entity._updates.Add(v);
+                            c.Entity._Other.Add(o);
 #endif
                         }
                     }
                 }
             }
             {
-                if (updateHandlerCreater.TryGetValue(type, out var list))
+                if (_updateHandlerCreater.TryGetValue(type, out var lst))
                 {
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i < lst.Count; i++)
                     {
-                        var v = list[i].Invoke(c.Entity);
-                        if (v != null)
+                        var o = lst[i].Filter(c.Entity, true);
+                        if (o != null)
                         {
-                            updateHandles.Enqueue(v);
+                            o.type = SystemType.Update;
+                            o._addTo_HandlesList();
 #if UNITY_EDITOR
-                            c.Entity._updates.Add(v);
+                            c.Entity._Other.Add(o);
 #endif
                         }
                     }
                 }
             }
             {
-                if (lateUpdateHandlerCreater.TryGetValue(type, out var list))
+                if (_lateUpdateHandlerCreater.TryGetValue(type, out var lst))
                 {
-                    for (int i = 0; i < list.Count; i++)
+                    for (int i = 0; i < lst.Count; i++)
                     {
-                        var v = list[i].Invoke(c.Entity);
-                        if (v != null)
+                        var o = lst[i].Filter(c.Entity, true);
+                        if (o != null)
                         {
-                            lateUpdateHandles.Enqueue(v);
+                            o.type = SystemType.Update;
+                            o._addTo_HandlesList();
 #if UNITY_EDITOR
-                            c.Entity._updates.Add(v);
+                            c.Entity._Other.Add(o);
 #endif
                         }
+                    }
+                }
+            }
+            {
+                if (_changeHandlerCreater.TryGetValue(type, out var lst))
+                {
+                    for (int i = 0; i < lst.Count; i++)
+                    {
+                        var o = lst[i].Filter(c.Entity);
+                        if (o != null)
+                        {
+                            o.type = SystemType.Change;
+                            o._addTo_HandlesList();
+                            o.dirty = true;
+                            changeWaitInvoke.Enqueue(o);
+#if UNITY_EDITOR
+                            c.Entity._Other.Add(o);
+#endif
+                        }
+                    }
+                }
+            }
+            {
+                if (_anyChangeHandlerCreater.TryGetValue(type, out var lst))
+                {
+                    for (int i = 0; i < lst.Count; i++)
+                    {
+                        var o = lst[i].Filter(c.Entity);
+                        if (o != null)
+                        {
+                            o.type = SystemType.AnyChange;
+                            o._addTo_HandlesList();
+#if UNITY_EDITOR
+                            c.Entity._Other.Add(o);
+#endif
+                        }
+                    }
+                }
+            }
+            {
+                if (eventWatcherFirstType.TryGetValue(type, out var lst))
+                    lst.Add(c.Entity);
+            }
+            {
+                if (_kvWatcherCreater.TryGetValue(type, out var lst))
+                {
+                    for (int i = 0; i < lst.Count; i++)
+                    {
+                        var o = lst[i].Filter(c.Entity);
+                        if (o != null)
+                        {
+                            o.type = SystemType.KvWatcher;
+                            o._addTo_HandlesList();
+                            o._addTo_kvHandlesList();
+#if UNITY_EDITOR
+                            c.Entity._Other.Add(o);
+#endif
+                        }
+                    }
+                }
+            }
+            c.SetChangeFlag();
+        }
+        internal void UnRigisterHandler(Type type, SComponent c)
+        {
+            if (eventWatcherFirstType.ContainsKey(type))
+                eventWatcherWaitRemove.Add(type);
+        }
+
+        internal void Awake(Type type, SComponent c)
+        {
+            if (!_AwakeSystem.TryGetValue(type, out var v))
+                return;
+            v._handle_AwakeOrDispose(c);
+        }
+        internal void Dispose(Type type, SComponent c)
+        {
+            if (!_DisposeSystem.TryGetValue(type, out var v))
+                return;
+            v._handle_AwakeOrDispose(c);
+        }
+        internal void Change(SComponent c, bool call = false)
+        {
+            if (call)
+            {
+                for (int i = 0; i < c._Handles.Count; i++)
+                    if (c._Handles[i].type == SystemType.AnyChange || (c._Handles[i].type == SystemType.Change && c._Handles[i].GetFirstComponent() == c))
+                        c._Handles[i].dirty = true;
+                for (int i = 0; i < c._Handles.Count; i++)
+                {
+                    if (c._Handles[i].dirty && (c._Handles[i].type == SystemType.AnyChange || (c._Handles[i].type == SystemType.Change && c._Handles[i].GetFirstComponent() == c)))
+                    {
+                        c._Handles[i].dirty = false;
+                        if (c._Handles[i].Disposed || c._Handles[i].EnableCounter != 0) continue;
+                        c._Handles[i].Invoke();
+                        if (c.Disposed) break;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < c._Handles.Count; i++)
+                {
+                    if (!c._Handles[i].dirty && (c._Handles[i].type == SystemType.AnyChange || (c._Handles[i].type == SystemType.Change && c._Handles[i].GetFirstComponent() == c)))
+                    {
+                        c._Handles[i].dirty = true;
+                        changeWaitInvoke.Enqueue(c._Handles[i]);
                     }
                 }
             }
         }
-        internal void In(Type type, SObject o)
+        internal void In(Type type, SComponent c)
         {
-            if (!inHandle.TryGetValue(type, out var list)) return;
-            for (int i = 0; i < list.Count; i++)
+            if (!_inCreater.TryGetValue(type, out var v))
+                return;
+            for (int i = 0; i < v.Count; i++)
             {
-                try { list[i](o); }
-                catch (Exception e) { Loger.Error("In Error " + e); }
+                var o = v[i].Filter(c.Entity);
+                if (o != null && o.EnableCounter == 0)
+                {
+                    o.Invoke();
+#if UNITY_EDITOR
+                    c.Entity._In.Add(o);
+#endif
+                }
             }
         }
         internal void Out(Type type, SComponent c)
         {
-            if (!outHandle.TryGetValue(type, out var list)) return;
-            for (int i = 0; i < list.Count; i++)
+            if (!_outCreater.TryGetValue(type, out var v))
+                return;
+            for (int i = 0; i < v.Count; i++)
             {
-                try { list[i].Item1(type, c); }
-                catch (Exception e) { Loger.Error("Out Error " + e); }
+                var o = v[i].Filter(c.Entity);
+                if (o != null && o.EnableCounter == (c.Enable ? 0 : 1))
+                {
+                    o.Invoke();
+#if UNITY_EDITOR
+                    c.Entity._Out.Add(o);
+#endif
+                }
             }
         }
-        internal void Out(Type type, SObject o, Dictionary<Type, __OutHandle> record)
+        internal void EventWatcher(object o, long ActorId = 0, long gid = 0)
         {
-            if (!outHandle.TryGetValue(type, out var list)) return;
-            for (int i = 0; i < list.Count; i++)
-            {
-                try { list[i].Item2.Invoke(o, record); }
-                catch (Exception e) { Loger.Error("Out Error " + e); }
-            }
-        }
-        internal void AddToChangeWaitInvoke(__ChangeHandle h) => changeWaitInvoke.Enqueue(h);
-        internal void AddToChangeWaitRemove(SComponent c) => changeWaitRemove.Add(c);
-        internal void AddToKVWaitRemove(SComponent c) => kvWaitRemove.Add(c);
-        internal void EventWatcherActorId(long actorId, object e, int type)
-        {
-            if (!world.ObjectManager.TryGetByActorId(actorId, out var lst))
+            if (!_eventWatcherCreater.TryGetValue(o.GetType(), out var handlers))
                 return;
-            if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
-                return;
-            for (int i = 0; i < acts.Count; i++)
+            if (ActorId != 0)
             {
+                if (!world.ObjectManager.TryGetByActorId(ActorId, out var lst))
+                    return;
                 int len = lst.Count;
-                for (int j = 0; j < len; j++)
+                for (int i = 0; i < len; i++)
                 {
-                    if (lst[j].Disposed) continue;
-                    acts[i].Item2.Invoke(e, lst[j], type);
+                    for (int j = 0; j < handlers.Count; j++)
+                        if (!lst[i].Disposed)
+                            handlers[j]._invoke_eventWatcher(o, lst[i]);
                 }
             }
-        }
-        internal void EventWatcherGid(long gid, object e, int type)
-        {
-            if (!world.ObjectManager.TryGetByGid(gid, out var o))
-                return;
-            if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
-                return;
-            for (int i = 0; i < acts.Count; i++)
-                acts[i].Item2.Invoke(e, o, type);
-        }
-        internal void EventWatcher(object e, int type)
-        {
-            if (!eventWatcherHandle.TryGetValue(e.GetType(), out var acts))
-                return;
-            for (int i = 0; i < acts.Count; i++)
+            else if (gid != 0)
             {
-                var lst = world.ObjectManager.GetObjectsByComponentType(acts[i].Item1);
-                if (lst != null)
-                {
-                    int len = lst.Count;
-                    for (int j = 0; j < len; j++)
-                    {
-                        if (lst[j].Disposed) continue;
-                        acts[i].Item2.Invoke(e, lst[j], type);
-                    }
-                }
+                if (!world.ObjectManager.TryGetByGid(gid, out var obj))
+                    return;
+                for (int j = 0; j < handlers.Count; j++)
+                    if (!obj.Disposed)
+                        handlers[j]._invoke_eventWatcher(o, obj);
             }
-        }
-
-        /// <summary>
-        /// 反射注册所有静态函数的消息和事件监听
-        /// </summary>
-        internal void Load(List<MethodParseData> methods)
-        {
-            HashSet<Type> aIn = new();
-            HashSet<Type> aOut = new();
-            HashSet<Type> change = new();
-            HashSet<Type> eventWatcher = new();
-            HashSet<Type> kvWatcher = new();
-            HashSet<Type> timer = new();
-            Dictionary<Type, List<TimerItem>> timerItems = new();
-            HashSet<Type> update = new();
-            for (int i = 0; i < methods.Count; i++)
+            else
             {
-                MethodParseData ma = methods[i];
-                if (ma.attribute is EventAttribute && typeof(__SystemHandle).IsAssignableFrom(ma.mainKey))
+                for (int i = 0; i < handlers.Count; i++)
                 {
-                    if (typeof(__InHandle).IsAssignableFrom(ma.mainKey))
+                    if (eventWatcherFirstType.TryGetValue(handlers[i]._get_firstType(), out var lst))
                     {
-                        aIn.Add(ma.mainKey);
-                        continue;
-                    }
-                    if (typeof(__OutHandle).IsAssignableFrom(ma.mainKey))
-                    {
-                        aOut.Add(ma.mainKey);
-                        continue;
-                    }
-                    if (typeof(__ChangeHandle).IsAssignableFrom(ma.mainKey))
-                    {
-                        change.Add(ma.mainKey);
-                        continue;
-                    }
-                    if (typeof(__EventWatcher).IsAssignableFrom(ma.mainKey))
-                    {
-                        eventWatcher.Add(ma.mainKey);
-                        continue;
-                    }
-                    if (typeof(__KVWatcher).IsAssignableFrom(ma.mainKey))
-                    {
-                        kvWatcher.Add(ma.mainKey);
-                        continue;
-                    }
-                    if (typeof(__UpdateHandle).IsAssignableFrom(ma.mainKey))
-                    {
-                        update.Add(ma.mainKey);
-                        continue;
-                    }
-                }
-                if (ma.attribute is TimerAttribute && typeof(__Timer).IsAssignableFrom(ma.mainKey))
-                {
-                    TimerItem ti = new();
-                    ti.attribute = (TimerAttribute)ma.attribute;
-                    var ts = ArrayCache.Get<Type>(1);
-                    ts[0] = ma.mainKey;
-                    ti.action = ma.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts));
-                    if (!timerItems.TryGetValue(ma.mainKey, out var lst))
-                        timerItems[ma.mainKey] = lst = new();
-                    lst.Add(ti);
-                    timer.Add(ma.mainKey);
-                    continue;
-                }
-            }
-            foreach (var item in aIn)
-            {
-                var ts = item.GetGenericArguments();
-                var action = (Action<SObject>)item.GetMethod(nameof(In<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
-                for (int i = 0; i < ts.Length; i++)
-                {
-                    if (!inHandle.TryGetValue(ts[i], out var lst))
-                        inHandle[ts[i]] = lst = new();
-                    lst.Add(action);
-                }
-            }
-            foreach (var item in aOut)
-            {
-                var ts = item.GetGenericArguments();
-                var action = (Action<Type, SComponent>)item.GetMethod(nameof(Out<SObject>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<Type, SComponent>));
-                var action2 = (Action<SObject, Dictionary<Type, __OutHandle>>)item.GetMethod(nameof(Out<SObject>.Invoke2), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject, Dictionary<Type, __OutHandle>>));
-                for (int i = 0; i < ts.Length; i++)
-                {
-                    if (!outHandle.TryGetValue(ts[i], out var lst))
-                        outHandle[ts[i]] = lst = new();
-                    lst.Add((action, action2));
-                }
-            }
-            foreach (var item in change)
-            {
-                var ts = item.GetGenericArguments();
-                var action = (Action<SObject>)item.GetMethod(nameof(AnyChange<SComponent, SComponent>.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
-                for (int i = 0; i < ts.Length; i++)
-                {
-                    if (!changeHandle.TryGetValue(ts[i], out var lst))
-                        changeHandle[ts[i]] = lst = new();
-                    lst.Add(action);
-                }
-            }
-            foreach (var item in eventWatcher)
-            {
-                var ts = item.GetGenericArguments();
-                var action = (Action<object, SObject, int>)item.GetMethod(nameof(EventWatcher<object, SComponent>.Invoke), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<object, SObject, int>));
-                if (!eventWatcherHandle.TryGetValue(ts[0], out var lst))
-                    eventWatcherHandle[ts[0]] = lst = new();
-                lst.Add((ts[1], action));
-                world.ObjectManager.AddEventWatcherFirstType(ts[1]);
-            }
-            var kvs = kvWatcherHandle[typeof(KVComponent)] = new();
-            var kvAction = (Action<SObject>)KVWatcher.TryCreateHandle;
-            kvs.Add(kvAction);
-            foreach (var item in kvWatcher)
-            {
-                if (item != typeof(KVWatcher))
-                {
-                    var action = (Action<SObject>)item.GetMethod(nameof(KVWatcher.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
-                    kvs.Add(action);
-                    var ts = item.GetGenericArguments();
-                    for (int j = 0; j < ts.Length; j++)
-                    {
-                        var key = ts[j];
-                        if (!kvWatcherHandle.TryGetValue(key, out var lst))
-                            kvWatcherHandle[key] = lst = new();
-                        lst.Add(action);
-                    }
-                }
-            }
-            foreach (var item in timer)
-            {
-                var ts = item.GetGenericArguments();
-                var action = (Action<SObject>)item.GetMethod(nameof(Timer<SComponent>.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Action<SObject>));
-                for (int j = 0; j < ts.Length; j++)
-                {
-                    var key = ts[j];
-                    if (!timerHandle.TryGetValue(key, out var lst))
-                        timerHandle[key] = lst = new();
-                    lst.Add(action);
-                }
-            }
-            var ps = ArrayCache.Get<object>(1);
-            foreach (var item in timerItems)
-            {
-                ps[0] = item.Value;
-                item.Key.GetMethod(nameof(Timer<SComponent>.SetTimerList), BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, ps);
-            }
-            foreach (var item in update)
-            {
-                var ts = item.GetGenericArguments();
-                var action = (Func<SObject, __UpdateHandle>)item.GetMethod(nameof(Update<SComponent>.TryCreateHandle), BindingFlags.Static | BindingFlags.NonPublic).CreateDelegate(typeof(Func<SObject, __UpdateHandle>));
-                for (int j = 0; j < ts.Length; j++)
-                {
-                    var key = ts[j];
-                    if (typeof(__BeforeUpdateHandle).IsAssignableFrom(item))
-                    {
-                        if (!beforeUpdateHandlerCreater.TryGetValue(key, out var lst))
-                            beforeUpdateHandlerCreater[key] = lst = new();
-                        lst.Add(action);
-                    }
-                    else if (typeof(__LateUpdateHandle).IsAssignableFrom(item))
-                    {
-                        if (!lateUpdateHandlerCreater.TryGetValue(key, out var lst))
-                            lateUpdateHandlerCreater[key] = lst = new();
-                        lst.Add(action);
-                    }
-                    else
-                    {
-                        if (!updateHandlerCreater.TryGetValue(key, out var lst))
-                            updateHandlerCreater[key] = lst = new();
-                        lst.Add(action);
+                        int len = lst.Count;
+                        for (int j = 0; j < len; j++)
+                            if (!lst[j].Disposed)
+                                handlers[i]._invoke_eventWatcher(o, lst[j]);
                     }
                 }
             }
@@ -353,40 +538,24 @@ namespace Core
 
         internal void beforeUpdate()
         {
-            BeforeUpdate.Invoke(world);
-            var update = beforeUpdateHandles;
-            beforeUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
-            while (update.TryDequeue(out var u))
-            {
-                if (u.Disposed)
-                    continue;
-                u.Invoke();
-                beforeUpdateHandles.Enqueue(u);
-            }
-            ObjectPool.Return(update);
+            foreach (var item in _BeforeUpdateSystem.Values)
+                item._invoke_update();
         }
         internal void update()
         {
-            Update.Invoke(world);
-            var update = updateHandles;
-            updateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
-            while (update.TryDequeue(out var u))
-            {
-                if (u.Disposed)
-                    continue;
-                u.Invoke();
-                updateHandles.Enqueue(u);
-            }
-            ObjectPool.Return(update);
+            foreach (var item in _UpdateSystem.Values)
+                item._invoke_update();
 
             if (changeWaitInvoke.Count > 0)
             {
                 var change = changeWaitInvoke;
-                changeWaitInvoke = ObjectPool.Get<ConcurrentQueue<__ChangeHandle>>();
+                changeWaitInvoke = ObjectPool.Get<ConcurrentQueue<ComponentFilter>>();
                 while (change.TryDequeue(out var c))
                 {
-                    if (!c.setInvokeWaiting || c.Disposed) continue;
-                    c.setInvokeWaiting = false;
+                    if (!c.dirty) continue;
+                    c.dirty = false;
+                    if (c.Disposed || c.EnableCounter != 0)
+                        continue;
                     c.Invoke();
                 }
                 ObjectPool.Return(change);
@@ -394,53 +563,25 @@ namespace Core
         }
         internal void lateUpdate()
         {
-            LateUpdate.Invoke(world);
-            var update = lateUpdateHandles;
-            lateUpdateHandles = ObjectPool.Get<Queue<__UpdateHandle>>();
-            while (update.TryDequeue(out var u))
-            {
-                if (u.Disposed)
-                    continue;
-                u.Invoke();
-                lateUpdateHandles.Enqueue(u);
-            }
-            ObjectPool.Return(update);
+            foreach (var item in _LateUpdateSystem.Values)
+                item._invoke_update();
 
-            if (changeWaitRemove.Count > 0)
+            if (waitRemove.Count > 0)
             {
-                foreach (var c in changeWaitRemove)
+                foreach (var c in waitRemove)
                 {
-                    if (c.Disposed)
-                    {
-                        c._changeHandles.Clear();
-                        ObjectPool.Return(c._changeHandles);
-                        c._changeHandles = null;
-                    }
-                    else
-                        c._changeHandles.RemoveAll(t => t.Disposed);
+                    if (c.Disposed) continue;
+                    c._Handles.RemoveAll(t => t.Disposed);
                 }
-                changeWaitRemove.Clear();
+                waitRemove.Clear();
             }
-            if (kvWaitRemove.Count > 0)
+
+            if (eventWatcherWaitRemove.Count > 0)
             {
-                foreach (var c in kvWaitRemove)
-                {
-                    if (c.Disposed)
-                    {
-                        c._kvWatcherHandles.Clear();
-                        ObjectPool.Return(c._kvWatcherHandles);
-                        c._kvWatcherHandles = null;
-                    }
-                    else
-                        c._kvWatcherHandles.RemoveAll(t => t.Disposed);
-                }
-                kvWaitRemove.Clear();
+                foreach (var item in eventWatcherWaitRemove)
+                    eventWatcherFirstType[item].RemoveAll(t => t.Disposed);
+                eventWatcherWaitRemove.Clear();
             }
         }
-    }
-    internal class TimerItem
-    {
-        public TimerAttribute attribute;
-        public Delegate action;
     }
 }

@@ -184,29 +184,29 @@ namespace Game
             return play[layer].GetTime(name);
         }
 
-        [Event]
-        static void Change(Change<GameObjectComponent, PlayingComponent> t)
+        [ChangeSystem]
+        static void Change(GameObjectComponent a, PlayingComponent b)
         {
-            if (t.t.gameObject)
+            if (a.gameObject)
             {
 #if Animancer
-                if (t.t.gameObject.TryGetComponent<Animancer.NamedAnimancerComponent>(out var c))
-                    t.t2.Set(new A_Animancer() { ani = c });
+                if (a.gameObject.TryGetComponent<Animancer.NamedAnimancerComponent>(out var c))
+                    b.Set(new A_Animancer() { ani = c });
                 else
 #endif
-                if (t.t.gameObject.TryGetComponent<UnityEngine.Animation>(out var c2))
-                    t.t2.Set(new A_Animation() { ani = c2 });
-                else if (t.t.gameObject.TryGetComponent<UnityEngine.Animator>(out var c3))
-                    t.t2.Set(new A_Animator() { ani = c3, clips = c3.runtimeAnimatorController.animationClips });
+                if (a.gameObject.TryGetComponent<UnityEngine.Animation>(out var c2))
+                    b.Set(new A_Animation() { ani = c2 });
+                else if (a.gameObject.TryGetComponent<UnityEngine.Animator>(out var c3))
+                    b.Set(new A_Animator() { ani = c3, clips = c3.runtimeAnimatorController.animationClips });
 #if Spine
-                else if (t.t.gameObject.TryGetComponent<Spine.Unity.SkeletonAnimation>(out var c4))
-                    t.t2.Set(new A_Spine(c4));
+                else if (a.gameObject.TryGetComponent<Spine.Unity.SkeletonAnimation>(out var c4))
+                    b.Set(new A_Spine(c4));
 #endif
                 else
-                    t.t2.Set(new Playing());
+                    b.Set(new Playing());
             }
             else
-                t.t2.Set(new Playing());
+                b.Set(new Playing());
         }
 
 #if Animancer

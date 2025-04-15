@@ -89,18 +89,18 @@ internal class KVWatcherTest
     class c1 : SComponent { }
     class c2 : SComponent { }
 
-    [Event(Type = 1)]
-    static void e1(KVWatcher t) => a++;
-    [Event(Type = 2)]
-    static void e2(KVWatcher t) => a++;
+    [KVWatcherSystem(1)]
+    static void e1(KVComponent t) => a++;
+    [KVWatcherSystem(2)]
+    static void e2(KVComponent t) => a++;
 
-    [Event(Type = 1)]
-    static void e1(KVWatcher<c1> t) => a++;
-    [Event(Type = 2)]
-    static void e2(KVWatcher<c1> t) => a++;
+    [KVWatcherSystem(1)]
+    static void e1(c1 t) => a++;
+    [KVWatcherSystem(2)]
+    static void e2(c1 t) => a++;
 
-    [Event(Type = 1)]
-    static void e1(KVWatcher<c1, c2> t) => a++;
-    [Event(Type = 2)]
-    static void e2(KVWatcher<c1, c2> t) => a++;
+    [KVWatcherSystem(1)]
+    static void e1(c1 c, c2 b) => a++;
+    [KVWatcherSystem(2)]
+    static void e2(c1 c, c2 b) => a++;
 }

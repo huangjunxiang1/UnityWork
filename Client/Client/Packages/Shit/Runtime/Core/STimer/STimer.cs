@@ -275,7 +275,7 @@ namespace Core
             for (int i = 0; i < methods.Count; i++)
             {
                 MethodParseData ma = methods[i];
-                if (ma.attribute is TimerAttribute ea && ma.method.IsStatic && ma.parameters.Length == 0)
+                if (ma.attribute is Timer ea && ma.method.IsStatic && ma.parameters.Length == 0)
                     Add(ea.delay, ea.count, (Action)ma.method.CreateDelegate(typeof(Action)));
             }
         }
@@ -290,7 +290,7 @@ namespace Core
             var methods = Types.GetInstanceMethodsAttribute(target.GetType());
             for (int i = 0; i < methods.Length; i++)
             {
-                if (methods[i].attribute is TimerAttribute ta)
+                if (methods[i].attribute is Timer ta)
                 {
                     var ti = createTimer(ta.delay, ta.count, (Action)methods[i].method.CreateDelegate(typeof(Action), target), target);
                     if (!targetMap.TryGetValue(target, out var tis))

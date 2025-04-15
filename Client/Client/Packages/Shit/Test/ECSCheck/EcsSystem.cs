@@ -13,13 +13,13 @@ static class EcsSystem
     {
         Awake.test();
         Dispose.test();
-        In.test();
-        Out.test();
         Change.test();
         AnyChange.test();
+        UpdateCheck.test();
+        In.test();
+        Out.test();
         EventWatcher.test();
         KVWatcherTest.test();
-        TimerCheck.test();
-        UpdateCheck.test();
+        //TimerCheck.test();
     }
 }

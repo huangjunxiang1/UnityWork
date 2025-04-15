@@ -21,7 +21,7 @@ internal static class Dispose
         if (v != 1)
             throw new Exception();
 
-        var o = new SObject();
+        var o = new o1();
         o.AddComponent<c1>();
         Client.World.Root.AddChild(o);
 
@@ -30,14 +30,17 @@ internal static class Dispose
 
         o.Dispose();
 
-        if (v != 3)
+        if (v != 4)
             throw new Exception();
     }
     class c1 : SComponent { }
+    class o1 : SObject { }
 
     static int v = 0;
-    [Event]
-    static void awake(Dispose<c1> t) => v++;
-    [Event]
-    static void awake(Dispose<SObject> t) => v++;
+    [DisposeSystem]
+    static void awake(c1 t) => v++;
+    [DisposeSystem]
+    static void awake(SObject t) => v++;
+    [DisposeSystem]
+    static void awake(o1 t) => v++;
 }

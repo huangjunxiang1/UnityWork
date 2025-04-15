@@ -27,7 +27,7 @@ public class GameStart : MonoBehaviour
     void EnterGame()
     {
         Assembly assembly = null;
-        if (AppSetting.Runtime == CodeRuntime.Native)
+        if (AppSetting.Runtime == CodeRuntime.Native || Application.isEditor)
         {
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -45,16 +45,20 @@ public class GameStart : MonoBehaviour
         }
         else if (AppSetting.Runtime == CodeRuntime.Assembly)
         {
+            foreach (var item in Resources.LoadAll<TextAsset>("AOT"))
+            {
+                HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly(item.bytes, HybridCLR.HomologousImageMode.SuperSet);
+            }
             //load dll from Res Hotfix in runtime
             if (AppSetting.Debug)
             {
-                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/Game.HotFix.dll");
-                byte[] pdb = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/Game.HotFix.pdb");
+                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/Game.HotFix.dll");
+                byte[] pdb = System.IO.File.ReadAllBytes(Application.dataPath + "/Game.HotFix.pdb");
                 assembly = System.Reflection.Assembly.Load(dll, pdb);
             }
             else
             {
-                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/../Library/ScriptAssemblies/Game.HotFix.dll");
+                byte[] dll = System.IO.File.ReadAllBytes(Application.dataPath + "/Game.HotFix.dll");
                 assembly = System.Reflection.Assembly.Load(dll);
             }
         }

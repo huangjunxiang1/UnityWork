@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Core
 {
@@ -42,10 +43,10 @@ namespace Core
 
 #if UNITY_EDITOR
         //做检视面板使用的
-        internal List<EventSystem.EvtData> _Awake = new();
-        internal List<EventSystem.EvtData> _In = new();
-        internal List<__UpdateHandle> _updates = new();
-        internal List<__Timer> _timers = new();
+        internal List<ComponentFilter> _In = new();
+        internal List<ComponentFilter> _Out = new();
+        internal List<ComponentFilter> _Other = new();
+        internal HashSet<__SystemHandle> _EventWatcher = new();
         internal static Action objChange;
 #endif
 
@@ -445,21 +446,14 @@ namespace Core
         }
         void RigisterComponent(SComponent c, Type type)
         {
-            World.ObjectManager.AddComponent(c, type);
             if (c is not SObject)
                 World.Event.RigisteEvent(c);
 
             World.System.RigisterHandler(type, c);
-#if UNITY_EDITOR
-            if (World.Event.GetEventQueue(typeof(Awake<>).MakeGenericType(type), out var queue))
-                _Awake.AddRange(queue);
-#endif
-            var os = ArrayCache.Get<object>(1);
-            os[0] = c;
-            World.Event.RunGenericEvent(typeof(Awake<>), os, type);
+            World.System.Awake(type, c);
             if (c.Disposed) return;
             if (c.Enable)
-                World.System.In(type, this);
+                World.System.In(type, c);
             c.SetChangeFlag();
         }
         internal bool RemoveComponentInternal(Type type)
@@ -497,33 +491,26 @@ namespace Core
             if (this.Parent != null)
                 this.Parent.Remove(this);
 
-            var outHandles = ObjectPool.Get<Dictionary<Type, __OutHandle>>();
             foreach (var item in _components)
-                World.System.Out(item.Key, this, outHandles);
+                World.System.Out(item.Key, this);
 
-            this.dispose(false);
+            this.dispose(true);
 
             var tmp = _components;
             _components = null;
 
             foreach (var item in tmp)
             {
+                World.System.UnRigisterHandler(item.Key, item.Value);
                 if (item.Value is not SObject)
                 {
-                    item.Value.dispose(false);
                     World.Event.RemoveEvent(item.Value);
+                    item.Value.dispose(true);
                 }
-                var os = ArrayCache.Get<object>(1);
-                os[0] = item.Value;
-                World.Event.RunGenericEvent(typeof(Dispose<>), os, item.Key);
+                World.System.Dispose(item.Key, item.Value);
             }
             tmp.Clear();
             ObjectPool.Return(tmp);
-
-            foreach (var item in outHandles)
-                item.Value.Invoke(this);
-            outHandles.Clear();
-            ObjectPool.Return(outHandles);
 
             _onDispose?.Call();
 #if UNITY_EDITOR

@@ -148,133 +148,52 @@ class ObjectWindows : OdinMenuEditorWindow
             {
                 SystemHandler ret = new();
 
-                addView(obj._Awake, ret.Awake);
-                addView(obj._components, ret.Dispose);
+                addHandlers(obj._components, obj.World.System._AwakeSystem, ret.Awake);
+                addHandlers(obj._components, obj.World.System._DisposeSystem, ret.Dispose);
                 addView(obj._In,ret.In);
-                addView(obj._components, ret.Out, t =>
-                {
-                    obj.World.System.outHandle.TryGetValue(t, out var v);
-                    return v;
-                });
-
-                addView2(c => c._changeHandles, ret.Change);
-                addView2(c => c._kvWatcherHandles, ret.KVWatcher);
-                obj._updates.RemoveAll(t => t.Disposed);
-                addView2(obj._updates, ret.Update);
-                obj._timers.RemoveAll(t => t.Disposed);
-                addView2(obj._timers, ret.Timer);
+                addView(obj._Out, ret.Out);
+                addView(obj._Other.FindAll(t => t.type == SystemType.Change), ret.Change);
+                addView(obj._Other.FindAll(t => t.type == SystemType.AnyChange), ret.AnyChange);
+                addView(obj._Other.FindAll(t => t.type == SystemType.Update), ret.Update);
+                addView(obj._Other.FindAll(t => t.type == SystemType.KvWatcher), ret.KVWatcher);
+                addView(obj._EventWatcher, ret.EventWatcher);
 
                 return ret;
             }
         }
 
-        void addView(Dictionary<Type, SComponent> ks, Dictionary<string, SystemHandler.View2> ret)
+        void addHandlers(Dictionary<Type, SComponent> ks, Dictionary<Type, __SystemHandle> handlerMap, List<View1> ret)
         {
             foreach (var k in ks)
             {
-                if (obj.World.Event.GetEventQueue(typeof(Dispose<>).MakeGenericType(k.Key), out var queue))
+                if (handlerMap.TryGetValue(k.Key, out var acts))
                 {
-                    var ds = queue;
-                    foreach (var d in ds)
-                        addToList(ret, d, k.Key.Name);
+                    foreach (var d in (IList)acts.GetActions())
+                        addToList(ret, ((Delegate)d).Method);
                 }
             }
         }
-        void addView(List<EventSystem.EvtData> ds, List<View1> ret)
+        void addView(List<ComponentFilter> ds, List<View1> ret)
         {
             foreach (var d in ds)
-                addToList(ret, d);
+                foreach (var d2 in (IList)d.system.GetActions())
+                    addToList(ret, ((Delegate)d2).Method);
         }
-        void addView(Dictionary<Type, SComponent> ks, Dictionary<string, SystemHandler.View2> ret, Func<Type, List<(Action<Type, SComponent>, Action<SObject, Dictionary<Type, __OutHandle>>)>> handler)
+        void addView(HashSet<__SystemHandle> ds, List<View1> ret)
         {
-            foreach (var k in ks)
-            {
-                var lst2 = handler(k.Key);
-                if (lst2 != null)
-                {
-                    for (int i = 0; i < lst2.Count; i++)
-                    {
-                        var rt = lst2[i].Item1.Method.ReflectedType;
-                        bool find = true;
-                        foreach (var item in rt.GetGenericArguments())
-                        {
-                            if (!obj.HasComponent(item))
-                            {
-                                find = false;
-                                break;
-                            }
-                        }
-                        if (!find) continue;
-                        if (obj.World.Event.GetEventQueue(rt, out var lst))
-                        {
-                            for (int j = 0; j < lst.Count; j++)
-                            {
-                                var d = lst[j];
-                                addToList(ret, d, k.Key.Name);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        void addView2(Func<SComponent, IList> get, List<View1> ret)
-        {
-            HashSet<object> hs = new();
-            foreach (var item in obj._components.Values)
-            {
-                var list = get(item);
-                if (list != null)
-                {
-                    foreach (var item2 in list)
-                    {
-                        hs.Add(item2);
-                    }
-                }
-            }
-            foreach (var item2 in hs)
-            {
-                if (obj.World.Event.GetEventQueue(item2.GetType(), out var lst))
-                {
-                    foreach (var d in lst)
-                        addToList(ret, d);
-                }
-            }
-        }
-        void addView2(IList list, List<View1> ret)
-        {
-            foreach (var item in list)
-            {
-                if (obj.World.Event.GetEventQueue(item.GetType(), out var lst))
-                {
-                    foreach (var d in lst)
-                        addToList(ret, d);
-                }
-            }
+            foreach (var d in ds)
+                foreach (var d2 in (IList)d.GetActions())
+                    addToList(ret, ((Delegate)d2).Method);
         }
 
-        void addToList(List<View1> ret,EventSystem.EvtData d)
+        void addToList(List<View1> ret, MethodInfo d)
         {
             View1 s = new();
-            var method = d.action.Method;
+            var method = d;
 
             s.Method = method.ReflectedType.Name + ":" + method.Name;
-            s.Parameter = GetTypeName(method.GetParameters().FirstOrDefault().ParameterType);
-            s.Assembly = d.action.Method.ReflectedType.Assembly.GetName().Name;
-
-            ret.Add(s);
-        }
-        void addToList(Dictionary<string, SystemHandler.View2> map, EventSystem.EvtData d,string cName)
-        {
-            if (!map.TryGetValue(cName, out var w))
-                map[cName] = w = new();
-            var ret = w.list;
-
-            View1 s = new();
-            var method = d.action.Method;
-
-            s.Method = method.ReflectedType.Name + ":" + method.Name;
-            s.Parameter = GetTypeName(method.GetParameters().FirstOrDefault().ParameterType);
-            s.Assembly = d.action.Method.ReflectedType.Assembly.GetName().Name;
+            s.Parameter = GetTypeName(method.GetParameters());
+            s.Assembly = d.ReflectedType.Assembly.GetName().Name;
 
             ret.Add(s);
         }
@@ -284,25 +203,19 @@ class ObjectWindows : OdinMenuEditorWindow
 
         class SystemHandler
         {
-            public class View2
-            {
-                [TableList(ShowIndexLabels = true)]
-                public List<View1> list = new();
-            }
-
             [TableList(ShowIndexLabels = true)]
             public List<View1> Awake = new();
 
             [Space(5)]
             [TableList(ShowIndexLabels = true)]
-            public Dictionary<string, View2> Dispose = new();
+            public List<View1> Dispose = new();
 
             [TableList(ShowIndexLabels = true)]
             public List<View1> In = new();
 
             [Space(5)]
             [TableList(ShowIndexLabels = true)]
-            public Dictionary<string, View2> Out = new();
+            public List<View1> Out = new();
 
             [Space(5)]
             [TableList(ShowIndexLabels = true)]
@@ -310,7 +223,7 @@ class ObjectWindows : OdinMenuEditorWindow
 
             [Space(5)]
             [TableList(ShowIndexLabels = true)]
-            public List<View1> KVWatcher = new();
+            public List<View1> AnyChange = new();
 
             [Space(5)]
             [TableList(ShowIndexLabels = true)]
@@ -318,7 +231,11 @@ class ObjectWindows : OdinMenuEditorWindow
 
             [Space(5)]
             [TableList(ShowIndexLabels = true)]
-            public List<View1> Timer = new();
+            public List<View1> KVWatcher = new();
+
+            [Space(5)]
+            [TableList(ShowIndexLabels = true)]
+            public List<View1> EventWatcher = new();
         }
         class View1
         {
@@ -334,6 +251,17 @@ class ObjectWindows : OdinMenuEditorWindow
         }
     }
 
+    static StringBuilder str = new(100);
+    static string GetTypeName(ParameterInfo[] ps)
+    {
+        str.Clear();
+        for (int i = 0; i < ps.Length; i++)
+        {
+            str.Append(GetTypeName(ps[i].ParameterType));
+            str.Append("+");
+        }
+        return str.ToString();
+    }
     static string GetTypeName(Type type)
     {
         string name;

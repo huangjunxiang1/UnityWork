@@ -273,40 +273,36 @@ public class KVComponent : SComponent
         return k / Step;
     }
 
-    [Event]
-    static void Change(Change<KVComponent> t)
+    [ChangeSystem]
+    static void Change(KVComponent t)
     {
-        if (t.t._kvWatcherHandles != null)
+        var tmp = t.Changed;
+        t.Changed = ObjectPool.Get<Dictionary<int, long>>();
+        foreach (var kv in tmp)
         {
-            var tmp = t.t.Changed;
-            t.t.Changed = ObjectPool.Get<Dictionary<int, long>>();
-            foreach (var kv in tmp)
+            int len = t._Handles.Count;
+            for (int i = 0; i < len; i++)
             {
-                int len = t.t._kvWatcherHandles.Count;
-                for (int i = 0; i < len; i++)
-                {
-                    if (t.t._kvWatcherHandles[i].Disposed || t.t.Disposed) continue;
-                    var v = t.t.Get(kv.Key);
-                    t.t._kvWatcherHandles[i].Old = kv.Value;
-                    t.t._kvWatcherHandles[i].New = v;
-                    t.t._kvWatcherHandles[i].Invoke(kv.Key);
-                }
+                if (t._Handles[i].type != SystemType.KvWatcher || t._Handles[i].Disposed) continue;
+                t._Handles[i].KvInvoke(kv.Key);
+                if (t.Disposed) break;
             }
-            tmp.Clear();
-            ObjectPool.Return(tmp);
+            if (t.Disposed) break;
         }
+        tmp.Clear();
+        ObjectPool.Return(tmp);
     }
-    [Event]
-    static void Dispose(Dispose<KVComponent> t)
+    [DisposeSystem]
+    static void Dispose(KVComponent t)
     {
-        t.t.Keys.Clear();
-        t.t.Values.Clear();
-        t.t.Changed.Clear();
-        ObjectPool.Return(t.t.Keys);
-        ObjectPool.Return(t.t.Changed);
-        ObjectPool.Return(t.t.Values);
-        t.t.Keys = null;
-        t.t.Values = null;
-        t.t.Changed = null;
+        t.Keys.Clear();
+        t.Values.Clear();
+        t.Changed.Clear();
+        ObjectPool.Return(t.Keys);
+        ObjectPool.Return(t.Changed);
+        ObjectPool.Return(t.Values);
+        t.Keys = null;
+        t.Values = null;
+        t.Changed = null;
     }
 }

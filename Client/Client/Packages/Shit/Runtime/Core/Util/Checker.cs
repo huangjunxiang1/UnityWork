@@ -24,87 +24,74 @@ namespace Core
                     var ps = method.GetParameters();
                     var atts = method.GetCustomAttributes<SAttribute>().ToArray();
 
-                    for (int k = 0; k < atts.Length; k++)
+                    if (atts.FirstOrDefault(t => t is Timer) != null)
                     {
-                        var att = atts[k];
-                        //timer
-                        {
-                            if (att is TimerAttribute)
-                            {
-                                if (method.IsGenericMethod)
-                                    Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数不能是泛型函数");
-                                if (method.ReturnType != typeof(void))
-                                    Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数必须没有返回值");
-
-                                if (ps.Length > 1)
-                                    Loger.Error($"Timer事件函数参数个数最多为1 class:{method.ReflectedType.FullName} method:{method.Name}");
-                                if (ps.Length == 1)
-                                {
-                                    if (typeof(__Timer).IsAssignableFrom(ps[0].ParameterType) && typeof(__Timer) != ps[0].ParameterType)
-                                    {
-                                        if (!method.IsStatic)
-                                            Loger.Error($"组合Timer事件函数必须是静态 class:{method.ReflectedType.FullName} method:{method.Name}");
-                                    }
-                                    else
-                                        Loger.Error($"Timer事件函数参数类型错误 class:{method.ReflectedType.FullName} method:{method.Name}");
-                                }
-                            }
-                            if (ps.Length > 0 && typeof(__Timer).IsAssignableFrom(ps[0].ParameterType) && typeof(__Timer) != ps[0].ParameterType)
-                            {
-                                if (att is not TimerAttribute)
-                                    Loger.Error($"Timer事件函数参数标记类型必须是{nameof(TimerAttribute)} class:{method.ReflectedType.FullName} method:{method.Name}");
-                            }
-                        }
+                        if (method.IsGenericMethod)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数不能是泛型函数");
+                        if (method.ReturnType != typeof(void))
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  timer函数必须没有返回值");
+                        if (ps.Length != 0)
+                            Loger.Error($"Timer事件函数必须是无参数 class:{method.ReflectedType.FullName} method:{method.Name}");
                     }
                     //Event
                     if (atts.FirstOrDefault(t => t is EventAttribute) != null)
                         Check(method);
+                    //System
+                    if (atts.FirstOrDefault(t => t is EventWatcherSystem) != null)
+                    {
+                        if (!method.IsStatic)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须是静态函数");
+                        if (method.IsGenericMethod)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数不能是泛型函数");
+                        if (method.ReturnType != typeof(void))
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须没有返回值");
+                        if (ps.Length < 2 || ps.Length > 11)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  {nameof(EventWatcherSystem)}函数参数个数不正确");
+                        for (int k = 1; k < ps.Length; k++)
+                        {
+                            if (!typeof(SComponent).IsAssignableFrom(ps[k].ParameterType))
+                                Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须只有组件参数");
+                        }
+                    }
+                    if (atts.FirstOrDefault(t => t is SystemAttribute && t is not EventWatcherSystem) != null)
+                    {
+                        if (!method.IsStatic)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须是静态函数");
+                        if (method.IsGenericMethod)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数不能是泛型函数");
+                        if (method.ReturnType != typeof(void))
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须没有返回值");
+                        if (ps.Length < 1 || ps.Length > 10)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数参数个数不正确");
+                        for (int k = 0; k < ps.Length; k++)
+                        {
+                            if (!typeof(SComponent).IsAssignableFrom(ps[k].ParameterType))
+                                Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须只有组件参数");
+                        }
+                    }
                 }
             }
         }
         [Conditional(ConstDefCore.DebugEnableString)]
         public static void Check(MethodInfo method)
         {
-            var atts = method.GetCustomAttributes<EventAttribute>();
+            var ps = method.GetParameters();
 
-            foreach (var att in atts)
+            if (method.IsGenericMethod)
+                Loger.Error($"事件函数不能是泛型函数  class:{method.ReflectedType.FullName} method:{method.Name}");
+            if (ps.Length > 2)
+                Loger.Error($"参数类型大于2 class:{method.ReflectedType.FullName} method:{method.Name}");
+            if (method.ReturnType != typeof(void) && method.ReturnType != typeof(STask))
+                Loger.Error($"事件函数的返回类型只能是void或者{nameof(STask)} class:{method.ReflectedType.FullName} method:{method.Name}");
+            if (ps.Length == 2)
             {
-                var ps = method.GetParameters();
-
-                if (method.IsGenericMethod)
-                    Loger.Error($"事件函数不能是泛型函数  class:{method.ReflectedType.FullName} method:{method.Name}");
-                if (ps.Length > 2)
-                    Loger.Error($"参数类型大于2 class:{method.ReflectedType.FullName} method:{method.Name}");
-                if (method.ReturnType != typeof(void) && method.ReturnType != typeof(STask))
-                    Loger.Error($"事件函数的返回类型只能是void或者{nameof(STask)} class:{method.ReflectedType.FullName} method:{method.Name}");
-                if (ps.Length == 2)
-                {
-                    if (ps[1].ParameterType != typeof(EventHandler))
-                        Loger.Error($"无法解析的参数类型 class:{method.ReflectedType.FullName} method:{method.Name}");
-                    if (typeof(__SystemHandle).IsAssignableFrom(ps[0].ParameterType))
-                        Loger.Error($"System处理系统 不可使用{nameof(EventHandler)} class:{method.ReflectedType.FullName} method:{method.Name}");
-                }
-                if (ps.Length == 1)
-                {
-                    if (ps[0].ParameterType.IsPrimitive)
-                        Loger.Error($"不要使用系统值类型作为事件参数类型  class:{method.ReflectedType.FullName} method:{method.Name}");
-
-                    if (typeof(__ChangeHandle).IsAssignableFrom(ps[0].ParameterType))
-                    {
-                        if (method.ReturnType == typeof(STask))
-                            Loger.Error($"change处理事件不可使用task class:{method.ReflectedType.FullName} method:{method.Name}");
-                    }
-                    if (typeof(__KVWatcher).IsAssignableFrom(ps[0].ParameterType))
-                    {
-                        if (att.Type == 0)
-                            Loger.Error($"KVWatcher处理事件 需要标记Type class:{method.ReflectedType.FullName}   method:  {method.Name}");
-                    }
-                    if (typeof(__UpdateHandle).IsAssignableFrom(ps[0].ParameterType))
-                    {
-                        if (method.ReturnType == typeof(STask))
-                            Loger.Error($"update处理事件不可使用task class:{method.ReflectedType.FullName}    method:   {method.Name}");
-                    }
-                }
+                if (ps[1].ParameterType != typeof(EventHandler))
+                    Loger.Error($"无法解析的参数类型 class:{method.ReflectedType.FullName} method:{method.Name}");
+            }
+            if (ps.Length == 1)
+            {
+                if (ps[0].ParameterType.IsPrimitive)
+                    Loger.Error($"不要使用系统值类型作为事件参数类型  class:{method.ReflectedType.FullName} method:{method.Name}");
             }
         }
     }

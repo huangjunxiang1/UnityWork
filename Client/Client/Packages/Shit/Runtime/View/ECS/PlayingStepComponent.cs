@@ -43,37 +43,37 @@ namespace Game
             this.layers[layer].isPlaying = false;
         }
 
-        [Event]
-        static void Change(Change<PlayingComponent, PlayingStepComponent> t)
+        [ChangeSystem]
+        static void Change(PlayingComponent a, PlayingStepComponent b)
         {
-            int old = t.t2.layers.Length;
-            if (old == t.t.Layer) 
+            int old = b.layers.Length;
+            if (old == a.Layer) 
                 return;
-            Array.Resize(ref t.t2.layers, t.t.Layer);
-            for (int i = old; i < t.t2.layers.Length; i++)
-                t.t2.layers[i] = new LayerData { _count = 1 };
+            Array.Resize(ref b.layers, a.Layer);
+            for (int i = old; i < b.layers.Length; i++)
+                b.layers[i] = new LayerData { _count = 1 };
         }
-        [Event]
-        static void Update(Update<PlayingStepComponent, PlayingComponent> t)
+        [UpdateSystem]
+        static void Update(PlayingStepComponent a, PlayingComponent b)
         {
-            long utc = t.t.World.Timer.utc;
-            for (int i = 0; i < t.t.min; i++)
+            long utc = a.World.Timer.utc;
+            for (int i = 0; i < a.min; i++)
             {
-                var d = t.t.layers[i];
+                var d = a.layers[i];
                 if (!d.isPlaying)
                 {
-                    if (i == t.t.min - 1)
+                    if (i == a.min - 1)
                     {
-                        t.t.min--;
-                        if (t.t.min == 0)
-                            t.t.Enable = false;
+                        a.min--;
+                        if (a.min == 0)
+                            a.Enable = false;
                     }
                     continue;
                 }
-                t.t2.SetTime01(((utc - d._startTime) * d._count / (float)(d._endTime - d._startTime)) % 1, i);
+                b.SetTime01(((utc - d._startTime) * d._count / (float)(d._endTime - d._startTime)) % 1, i);
                 if (utc >= d._endTime)
                 {
-                    t.t.layers[i].isPlaying = false;
+                    a.layers[i].isPlaying = false;
                     d._count = 1;
                 }
             }

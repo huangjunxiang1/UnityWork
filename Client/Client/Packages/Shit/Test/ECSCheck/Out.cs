@@ -57,17 +57,17 @@ internal class Out
 
 
     static int v = 0;
-    [Event]
-    static void e(Out<o1> a) => v++;
-    [Event]
-    static void e(Out<SObject> a) => v++;
+    [OutSystem]
+    static void e(o1 a) => v++;
+    [OutSystem]
+    static void e(SObject a) => v++;
 
 
-    [Event]
-    static void e(Out<c_1> a) => v++;
-    [Event]
-    static void e(Out<c_2> a) => v++;
-    [Event]
-    static void e(Out<c_1, c_2> a) => v++;
+    [OutSystem]
+    static void e(c_1 a) => v++;
+    [OutSystem]
+    static void e(c_2 a) => v++;
+    [OutSystem]
+    static void e(c_1 a, c_2 b) => v++;
 
 }

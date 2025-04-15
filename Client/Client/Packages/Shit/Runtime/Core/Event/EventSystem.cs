@@ -228,20 +228,6 @@ namespace Core
         public bool HasEvent<T>() => _evtMap.TryGetValue(new EventKey(typeof(T)), out var queue) && queue.evts.Count > 0;
         public bool HasEvent(Type type) => _evtMap.TryGetValue(new EventKey(type), out var queue) && queue.evts.Count > 0;
 
-        internal bool GetEventQueue(Type type, out List<EvtData> es)
-        {
-            if (_evtMap.TryGetValue(new EventKey(type), out var queue))
-            {
-                es = queue.evts.FindAll(t => !t.disposed && (t.target == null || !t.target.Disposed));
-                return true;
-            }
-            else
-            {
-                es = new List<EvtData>();   
-                return false;
-            }
-        }
-
         /// <summary>
         /// 执行事件
         /// </summary>
@@ -252,22 +238,20 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
+            world.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
-                world.System.EventWatcherActorId(actorId, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), actorId, 0, type), out var queue))
                     queue.Run(data);
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, gid, type), out var queue))
                     queue.Run(data);
             }
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
                     queue.Run(data);
             }
@@ -278,16 +262,15 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
+            world.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
-                world.System.EventWatcherActorId(actorId, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), actorId, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, gid, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
@@ -295,7 +278,6 @@ namespace Core
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
@@ -307,22 +289,20 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
+            world.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
-                world.System.EventWatcherActorId(actorId, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), actorId, 0, type), out var queue))
                     queue.Run(data);
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, gid, type), out var queue))
                     queue.Run(data);
             }
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
                     queue.Run(data);
             }
@@ -333,16 +313,15 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
+            world.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
-                world.System.EventWatcherActorId(actorId, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), actorId, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
             }
             else if (gid != 0)
             {
-                world.System.EventWatcherGid(gid, data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, gid, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
@@ -350,7 +329,6 @@ namespace Core
             else
             {
                 getEvent?.Invoke(data);
-                world.System.EventWatcher(data, type);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;

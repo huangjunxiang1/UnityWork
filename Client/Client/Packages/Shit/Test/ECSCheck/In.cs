@@ -60,13 +60,13 @@ internal static class In
     class o1 : SObject { }
 
     static int v = 0;
-    [Event]
-    static void awake(In<o1> a) => v++;
-    [Event]
-    static void awake(In<SObject> a) => v++;
+    [InSystem]
+    static void awake(o1 a) => v++;
+    [InSystem]
+    static void awake(SObject a) => v++;
 
-    [Event]
-    static void awake(In<c_1> a) => v++;
-    [Event]
-    static void awake(In<c_1, c_2> a) => v++;
+    [InSystem]
+    static void awake(c_1 a) => v++;
+    [InSystem]
+    static void awake(c_1 a, c_2 b) => v++;
 }

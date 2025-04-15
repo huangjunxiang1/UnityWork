@@ -11,8 +11,7 @@ namespace Core
     public abstract class SComponent : IEvent
     {
         bool _enable = true;
-        internal List<__ChangeHandle> _changeHandles;
-        internal List<__KVWatcher> _kvWatcherHandles;
+        internal List<ComponentFilter> _Handles = ObjectPool.Get<List<ComponentFilter>>();
 
         public virtual SObject Entity { get; internal set; }
         public bool Disposed { get; internal set; }
@@ -48,9 +47,11 @@ namespace Core
             get => _enable;
             set
             {
-                if (_enable == value) return;
+                if (_enable == value || this.Disposed) return;
                 bool enable = this.Enable;
                 _enable = value;
+                for (int i = 0; i < this._Handles.Count; i++)
+                    this._Handles[i].EnableCounter += value ? -1 : 1;
                 if (World != null)
                 {
                     if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
@@ -61,7 +62,7 @@ namespace Core
                     if (this.Enable)
                         this.SetChangeFlag();
                     if (!enable && this.Enable)
-                        World.System.In(this.GetType(), this.Entity);
+                        World.System.In(this.GetType(), this);
                     if (enable && !this.Enable)
                         World.System.Out(this.GetType(), this);
                 }
@@ -72,31 +73,18 @@ namespace Core
 
         public virtual void SetChange()
         {
-            if (_changeHandles == null || !_enable || World == null) return;
+            if (this.Disposed || !_enable || World == null) return;
             if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
             {
                 Loger.Error($"canot {nameof(SetChange)} in other thread");
                 return;
             }
-            for (int i = 0; i < _changeHandles.Count; i++)
-            {
-                if (_changeHandles[i].Disposed) continue;
-                _changeHandles[i].setInvokeWaiting = false;
-                _changeHandles[i].Invoke();
-            }
+            this.World.System.Change(this, true);
         }
         public virtual void SetChangeFlag()
         {
-            if (_changeHandles == null || !_enable || World == null) return;
-            int len = _changeHandles.Count;
-            for (int i = 0; i < len; i++)
-            {
-                if (!_changeHandles[i].setInvokeWaiting)
-                {
-                    _changeHandles[i].setInvokeWaiting = true;
-                    World.System.AddToChangeWaitInvoke(_changeHandles[i]);
-                }
-            }
+            if (this.Disposed || !_enable || World == null) return;
+            this.World.System.Change(this, false);
         }
         public virtual void Dispose()
         {
@@ -110,52 +98,37 @@ namespace Core
                 Loger.Error($"canot {nameof(Dispose)} in other thread");
                 return;
             }
+
+            World.System.UnRigisterHandler(this.GetType(), this);
             World.Event.RemoveEvent(this);
-            this.dispose(true);
-            var os = ArrayCache.Get<object>(1);
-            os[0] = this;
-            World.Event.RunGenericEvent(typeof(Dispose<>), os, this.GetType());
+            this.Disposed = true;//
+            World.System.Dispose(this.GetType(), this);
             World.System.Out(this.GetType(), this);
+            this.dispose(false);
         }
         public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type">0=主动dispose 1=entity dispose</param>
-        internal void dispose(bool RemoveFromComponents)
+        internal void dispose(bool isDestroyEntity)
         {
             this.Disposed = true;
 
-            if (_changeHandles != null)
+            for (int i = 0; i < _Handles.Count; i++)
             {
-                for (int i = 0; i < _changeHandles.Count; i++)
-                    _changeHandles[i].Dispose();
-            }
-            if (_kvWatcherHandles != null)
-            {
-                for (int i = 0; i < _kvWatcherHandles.Count; i++)
-                    _kvWatcherHandles[i].Dispose();
+                _Handles[i].Disposed = true;
+                if (!isDestroyEntity) _Handles[i]._handle_waitRemove(this.World.System.waitRemove);
             }
 
-            if (RemoveFromComponents)
+            _Handles.Clear();
+            ObjectPool.Return(_Handles);
+            _Handles = null;
+
+            if (!isDestroyEntity)
                 Entity.RemoveFromComponents(this);
         }
 
         public virtual void AcceptedEvent()
         {
             this.SetChangeFlag();
-        }
-
-        internal void AddChangeHandler(__ChangeHandle c)
-        {
-            this._changeHandles ??= ObjectPool.Get<List<__ChangeHandle>>();
-            this._changeHandles.Add(c);
-            if (!c.setInvokeWaiting)
-            {
-                c.setInvokeWaiting = true;
-                this.World.System.AddToChangeWaitInvoke(c);
-            }
         }
     }
 }

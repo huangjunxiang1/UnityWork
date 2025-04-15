@@ -42,7 +42,7 @@ internal class TimerCheck
 
     static int v = 0;
 
-    [Timer(0, -1)]
+    /*[Timer(0, -1)]
     static void t1(Timer<c1> t) => v++;
     [Timer(0, 2)]
     static void t11(Timer<c1> t) => v++;
@@ -50,5 +50,5 @@ internal class TimerCheck
     [Timer(0, -1)]
     static void t1(Timer<c1, c2> t) => v++;
     [Timer(0, 2)]
-    static void t11(Timer<c1, c2> t) => v++;
+    static void t11(Timer<c1, c2> t) => v++;*/
 }

@@ -69,6 +69,7 @@ internal class Tools
                                     .Replace("[T]", "T" + (j > 0 ? j + 1 : ""))
                                     .Replace("[t]", "t" + (j > 0 ? j + 1 : ""))
                                     .Replace("[c]", "c" + (j > 0 ? j + 1 : ""))
+                                    .Replace("%", "+")
                                     );
                             }
                             code.Append(tmp);
@@ -117,5 +118,6 @@ internal class Tools
             var d = ShitSettings.Inst.SyncDirs[i];
             FileHelper.SyncDirectories((d.rootIsAppDataPath ? Application.dataPath : null) + d.target, (d.rootIsAppDataPath ? Application.dataPath : null) + d.self);
         }
+        AssetDatabase.Refresh();
     }
 }

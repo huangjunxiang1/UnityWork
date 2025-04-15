@@ -11,15 +11,15 @@ namespace Game
         float2 last;
         PlayerControl ctr;
 
-        [Event]
-        static void Awake(Awake<GameInputComponent> t)
+        [AwakeSystem]
+        static void Awake(GameInputComponent t)
         {
-            t.t.ctr = new();
-            t.t.ctr.PlayerMove.performed += t.t.input;
-            t.t.ctr.PlayerMove.canceled += t.t.cancel;
+            t.ctr = new();
+            t.ctr.PlayerMove.performed += t.input;
+            t.ctr.PlayerMove.canceled += t.cancel;
         }
-        [Event]
-        static void Dispose(Dispose<GameInputComponent> t) => t.t.ctr.Dispose();
+        [DisposeSystem]
+        static void Dispose(GameInputComponent t) => t.ctr.Dispose();
 
         void input(UnityEngine.InputSystem.InputAction.CallbackContext e)
         {
@@ -41,13 +41,17 @@ namespace Game
                 this.SetChangeFlag();
             }
         }
-       
-        [Event]
-        static void watcher(EventWatcher<S2C_SyncTransform, TransformComponent, PlayingComponent> t)
+
+        [EventWatcherSystem]
+        static void watcher(S2C_SyncTransform a, TransformComponent b)
         {
-            t.t2.position = t.t.p;
-            t.t2.rotation = t.t.r;
-            t.t3.Play(t.t.isMoving ? "RUN00_F" : "WAIT00");
+            b.position = a.p;
+            b.rotation = a.r;
+        }
+        [EventWatcherSystem]
+        static void watcher(S2C_SyncTransform a, PlayingComponent c)
+        {
+            c.Play(a.isMoving ? "RUN00_F" : "WAIT00");
         }
     }
 }

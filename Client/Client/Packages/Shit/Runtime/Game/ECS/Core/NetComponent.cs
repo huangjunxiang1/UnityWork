@@ -155,7 +155,7 @@ namespace Game
             this.World.Thread.Post(t => s.DisConnect());
         }
 
-        [Event]
-        static void Dispose(Dispose<NetComponent> t) => t.t.Session?.DisConnect();
+        [DisposeSystem]
+        static void Dispose(NetComponent t) => t.Session?.DisConnect();
     }
 }

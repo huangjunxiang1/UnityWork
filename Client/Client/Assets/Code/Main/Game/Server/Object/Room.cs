@@ -17,6 +17,7 @@ namespace Game
 {
     public class Room : STree
     {
+        public static Room inst;
         public List<RoomInfo> GetLst()
         {
             var lst = new List<RoomInfo>();
@@ -32,75 +33,75 @@ namespace Game
             return ri;
         }
 
-        [Event]
-        static void EC_Disconnect(EventWatcher<EC_Disconnect, NetComponent, BelongRoom> t)
+        [EventWatcherSystem]
+        static void EC_Disconnect(EC_Disconnect a, NetComponent b, BelongRoom c)
         {
-            foreach (var item in t.t3.room.GetChildren())
+            foreach (var item in c.room.GetChildren())
             {
-                if (item.ActorId != t.t2.ActorId)
+                if (item.ActorId != b.ActorId)
                 {
-                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = t.t2.ActorId });
+                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = b.ActorId });
                 }
             }
-            t.t2.Entity.Dispose();
+            b.Entity.Dispose();
         }
-        [Event]
-        static void EC_Disconnect(EventWatcher<C2S_PlayerQuit, NetComponent, BelongRoom> t)
+        [EventWatcherSystem]
+        static void EC_Disconnect(C2S_PlayerQuit a, NetComponent b, BelongRoom c)
         {
-            foreach (var item in t.t3.room.GetChildren())
+            foreach (var item in c.room.GetChildren())
             {
-                if (item.ActorId != t.t2.ActorId)
+                if (item.ActorId != b.ActorId)
                 {
-                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = t.t2.ActorId });
+                    item.GetComponent<NetComponent>().Send(new S2C_PlayerQuit { id = b.ActorId });
                 }
             }
-            t.t2.Entity.Dispose();
+            b.Entity.Dispose();
         }
-        [Event]
-        void C2S_RoomList(EventWatcher<C2S_RoomList, NetComponent> t)
+        [EventWatcherSystem]
+        static void C2S_RoomList(C2S_RoomList a, NetComponent b)
         {
             S2C_RoomList s = new();
-            s.lst = this.GetLst();
-            t.t2.Send(s);
+            s.lst = inst.GetLst();
+            b.Send(s);
         }
-        [Event]
-        void create(EventWatcher<C2S_CreateRoom, NetComponent> t)
+        [EventWatcherSystem]
+        static void create(C2S_CreateRoom a, NetComponent b)
         {
             S2C_CreateRoom s = new();
 
-            var room = this.CreateRoom(t.t.name);
-            s.info = room.GetRoomInfo();
+            var r = inst.CreateRoom(a.name);
+            s.info = r.GetRoomInfo();
 
-            t.t2.Send(s);
+            b.Send(s);
         }
-        [Event]
-        void join(EventWatcher<C2S_JoinRoom, NetComponent, Player> t)
+        [EventWatcherSystem]
+        static void join(C2S_JoinRoom a, NetComponent b, Player c)
         {
-            if (!this.TryGetChildByGid(t.t.id, out var room)) return;
+            if (!inst.TryGetChildByGid(a.id, out var r)) return;
 
-            string acc = t.t3.acc;
+            string acc = c.acc;
 
-            room.As<RoomItem>().AddUnit(t.t2.ActorId, acc, t.t2.Session);
+            r.As<RoomItem>().AddUnit(b.ActorId, acc, b.Session);
 
             S2C_JoinRoom s = new();
-            s.info = room.As<RoomItem>().GetRoomInfo(true);
-            s.units = room.As<RoomItem>().GetUnitInfo2s();
-            s.myid = t.t2.ActorId;
-            t.t2.Send(s);
+            s.info = r.As<RoomItem>().GetRoomInfo(true);
+            s.units = r.As<RoomItem>().GetUnitInfo2s();
+            s.myid = b.ActorId;
+            b.Send(s);
 
-            t.t2.SetSession(null, false);//不断开链接 将就现在的用
-            t.t2.Entity.Dispose();
+            b.SetSession(null, false);//不断开链接 将就现在的用
+            b.Entity.Dispose();
         }
-        [Event]
-        void dis(EventWatcher<C2S_DisRoom, NetComponent> t)
+        [EventWatcherSystem]
+        static void dis(C2S_DisRoom a, NetComponent b)
         {
-            if (!this.TryGetChildByGid(t.t.id, out var room)) return;
+            if (!inst.TryGetChildByGid(a.id, out var r)) return;
 
             S2C_DisRoom s = new();
-            s.id = room.gid;
+            s.id = r.gid;
 
-            t.t2.Send(s);
-            room.Dispose();
+            b.Send(s);
+            r.Dispose();
         }
     }
     public class RoomItem : STree
@@ -227,38 +228,38 @@ namespace Game
             return ui;
         }
 
-        [Event]
-        static void get(EventWatcher<C2S_SyncTransform, MoveComponent, TransformComponent, BelongRoom> t)
+        [EventWatcherSystem]
+        static void get(C2S_SyncTransform a, MoveComponent b, TransformComponent c, BelongRoom d)
         {
-            if (!math.all(t.t.dir == 0))
+            if (!math.all(a.dir == 0))
             {
-                var f2 = math.normalize(t.t.dir);
-                t.t2.Direction = new float3(f2.x, 0, f2.y);
+                var f2 = math.normalize(a.dir);
+                b.Direction = new float3(f2.x, 0, f2.y);
             }
             else
             {
-                t.t2.Direction = 0;
+                b.Direction = 0;
                 S2C_SyncTransform sync = new();
-                sync.actorId = t.t2.ActorId;
-                sync.p = t.t3.position;
-                sync.r = t.t3.rotation.value;
+                sync.actorId = b.ActorId;
+                sync.p = c.position;
+                sync.r = c.rotation.value;
                 sync.isMoving = false;
-                foreach (var item in t.t4.room.GetChildren())
+                foreach (var item in d.room.GetChildren())
                 {
                     item.GetComponent<NetComponent>().Send(sync);
                 }
             }
         }
 
-        [Event]
-        static void change(Change<TransformComponent, BelongRoom> t)
+        [ChangeSystem]
+        static void change(TransformComponent a, BelongRoom b)
         {
             S2C_SyncTransform sync = new();
-            sync.actorId = t.t.ActorId;
-            sync.p = t.t.position;
-            sync.r = t.t.rotation.value;
+            sync.actorId = a.ActorId;
+            sync.p = a.position;
+            sync.r = a.rotation.value;
             sync.isMoving = true;
-            foreach (var item in t.t2.room.GetChildren())
+            foreach (var item in b.room.GetChildren())
             {
                 item.GetComponent<NetComponent>().Send(sync);
             }
@@ -268,50 +269,50 @@ namespace Game
     {
         public int2 xy { get; private set; }//room xy
 
-        [Event]
-        static void In(In<SubRoom, TransformComponent> t)
+        [InSystem]
+        static void In(SubRoom a, TransformComponent b)
         {
-            var min = SettingM.SubRoomSize * t.t.xy + 1;
-            var max = SettingM.SubRoomSize * (t.t.xy + 1);
-            t.t2.AABB = new Unity.Mathematics.Geometry.MinMaxAABB(new float3(min.x + 0.5f, 0, min.y + 0.5f), new float3(max.x - 0.5f, 0, max.y - 0.5f));
+            var min = SettingM.SubRoomSize * a.xy + 1;
+            var max = SettingM.SubRoomSize * (a.xy + 1);
+            b.AABB = new Unity.Mathematics.Geometry.MinMaxAABB(new float3(min.x + 0.5f, 0, min.y + 0.5f), new float3(max.x - 0.5f, 0, max.y - 0.5f));
         }
-        [Event]
-        static void Out(Out<SubRoom, TransformComponent> t)
+        [OutSystem]
+        static void Out(SubRoom a, TransformComponent b)
         {
-            t.t2.ResetAABB();
+            b.ResetAABB();
         }
-        [Event]
-        static void change(Change<TransformComponent, SubRoom, BelongRoom> t)
+        [ChangeSystem]
+        static void change(TransformComponent a, SubRoom b, BelongRoom c)
         {
-            int2 xy = new((int)t.t.position.x, (int)t.t.position.z);
-            int2 roomxy = (int2)t.t.position.xz / SettingM.SubRoomSize;
+            int2 xy = new((int)a.position.x, (int)a.position.z);
+            int2 roomxy = (int2)a.position.xz / SettingM.SubRoomSize;
             if (xy.Equals(roomxy * SettingM.SubRoomSize + new int2(1, SettingM.SubRoomSize.y / 2)))
             {
-                var link = t.t3.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 0];
-                link = t.t3.room.linkMap[link.link];
-                t.t2.xy = link.xy;
-                move(t.t, t.t2.xy, link.dir);
+                var link = c.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 0];
+                link = c.room.linkMap[link.link];
+                b.xy = link.xy;
+                move(a, b.xy, link.dir);
             }
             else if (xy.Equals(roomxy * SettingM.SubRoomSize + new int2(SettingM.SubRoomSize.x / 2, 1)))
             {
-                var link = t.t3.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 1];
-                link = t.t3.room.linkMap[link.link];
-                t.t2.xy = link.xy;
-                move(t.t, t.t2.xy, link.dir);
+                var link = c.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 1];
+                link = c.room.linkMap[link.link];
+                b.xy = link.xy;
+                move(a, b.xy, link.dir);
             }
             else if (xy.Equals(roomxy * SettingM.SubRoomSize + new int2(SettingM.SubRoomSize.x - 1, SettingM.SubRoomSize.y / 2)))
             {
-                var link = t.t3.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 2];
-                link = t.t3.room.linkMap[link.link];
-                t.t2.xy = link.xy;
-                move(t.t, t.t2.xy, link.dir);
+                var link = c.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 2];
+                link = c.room.linkMap[link.link];
+                b.xy = link.xy;
+                move(a, b.xy, link.dir);
             }
             else if (xy.Equals(roomxy * SettingM.SubRoomSize + new int2(SettingM.SubRoomSize.x / 2, SettingM.SubRoomSize.y - 1)))
             {
-                var link = t.t3.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 3];
-                link = t.t3.room.linkMap[link.link];
-                t.t2.xy = link.xy;
-                move(t.t, t.t2.xy, link.dir);
+                var link = c.room.linkMap[(roomxy.y * SettingM.RoomSize.x + roomxy.x) * 4 + 3];
+                link = c.room.linkMap[link.link];
+                b.xy = link.xy;
+                move(a, b.xy, link.dir);
             }
         }
         static void move(TransformComponent t, int2 xy, int dir)

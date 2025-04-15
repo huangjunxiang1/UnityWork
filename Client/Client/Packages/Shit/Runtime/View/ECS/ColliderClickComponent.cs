@@ -48,25 +48,26 @@ namespace Game
 
         Click click;
 
-        static void EventWatcher(EventWatcher<EC_GameObjectReplace, ColliderClickComponent> t)
+        [EventWatcherSystem]
+        static void EventWatcher(EC_GameObjectReplace a, ColliderClickComponent b)
         {
-            if (t.t.old && t.t.old.TryGetComponent<Click>(out var c)) GameObject.DestroyImmediate(c);
+            if (a.old && a.old.TryGetComponent<Click>(out var c)) GameObject.DestroyImmediate(c);
         }
-        [Event]
-        static void AnyChange(AnyChange<ColliderClickComponent, GameObjectComponent> t)
+        [AnyChangeSystem]
+        static void AnyChange(ColliderClickComponent a, GameObjectComponent b)
         {
-            if (t.t2.gameObject)
+            if (b.gameObject)
             {
-                t.t.click = t.t2.gameObject.GetComponent<Click>() ?? t.t2.gameObject.AddComponent<Click>();
-                t.t.click.gid = t.t.gid;
-                t.t.click.target = t.t;
+                a.click = b.gameObject.GetComponent<Click>() ?? b.gameObject.AddComponent<Click>();
+                a.click.gid = a.gid;
+                a.click.target = a;
             }
         }
-        [Event]
-        static void Out(Out<GameObjectComponent, ColliderClickComponent> t)
+        [OutSystem]
+        static void Out(GameObjectComponent a, ColliderClickComponent b)
         {
-            if (t.t2.click)
-                GameObject.DestroyImmediate(t.t2.click);
+            if (b.click)
+                GameObject.DestroyImmediate(b.click);
         }
     }
 }

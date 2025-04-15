@@ -46,3 +46,6 @@ Server/Shit.Game.Server/Lanucher/bin
 Server/Shit.Game.Server/Shit.Core/bin
 Server/Shit.Game.Server/Shit.Game/bin
 Client/Client/Bundles
+Client/Client/HybridCLRData
+Client/Client/Assets/StreamingAssets
+Client/Client/Assets/Resources/AOT

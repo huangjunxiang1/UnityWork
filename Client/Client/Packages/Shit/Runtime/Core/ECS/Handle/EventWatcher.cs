@@ -5,16 +5,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-//begin#2
-//public class EventWatcher<?[T]+, ?> : __EventWatcher where T : class ?where [T] : SComponent+ #2?
+//begin#1
+//internal partial class EventWatcher<E, ?[T]+, ?> : __SystemHandle ?where [T] : SComponent+ ?
 //{
-//    public EventWatcher(?[T] [t]+, ?) { ?this.[t] = [t];+ ? }
-//?    public [T] [t] { get; }+\r?
+//    internal List<Action<E, ?[T]+, ?>> sys = new(1);
 //
-//    internal static void Invoke(object e, SObject o, int type)
+//    public override void Add(Delegate d) => sys.Add((Action<E, ?[T]+, ?>)d);
+//    public override void _invoke_eventWatcher(object o, SObject obj)
 //    {
-//?        if (!o.TryGetComponent<[T]>(out var [c]) || ![c].Enable) return;+\r#2?
-//        o.World.Event.RunEvent(new EventWatcher<?[T]+, ?>((T)e, ?[c]+, #2?), type: type);
+//?        if (!obj.TryGetComponent<[T]>(out var [c]) || ![c].Enable) return;+\r?
+//#if UNITY_EDITOR
+//        obj._EventWatcher.Add(this);
+//#endif
+//        for (int i = 0; i < sys.Count; i++)
+//        {
+//            try { sys[i].Invoke((E)o, ?[c]+, ?); }
+//            catch (Exception e) { Loger.Error(e); }
+//        }
 //    }
+//    public override Type _get_firstType() => typeof(T);
+//    internal override object GetActions() => sys;
 //}
 //end

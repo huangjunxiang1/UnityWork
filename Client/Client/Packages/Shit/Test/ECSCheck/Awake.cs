@@ -18,20 +18,23 @@ internal static class Awake
 
         Client.World.Root.RemoveComponent<c1>();
 
-        var o = new SObject();
+        var o = new o1();
         Client.World.Root.AddChild(o);
 
-        if (v != 2)
+        if (v != 6)
             throw new Exception();
 
         o.Dispose();
     }
 
     class c1 : SComponent { }
+    class o1 : SObject { }
 
     static int v = 0;
-    [Event]
-    static void awake(Awake<c1> t) => v++;
-    [Event]
-    static void awake(Awake<SObject> t) => v++;
+    [AwakeSystem]
+    static void awake(c1 t) => v++;
+    [AwakeSystem]
+    static void awake(SObject t) => v = 5;
+    [AwakeSystem]
+    static void awake(o1 t) => v++;
 }

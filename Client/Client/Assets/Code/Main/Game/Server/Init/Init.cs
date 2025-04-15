@@ -14,7 +14,7 @@ namespace Game
         static void Init(EC_ServerLanucher e)
         {
             Server.World.Root.AddChild(new Login() { ip = new IPEndPoint(IPAddress.Any, SettingM.serverPort) });
-            Server.World.Root.AddChild(new Room() { });
+            Server.World.Root.AddChild(Room.inst = new Room() { isCrucialRoot = true });
         }
     }
 }

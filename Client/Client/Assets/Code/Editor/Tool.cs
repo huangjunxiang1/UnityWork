@@ -11,6 +11,10 @@ using Debug = UnityEngine.Debug;
 
 #if UGUI
 using UnityEngine.UI;
+using HybridCLR.Editor;
+
+using static UnityEngine.GraphicsBuffer;
+
 #endif
 #if FairyGUI
 using FairyGUI;
@@ -684,5 +688,20 @@ public class Tool
             tips = true;
         }
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
+    }
+
+    [MenuItem("Shit/AOT_Copy")]
+    static void copuAotDll()
+    {
+        string srcDir = SettingsUtil.GetAssembliesPostIl2CppStripDir(EditorUserBuildSettings.activeBuildTarget);
+        var dstDir = $"{Application.dataPath}/Resources/AOT";
+        Directory.Delete(dstDir, true);
+        if (!Directory.Exists(dstDir))
+            Directory.CreateDirectory(dstDir);
+        for (int i = 0; i < AOTGenericReferences.PatchedAOTAssemblyList.Count; i++)
+        {
+            File.Copy($"{srcDir}/{AOTGenericReferences.PatchedAOTAssemblyList[i]}",$"{dstDir}/{AOTGenericReferences.PatchedAOTAssemblyList[i]}.bytes");
+        }
+        AssetDatabase.Refresh();
     }
 }

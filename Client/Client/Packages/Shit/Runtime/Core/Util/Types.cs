@@ -16,7 +16,6 @@ public class Types
     public static List<Type> ReflectionAllTypes()
     {
         List<Assembly> assemblies = new();
-        assemblies.Add(typeof(Types).Assembly);
 
         string name = typeof(Types).Assembly.GetName().Name;
         foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
@@ -24,16 +23,7 @@ public class Types
             var n = item.GetName().Name;
             if (n.Contains("Editor") || n.Contains("Test") || n == "Assembly-CSharp")
                 continue;
-            bool referenced = false;
-            foreach (var item2 in item.GetReferencedAssemblies())
-            {
-                if (item2.Name == name)
-                {
-                    referenced = true;
-                    break;
-                }
-            }
-            if (referenced)
+            if (item.GetCustomAttribute<AssemblyInfoInShitRuntime>() != null)
                 assemblies.Add(item);
         }
 

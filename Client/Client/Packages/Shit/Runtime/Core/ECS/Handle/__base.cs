@@ -5,37 +5,38 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public abstract class __SystemHandle { }
-public abstract class __InHandle : __SystemHandle { }
-public abstract class __OutHandle : __SystemHandle
+internal abstract class __SystemHandle
 {
-    internal abstract void Invoke(SObject o);
+    public virtual void _handle_AwakeOrDispose(SComponent c) { }
+    public virtual ComponentFilter Filter(SObject o, bool addToQueue = false) => null;
+    public virtual void Add(Delegate o) { }
+    public virtual void _invoke_update() { }
+    public virtual void Invoke(ComponentFilter filter) { }
+    public virtual void _invoke_eventWatcher(object o, SObject obj) { }
+    public virtual Type _get_firstType() => null;
+    internal virtual object GetActions() => null;
 }
-public abstract class __ChangeHandle : __SystemHandle
+internal abstract class __KVWatcher : __SystemHandle
 {
-    internal abstract bool Disposed { get; }
-    internal bool setInvokeWaiting = false;
-    internal abstract void Dispose();
-    internal abstract void Invoke();
+    public abstract void Add(int key, Delegate d);
+    public abstract void _invoke_kvWatcher(int key,ComponentFilter cf);
 }
-public abstract class __UpdateHandle : __SystemHandle
+
+internal abstract class ComponentFilter
 {
-    internal abstract bool Disposed { get; }
-    internal abstract void Invoke();
-}
-public abstract class __BeforeUpdateHandle : __UpdateHandle { }
-public abstract class __LateUpdateHandle : __UpdateHandle { }
-public abstract class __EventWatcher : __SystemHandle { }
-public abstract class __KVWatcher : __SystemHandle
-{
-    public long Old { get; internal set; }
-    public long New { get; internal set; }
-    internal bool Disposed { get; private set; }
-    internal virtual void Dispose() => this.Disposed = true;
-    internal abstract void Invoke(int type);
-}
-public abstract class __Timer : __SystemHandle
-{
-    protected SObject obj;
-    internal virtual bool Disposed { get; }
+    internal int EnableCounter;
+    internal bool Disposed;
+    internal __SystemHandle system;
+    internal bool dirty;
+    internal SystemType type = SystemType.None;
+
+    internal KVComponent kv;
+    internal World world;
+
+    public void Invoke() => system.Invoke(this);
+    public void KvInvoke(int k) => ((__KVWatcher)system)._invoke_kvWatcher(k, this);
+    public abstract void _addTo_HandlesList();
+    public abstract void _addTo_kvHandlesList();
+    public abstract void _handle_waitRemove(ICollection<SComponent> hash);
+    public abstract SComponent GetFirstComponent();
 }
