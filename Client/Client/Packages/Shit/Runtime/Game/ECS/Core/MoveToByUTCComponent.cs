@@ -87,35 +87,35 @@ namespace Game
             return _task;
         }
 
-        [Event]
-        static void In(In<MoveToByUTCComponent, TransformComponent> t)
+        [InSystem]
+        static void In(MoveToByUTCComponent a, TransformComponent b)
         {
-            t.t._isMoving = false;
-            t.t._start = t.t._end = t.t2.position;
-            t.t.rotation = t.t2.rotation;
-            t.t._startTime = t.t.World.Timer.utc - 1;
-            t.t._endTime = t.t.World.Timer.utc;
+            a._isMoving = false;
+            a._start = a._end = b.position;
+            a.rotation = b.rotation;
+            a._startTime = a.World.Timer.utc - 1;
+            a._endTime = a.World.Timer.utc;
         }
-        [Event]
-        static void Update(Update<MoveToByUTCComponent, TransformComponent> t)
+        [UpdateSystem]
+        static void Update(MoveToByUTCComponent a, TransformComponent b)
         {
-            if (!t.t._isMoving) return;
-            float lerp = (t.t.World.Timer.utc - t.t._startTime) / (float)(t.t._endTime - t.t._startTime);
+            if (!a._isMoving) return;
+            float lerp = (a.World.Timer.utc - a._startTime) / (float)(a._endTime - a._startTime);
             lerp = math.clamp(lerp, 0, 1);
-            t.t2.position = math.lerp(t.t._start, t.t._end, lerp);
+            b.position = math.lerp(a._start, a._end, lerp);
             if (lerp < 1)
             {
-                var r = quaternion.LookRotation(math.normalize(t.t._end - t.t._start), math.up());
-                t.t2.rotation = math.slerp(t.t2.rotation, r, math.clamp(t.t.World.DeltaTime * t.t.RotateSpeed, 0, 1));
+                var r = quaternion.LookRotation(math.normalize(a._end - a._start), math.up());
+                b.rotation = math.slerp(b.rotation, r, math.clamp(a.World.DeltaTime * a.RotateSpeed, 0, 1));
             }
             else
             {
-                t.t2.rotation = math.slerp(t.t2.rotation, t.t._r, math.clamp(t.t.World.DeltaTime * t.t.RotateSpeed, 0, 1));
-                if (t.t._task != null)
+                b.rotation = math.slerp(b.rotation, a._r, math.clamp(a.World.DeltaTime * a.RotateSpeed, 0, 1));
+                if (a._task != null)
                 {
-                    var old = t.t._task;
-                    t.t._task = null;
-                    t.t._isMoving = true;
+                    var old = a._task;
+                    a._task = null;
+                    a._isMoving = true;
                     old.TrySetResult(true);
                 }
             }
