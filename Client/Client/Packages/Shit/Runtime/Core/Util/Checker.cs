@@ -53,7 +53,23 @@ namespace Core
                                 Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须只有组件参数");
                         }
                     }
-                    if (atts.FirstOrDefault(t => t is SystemAttribute && t is not EventWatcherSystem) != null)
+                    if (atts.FirstOrDefault(t => t is AwakeSystem) != null || atts.FirstOrDefault(t => t is DisposeSystem) != null)
+                    {
+                        if (!method.IsStatic)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须是静态函数");
+                        if (method.IsGenericMethod)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数不能是泛型函数");
+                        if (method.ReturnType != typeof(void))
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须没有返回值");
+                        if (ps.Length != 1)
+                            Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数参数个数不正确");
+                        for (int k = 0; k < ps.Length; k++)
+                        {
+                            if (!typeof(SComponent).IsAssignableFrom(ps[k].ParameterType))
+                                Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须只有组件参数");
+                        }
+                    }
+                    else if (atts.FirstOrDefault(t => t is SystemAttribute && t is not EventWatcherSystem) != null)
                     {
                         if (!method.IsStatic)
                             Loger.Error($"{method.ReflectedType.FullName}  {method.Name}  system函数必须是静态函数");
