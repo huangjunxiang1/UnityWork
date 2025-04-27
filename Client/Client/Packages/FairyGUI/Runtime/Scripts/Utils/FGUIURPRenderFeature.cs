@@ -51,7 +51,7 @@ public class FGUIURPRenderFeature : ScriptableRendererFeature
         Matrix4x4 cullingMatrix;
         Plane[] planes = new Plane[6];
 
-        ShaderTagId[] tags = new ShaderTagId[3] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") };
+        List<ShaderTagId> tags = new List<ShaderTagId> { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") };
         FilteringSettings fs = new FilteringSettings(RenderQueueRange.transparent);
 
         ProfilingSampler _profilingSampler = new ProfilingSampler(nameof(FGUIURPRenderPass));
