@@ -51,7 +51,7 @@ public class FGUIURPRenderFeature : ScriptableRendererFeature
         Matrix4x4 cullingMatrix;
         Plane[] planes = new Plane[6];
 
-        ShaderTagId tag = new ShaderTagId("SRPDefaultUnlit");
+        ShaderTagId[] tags = new ShaderTagId[3] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") };
         FilteringSettings fs = new FilteringSettings(RenderQueueRange.transparent);
 
         ProfilingSampler _profilingSampler = new ProfilingSampler(nameof(FGUIURPRenderPass));
@@ -78,7 +78,7 @@ public class FGUIURPRenderFeature : ScriptableRendererFeature
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, _profilingSampler))
             {
-                DrawingSettings ds = CreateDrawingSettings(tag, ref renderingData, SortingCriteria.CommonTransparent);
+                DrawingSettings ds = CreateDrawingSettings(tags, ref renderingData, SortingCriteria.CommonTransparent);
                 renderingData.cameraData.camera.TryGetCullingParameters(out var culling);
                 culling.cullingMask = (uint)setting.LayerMask.value;
                 culling.cullingMatrix = cullingMatrix;
