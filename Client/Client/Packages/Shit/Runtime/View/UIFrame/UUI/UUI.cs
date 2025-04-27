@@ -13,7 +13,7 @@ public abstract class UUI : UUIBase
 
     public sealed override UIStatus uiStates => _states;
     public sealed override Canvas Canvas => this._canvas;
-    public sealed override RectTransform ui => this.ui;
+    public sealed override RectTransform ui => this._ui;
     public sealed override STask onTask => _task;
 
     public sealed override async STask LoadConfig(UIConfig config, STask completed, params object[] data)
@@ -67,19 +67,7 @@ public abstract class UUI : UUIBase
         this._ui.anchorMax = Vector2.one;
         this._ui.anchoredPosition = default;
 
-        const int max = 3;
-        if (this.Parent is not UIBase)
-        {
-            int layer = 0;
-            this._canvas.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, max - layer);
-        }
-        else
-        {
-            int layer = this.CrucialLayer;
-            if (layer > max)
-                Loger.Error("层级太深 layer=" + layer);
-            this._canvas.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, max - layer);
-        }
+        this._canvas.sortingOrder = this.uiConfig.SortOrder + Game.UIConfig.SortOrderRange;
     }
     async void _taskHandle()
     {

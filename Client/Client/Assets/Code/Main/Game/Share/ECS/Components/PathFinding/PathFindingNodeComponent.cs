@@ -103,6 +103,12 @@ namespace Game
 
             int index = 0;
             finalIndex = -1;
+            if (Root.vs == int.MaxValue)
+            {
+                Root.vs = 0;
+                foreach (var n in Root.Nodes.Values)
+                    n.vs = 0;
+            }
             int vs = ++Root.vs;
 
             do

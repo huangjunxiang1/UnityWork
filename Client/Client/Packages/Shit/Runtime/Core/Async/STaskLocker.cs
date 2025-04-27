@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,8 @@ using System.Threading.Tasks;
 /// </summary>
 public class STaskLocker : IDispose
 {
-    static Dictionary<object, STaskLocker> locks = new();
-    static Dictionary<long, STaskLocker> locks2 = new();
+    static ConcurrentDictionary<object, STaskLocker> locks = new();
+    static ConcurrentDictionary<long, STaskLocker> locks2 = new();
 
     object key;
     long key2;
@@ -105,9 +106,9 @@ public class STaskLocker : IDispose
     {
         Disposed = true;
         if (key != null && locks.TryGetValue(key, out var v) && v == this)
-            locks.Remove(key);
+            locks.TryRemove(key, out _);
         if (key2 != 0 && locks2.TryGetValue(key2, out var v2) && v2 == this)
-            locks2.Remove(key2);
+            locks2.TryRemove(key2, out _);
         next?.TrySetResult();
     }
 

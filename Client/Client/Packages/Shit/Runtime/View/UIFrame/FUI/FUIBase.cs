@@ -114,6 +114,7 @@ public abstract class FUIBase : UIBase
     }
     public sealed override async void Show(bool playAnimation = true, Action callBack = null)
     {
+        this.ui.parent.SetChildIndex(this.ui, this.ui.parent.numChildren);
         if (isShowing)
         {
             await showTask;
@@ -147,6 +148,7 @@ public abstract class FUIBase : UIBase
     }
     public sealed override STask ShowAsync(bool playAnimation = true)
     {
+        this.ui.parent.SetChildIndex(this.ui, this.ui.parent.numChildren);
         if (isShowing)
             return showTask;
 

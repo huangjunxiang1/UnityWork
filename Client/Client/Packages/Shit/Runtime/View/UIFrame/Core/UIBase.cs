@@ -36,12 +36,6 @@ public abstract class UIBase : STree
     {
         this.ParamObjects = data;
         this.uiConfig = config;
-        this.Parent._children.Sort((x, y) =>
-        {
-            int vx = (x is UIBase) ? ((UIBase)x).uiConfig.SortOrder : 0;
-            int vy = (y is UIBase) ? ((UIBase)y).uiConfig.SortOrder : 0;
-            return vx - vy;
-        });
         onCompleted = completed;
         return STask.Completed;
     }
@@ -49,12 +43,6 @@ public abstract class UIBase : STree
     {
         this.ParamObjects = data;
         this.uiConfig = config;
-        this.Parent._children.Sort((x, y) =>
-        {
-            int vx = (x is UIBase) ? ((UIBase)x).uiConfig.SortOrder : 0;
-            int vy = (y is UIBase) ? ((UIBase)y).uiConfig.SortOrder : 0;
-            return vx - vy;
-        });
         onCompleted = completed;
         return STask.Completed;
     }
@@ -62,7 +50,13 @@ public abstract class UIBase : STree
     {
         T ui = this.GetChild<T>();
         if (ui != null)
+        {
+            if (ui.onCompleted != null && ui.onCompleted.IsCompleted)
+                ui.Show();
+            this.GetChildren().Remove(ui);
+            this.GetChildren().Add(ui);
             return ui;
+        }
 
         UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
@@ -81,9 +75,16 @@ public abstract class UIBase : STree
         T ui = this.GetChild<T>();
         if (ui != null)
         {
-            await ui.onCompleted;
+            if (ui.onCompleted != null)
+            {
+                await ui.onCompleted;
+                ui.Show();
+            }
+            this.GetChildren().Remove(ui);
+            this.GetChildren().Add(ui);
             return ui;
         }
+
         using (await STaskLocker.Lock(this))
         {
             UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;

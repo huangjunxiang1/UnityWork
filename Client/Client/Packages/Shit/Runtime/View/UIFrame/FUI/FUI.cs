@@ -99,25 +99,12 @@ public abstract class FUI : FUIBase
 
     void setConfig()
     {
+        this._ui.sortingOrder = this.uiConfig.SortOrder + Game.UIConfig.SortOrderRange;
         GRoot.inst.AddChild(this._ui);
         this._ui.MakeFullScreen();
         this._ui.AddRelation(GRoot.inst, RelationType.Size);
         this._ui.AddRelation(GRoot.inst, RelationType.Center_Center);
         this._ui.fairyBatching = true;
-
-        const int max = 3;
-        if (this.Parent is not UIBase)
-        {
-            int layer = 0;
-            this._ui.sortingOrder = (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, max - layer);
-        }
-        else
-        {
-            int layer = this.CrucialLayer;
-            if (layer > max)
-                Loger.Error("层级太深 layer=" + layer);
-            this._ui.sortingOrder = ((UIBase)Parent).sortOrder + (this.uiConfig.SortOrder + 100) * (int)Math.Pow(100, max - layer);
-        }
     }
     async void _taskHandle()
     {

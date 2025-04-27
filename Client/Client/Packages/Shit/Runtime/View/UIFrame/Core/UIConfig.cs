@@ -9,6 +9,7 @@ namespace Game
     [AttributeUsage(AttributeTargets.Class)]
     public class UIConfig : SAttribute
     {
+        public const int SortOrderRange = 100;
         public static UIConfig Default { get; } = new UIConfig(0);
 
         public int SortOrder { get; }
@@ -17,8 +18,8 @@ namespace Game
 
         public UIConfig(int SortOrder)
         {
-            if (SortOrder > 100 || SortOrder < -100)
-                Loger.Error("SortOrder must be range -100 to 100");
+            if (SortOrder > SortOrderRange || SortOrder < -SortOrderRange)
+                Loger.Error($"SortOrder must be range -{SortOrderRange} to {SortOrderRange}");
 
             this.SortOrder = SortOrder;
         }

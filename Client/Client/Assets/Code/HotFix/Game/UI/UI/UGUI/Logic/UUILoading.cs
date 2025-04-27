@@ -12,10 +12,10 @@ using Core;
 [UIConfig(50, HideIfOpenOtherUI = false)]
 partial class UUILoading
 {
-    [Event(-100, Queue = true)]
+    //[Event(-100, Queue = true)]
     static async STask EC_OutScene(EC_OutScene e)
     {
-        //await UI.Inst.OpenAsync<UUILoading>();
+        await Client.UI.OpenAsync<UUILoading>();
     }
     [Event(100, Queue = true)]
     static async STask EC_InScene(EC_InScene e)

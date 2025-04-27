@@ -8,7 +8,12 @@ using Unity.Mathematics;
 
 namespace Game
 {
-    public enum AStarRound
+    public enum PathFindingMethod
+    {
+        AStar,//A星算法
+        Breadth,//广度搜索
+    }
+    public enum PathFindingRound
     {
         R4,//四方位
         R8,//八方位
@@ -46,11 +51,10 @@ namespace Game
         int currentIndex = 0;
         int2 to;
         int power;
-        int vs;
         [Sirenix.OdinInspector.ShowInInspector]
         float3[] points = new float3[10];
 
-        public bool Finding(int2 from, int2 to, int power = int.MaxValue, AStarRound r = AStarRound.R4)
+        public bool Finding(int2 from, int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4, bool moveto = true)
         {
             if (from.x < 0 || from.y < 0 || from.x >= AStar.width || from.y >= AStar.height)
             {
@@ -80,81 +84,183 @@ namespace Game
                 return true;
             }
 
-            this.vs = AStar.vsArray[from.y * AStar.width + from.x] = ++AStar.vs;
+            if (AStar.vs == int.MaxValue)
+            {
+                AStar.vs = 0;
+                Array.Clear(AStar.vsArray, 0, AStar.vsArray.Length);
+            }
+            AStar.vsArray[from.y * AStar.width + from.x] = ++AStar.vs;
             this.to = to;
             this.power = power;
             currentIndex = 0;
 
-            do
+            if (type == PathFindingMethod.Breadth)
             {
-                FindData now = paths[currentIndex];
+                if (r == PathFindingRound.R4)
+                {
+                    do
+                    {
+                        FindData now = paths[currentIndex];
 
-                if (now.xy.x > 0)
-                {
-                    if (round(new int2(now.xy.x - 1, now.xy.y), ref now, out bool move)) break;
-                    if (move) continue;
-                }
-                if (now.xy.y > 0)
-                {
-                    if (round(new int2(now.xy.x, now.xy.y - 1), ref now, out bool move)) break;
-                    if (move) continue;
-                }
-                if (now.xy.x < AStar.width - 1)
-                {
-                    if (round(new int2(now.xy.x + 1, now.xy.y), ref now, out bool move)) break;
-                    if (move) continue;
-                }
-                if (now.xy.y < AStar.height - 1)
-                {
-                    if (round(new int2(now.xy.x, now.xy.y + 1), ref now, out bool move)) break;
-                    if (move) continue;
-                }
+                        if (now.xy.x > 0)
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y)))
+                                break;
+                        if (now.xy.y > 0)
+                            if (breadth(new int2(now.xy.x, now.xy.y - 1)))
+                                break;
+                        if (now.xy.x < AStar.width - 1)
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y)))
+                                break;
+                        if (now.xy.y < AStar.height - 1)
+                            if (breadth(new int2(now.xy.x, now.xy.y + 1)))
+                                break;
 
-                if (r == AStarRound.R8)
-                {
-                    if (now.xy.x > 0 && now.xy.y > 0)
-                    {
-                        if (round(new int2(now.xy.x - 1, now.xy.y - 1), ref now, out bool move)) break;
-                        if (move) continue;
-                    }
-                    if (now.xy.x > 0 && now.xy.y < AStar.height - 1)
-                    {
-                        if (round(new int2(now.xy.x - 1, now.xy.y + 1), ref now, out bool move)) break;
-                        if (move) continue;
-                    }
-                    if (now.xy.x < AStar.width - 1 && now.xy.y > 0)
-                    {
-                        if (round(new int2(now.xy.x + 1, now.xy.y - 1), ref now, out bool move)) break;
-                        if (move) continue;
-                    }
-                    if (now.xy.x < AStar.width - 1 && now.xy.y < AStar.height - 1)
-                    {
-                        if (round(new int2(now.xy.x + 1, now.xy.y + 1), ref now, out bool move)) break;
-                        if (move) continue;
-                    }
+                        currentIndex++;
+                    } while (currentIndex != arrayIndex);
                 }
+                else
+                {
+                    do
+                    {
+                        FindData now = paths[currentIndex];
 
-                currentIndex = paths[currentIndex].next;
-            } while (currentIndex != -1);
+                        if (now.xy.x > 0)
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y)))
+                                break;
+                        if (now.xy.y > 0)
+                            if (breadth(new int2(now.xy.x, now.xy.y - 1)))
+                                break;
+                        if (now.xy.x < AStar.width - 1)
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y)))
+                                break;
+                        if (now.xy.y < AStar.height - 1)
+                            if (breadth(new int2(now.xy.x, now.xy.y + 1)))
+                                break;
+
+                        if (now.xy.x > 0 && now.xy.y > 0)
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y - 1)))
+                                break;
+                        if (now.xy.x > 0 && now.xy.y < AStar.height - 1)
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y + 1)))
+                                break;
+                        if (now.xy.x < AStar.width - 1 && now.xy.y > 0)
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y - 1)))
+                                break;
+                        if (now.xy.x < AStar.width - 1 && now.xy.y < AStar.height - 1)
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y + 1)))
+                                break;
+
+                        currentIndex++;
+                    } while (currentIndex != arrayIndex);
+                }
+            }
+            else
+            {
+                if (r == PathFindingRound.R4)
+                {
+                    do
+                    {
+                        FindData now = paths[currentIndex];
+
+                        if (now.xy.x > 0)
+                        {
+                            if (round4(new int2(now.xy.x - 1, now.xy.y), out bool move)) break;
+                            if (move) continue;
+                        }
+                        if (now.xy.y > 0)
+                        {
+                            if (round4(new int2(now.xy.x, now.xy.y - 1), out bool move)) break;
+                            if (move) continue;
+                        }
+                        if (now.xy.x < AStar.width - 1)
+                        {
+                            if (round4(new int2(now.xy.x + 1, now.xy.y), out bool move)) break;
+                            if (move) continue;
+                        }
+                        if (now.xy.y < AStar.height - 1)
+                        {
+                            if (round4(new int2(now.xy.x, now.xy.y + 1), out bool move)) break;
+                            if (move) continue;
+                        }
+
+                        currentIndex = paths[currentIndex].next;
+                    } while (currentIndex != -1);
+                }
+                else
+                {
+                    do
+                    {
+                        FindData now = paths[currentIndex];
+                        if (now.xy.x > 0)
+                            if (round8(new int2(now.xy.x - 1, now.xy.y)))
+                                break;
+                        if (now.xy.y > 0)
+                            if (round8(new int2(now.xy.x, now.xy.y - 1)))
+                                break;
+                        if (now.xy.x < AStar.width - 1)
+                            if (round8(new int2(now.xy.x + 1, now.xy.y)))
+                                break;
+                        if (now.xy.y < AStar.height - 1)
+                            if (round8(new int2(now.xy.x, now.xy.y + 1)))
+                                break;
+
+                        if (now.xy.x > 0 && now.xy.y > 0)
+                            if (round8(new int2(now.xy.x - 1, now.xy.y - 1)))
+                                break;
+                        if (now.xy.x > 0 && now.xy.y < AStar.height - 1)
+                            if (round8(new int2(now.xy.x - 1, now.xy.y + 1)))
+                                break;
+                        if (now.xy.x < AStar.width - 1 && now.xy.y > 0)
+                            if (round8(new int2(now.xy.x + 1, now.xy.y - 1)))
+                                break;
+                        if (now.xy.x < AStar.width - 1 && now.xy.y < AStar.height - 1)
+                            if (round8(new int2(now.xy.x + 1, now.xy.y + 1)))
+                                break;
+                        currentIndex = paths[currentIndex].next;
+                    } while (currentIndex != -1);
+                }
+            }
 
             AStar.isFinding = false;
 
             if (paths[arrayIndex - 1].xy.Equals(to))
             {
-                this.SetChangeFlag();
+                if (moveto)
+                    this.SetChangeFlag();
                 return true;
             }
             arrayIndex = -1;
             return false;
         }
-        bool round(int2 xy, ref FindData now, out bool move)
+        bool breadth(int2 xy)
         {
             int i = xy.y * AStar.width + xy.x;
-            int cost = now.cost + (AStar.data[i] >> 1);
-            move = (AStar.data[i] & 1) == 1 && AStar.vsArray[i] != vs && cost <= power;
+            int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
+            var move = (AStar.data[i] & 1) == 1 && AStar.vsArray[i] != AStar.vs && cost <= power;
             if (move)
             {
-                AStar.vsArray[i] = vs;
+                AStar.vsArray[i] = AStar.vs;
+                if (arrayIndex >= paths.Length)
+                    Array.Resize(ref paths, arrayIndex * 2);
+                paths[arrayIndex++] = new FindData
+                {
+                    xy = xy,
+                    last = currentIndex,
+                    cost = cost,
+                    step = paths[currentIndex].step + 1,
+                };
+                return xy.Equals(to);
+            }
+            return false;
+        }
+        bool round4(int2 xy, out bool move)
+        {
+            int i = xy.y * AStar.width + xy.x;
+            int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
+            move = (AStar.data[i] & 1) == 1 && AStar.vsArray[i] != AStar.vs && cost <= power;
+            if (move)
+            {
+                AStar.vsArray[i] = AStar.vs;
                 int pre = math.abs(xy.x - to.x) + math.abs(xy.y - to.y);
                 if (arrayIndex >= paths.Length)
                     Array.Resize(ref paths, arrayIndex * 2);
@@ -164,8 +270,8 @@ namespace Game
                     last = currentIndex,
                     next = -1,
                     cost = cost,
-                    step = now.step + 1,
-                    totalDistance = now.step + pre
+                    step = paths[currentIndex].step + 1,
+                    totalDistance = paths[currentIndex].step + pre
                 };
 
                 if (xy.Equals(to))
@@ -182,6 +288,43 @@ namespace Game
                     paths[lastIdx].next = arrayIndex - 1;
                 else
                     currentIndex = arrayIndex - 1;
+                if (nextIdx != -1)
+                    paths[arrayIndex - 1].next = nextIdx;
+            }
+            return false;
+        }
+        bool round8(int2 xy)
+        {
+            int i = xy.y * AStar.width + xy.x;
+            int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
+            var move = (AStar.data[i] & 1) == 1 && AStar.vsArray[i] != AStar.vs && cost <= power;
+            if (move)
+            {
+                AStar.vsArray[i] = AStar.vs;
+                int pre = math.abs(xy.x - to.x) + math.abs(xy.y - to.y);
+                if (arrayIndex >= paths.Length)
+                    Array.Resize(ref paths, arrayIndex * 2);
+                paths[arrayIndex++] = new FindData
+                {
+                    xy = xy,
+                    last = currentIndex,
+                    next = -1,
+                    cost = cost,
+                    step = paths[currentIndex].step + 1,
+                    totalDistance = paths[currentIndex].step + pre
+                };
+
+                if (xy.Equals(to))
+                    return true;
+
+                int lastIdx = currentIndex;
+                int nextIdx = paths[currentIndex].next;
+                while (nextIdx != -1 && paths[nextIdx].totalDistance < paths[arrayIndex - 1].totalDistance)
+                {
+                    lastIdx = nextIdx;
+                    nextIdx = paths[nextIdx].next;
+                }
+                paths[lastIdx].next = arrayIndex - 1;
                 if (nextIdx != -1)
                     paths[arrayIndex - 1].next = nextIdx;
             }

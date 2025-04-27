@@ -10,8 +10,6 @@ namespace Game
 {
     public class MoveToByUTCComponent : SComponent
     {
-        public static float DefaultRotateSpeed = 20;
-        public float RotateSpeed = DefaultRotateSpeed;
 
         STask<bool> _task;
         float3 _start;
@@ -97,7 +95,7 @@ namespace Game
             a._endTime = a.World.Timer.utc;
         }
         [UpdateSystem]
-        static void Update(MoveToByUTCComponent a, TransformComponent b)
+        static void Update(MoveToByUTCComponent a, TransformComponent b,KVComponent kv)
         {
             if (!a._isMoving) return;
             float lerp = (a.World.Timer.utc - a._startTime) / (float)(a._endTime - a._startTime);
@@ -106,17 +104,20 @@ namespace Game
             if (lerp < 1)
             {
                 var r = quaternion.LookRotation(math.normalize(a._end - a._start), math.up());
-                b.rotation = math.slerp(b.rotation, r, math.clamp(a.World.DeltaTime * a.RotateSpeed, 0, 1));
+                b.rotation = math.slerp(b.rotation, r, math.clamp(a.World.DeltaTime * kv.Get((int)KType.RotateSpeed), 0, 1));
             }
             else
             {
-                b.rotation = math.slerp(b.rotation, a._r, math.clamp(a.World.DeltaTime * a.RotateSpeed, 0, 1));
-                if (a._task != null)
+                b.rotation = math.slerp(b.rotation, a._r, math.clamp(a.World.DeltaTime * kv.Get((int)KType.RotateSpeed), 0, 1));
+                if (math.abs(math.angle(b.rotation, a.rotation)) < 0.1f)
                 {
-                    var old = a._task;
-                    a._task = null;
-                    a._isMoving = true;
-                    old.TrySetResult(true);
+                    a._isMoving = false;
+                    if (a._task != null)
+                    {
+                        var old = a._task;
+                        a._task = null;
+                        old.TrySetResult(true);
+                    }
                 }
             }
         }

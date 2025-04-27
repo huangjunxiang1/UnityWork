@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 partial class UUILogin
 {
+    //[Event]
+    static async void EC_InScene(EC_InScene e)
+    {
+        if (e.sceneId == 1)
+            await Client.UI.OpenAsync<UUILogin>();
+    }
 
     protected override void OnEnter(params object[] data)
     {
@@ -21,7 +27,7 @@ partial class UUILogin
             "联网模式",
         });
 
-        _sceneIDText.Binding<EC_InScene>(t => t.sceneId.ToString());
+        //_sceneIDText.Binding<EC_InScene>(t => t.sceneId.ToString());
     }
 
     protected override void OnExit()

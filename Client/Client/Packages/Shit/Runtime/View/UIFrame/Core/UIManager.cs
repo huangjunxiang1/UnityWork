@@ -46,7 +46,13 @@ namespace Game
         {
             T ui = GetChild<T>();
             if (ui != null)
+            {
+                if (ui.onCompleted != null && ui.onCompleted.IsCompleted)
+                    ui.Show();
+                this.GetChildren().Remove(ui);
+                this.GetChildren().Add(ui);
                 return ui;
+            }
 
             UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
@@ -76,7 +82,13 @@ namespace Game
             T ui = GetChild<T>();
             if (ui != null)
             {
-                await ui.onCompleted;
+                if (ui.onCompleted != null)
+                {
+                    await ui.onCompleted;
+                    ui.Show();
+                }
+                this.GetChildren().Remove(ui);
+                this.GetChildren().Add(ui);
                 return ui;
             }
             using (await STaskLocker.Lock(this))
