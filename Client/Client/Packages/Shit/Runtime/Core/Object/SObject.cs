@@ -115,11 +115,11 @@ namespace Core
         public long tid { get; init; }
 
         /// <summary>
-        /// 对象类型
+        /// 对象组
         /// </summary>
         [ShowInInspector]
         [PropertyOrder(-100)]
-        public int ObjType { get; init; }
+        public int Group { get; init; }
 
         /// <summary>
         /// 事件监听

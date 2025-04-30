@@ -10,9 +10,9 @@ internal class TypeLstCheck
 {
     public static void test()
     {
-        o1 v_o1 = new() { ObjType = 1 };
+        o1 v_o1 = new() { Group = 1 };
         o1 v_o2 = new();
-        o1 v_o3 = new() { ObjType = 2 };
+        o1 v_o3 = new() { Group = 2 };
 
         Client.World.Root.AddChild(v_o1);
         Client.World.Root.AddChild(v_o2);
@@ -25,13 +25,13 @@ internal class TypeLstCheck
             v2_o1.AddChild(v_o2);
             v2_o1.AddChild(v_o3);
 
-            if (v2_o1.GetChildrenByObjType(1).Count != 1)
+            if (v2_o1.GetChildrenByGroup(1).Count != 1)
                 throw new Exception();
-            if (v2_o1.GetChildrenByObjType(1).FirstOrDefault() != v_o1)
+            if (v2_o1.GetChildrenByGroup(1).FirstOrDefault() != v_o1)
                 throw new Exception();
-            if (v2_o1.GetChildrenByObjType(2).Count != 1)
+            if (v2_o1.GetChildrenByGroup(2).Count != 1)
                 throw new Exception();
-            if (v2_o1.GetChildrenByObjType(2).FirstOrDefault() != v_o3)
+            if (v2_o1.GetChildrenByGroup(2).FirstOrDefault() != v_o3)
                 throw new Exception();
         }
         o2 v2_o2 = new() { isCrucialRoot = true };
@@ -41,18 +41,18 @@ internal class TypeLstCheck
             v2_o2.AddChild(v_o2);
             v2_o2.AddChild(v_o3);
 
-            if (v2_o1.GetChildrenByObjType(1).Count != 0)
+            if (v2_o1.GetChildrenByGroup(1).Count != 0)
                 throw new Exception();
-            if (v2_o1.GetChildrenByObjType(2).Count != 0)
+            if (v2_o1.GetChildrenByGroup(2).Count != 0)
                 throw new Exception();
 
-            if (v2_o2.GetChildrenByObjType(1).Count != 1)
+            if (v2_o2.GetChildrenByGroup(1).Count != 1)
                 throw new Exception();
-            if (v2_o2.GetChildrenByObjType(1).FirstOrDefault() != v_o1)
+            if (v2_o2.GetChildrenByGroup(1).FirstOrDefault() != v_o1)
                 throw new Exception();
-            if (v2_o2.GetChildrenByObjType(2).Count != 1)
+            if (v2_o2.GetChildrenByGroup(2).Count != 1)
                 throw new Exception();
-            if (v2_o2.GetChildrenByObjType(2).FirstOrDefault() != v_o3)
+            if (v2_o2.GetChildrenByGroup(2).FirstOrDefault() != v_o3)
                 throw new Exception();
         }
 
@@ -60,13 +60,13 @@ internal class TypeLstCheck
         v_o2.Dispose();
         v_o3.Dispose();
 
-        if (v2_o1.GetChildrenByObjType(1).Count != 0)
+        if (v2_o1.GetChildrenByGroup(1).Count != 0)
             throw new Exception();
-        if (v2_o1.GetChildrenByObjType(2).Count != 0)
+        if (v2_o1.GetChildrenByGroup(2).Count != 0)
             throw new Exception();
-        if (v2_o2.GetChildrenByObjType(1).Count != 0)
+        if (v2_o2.GetChildrenByGroup(1).Count != 0)
             throw new Exception();
-        if (v2_o2.GetChildrenByObjType(2).Count != 0)
+        if (v2_o2.GetChildrenByGroup(2).Count != 0)
             throw new Exception();
 
         {
@@ -76,7 +76,7 @@ internal class TypeLstCheck
             v2_o1.AddChild(s);
             v2_o1.AddChild(s2);
             var ss1 = new STree { };
-            var oo1 = new SObject() { ObjType = 1 };
+            var oo1 = new SObject() { Group = 1 };
             s.AddChild(ss1);
             ss1.AddChild(oo1);
             if (oo1.CrucialRoot != s)

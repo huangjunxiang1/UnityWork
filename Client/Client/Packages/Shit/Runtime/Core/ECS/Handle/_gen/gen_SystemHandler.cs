@@ -37,6 +37,7 @@ internal partial class SystemHandler<T> : __SystemHandle where T : SComponent
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -85,6 +86,7 @@ internal partial class SystemHandler<T, T2> : __SystemHandle where T : SComponen
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -135,6 +137,7 @@ internal partial class SystemHandler<T, T2, T3> : __SystemHandle where T : SComp
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -187,6 +190,7 @@ internal partial class SystemHandler<T, T2, T3, T4> : __SystemHandle where T : S
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -241,6 +245,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5> : __SystemHandle where T
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -297,6 +302,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6> : __SystemHandle whe
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -355,6 +361,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7> : __SystemHandle
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -415,6 +422,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7, T8> : __SystemHa
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -477,6 +485,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7, T8, T9> : __Syst
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {
@@ -541,6 +550,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : _
             }
             cfq.Enqueue(cf);
         }
+        ObjectPool.Return(tmp);
     }
     public override void Invoke(ComponentFilter filter)
     {

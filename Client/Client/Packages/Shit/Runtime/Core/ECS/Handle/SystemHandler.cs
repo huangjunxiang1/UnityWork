@@ -38,6 +38,7 @@ using Core;
 //            }
 //            cfq.Enqueue(cf);
 //        }
+//        ObjectPool.Return(tmp);
 //    }
 //    public override void Invoke(ComponentFilter filter)
 //    {

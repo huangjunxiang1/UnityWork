@@ -15,9 +15,10 @@ namespace Core
         [ShowInInspector]
         Dictionary<long, SObject> _childrenAMap = ObjectPool.Get<Dictionary<long, SObject>>();
         [ShowInInspector]
-        Dictionary<int, List<SObject>> _typeMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
+        Dictionary<int, List<SObject>> _groupMap = ObjectPool.Get<Dictionary<int, List<SObject>>>();
+        [ShowInInspector]
         internal List<SObject> _children = new();//外部能访问到的对象不用池
-        static ReadOnlyCollection<SObject> _emptyTypeChildren = new(Array.Empty<SObject>());
+        static ReadOnlyCollection<SObject> _empty = new(Array.Empty<SObject>());
 
         /// <summary>
         /// 关键节点
@@ -69,10 +70,10 @@ namespace Core
                 else
                     Loger.Error($"Already Contains Child this={this} child={child}");
             }
-            if (child.ObjType != 0)
+            if (child.Group != 0)
             {
-                if (!this._typeMap.TryGetValue(child.ObjType, out var lst))
-                    this._typeMap[child.ObjType] = lst = new();
+                if (!this._groupMap.TryGetValue(child.Group, out var lst))
+                    this._groupMap[child.Group] = lst = new();
                 lst.Add(child);
             }
             _children.Add(child);
@@ -116,11 +117,11 @@ namespace Core
         }
         public List<SObject> ToChildren() => new(_children);
         public List<SObject> GetChildren() => _children;
-        public ReadOnlyCollection<SObject> GetChildrenByObjType(int objType)
+        public ReadOnlyCollection<SObject> GetChildrenByGroup(int objType)
         {
-            if (_typeMap.TryGetValue(objType, out var lst))
+            if (_groupMap.TryGetValue(objType, out var lst))
                 return new ReadOnlyCollection<SObject>(lst);
-            return _emptyTypeChildren;
+            return _empty;
         }
         public T GetChild<T>() where T : SObject => _children.Find(t => t is T) as T;
 
@@ -135,9 +136,9 @@ namespace Core
             _childrenGMap.Remove(child.gid);
             if (child.ActorId != 0)
                 _childrenAMap.Remove(child.ActorId);
-            if (child.ObjType != 0)
+            if (child.Group != 0)
             {
-                if (this._typeMap.TryGetValue(child.ObjType, out var lst))
+                if (this._groupMap.TryGetValue(child.Group, out var lst))
                     lst.Remove(child);
             }
             _children.Remove(child);
@@ -184,9 +185,9 @@ namespace Core
                 ObjectPool.Return(_childrenAMap);
                 _childrenAMap = null;
 
-                _typeMap.Clear();
-                ObjectPool.Return(_typeMap);
-                _typeMap = null;
+                _groupMap.Clear();
+                ObjectPool.Return(_groupMap);
+                _groupMap = null;
 
                 List<SObject> tmp = _children;
                 _children = null;
@@ -206,7 +207,7 @@ namespace Core
 
                 _childrenGMap.Clear();
                 _childrenAMap.Clear();
-                _typeMap.Clear();
+                _groupMap.Clear();
 
                 List<SObject> tmp = _children;
                 _children = new();
