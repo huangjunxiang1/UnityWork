@@ -20,7 +20,7 @@ namespace Game
     }
     public class AStarData
     {
-        public AStarData(int width,int height, ushort[] data)
+        public AStarData(int width,int height, byte[] data)
         {
             if (data.Length < width * height)
             {
@@ -30,14 +30,14 @@ namespace Game
             this.width = width;
             this.height = height;
             this.data = data;
-            this.vsArray = new int[width * height];
+            this.vsArray = new byte[width * height];
         }
         public int width { get; private set; }
         public int height { get; private set; }
-        public ushort[] data { get; private set; }//每个值 低位第一个bit是 是否激活 后续bit是消耗
+        public byte[] data { get; private set; }//每个值 低位第一个bit是 是否激活 后续bit是消耗
 
-        internal int vs;
-        internal int[] vsArray;
+        internal byte vs;
+        internal byte[] vsArray;
         internal bool isFinding;
     }
     public class PathFindingAStarComponent : SComponent
@@ -84,7 +84,7 @@ namespace Game
                 return true;
             }
 
-            if (AStar.vs == int.MaxValue)
+            if (AStar.vs == byte.MaxValue)
             {
                 AStar.vs = 0;
                 Array.Clear(AStar.vsArray, 0, AStar.vsArray.Length);

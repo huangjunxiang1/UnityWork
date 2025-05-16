@@ -10,11 +10,11 @@ namespace PB
 {
     public abstract class PBMessage : IMessage
     {
-        [Sirenix.OdinInspector.ShowInInspector]
+        [Newtonsoft.Json.JsonIgnore]
         public long rpc { get; set; }
-        [Sirenix.OdinInspector.ShowInInspector]
+        [Newtonsoft.Json.JsonIgnore]
         public long actorId { get; set; }
-        [Sirenix.OdinInspector.ShowInInspector]
+        [Newtonsoft.Json.JsonIgnore]
         public string error { get; set; }
 
         public abstract void Write(PBWriter writer);

@@ -7,55 +7,46 @@ using UnityEngine;
 
 namespace Game
 {
+    [ExecuteInEditMode]
     public class PathFindingNode : MonoBehaviour
     {
-        public static PathFindingNode Root;
-        static MulNode MulRoot;
+        public static MulNode MulRoot;
+        static HashSet<PathFindingNode> Nodes = new();
 
-        public bool isRoot = false;
         public long id;
         public List<PathFindingNode> Nexts = new();
 
         private void OnEnable()
         {
-            if (this.isRoot)
-                Root = this;
+            Nodes.Add(this);
         }
         private void OnDisable()
         {
-            if (this.isRoot)
+            Nodes.Remove(this);
+        }
+        private void OnValidate()
+        {
+            MulRoot = null;
+        }
+#if UNITY_EDITOR
+        private Vector3 lastPosition;
+        private void Update()
+        {
+            if (Vector3.Distance(transform.position, lastPosition) > 0.0001f)
             {
-                Root = null;
-                MulRoot = null;
+                lastPosition = transform.position;
+                OnValidate();
             }
         }
+#endif
         public static MulNode GetCurrentRoot()
         {
-            if (!Root) return null;
             if (MulRoot == null)
             {
                 MulRoot = new MulNode();
-                HashSet<PathFindingNode> nodes = new();
-                List<PathFindingNode> lst = new();
-                nodes.Add(Root);
-                lst.Add(Root);
-                int index = 0;
-                while (index < lst.Count)
-                {
-                    var n = lst[index];
-                    for (int i = 0; i < n.Nexts.Count; i++)
-                    {
-                        var next = n.Nexts[i];
-                        if (nodes.Contains(next))
-                            continue;
-                        nodes.Add(next);
-                        lst.Add(next);
-                    }
-                    ++index;
-                }
-                foreach (var item in nodes)
+                foreach (var item in Nodes)
                     MulRoot.CreateNode(item.id == 0 ? (item.id = Util.RandomLong()) : item.id, item.transform.position);
-                foreach (var item in nodes)
+                foreach (var item in Nodes)
                 {
                     var nn = MulRoot.GetNode(item.id);
                     for (int i = 0; i < item.Nexts.Count; i++)
