@@ -4,12 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Game
 {
     [ExecuteInEditMode]
     public class PathFindingNode : MonoBehaviour
     {
+        static PathFindingNode()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
         public static MulNode MulRoot;
         static HashSet<PathFindingNode> Nodes = new();
 
@@ -26,16 +32,26 @@ namespace Game
         }
         private void OnValidate()
         {
+            Clear();
+        }
+
+        private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
+        {
+            Clear();
+        }
+        static void Clear()
+        {
             MulRoot = null;
         }
 #if UNITY_EDITOR
+
         private Vector3 lastPosition;
         private void Update()
         {
             if (Vector3.Distance(transform.position, lastPosition) > 0.0001f)
             {
                 lastPosition = transform.position;
-                OnValidate();
+                Clear();
             }
         }
 #endif

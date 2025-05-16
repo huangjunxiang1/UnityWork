@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 [InitializeOnLoad]
@@ -14,8 +15,13 @@ internal class PathNodeDrawLine
     static PathNodeDrawLine()
     {
         SceneView.duringSceneGui += OnSceneGUI;
+        EditorSceneManager.activeSceneChangedInEditMode += OnEditorSceneChanged;
     }
 
+    private static void OnEditorSceneChanged(UnityEngine.SceneManagement.Scene previousScene, UnityEngine.SceneManagement.Scene newScene)
+    {
+        PathFindingNode.MulRoot = null;
+    }
     private static void OnSceneGUI(SceneView sceneView)
     {
         var root = PathFindingNode.GetCurrentRoot();
