@@ -19,6 +19,7 @@ public class ShitSettings : ScriptableObject
     internal string _MainPath = "/Code/Main/";
     [SerializeField]
     internal string _HotPath = "/Code/HotFix/";
+    public float PathNodeDrawLineRadius = 0.5f;
     [SerializeField]
     internal List<DirectoryItem> SyncDirs = new();
 
@@ -56,6 +57,7 @@ class ShitProvider : SettingsProvider
     {
         ShitSettings.Inst._MainPath = EditorGUILayout.TextField(nameof(ShitSettings.Inst.MainPath), ShitSettings.Inst._MainPath);
         ShitSettings.Inst._HotPath = EditorGUILayout.TextField(nameof(ShitSettings.Inst.HotPath), ShitSettings.Inst._HotPath);
+        ShitSettings.Inst.PathNodeDrawLineRadius = EditorGUILayout.FloatField(nameof(ShitSettings.Inst.PathNodeDrawLineRadius), ShitSettings.Inst.PathNodeDrawLineRadius);
         EditorGUILayout.PropertyField(ShitSettings.Inst.target.FindProperty(nameof(ShitSettings.Inst.SyncDirs)));
         if (EditorGUI.EndChangeCheck())
         {

@@ -25,26 +25,25 @@ namespace Game
         private void OnEnable()
         {
             Nodes.Add(this);
+            if (Application.isEditor)
+                Clear();
         }
         private void OnDisable()
         {
             Nodes.Remove(this);
+            if (Application.isEditor)
+                Clear();
         }
         private void OnValidate()
         {
-            Clear();
+            if (Application.isEditor)
+            {
+                this.gameObject.name = this.id.ToString();
+                Clear();
+            }
         }
 
-        private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
-        {
-            Clear();
-        }
-        static void Clear()
-        {
-            MulRoot = null;
-        }
 #if UNITY_EDITOR
-
         private Vector3 lastPosition;
         private void Update()
         {
@@ -55,22 +54,32 @@ namespace Game
             }
         }
 #endif
+
+        static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
+        {
+            Clear();
+        }
+        public static void Clear()
+        {
+            MulRoot = null;
+        }
+
         public static MulNode GetCurrentRoot()
         {
             if (MulRoot == null)
             {
                 MulRoot = new MulNode();
                 foreach (var item in Nodes)
-                    MulRoot.CreateNode(item.id == 0 ? (item.id = Util.RandomLong()) : item.id, item.transform.position);
+                    MulRoot.CreateNode((item.id == 0 || MulRoot.Nodes.ContainsKey(item.id)) ? (item.id = Util.RandomLong()) : item.id, item.transform.position);
                 foreach (var item in Nodes)
                 {
-                    var nn = MulRoot.GetNode(item.id);
+                    var n = MulRoot.GetNode(item.id);
                     for (int i = 0; i < item.Nexts.Count; i++)
                     {
                         var next = MulRoot.GetNode(item.Nexts[i].id);
                         var d = Vector3.Distance(item.transform.position, item.Nexts[i].transform.position);
-                        nn.AddNext(next.id, d);
-                        next.AddNext(nn.id, d);
+                        n.AddNext(next.id, d);
+                        next.AddNext(n.id, d);
                     }
                 }
             }
