@@ -13,7 +13,7 @@ namespace Game
     {
         static PathFindingNode()
         {
-            SceneManager.sceneLoaded += OnSceneLoaded;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
         public static MulNode MulRoot;

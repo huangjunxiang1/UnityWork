@@ -45,6 +45,7 @@ namespace Game
         public AStarData AStar;
         public float3 start;//起始坐标
         public float3 size = new float3(1, 0, 1);//块间隔
+        public int2 target;
 
         FindData[] paths = new FindData[100];
         int arrayIndex = -1;
@@ -53,8 +54,13 @@ namespace Game
         int power;
         [Sirenix.OdinInspector.ShowInInspector]
         float3[] points = new float3[10];
+        STask<bool> move;
 
-        public bool Finding(int2 from, int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4, bool moveto = true)
+        public bool Finding(int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
+        {
+            return this.Finding(this.target, to, power, type, r);
+        }
+        public bool Finding(int2 from, int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
             if (from.x < 0 || from.y < 0 || from.x >= AStar.width || from.y >= AStar.height)
             {
@@ -81,6 +87,7 @@ namespace Game
             if (from.Equals(to))
             {
                 AStar.isFinding = false;
+                this.to = to;
                 return true;
             }
 
@@ -224,11 +231,7 @@ namespace Game
             AStar.isFinding = false;
 
             if (paths[arrayIndex - 1].xy.Equals(to))
-            {
-                if (moveto)
-                    this.SetChangeFlag();
                 return true;
-            }
             arrayIndex = -1;
             return false;
         }
@@ -331,6 +334,25 @@ namespace Game
             return false;
         }
 
+        public void Move()
+        {
+            if (arrayIndex == -1) return;
+            if (move == null)
+            {
+                move = new();
+                this.SetChangeFlag();
+            }
+        }
+        public async Task<bool> MoveAsync()
+        {
+            if (arrayIndex == -1) return false;
+            if (move == null)
+            {
+                move = new();
+                this.SetChangeFlag();
+            }
+            return await move;
+        }
         public float3[] GetFindingPoints()
         {
             if (arrayIndex == -1) return Array.Empty<float3>();
@@ -421,12 +443,20 @@ namespace Game
         }
 
         [ChangeSystem]
-        static void Change(PathFindingAStarComponent finding, MoveToComponent move)
+        static async void Change(PathFindingAStarComponent finding, MoveToComponent move)
         {
             if (finding.arrayIndex != -1)
             {
                 int len = finding.GetFindingPoints(ref finding.points);
-                move.MoveTo(finding.points, 0, len - 1);
+                var to = finding.to;
+                var v = await move.MoveToAsync(finding.points, 0, len - 1);
+                finding.target = to;
+                if (finding.move != null)
+                {
+                    var m = finding.move;
+                    finding.move = null;
+                    m.TrySetResult(v);
+                }
             }
         }
 

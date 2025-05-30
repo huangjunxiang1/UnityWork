@@ -25,7 +25,7 @@ namespace Game
         public static GameObject gameObject { get; private set; }
         public static Transform transform { get; private set; }
         public static Data Data { get; private set; }
-        public static Scene Scene { get; private set; }
+        public static SceneManager Scene { get; private set; }
         public static UIManager UI { get; private set; }
 
         public static void Load(List<Type> types)

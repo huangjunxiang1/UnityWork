@@ -65,12 +65,20 @@ namespace Game
 #else
         public MulNode Root { get; set; }
 #endif
+        public long CurrentId;//
+
         FindData[] paths = new FindData[20];
         int finalIndex = -1;
+        STask<bool> move;
+        long toId;
 
         [Sirenix.OdinInspector.ShowInInspector]
         float3[] points = new float3[10];
 
+        public bool Finding(long toId)
+        {
+            return this.Finding(this.CurrentId, toId);
+        }
         public bool Finding(long fromId, long toId)
         {
             if (Root == null)
@@ -98,6 +106,7 @@ namespace Game
             {
                 finalIndex = 0;
                 Root.isFinding = false;
+                this.toId = toId;
                 return true;
             }
 
@@ -156,10 +165,28 @@ namespace Game
                 index = paths[index].next;
             } while (index != finalIndex);
             Root.isFinding = false;
+            this.toId = toId;
 
-            if (finalIndex != -1)
-                this.SetChangeFlag();
             return finalIndex != -1;
+        }
+        public void Move()
+        {
+            if (finalIndex == -1) return;
+            if (move == null)
+            {
+                move = new();
+                this.SetChangeFlag();
+            }
+        }
+        public async Task<bool> MoveAsync()
+        {
+            if (finalIndex == -1) return false;
+            if (move == null)
+            {
+                move = new();
+                this.SetChangeFlag();
+            }
+            return await move;
         }
         public float3[] GetFindingPoints()
         {
@@ -251,12 +278,20 @@ namespace Game
         }
 
         [ChangeSystem]
-        static void Change(PathFindingNodeComponent finding, MoveToComponent move)
+        static async void Change(PathFindingNodeComponent finding, MoveToComponent move)
         {
             if (finding.finalIndex != -1)
             {
                 int len = finding.GetFindingPoints(ref finding.points);
-                move.MoveTo(finding.points, 0, len - 1);
+                var to = finding.toId;
+                var v = await move.MoveToAsync(finding.points, 0, len - 1);
+                finding.CurrentId = to;
+                if (finding.move != null)
+                {
+                    var m = finding.move;
+                    finding.move = null;
+                    m.TrySetResult(v);
+                }
             }
         }
 

@@ -1,36 +1,51 @@
-﻿using Event;
+﻿using Core;
+using Event;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+using System.Reflection;
 
 namespace Game
 {
-    public class Scene : Core.STree
+    public class Scene : STree
     {
-        public int SceneID { get; private set; }
-        public int Mask { get; private set; }
-
-        public STask InLoginScene() => InScene(1, 1, "Login");
-        public STask InMainScene() => InScene(2, 1, "Login");
-        public async STask InScene(int sceneId, int mask, string name)
+        static Scene()
         {
-            if (SceneID == sceneId) return;
-
-            this.DisposeAllChildren();
-            await World.Event.RunEventAsync(new EC_OutScene { sceneId = SceneID, sceneType = this.Mask });
-
-            this.SceneID = sceneId;
-            this.Mask = mask;
-
-            SAsset.ReleasePoolsGameObjects();
-            await SAsset.ReleaseAllUnuseObjects();
-            await SAsset.LoadSceneAsync($"scene_{name}");
-            await STask.Delay(100);
-
-            await World.Event.RunEventAsync(new EC_InScene { sceneId = SceneID, sceneType = this.Mask });
+            var lst = ObjectPool.Get<List<Type>>();
+            for (int i = 0; i < Client.World.Types.types.Count; i++)
+            {
+                if (typeof(Scene).IsAssignableFrom(Client.World.Types.types[i]) && Client.World.Types.types[i] != typeof(Scene))
+                    lst.Add(Client.World.Types.types[i]);
+            }
+            scenes = lst.Count == 0 ? Array.Empty<Type>() : lst.ToArray();
         }
+
+        static Type[] scenes;
+
+        [Event]
+        static void _inScene(EC_InScene e)
+        {
+            int sceneID = e.sceneId;
+            int sceneType = e.sceneType;
+            int len = scenes.Length;
+            bool isCreate = false;
+            for (int i = 0; i < len; i++)
+            {
+                var o = scenes[i].GetCustomAttribute<SceneAttribute>();
+                if (o != null && (o.type == 0 || o.type == sceneType) && (o.ID == 0 || o.ID == sceneID))
+                {
+                    isCreate = true;
+                    var s = (Scene)Activator.CreateInstance(scenes[i]);
+                    Client.Scene.AddChild(s);
+                    s.OnCreate();
+                }
+            }
+            if (!isCreate)
+            {
+                var s = new Scene();
+                Client.Scene.AddChild(s);
+                s.OnCreate();
+            }
+        }
+        protected virtual void OnCreate() { }
     }
 }
