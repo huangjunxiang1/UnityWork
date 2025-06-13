@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 namespace Game
 {
     [ExecuteInEditMode]
-    public class PathFindingNode : MonoBehaviour
+    class PathFindingNode : MonoBehaviour
     {
         static PathFindingNode()
         {
@@ -64,7 +64,7 @@ namespace Game
             MulRoot = null;
         }
 
-        public static MulNode GetCurrentRoot()
+        public static MulNode GetCurrent()
         {
             if (MulRoot == null)
             {

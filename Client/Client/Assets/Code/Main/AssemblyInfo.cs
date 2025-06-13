@@ -26,3 +26,4 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyInfoInShitRuntime]
+[assembly: InternalsVisibleTo("Game.Editor")]

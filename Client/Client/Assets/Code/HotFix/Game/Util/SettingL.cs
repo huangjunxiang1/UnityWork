@@ -34,10 +34,10 @@ static partial class SettingL
         }
     }
 
-    static async void loadLocationText()
+    static void loadLocationText()
     {
         var t = LanguageUtil.LanguageType;
-        DBuffer buff = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"config_Language_{LanguageUtil.LanguageType}")).bytes));
+        DBuffer buff = new(new MemoryStream(YooPkg.LoadRaw($"raw_Language_{LanguageUtil.LanguageType}")));
         if (LanguageUtil.LanguageType != t)
         {
             buff.Dispose();

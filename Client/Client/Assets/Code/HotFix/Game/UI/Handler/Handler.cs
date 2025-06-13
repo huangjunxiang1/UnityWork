@@ -14,79 +14,17 @@ using YooAsset;
 
 static class Handler
 {
-    class RemoteServices : IRemoteServices
-    {
-        public string url;
-        public string fallBackUrl;
-        public string GetRemoteFallbackURL(string fileName) => fallBackUrl + fileName;
-        public string GetRemoteMainURL(string fileName) => url + fileName;
-    }
     [Event(-100, Queue = true)]
     static async STask Init(EC_GameStart e)
     {
         YooAssets.Initialize();
         var loader = (YooassetLoader)SAsset.Loader;
-        loader.LoadPackage("Res");
+        YooPkg.res = YooAssets.TryGetPackage("Res") ?? YooAssets.CreatePackage("Res");
+        YooPkg.raw = YooAssets.TryGetPackage("Raw") ?? YooAssets.CreatePackage("Raw");
+        loader.SetDefaultPackage(YooPkg.res);
 
-        var mode = APPConfig.Inst.EPlayMode;
-        // 编辑器下的模拟模式
-        InitializationOperation initializationOperation = null;
-        if (mode == EPlayMode.EditorSimulateMode)
-        {
-            var simulateBuildResult = EditorSimulateModeHelper.SimulateBuild("Res");
-            var createParameters = new EditorSimulateModeParameters();
-            createParameters.EditorFileSystemParameters = FileSystemParameters.CreateDefaultEditorFileSystemParameters(simulateBuildResult.PackageRootDirectory);
-            initializationOperation = loader.Package.InitializeAsync(createParameters);
-        }
+        await YooPkg.LoadAsync(APPConfig.Inst.EPlayMode);
 
-        // 单机运行模式
-        if (mode == EPlayMode.OfflinePlayMode)
-        {
-            var createParameters = new OfflinePlayModeParameters();
-            createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
-            initializationOperation = loader.Package.InitializeAsync(createParameters);
-        }
-
-        // 联机运行模式
-        if (mode == EPlayMode.HostPlayMode)
-        {
-            IRemoteServices remoteServices = new RemoteServices()
-            {
-                url = APPConfig.Inst.resUrl,
-                fallBackUrl = APPConfig.Inst.resUrl
-            };
-            var createParameters = new HostPlayModeParameters();
-            createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
-            createParameters.CacheFileSystemParameters = FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
-            initializationOperation = loader.Package.InitializeAsync(createParameters);
-        }
-
-        // WebGL运行模式
-        if (mode == EPlayMode.WebPlayMode)
-        {
-            var createParameters = new WebPlayModeParameters();
-#if UNITY_WEBGL && WEIXINMINIGAME && !UNITY_EDITOR
-			string defaultHostServer = GetHostServerURL();
-            string fallbackHostServer = GetHostServerURL();
-            IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
-            createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
-#else
-            createParameters.WebServerFileSystemParameters = FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
-#endif
-            initializationOperation = loader.Package.InitializeAsync(createParameters);
-        }
-
-        await initializationOperation.AsTask();
-        YooAssets.SetDefaultPackage(loader.Package);
-        var version = loader.Package.RequestPackageVersionAsync();
-        await version.AsTask();
-        await loader.Package.UpdatePackageManifestAsync(version.PackageVersion).AsTask();
-        if (mode == EPlayMode.HostPlayMode)
-        {
-            var downloader = loader.Package.CreateResourceDownloader(10, 3);
-            downloader.BeginDownload();
-            await downloader.AsTask();
-        }
         await Resources.UnloadUnusedAssets().AsTask();
 
         DG.Tweening.DOTween.Init();
@@ -111,15 +49,15 @@ static class Handler
             }
         };
 
-        DBuffer buffM_ST = new(new MemoryStream((SAsset.Load<TextAsset>($"config_{nameof(TabM_ST)}")).bytes));
+        DBuffer buffM_ST = new(new MemoryStream(YooPkg.LoadRaw($"raw_{nameof(TabM_ST)}")));
         if (buffM_ST.ReadHeaderInfo())
             TabM_ST.Init(buffM_ST);
 
-        DBuffer buffM = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"config_{nameof(TabM)}")).bytes));
+        DBuffer buffM = new(new MemoryStream(YooPkg.LoadRaw($"raw_{nameof(TabM)}")));
         if (buffM.ReadHeaderInfo())
             TabM.Init(buffM, ConstDefCore.Debug);
 
-        DBuffer buffL = new(new MemoryStream((await SAsset.LoadAsync<TextAsset>($"config_{nameof(TabL)}")).bytes));
+        DBuffer buffL = new(new MemoryStream(YooPkg.LoadRaw($"raw_{nameof(TabL)}")));
         if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, ConstDefCore.Debug);
     }

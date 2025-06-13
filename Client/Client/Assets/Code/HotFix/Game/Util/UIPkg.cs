@@ -19,7 +19,7 @@ public class UIPkg
     {
         FUIBinder.Binding();
         FairyGUI.UIConfig.defaultFont = "Impact";
-        UIPkg.ComPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ComPkg_fui")).bytes, "ComPkg", fguiLoader);
+        UIPkg.ComPkg = UIPackage.AddPackage(YooPkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
         UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
         UIGlobalConfig.CreateUI += (t, s) => UIPkg.ComPkg.CreateObject(s).asCom;

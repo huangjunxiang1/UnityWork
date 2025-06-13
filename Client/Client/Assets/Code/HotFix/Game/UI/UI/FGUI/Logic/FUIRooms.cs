@@ -3,6 +3,7 @@ using Game;
 using main;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ partial class FUIRooms
         for (int i = 0; i < s.units.Count; i++)
         {
             var v = s.units[i];
-            SGameObject go = new() { ActorId = v.id, ObjType = 1 };
+            SGameObject go = new() { ActorId = v.id, Group = 1 };
             Client.Scene.AddChild(go);
             go.GameObject.SetGameObject("3D_chan");
             go.Transform.position = v.t.p;
@@ -70,6 +71,11 @@ partial class FUIRooms
                 go.AddComponent<GameInputComponent>();
             go.KV.Set(v.attribute);
             go.AddComponent<ColliderClickComponent>();
+            var buffer  = new DBuffer(YooPkg.LoadRaw("raw_Game"));
+            buffer.Compress = false;
+            go.AddComponent(new PathFindingAStarComponent(new AStarData(buffer)));
+            go.AddComponent<PathFindingNodeComponent>();
+            go.AddComponent<MoveToComponent>();
         }
         await Client.UI.OpenAsync<FUIGame>();
     }

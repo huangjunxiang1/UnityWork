@@ -19,7 +19,7 @@ namespace Game
         [Sirenix.OdinInspector.ShowInInspector]
         int _endIndex;
 
-        STask<bool> _task;
+        SValueTask<bool> _task;
         float3[] _pool = new float3[1];
 
         public float3 point
@@ -81,13 +81,13 @@ namespace Game
             this.setPaths(ps, r, startIndex, endIndex);
         }
 
-        public STask<bool> MoveToAsync(float3 p, quaternion r)
+        public SValueTask<bool> MoveToAsync(float3 p, quaternion r)
         {
             this._pool[0] = p;
             this.setPaths(this._pool, r, 0, 0, true);
             return _task;
         }
-        public STask<bool> MoveToAsync(float3 p)
+        public SValueTask<bool> MoveToAsync(float3 p)
         {
             this._pool[0] = p;
             TransformComponent t = this.Entity.GetComponent<TransformComponent>();
@@ -95,13 +95,13 @@ namespace Game
             this.setPaths(this._pool, r, 0, 0, true);
             return _task;
         }
-        public STask<bool> MoveToAsync(IList<float3> ps, quaternion r, int startIndex = 0, int endIndex = -1)
+        public SValueTask<bool> MoveToAsync(IList<float3> ps, quaternion r, int startIndex = 0, int endIndex = -1)
         {
             if (endIndex == -1) endIndex = ps.Count - 1;
             this.setPaths(ps, r, startIndex, endIndex, true);
             return _task;
         }
-        public STask<bool> MoveToAsync(IList<float3> ps, int startIndex = 0, int endIndex = -1)
+        public SValueTask<bool> MoveToAsync(IList<float3> ps, int startIndex = 0, int endIndex = -1)
         {
             if (endIndex == -1) endIndex = ps.Count - 1;
             quaternion r;
@@ -116,15 +116,28 @@ namespace Game
             return _task;
         }
 
+        public void Stop()
+        {
+            var old = this._task;
+            this._task = default;
+            this._index = -1;
+            old.TrySetResult(false);
+        }
+
         void setPaths(IList<float3> paths, quaternion r, int startIndex, int endIndex, bool newTask = false)
         {
+            if (math.any(math.isnan(r.value)))
+            {
+                TransformComponent t = this.Entity.GetComponent<TransformComponent>();
+                r = t == null ? this._r : t.rotation;
+            }
             this._paths = paths;
             this._index = startIndex;
             this._endIndex = endIndex;
             this._r = r;
             var old = _task;
-            _task = newTask ? new() : null;
-            old?.TrySetResult(false);
+            _task = newTask ? SValueTask<bool>.Create() : default;
+            old.TrySetResult(false);
         }
 
         [UpdateSystem]
@@ -167,9 +180,9 @@ namespace Game
                 if (math.abs(math.angle(b.rotation, a.rotation)) < 0.1f)
                 {
                     var old = a._task;
-                    a._task = null;
+                    a._task = default;
                     a._index = -1;
-                    old?.TrySetResult(true);
+                    old.TrySetResult(true);
                 }
             }
         }

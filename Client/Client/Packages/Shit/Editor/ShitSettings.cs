@@ -15,13 +15,8 @@ public class DirectoryItem
 [CreateAssetMenu(menuName = "Shit/" + nameof(ShitSettings), fileName = nameof(ShitSettings), order = 1)]
 public class ShitSettings : ScriptableObject
 {
-    [SerializeField]
-    internal string _MainPath = "/Code/Main/";
-    [SerializeField]
-    internal string _HotPath = "/Code/HotFix/";
+    public string src;
     public float PathNodeDrawLineRadius = 0.5f;
-    [SerializeField]
-    internal List<DirectoryItem> SyncDirs = new();
 
     static ShitSettings _inst;
     public static ShitSettings Inst => get();
@@ -43,9 +38,6 @@ public class ShitSettings : ScriptableObject
         return _inst;
     }
 
-    public string MainPath => Application.dataPath + MainPath;
-    public string HotPath => Application.dataPath + _HotPath;
-
 }
 class ShitProvider : SettingsProvider
 {
@@ -55,10 +47,8 @@ class ShitProvider : SettingsProvider
     }
     public override void OnGUI(string searchContext)
     {
-        ShitSettings.Inst._MainPath = EditorGUILayout.TextField(nameof(ShitSettings.Inst.MainPath), ShitSettings.Inst._MainPath);
-        ShitSettings.Inst._HotPath = EditorGUILayout.TextField(nameof(ShitSettings.Inst.HotPath), ShitSettings.Inst._HotPath);
+        ShitSettings.Inst.src = EditorGUILayout.TextField(nameof(ShitSettings.Inst.src), ShitSettings.Inst.src);
         ShitSettings.Inst.PathNodeDrawLineRadius = EditorGUILayout.FloatField(nameof(ShitSettings.Inst.PathNodeDrawLineRadius), ShitSettings.Inst.PathNodeDrawLineRadius);
-        EditorGUILayout.PropertyField(ShitSettings.Inst.target.FindProperty(nameof(ShitSettings.Inst.SyncDirs)));
         if (EditorGUI.EndChangeCheck())
         {
             ShitSettings.Inst.target.ApplyModifiedProperties();

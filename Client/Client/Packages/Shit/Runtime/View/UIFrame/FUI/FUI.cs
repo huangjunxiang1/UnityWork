@@ -119,14 +119,14 @@ public abstract class FUI : FUIBase
     }
     async void _delay1Handle()
     {
-        await STask.Delay(UIGlobalConfig.LoadingViewDelay1TimeMs);
+        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelay1TimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         _loadingView = true;
         UIGlobalConfig.LoadingView(this, true);
     }
     async void _delay2Handle()
     {
-        await STask.Delay(UIGlobalConfig.LoadingViewDelay2TimeMs);
+        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelay2TimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         UIGlobalConfig.LoadingView(this, false);
         this.Dispose();

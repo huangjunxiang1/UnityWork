@@ -101,23 +101,26 @@ internal class Tools
         }
         AssetDatabase.Refresh();
     }
+
+
+    static List<string> dirs = new()
+    {
+        "Code/Editor/Default",
+        "Code/Main/Game/Share/ECS/Components",
+    };
     [MenuItem("Shit/文件夹 同步到x", priority = int.MaxValue - 10)]
     static void SyncDirsTo()
     {
-        for (int i = 0; i < ShitSettings.Inst.SyncDirs.Count; i++)
-        {
-            var d = ShitSettings.Inst.SyncDirs[i];
-            FileHelper.SyncDirectories((d.rootIsAppDataPath ? Application.dataPath : null) + d.self, (d.rootIsAppDataPath ? Application.dataPath : null) + d.target);
-        }
+        var src = ShitSettings.Inst.src;
+        for (int i = 0; i < dirs.Count; i++)
+            FileHelper.SyncDirectories(Application.dataPath + dirs[i], src + dirs[i]);
     }
     [MenuItem("Shit/文件夹 从x同步", priority = int.MaxValue - 10)]
     static void SyncDirsFrom()
     {
-        for (int i = 0; i < ShitSettings.Inst.SyncDirs.Count; i++)
-        {
-            var d = ShitSettings.Inst.SyncDirs[i];
-            FileHelper.SyncDirectories((d.rootIsAppDataPath ? Application.dataPath : null) + d.target, (d.rootIsAppDataPath ? Application.dataPath : null) + d.self);
-        }
+        var src = ShitSettings.Inst.src;
+        for (int i = 0; i < dirs.Count; i++)
+            FileHelper.SyncDirectories(src + dirs[i], Application.dataPath + dirs[i]);
         AssetDatabase.Refresh();
     }
 }

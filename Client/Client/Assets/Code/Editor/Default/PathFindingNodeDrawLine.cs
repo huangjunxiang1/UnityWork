@@ -10,10 +10,10 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 [InitializeOnLoad]
-internal class PathNodeDrawLine
+class PathFindingNodeDrawLine
 {
     static GUIStyle gui = new();
-    static PathNodeDrawLine()
+    static PathFindingNodeDrawLine()
     {
         gui.normal.textColor = Color.yellow;
         gui.fontSize = 30;
@@ -27,7 +27,7 @@ internal class PathNodeDrawLine
     }
     private static void OnSceneGUI(SceneView sceneView)
     {
-        var root = PathFindingNode.GetCurrentRoot();
+        var root = PathFindingNode.GetCurrent();
         if (root == null || root.Nodes.Count == 0) return;
 
         Handles.color = Color.green;

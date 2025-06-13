@@ -31,8 +31,8 @@ namespace Game
         public static void Load(List<Type> types)
         {
             World = new(types, "Client");
-            STask.DelayHandle -= delayHandle;
-            STask.DelayHandle += delayHandle;
+            SValueTask.DelayHandle -= delayHandle;
+            SValueTask.DelayHandle += delayHandle;
 
             Data = new(World);
             World.Root.AddChild(Scene = new() { isCrucialRoot = true });
@@ -51,14 +51,14 @@ namespace Game
         public static void Close()
         {
             if (World == null) return;
-            STask.DelayHandle -= delayHandle;
+            SValueTask.DelayHandle -= delayHandle;
             var w = World;
             World = null;
             w.Dispose();
             GameObject.Destroy(gameObject);
         }
 
-        static void delayHandle(int ms, STask task)
+        static void delayHandle(int ms, SValueTask task)
         {
             if (World == null || World.Root.Disposed)
                 throw new Exception("World is Close");

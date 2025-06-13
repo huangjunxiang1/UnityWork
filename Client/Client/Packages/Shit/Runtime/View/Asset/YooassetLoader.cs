@@ -23,9 +23,10 @@ namespace Game
 
         public ResourcePackage Package { get; private set; }
 
-        public void LoadPackage(string packageName)
+        public void SetDefaultPackage(YooAsset.ResourcePackage pkg)
         {
-            Package = YooAssets.TryGetPackage(packageName) ?? YooAssets.CreatePackage(packageName);
+            Package = pkg;
+            YooAssets.SetDefaultPackage(pkg);
         }
         public override GameObject LoadGameObject(string url)
         {

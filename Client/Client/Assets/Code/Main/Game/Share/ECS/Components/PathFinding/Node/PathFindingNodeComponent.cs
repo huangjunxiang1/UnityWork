@@ -9,59 +9,11 @@ using UnityEngine;
 
 namespace Game
 {
-    public class MulNodeLinkInfo
-    {
-        [Sirenix.OdinInspector.ShowInInspector]
-        public MulNodeInfo Node { get; internal set; }
-        [Sirenix.OdinInspector.ShowInInspector]
-        public float Distance { get; internal set; }
-    }
-    public class MulNodeInfo
-    {
-        [Sirenix.OdinInspector.ShowInInspector]
-        public long id { get; internal set; }
-        [Sirenix.OdinInspector.ShowInInspector]
-        public float3 position { get; internal set; }
-        public MulNode Node { get; internal set; }
-
-        [Sirenix.OdinInspector.ShowInInspector]
-        public List<MulNodeLinkInfo> Next { get; } = new();
-
-        internal int vs;
-
-        public void AddNext(long id, float distance)
-        {
-            if (Next.FindIndex(t => t.Node.id == id) != -1)
-                return;
-            var n = Node.GetNode(id);
-            var link = new MulNodeLinkInfo() { Node = n, Distance = distance };
-            Next.Add(link);
-        }
-    }
-    public class MulNode
-    {
-        public Dictionary<long, MulNodeInfo> Nodes = new();
-
-        internal bool isFinding = false;
-        internal int vs;
-
-        public MulNodeInfo CreateNode(long id, float3 pos)
-        {
-            if (!Nodes.TryGetValue(id, out var node))
-                Nodes[id] = node = new MulNodeInfo() { id = id, position = pos, Node = this };
-            return node;
-        }
-        public MulNodeInfo GetNode(long id)
-        {
-            Nodes.TryGetValue(id, out var node);
-            return node;
-        }
-    }
     public class PathFindingNodeComponent : SComponent
     {
         [Sirenix.OdinInspector.ShowInInspector]
 #if !Server
-        public MulNode Root { get; set; } = PathFindingNode.GetCurrentRoot();
+        public MulNode Root { get; set; } = PathFindingNode.GetCurrent();
 #else
         public MulNode Root { get; set; }
 #endif

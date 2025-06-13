@@ -23,7 +23,7 @@ partial class FUILoading
         {
             ui.cur = ui.max;
             ui._loadingBar.value = 1;
-            await STask.Delay(1000);
+            await SValueTask.Delay(1000);
             ui.Dispose();
         }
     }

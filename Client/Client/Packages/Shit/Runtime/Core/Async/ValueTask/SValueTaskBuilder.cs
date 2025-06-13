@@ -32,7 +32,7 @@ public struct SValueTaskBuilder
     }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
-        this._task = new(0);
+        this._task = SValueTask.Create();
         //this._task.MakeAutoCancel(CoreTypes.AsyncInvokeIsNeedAutoCancel(stateMachine.GetType()));
         stateMachine.MoveNext();
     }

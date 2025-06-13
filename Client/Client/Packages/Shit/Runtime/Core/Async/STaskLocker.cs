@@ -114,7 +114,7 @@ public class STaskLocker : IDispose
 
     async void timeout(int time)
     {
-        await STask.Delay(time);
+        await SValueTask.Delay(time);
         if (this.Disposed) return;
         this.Dispose();
     }

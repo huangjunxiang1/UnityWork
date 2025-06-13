@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Game
 {
@@ -18,34 +21,33 @@ namespace Game
         R4,//四方位
         R8,//八方位
     }
-    public class AStarData
-    {
-        public AStarData(int width,int height, byte[] data)
-        {
-            if (data.Length < width * height)
-            {
-                Loger.Error(new IndexOutOfRangeException());
-                return;
-            }
-            this.width = width;
-            this.height = height;
-            this.data = data;
-            this.vsArray = new byte[width * height];
-        }
-        public int width { get; private set; }
-        public int height { get; private set; }
-        public byte[] data { get; private set; }//每个值 低位第一个bit是 是否激活 后续bit是消耗
-
-        internal byte vs;
-        internal byte[] vsArray;
-        internal bool isFinding;
-    }
     public class PathFindingAStarComponent : SComponent
     {
-        public AStarData AStar;
-        public float3 start;//起始坐标
-        public float3 size = new float3(1, 0, 1);//块间隔
-        public int2 target;
+        struct FindData
+        {
+            public int2 xy;
+            public int last;
+            public int next;
+            public int cost;
+            public int step;
+            public int totalDistance;
+        }
+
+        public PathFindingAStarComponent(AStarData aStar, AStarVolume volume = null)
+        {
+            this.AStar = aStar;
+            this.Volume = volume ?? AStarVolume.One;
+        }
+
+        [Sirenix.OdinInspector.ShowInInspector]
+        public AStarData AStar { get; private set; }
+        [Sirenix.OdinInspector.ShowInInspector]
+        public int2 Current { get; private set; }= int.MinValue;
+
+        /// <summary>
+        /// 单位占用体积
+        /// </summary>
+        public AStarVolume Volume { get; private set; }
 
         FindData[] paths = new FindData[100];
         int arrayIndex = -1;
@@ -54,11 +56,11 @@ namespace Game
         int power;
         [Sirenix.OdinInspector.ShowInInspector]
         float3[] points = new float3[10];
-        STask<bool> move;
+        SValueTask<bool> move;
 
         public bool Finding(int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
-            return this.Finding(this.target, to, power, type, r);
+            return this.Finding(this.Current, to, power, type, r);
         }
         public bool Finding(int2 from, int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
@@ -235,11 +237,28 @@ namespace Game
             arrayIndex = -1;
             return false;
         }
+        public SValueTask<bool> Goto(int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
+        {
+            if (this.Finding(to, power, type, r))
+            {
+                move.TrySetResult(false);
+                move = SValueTask<bool>.Create();
+                this.SetChangeFlag();
+                return move;
+            }
+            else
+                return default;
+        }
+        public void Stop()
+        {
+            this.Entity.GetComponent<MoveToComponent>()?.Stop();
+        }
+
         bool breadth(int2 xy)
         {
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
-            var move = (AStar.data[i] & 1) == 1 && AStar.vsArray[i] != AStar.vs && cost <= power;
+            var move = AStar.vsArray[i] != AStar.vs && cost <= power && AStar.isEnable(xy, Volume, Current);
             if (move)
             {
                 AStar.vsArray[i] = AStar.vs;
@@ -250,7 +269,7 @@ namespace Game
                     xy = xy,
                     last = currentIndex,
                     cost = cost,
-                    step = paths[currentIndex].step + 1,
+                    step = (paths[currentIndex].step + 1),
                 };
                 return xy.Equals(to);
             }
@@ -260,13 +279,13 @@ namespace Game
         {
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
-            move = (AStar.data[i] & 1) == 1 && AStar.vsArray[i] != AStar.vs && cost <= power;
+            move = AStar.vsArray[i] != AStar.vs && cost <= power && AStar.isEnable(xy, Volume, Current);
             if (move)
             {
                 AStar.vsArray[i] = AStar.vs;
-                int pre = math.abs(xy.x - to.x) + math.abs(xy.y - to.y);
                 if (arrayIndex >= paths.Length)
                     Array.Resize(ref paths, arrayIndex * 2);
+                int pre = math.abs(xy.x - to.x) + math.abs(xy.y - to.y);
                 paths[arrayIndex++] = new FindData
                 {
                     xy = xy,
@@ -300,7 +319,7 @@ namespace Game
         {
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
-            var move = (AStar.data[i] & 1) == 1 && AStar.vsArray[i] != AStar.vs && cost <= power;
+            var move = AStar.vsArray[i] != AStar.vs && cost <= power && AStar.isEnable(xy, Volume, Current);
             if (move)
             {
                 AStar.vsArray[i] = AStar.vs;
@@ -334,25 +353,6 @@ namespace Game
             return false;
         }
 
-        public void Move()
-        {
-            if (arrayIndex == -1) return;
-            if (move == null)
-            {
-                move = new();
-                this.SetChangeFlag();
-            }
-        }
-        public async Task<bool> MoveAsync()
-        {
-            if (arrayIndex == -1) return false;
-            if (move == null)
-            {
-                move = new();
-                this.SetChangeFlag();
-            }
-            return await move;
-        }
         public float3[] GetFindingPoints()
         {
             if (arrayIndex == -1) return Array.Empty<float3>();
@@ -360,7 +360,7 @@ namespace Game
             var array = new float3[n.step];
             while (true)
             {
-                array[n.step - 1] = start + size * new float3(n.xy.x, 0, n.xy.y);
+                array[n.step - 1] = AStar.GetPosition(n.xy);
                 if (n.last == -1)
                     break;
                 n = this.paths[n.last];
@@ -374,7 +374,7 @@ namespace Game
             int index = ret.Count;
             while (true)
             {
-                ret.Add(start + size * new float3(n.xy.x, 0, n.xy.y));
+                ret.Add(AStar.GetPosition(n.xy));
                 if (n.last == -1)
                     break;
                 n = this.paths[n.last];
@@ -390,7 +390,7 @@ namespace Game
             int len = n.step;
             while (true)
             {
-                ret[n.step - 1] = start + size * new float3(n.xy.x, 0, n.xy.y);
+                ret[n.step - 1] = AStar.GetPosition(n.xy);
                 if (n.last == -1)
                     break;
                 n = this.paths[n.last];
@@ -442,32 +442,70 @@ namespace Game
             return len;
         }
 
+        void SetPoint(int2 xy)
+        {
+            var last = this.Current;
+            if (last.Equals(xy)) return;
+            if (!last.Equals(int.MinValue))
+                Volume.Remove(AStar, last);
+            if (AStar.isInScope(xy))
+            {
+                if (AStar.Occupation[xy.y * AStar.width + xy.x] < 255)
+                {
+                    Volume.Add(AStar, xy);
+                    this.Current = xy;
+                }
+                else
+                {
+                    Loger.Error("Occupation > 255");
+                    this.Current = int.MinValue;
+                }
+            }
+            else
+                this.Current = int.MinValue;
+        }
+
         [ChangeSystem]
         static async void Change(PathFindingAStarComponent finding, MoveToComponent move)
         {
+            var task = finding.move;
+            finding.move = default;
             if (finding.arrayIndex != -1)
             {
                 int len = finding.GetFindingPoints(ref finding.points);
-                var to = finding.to;
-                var v = await move.MoveToAsync(finding.points, 0, len - 1);
-                finding.target = to;
-                if (finding.move != null)
+                for (int i = 0; i < len; i++)
                 {
-                    var m = finding.move;
-                    finding.move = null;
-                    m.TrySetResult(v);
+                    var to = finding.AStar.GetXY(finding.points[i]);
+                    if (finding.AStar.isEnable(to, finding.Volume, finding.Current))
+                    {
+                        finding.SetPoint(to);
+                        var v = await move.MoveToAsync(finding.points[i]);
+                        if (!v)
+                        {
+                            task.TrySetResult(false);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        task.TrySetResult(false);
+                        return;
+                    }
                 }
+                task.TrySetResult(true);
             }
+            else
+                task.TrySetResult(false);
         }
-
-        struct FindData
+        [InSystem]
+        static void In(TransformComponent transform, PathFindingAStarComponent finding)
         {
-            public int2 xy;
-            public int last;
-            public int next;
-            public int cost;
-            public int step;
-            public int totalDistance;
+            finding.SetPoint(finding.AStar.GetXY(transform.position));
+        }
+        [OutSystem]
+        static void Out(PathFindingAStarComponent finding)
+        {
+            finding.SetPoint(int.MinValue);
         }
     }
 }

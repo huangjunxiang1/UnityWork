@@ -12,6 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71796f23e8439fc44bc2f808a9645d93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _MainPath: /Code/Main/
-  _HotPath: /Code/HotFix/
-  SyncDirs: []
+  src: 
+  PathNodeDrawLineRadius: 0.5

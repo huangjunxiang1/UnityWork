@@ -21,7 +21,7 @@ class PingComponent : SComponent
         var ping = t.Entity.AddComponent<PingComponent>();
         while (true)
         {
-            await STask.Delay(3000);
+            await SValueTask.Delay(3000);
             if (!ping.Disposed)
             {
                 if (ping.counter > 5)

@@ -19,7 +19,7 @@ internal class STaskTest
     {
         using (await STaskLocker.Lock(5))
         {
-            await STask.Delay(500 - index * 100);
+            await SValueTask.Delay(500 - index * 100);
             array[index]++;
             if (index == 0)
             {

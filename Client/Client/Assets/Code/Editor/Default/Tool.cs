@@ -480,7 +480,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/SO/Main/", so, input);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Main/", so, input);
 
             so.AppendLine("}");
             so.Append(input);
@@ -502,7 +502,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/SO/Hotfix/", so, input);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Hotfix/", so, input);
 
             so.AppendLine("}");
             so.Append(input);
@@ -601,19 +601,19 @@ public class Tool
         if (!Application.isPlaying) return;
 
         {
-            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes")));
+            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabM)}.bytes")));
             if (!buff.ReadHeaderInfo())
                 throw new System.Exception("数据错误");
             TabM.Init(buff, ConstDefCore.Debug);
         }
         {
-            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes")));
+            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabL)}.bytes")));
             if (!buff.ReadHeaderInfo())
                 throw new System.Exception("数据错误");
             TabL.Init(buff, ConstDefCore.Debug);
         }
         {
-            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/Language_{LanguageUtil.LanguageType}.bytes")));
+            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/Language_{LanguageUtil.LanguageType}.bytes")));
             if (!buff.ReadHeaderInfo())
                 throw new System.Exception("数据错误");
             LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefCore.Debug);
@@ -691,7 +691,7 @@ public class Tool
     }
 
     [MenuItem("Shit/AOT_Copy")]
-    static void copuAotDll()
+    static void copyAotDll()
     {
         string srcDir = SettingsUtil.GetAssembliesPostIl2CppStripDir(EditorUserBuildSettings.activeBuildTarget);
         var dstDir = $"{Application.dataPath}/Resources/AOT";

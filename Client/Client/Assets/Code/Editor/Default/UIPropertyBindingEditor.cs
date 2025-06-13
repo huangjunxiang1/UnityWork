@@ -38,7 +38,7 @@ static class UIPropertyBindingUtil
         code.dataType = arr[1];
         code.getterType = arr[2];
 
-        var codes = File.ReadAllLines(ShitSettings.Inst.HotPath + "_Gen/UUI.cs").ToList();
+        var codes = File.ReadAllLines($"{Application.dataPath}/Code/Hotfix/_Gen/UUI.cs").ToList();
         int index = codes.FindIndex(t => t.Contains(gType.Name + " : UUI"));
         int indexStart = codes.FindIndex(index, t => t.Contains("protected sealed override void Binding()"));
         int indexEnd = codes.FindIndex(index, t => t.Contains("public override void Dispose()"));
@@ -244,7 +244,7 @@ public class TextEditor2 : UnityEditor.UI.TextEditor
             code.AppendLine(@$"    {{");
             code.AppendLine(@$"    }}");
             code.AppendLine(@$"}}");
-            File.AppendAllText(ShitSettings.Inst.HotPath + $"/_Gen/UUI.cs", code.ToString());
+            File.AppendAllText($"{Application.dataPath}/Code/Hotfix/_Gen/UUI.cs", code.ToString());
             AssetDatabase.Refresh();
         }
     }

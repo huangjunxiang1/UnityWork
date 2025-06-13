@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Unity.Mathematics;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// int和long采用Varint编码
@@ -15,7 +16,7 @@ public class DBuffer : IDisposable
     {
         this.stream = stream;
     }
-    public DBuffer(int length) : this(new byte[length]) { }
+    public DBuffer(int length) : this(new MemoryStream(length)) { }
     public DBuffer(byte[] bytes) : this(new MemoryStream(bytes, 0, bytes.Length, true, true)) { }
     public DBuffer(byte[] bytes, int index, int length) : this(new MemoryStream(bytes, index, length, true, true)) { }
 
@@ -1068,8 +1069,8 @@ public class DBuffer : IDisposable
     [Conditional(ConstDefCore.DebugEnableString)]
     void checkArrayLengthLimit(int len)
     {
-        if (len > ushort.MaxValue)
-            throw new Exception($"长度超过{ushort.MaxValue}的限制 当前长度={len}");
+        /*if (len > int.MaxValue)
+            throw new Exception($"长度超过{ushort.MaxValue}的限制 当前长度={len}");*/
     }
 
     [StructLayout(LayoutKind.Explicit)]

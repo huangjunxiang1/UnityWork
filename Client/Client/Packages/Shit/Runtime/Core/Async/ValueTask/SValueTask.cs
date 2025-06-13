@@ -14,23 +14,27 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
         public uint version;
         public Action action;
     }
-    internal static List<TaskItem> taskItems = new();
+    internal static List<TaskItem> taskItems = new() { new TaskItem { version = 1 } };
     internal static ConcurrentQueue<int> poolIndexs = new();
 
-    public SValueTask(int a)
+    public static Action<int, SValueTask> DelayHandle;
+
+    public static SValueTask Create()
     {
+        SValueTask task = new();
         TaskItem ti;
-        if (!poolIndexs.TryDequeue(out this.index))
+        if (!poolIndexs.TryDequeue(out task.index))
         {
             lock (taskItems)
             {
-                this.index = taskItems.Count;
+                task.index = taskItems.Count;
                 taskItems.Add(ti = new TaskItem { });
             }
         }
         else
-            ti = taskItems[this.index];
-        this.version = ti.version;
+            ti = taskItems[task.index];
+        task.version = ti.version;
+        return task;
     }
 
     int index;
@@ -40,7 +44,7 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
     /// <summary>
     /// 是否已完成
     /// </summary>
-    public bool IsCompleted => taskItems[index].version != version;
+    public bool IsCompleted => taskItems[index].version != version ;
 
     public SValueTask GetAwaiter()
     {
@@ -48,32 +52,26 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
     }
     public void GetResult()
     {
-
+        
     }
 
     public void TryCancel()
     {
         if (this.Disposed) return;
-        lock (taskItems)
-        {
-            poolIndexs.Enqueue(this.index);
-            ++taskItems[index].version;
-            taskItems[index].action = null;
-        }
+        ++taskItems[index].version;
+        taskItems[index].action = null;
+        poolIndexs.Enqueue(this.index);
     }
     public void TrySetResult()
     {
         if (this.Disposed) return;
-        Action act;
-        lock (taskItems)
-        {
-            poolIndexs.Enqueue(this.index);
-            ++taskItems[index].version;
-            act = taskItems[index].action;
-            taskItems[index].action = null;
-        }
+        ++taskItems[index].version;
+        Action act = taskItems[index].action;
+        taskItems[index].action = null;
+        poolIndexs.Enqueue(this.index);
         act?.Invoke();
     }
+
     public void Dispose() => this.TryCancel();
 
     /// <summary>
@@ -94,5 +92,17 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
     void ICriticalNotifyCompletion.UnsafeOnCompleted(Action continuation)
     {
         taskItems[index].action += continuation;
+    }
+
+
+    public static SValueTask Delay(int millisecondsDelay)
+    {
+        var task = SValueTask.Create();
+#if DebugEnable
+        if (DelayHandle == null)
+            throw new Exception("muse be set DelayHandle before invoke Delay");
+#endif
+        DelayHandle.Invoke(millisecondsDelay, task);
+        return task;
     }
 }
