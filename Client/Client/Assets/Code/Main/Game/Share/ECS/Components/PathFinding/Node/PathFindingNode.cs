@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 namespace Game
 {
     [ExecuteInEditMode]
-    class PathFindingNode : MonoBehaviour
+    public class PathFindingNode : MonoBehaviour
     {
         static PathFindingNode()
         {

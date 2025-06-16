@@ -14,41 +14,53 @@ public class AStarVolume
     public virtual void Add(AStarData astar, int2 xy) { }
     public virtual void Remove(AStarData astar, int2 xy) { }
     public virtual bool isInScope(int2 self, int2 target) => self.Equals(target);
+    public virtual bool isNear(int2 self, int2 target, int near)
+    {
+        return math.abs(self.x - target.x) + math.abs(self.y - target.y) <= near;
+    }
 }
 
 public class RectVolume : AStarVolume
 {
-    public RectVolume(int halfEdge) => this.halfEdge = halfEdge;
+    public RectVolume(int halfEdge) => this.halfEdge = math.max(halfEdge, 0);
     //半 边长
     int halfEdge;
 
     public override void Add(AStarData astar, int2 xy)
     {
-        for (int x = -halfEdge; x <= halfEdge; x++)
+        int mx = math.min(xy.x + halfEdge + 1, astar.width);
+        int my = math.min(xy.y + halfEdge + 1, astar.height);
+        for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
         {
-            for (int y = -halfEdge; y <= halfEdge; y++)
-            {
-                int2 v = xy + new int2(x, y);
-                if (astar.isInScope(v))
-                    astar.AddOccupation(v);
-            }
+            for (int y = math.max(0, xy.y - halfEdge); y < my; y++)
+                astar.AddOccupation(new int2(x, y));
         }
     }
     public override void Remove(AStarData astar, int2 xy)
     {
-        for (int x = -halfEdge; x <= halfEdge; x++)
+        int mx = math.min(xy.x + halfEdge + 1, astar.width);
+        int my = math.min(xy.y + halfEdge + 1, astar.height);
+        for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
         {
-            for (int y = -halfEdge; y <= halfEdge; y++)
-            {
-                int2 v = xy + new int2(x, y);
-                if (astar.isInScope(v))
-                    astar.RemoveOccupation(v);
-            }
+            for (int y = math.max(0, xy.y - halfEdge); y < my; y++)
+                astar.RemoveOccupation(new int2(x, y));
         }
     }
     public override bool isInScope(int2 self, int2 target)
     {
         int2 xy = math.abs(self - target);
         return xy.x <= halfEdge && xy.y <= halfEdge;
+    }
+    public override bool isNear(int2 self, int2 target, int near)
+    {
+        for (int x = -halfEdge; x <= halfEdge; x++)
+        {
+            for (int y = -halfEdge; y <= halfEdge; y++)
+            {
+                int2 v = target + new int2(x, y);
+                if (math.abs(self.x - v.x) + math.abs(self.y - v.y) <= near) return true;
+            }
+        }
+        return false;
     }
 }

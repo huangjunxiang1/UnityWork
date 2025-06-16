@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace Game
 {
@@ -21,7 +20,8 @@ namespace Game
 
         FindData[] paths = new FindData[20];
         int finalIndex = -1;
-        STask<bool> move;
+        SValueTask<bool> waitTask;
+        bool move = false;
         long toId;
 
         [Sirenix.OdinInspector.ShowInInspector]
@@ -121,25 +121,25 @@ namespace Game
 
             return finalIndex != -1;
         }
-        public void Move()
+        public SValueTask<bool> Goto(long toId)
         {
-            if (finalIndex == -1) return;
-            if (move == null)
+            if (this.Finding(toId))
             {
-                move = new();
+                waitTask.TrySetResult(false);
+                waitTask = SValueTask<bool>.Create();
+                move = true;
                 this.SetChangeFlag();
+                return waitTask;
             }
+            else
+                return default;
         }
-        public async Task<bool> MoveAsync()
+        public void Stop()
         {
-            if (finalIndex == -1) return false;
-            if (move == null)
-            {
-                move = new();
-                this.SetChangeFlag();
-            }
-            return await move;
+            move = false;
+            this.Entity.GetComponent<MoveToComponent>()?.Stop();
         }
+
         public float3[] GetFindingPoints()
         {
             if (finalIndex == -1) return Array.Empty<float3>();
@@ -232,19 +232,20 @@ namespace Game
         [ChangeSystem]
         static async void Change(PathFindingNodeComponent finding, MoveToComponent move)
         {
+            if (!finding.move) return;
+            finding.move = false;
+            var task = finding.waitTask;
+            finding.waitTask = default;
             if (finding.finalIndex != -1)
             {
                 int len = finding.GetFindingPoints(ref finding.points);
                 var to = finding.toId;
                 var v = await move.MoveToAsync(finding.points, 0, len - 1);
                 finding.CurrentId = to;
-                if (finding.move != null)
-                {
-                    var m = finding.move;
-                    finding.move = null;
-                    m.TrySetResult(v);
-                }
+                task.TrySetResult(v);
             }
+            else
+                task.TrySetResult(false);
         }
 
         struct FindData

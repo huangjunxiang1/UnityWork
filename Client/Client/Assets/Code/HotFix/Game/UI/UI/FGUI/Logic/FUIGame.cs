@@ -3,6 +3,7 @@ using main;
 using Spine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -73,7 +74,7 @@ partial class FUIGame
         {
             item.Dispose();
         }
-        for (int i = 0; i < 3000; i++)
+        /*for (int i = 0; i < 3000; i++)
         {
             SGameObject go = new() { ActorId = i + 1 };
             Client.Scene.AddChild(go);
@@ -84,55 +85,77 @@ partial class FUIGame
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
             move(go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0))));
-        }
-        /*{
+        }*/
+        {
             SGameObject go = new() { ActorId = 2 + 1 };
             Client.Scene.AddChild(go);
             go.GameObject.SetGameObject("3D_Cube");
-            int2 v2 = new int2(2, 1);
+            int2 v2 = new int2(2, 2);
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
             go.AddComponent<MoveToComponent>();
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
-            go.AddComponent(new PathFindingAStarComponent(astar, new AStarVolume.RectVolume(0)));
+            go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0)));
         }
         {
             SGameObject go = new() { ActorId = 0 + 1 };
             Client.Scene.AddChild(go);
             go.GameObject.SetGameObject("3D_Cube");
-            int2 v2 = new int2(1, 1);
+            int2 v2 = new int2(1, 2);
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
             go.AddComponent<MoveToComponent>();
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
-            move2(go.AddComponent(new PathFindingAStarComponent(astar, new AStarVolume.RectVolume(0))), new int2(4, 1));
+
+            var finding = go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0)));
+            if (finding.Finding(new int2(4, 4)))
+            {
+
+            }
+            else
+            {
+                Loger.Error("false");
+            }
+
+            /*var sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < 5000; i++)
+                finding.Finding(199);
+            sw.Stop();
+            Loger.Error(sw.ElapsedMilliseconds);*/
+
+
+            //move2();
         }
+        //PathFindingAStarComponent target = null;
         {
             SGameObject go = new() { ActorId = 1 + 1 };
             Client.Scene.AddChild(go);
             go.GameObject.SetGameObject("3D_Cube");
-            int2 v2 = new int2(3, 1);
+            int2 v2 = new int2(5, 2);
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
             go.AddComponent<MoveToComponent>();
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
-            move2(go.AddComponent(new PathFindingAStarComponent(astar, new AStarVolume.RectVolume(0))), new int2(0, 1));
-        }*/
+            //move2(go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(1))), new int2(0, 1));
+        }
         async SValueTask move(PathFindingAStarComponent finding)
         {
             while (true)
             {
                 await SValueTask.Delay(Util.RandomInt(500, 1000));
+                if (finding.Disposed) return;
                 int2 v2 = new int2(Util.RandomInt(0, astar.width), Util.RandomInt(0, astar.height));
                 await finding.Goto(v2, r: PathFindingRound.R8);
             }
         }
         async void move2(PathFindingAStarComponent finding,int2 xy)
         {
-            while (true)
+            do
             {
-                await finding.Goto(xy, r: PathFindingRound.R4);
-            }
+                await SValueTask.Delay(Util.RandomInt(500, 1000));
+                if (finding.Disposed) return;
+            } while (!await finding.Goto(xy, near: 2, targetVolume: new RectVolume(1), r: PathFindingRound.R4));
         }
 
         return;

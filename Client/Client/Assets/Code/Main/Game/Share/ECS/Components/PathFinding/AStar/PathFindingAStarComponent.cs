@@ -4,10 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
-using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Game
 {
@@ -56,13 +53,14 @@ namespace Game
         int power;
         [Sirenix.OdinInspector.ShowInInspector]
         float3[] points = new float3[10];
-        SValueTask<bool> move;
+        SValueTask<bool> waitTask;
+        bool move = false;
 
-        public bool Finding(int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
+        public bool Finding(int2 to, int power = int.MaxValue, int near = 0, AStarVolume targetVolume = null, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
-            return this.Finding(this.Current, to, power, type, r);
+            return this.Finding(this.Current, to, power, near, targetVolume, type, r);
         }
-        public bool Finding(int2 from, int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
+        public bool Finding(int2 from, int2 to, int power = int.MaxValue, int near = 0, AStarVolume targetVolume = null, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
             if (from.x < 0 || from.y < 0 || from.x >= AStar.width || from.y >= AStar.height)
             {
@@ -82,11 +80,12 @@ namespace Game
                 Loger.Error("cannot finding in mul thread");
                 return false;
             }
+            targetVolume ??= AStarVolume.Empty;
             AStar.isFinding = true;
             arrayIndex = 0;
             int pre = math.abs(from.x - to.x) + math.abs(from.y - to.y);
             paths[arrayIndex++] = new FindData { xy = from, last = -1, next = -1, cost = 0, step = 1, totalDistance = pre };
-            if (from.Equals(to))
+            if (targetVolume.isNear(from, to, near))
             {
                 AStar.isFinding = false;
                 this.to = to;
@@ -112,16 +111,16 @@ namespace Game
                         FindData now = paths[currentIndex];
 
                         if (now.xy.x > 0)
-                            if (breadth(new int2(now.xy.x - 1, now.xy.y)))
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y), targetVolume, near))
                                 break;
                         if (now.xy.y > 0)
-                            if (breadth(new int2(now.xy.x, now.xy.y - 1)))
+                            if (breadth(new int2(now.xy.x, now.xy.y - 1), targetVolume, near))
                                 break;
                         if (now.xy.x < AStar.width - 1)
-                            if (breadth(new int2(now.xy.x + 1, now.xy.y)))
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y), targetVolume, near))
                                 break;
                         if (now.xy.y < AStar.height - 1)
-                            if (breadth(new int2(now.xy.x, now.xy.y + 1)))
+                            if (breadth(new int2(now.xy.x, now.xy.y + 1), targetVolume, near))
                                 break;
 
                         currentIndex++;
@@ -134,29 +133,29 @@ namespace Game
                         FindData now = paths[currentIndex];
 
                         if (now.xy.x > 0)
-                            if (breadth(new int2(now.xy.x - 1, now.xy.y)))
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y), targetVolume, near))
                                 break;
                         if (now.xy.y > 0)
-                            if (breadth(new int2(now.xy.x, now.xy.y - 1)))
+                            if (breadth(new int2(now.xy.x, now.xy.y - 1), targetVolume, near))
                                 break;
                         if (now.xy.x < AStar.width - 1)
-                            if (breadth(new int2(now.xy.x + 1, now.xy.y)))
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y), targetVolume, near))
                                 break;
                         if (now.xy.y < AStar.height - 1)
-                            if (breadth(new int2(now.xy.x, now.xy.y + 1)))
+                            if (breadth(new int2(now.xy.x, now.xy.y + 1), targetVolume, near))
                                 break;
 
                         if (now.xy.x > 0 && now.xy.y > 0)
-                            if (breadth(new int2(now.xy.x - 1, now.xy.y - 1)))
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y - 1), targetVolume, near))
                                 break;
                         if (now.xy.x > 0 && now.xy.y < AStar.height - 1)
-                            if (breadth(new int2(now.xy.x - 1, now.xy.y + 1)))
+                            if (breadth(new int2(now.xy.x - 1, now.xy.y + 1), targetVolume, near))
                                 break;
                         if (now.xy.x < AStar.width - 1 && now.xy.y > 0)
-                            if (breadth(new int2(now.xy.x + 1, now.xy.y - 1)))
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y - 1), targetVolume, near))
                                 break;
                         if (now.xy.x < AStar.width - 1 && now.xy.y < AStar.height - 1)
-                            if (breadth(new int2(now.xy.x + 1, now.xy.y + 1)))
+                            if (breadth(new int2(now.xy.x + 1, now.xy.y + 1), targetVolume, near))
                                 break;
 
                         currentIndex++;
@@ -173,23 +172,23 @@ namespace Game
 
                         if (now.xy.x > 0)
                         {
-                            if (round4(new int2(now.xy.x - 1, now.xy.y), out bool move)) break;
-                            if (move) continue;
+                            if (round4(new int2(now.xy.x - 1, now.xy.y), targetVolume, near))
+                                break;
                         }
                         if (now.xy.y > 0)
                         {
-                            if (round4(new int2(now.xy.x, now.xy.y - 1), out bool move)) break;
-                            if (move) continue;
+                            if (round4(new int2(now.xy.x, now.xy.y - 1), targetVolume, near))
+                                break;
                         }
                         if (now.xy.x < AStar.width - 1)
                         {
-                            if (round4(new int2(now.xy.x + 1, now.xy.y), out bool move)) break;
-                            if (move) continue;
+                            if (round4(new int2(now.xy.x + 1, now.xy.y), targetVolume, near))
+                                break;
                         }
                         if (now.xy.y < AStar.height - 1)
                         {
-                            if (round4(new int2(now.xy.x, now.xy.y + 1), out bool move)) break;
-                            if (move) continue;
+                            if (round4(new int2(now.xy.x, now.xy.y + 1), targetVolume, near))
+                                break;
                         }
 
                         currentIndex = paths[currentIndex].next;
@@ -201,29 +200,29 @@ namespace Game
                     {
                         FindData now = paths[currentIndex];
                         if (now.xy.x > 0)
-                            if (round8(new int2(now.xy.x - 1, now.xy.y)))
+                            if (round8(new int2(now.xy.x - 1, now.xy.y), targetVolume, near))
                                 break;
                         if (now.xy.y > 0)
-                            if (round8(new int2(now.xy.x, now.xy.y - 1)))
+                            if (round8(new int2(now.xy.x, now.xy.y - 1), targetVolume, near))
                                 break;
                         if (now.xy.x < AStar.width - 1)
-                            if (round8(new int2(now.xy.x + 1, now.xy.y)))
+                            if (round8(new int2(now.xy.x + 1, now.xy.y), targetVolume, near))
                                 break;
                         if (now.xy.y < AStar.height - 1)
-                            if (round8(new int2(now.xy.x, now.xy.y + 1)))
+                            if (round8(new int2(now.xy.x, now.xy.y + 1), targetVolume, near))
                                 break;
 
                         if (now.xy.x > 0 && now.xy.y > 0)
-                            if (round8(new int2(now.xy.x - 1, now.xy.y - 1)))
+                            if (round8(new int2(now.xy.x - 1, now.xy.y - 1), targetVolume, near))
                                 break;
                         if (now.xy.x > 0 && now.xy.y < AStar.height - 1)
-                            if (round8(new int2(now.xy.x - 1, now.xy.y + 1)))
+                            if (round8(new int2(now.xy.x - 1, now.xy.y + 1), targetVolume, near))
                                 break;
                         if (now.xy.x < AStar.width - 1 && now.xy.y > 0)
-                            if (round8(new int2(now.xy.x + 1, now.xy.y - 1)))
+                            if (round8(new int2(now.xy.x + 1, now.xy.y - 1), targetVolume, near))
                                 break;
                         if (now.xy.x < AStar.width - 1 && now.xy.y < AStar.height - 1)
-                            if (round8(new int2(now.xy.x + 1, now.xy.y + 1)))
+                            if (round8(new int2(now.xy.x + 1, now.xy.y + 1), targetVolume, near))
                                 break;
                         currentIndex = paths[currentIndex].next;
                     } while (currentIndex != -1);
@@ -232,29 +231,31 @@ namespace Game
 
             AStar.isFinding = false;
 
-            if (paths[arrayIndex - 1].xy.Equals(to))
+            if (targetVolume.isNear(paths[arrayIndex - 1].xy, to, near))
                 return true;
             arrayIndex = -1;
             return false;
         }
-        public SValueTask<bool> Goto(int2 to, int power = int.MaxValue, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
+        public SValueTask<bool> Goto(int2 to, int power = int.MaxValue, int near = 0, AStarVolume targetVolume = null, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
-            if (this.Finding(to, power, type, r))
+            if (this.Finding(to, power, near, targetVolume, type, r))
             {
-                move.TrySetResult(false);
-                move = SValueTask<bool>.Create();
+                waitTask.TrySetResult(false);
+                waitTask = SValueTask<bool>.Create();
+                move = true;
                 this.SetChangeFlag();
-                return move;
+                return waitTask;
             }
             else
                 return default;
         }
         public void Stop()
         {
+            move = false;
             this.Entity.GetComponent<MoveToComponent>()?.Stop();
         }
 
-        bool breadth(int2 xy)
+        bool breadth(int2 xy, AStarVolume targetVolume , int near)
         {
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
@@ -271,15 +272,15 @@ namespace Game
                     cost = cost,
                     step = (paths[currentIndex].step + 1),
                 };
-                return xy.Equals(to);
+                return targetVolume.isNear(xy, to, near);
             }
             return false;
         }
-        bool round4(int2 xy, out bool move)
+        bool round4(int2 xy, AStarVolume targetVolume , int near)
         {
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
-            move = AStar.vsArray[i] != AStar.vs && cost <= power && AStar.isEnable(xy, Volume, Current);
+            var move = AStar.vsArray[i] != AStar.vs && cost <= power && AStar.isEnable(xy, Volume, Current);
             if (move)
             {
                 AStar.vsArray[i] = AStar.vs;
@@ -296,26 +297,22 @@ namespace Game
                     totalDistance = paths[currentIndex].step + pre
                 };
 
-                if (xy.Equals(to))
+                if (targetVolume.isNear(xy, to, near))
                     return true;
 
-                int lastIdx = -1;
-                int nextIdx = currentIndex;
+                int lastIdx = currentIndex;
+                int nextIdx = paths[currentIndex].next;
                 while (nextIdx != -1 && paths[nextIdx].totalDistance < paths[arrayIndex - 1].totalDistance)
                 {
                     lastIdx = nextIdx;
                     nextIdx = paths[nextIdx].next;
                 }
-                if (lastIdx != -1)
-                    paths[lastIdx].next = arrayIndex - 1;
-                else
-                    currentIndex = arrayIndex - 1;
-                if (nextIdx != -1)
-                    paths[arrayIndex - 1].next = nextIdx;
+                paths[lastIdx].next = arrayIndex - 1;
+                paths[arrayIndex - 1].next = nextIdx;
             }
             return false;
         }
-        bool round8(int2 xy)
+        bool round8(int2 xy, AStarVolume targetVolume, int near)
         {
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
@@ -336,7 +333,7 @@ namespace Game
                     totalDistance = paths[currentIndex].step + pre
                 };
 
-                if (xy.Equals(to))
+                if (targetVolume.isNear(xy, to, near))
                     return true;
 
                 int lastIdx = currentIndex;
@@ -347,8 +344,7 @@ namespace Game
                     nextIdx = paths[nextIdx].next;
                 }
                 paths[lastIdx].next = arrayIndex - 1;
-                if (nextIdx != -1)
-                    paths[arrayIndex - 1].next = nextIdx;
+                paths[arrayIndex - 1].next = nextIdx;
             }
             return false;
         }
@@ -468,8 +464,10 @@ namespace Game
         [ChangeSystem]
         static async void Change(PathFindingAStarComponent finding, MoveToComponent move)
         {
-            var task = finding.move;
-            finding.move = default;
+            if (!finding.move) return;
+            finding.move = false;
+            var task = finding.waitTask;
+            finding.waitTask = default;
             if (finding.arrayIndex != -1)
             {
                 int len = finding.GetFindingPoints(ref finding.points);

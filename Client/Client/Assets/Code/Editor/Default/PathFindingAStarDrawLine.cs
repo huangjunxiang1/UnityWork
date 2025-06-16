@@ -17,7 +17,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.HID;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
-using static UnityEngine.Analytics.IAnalytic;
 using static UnityEngine.UI.CanvasScaler;
 
 [CustomEditor(typeof(PathFindingAStar))]
@@ -36,15 +35,15 @@ class PathFindingAStarDrawLine : Editor
     float3 start;
     float3 end;
     PathFindingAStar root;
-    static bool viewCost = true;
-    static bool viewXY = true;
+    static bool viewCost = false;
+    static bool viewXY = false;
     static int cost = 1;
 
     private void OnEnable()
     {
         gui.normal.textColor = Color.yellow;
         gui.fontSize = 30;
-        gui2.normal.textColor = Color.violet;
+        gui2.normal.textColor = Color.blue;
         gui2.fontSize = 20;
         root = (PathFindingAStar)this.target;
         if (!quad)
@@ -62,6 +61,7 @@ class PathFindingAStarDrawLine : Editor
     private void OnSceneGUI()
     {
         if (root.data == null) return;
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         var currentEvent = UnityEngine.Event.current;
         if (currentEvent != null)
         {
@@ -221,7 +221,10 @@ class PathFindingAStarDrawLine : Editor
             buffer.Write(root.data);
 
             var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            string path = $"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}/{currentScene.name}.bytes";
+            var dir = $"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}";
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            string path = $"{dir}/{currentScene.name}.bytes";
             File.WriteAllBytes(path, buffer.ToBytes());
             AssetDatabase.Refresh();
         }
@@ -256,9 +259,9 @@ class PathFindingAStarDrawLine : Editor
         Vector3[] verts = new Vector3[4]
         {
             start,
-            start+new float3(start.x+root.size.x * root.aStarSize.x,0,0),
+            start+new float3(root.size.x * root.aStarSize.x,0,0),
             start+new float3(0,0,root.size.z * root.aStarSize.y),
-            start+new float3(start.x+root.size.x * root.aStarSize.x,0,root.size.z * root.aStarSize.y)
+            start+new float3(root.size.x * root.aStarSize.x,0,root.size.z * root.aStarSize.y)
         };
         mesh.vertices = verts;
         mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };
