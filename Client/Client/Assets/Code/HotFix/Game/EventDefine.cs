@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Event
 {
-    class EC_LanguageChange : IData { }
+    class EC_LanguageChange { }
 }

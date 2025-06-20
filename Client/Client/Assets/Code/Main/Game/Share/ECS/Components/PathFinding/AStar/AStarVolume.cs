@@ -9,6 +9,7 @@ using Unity.Mathematics;
 public class AStarVolume
 {
     public static AStarVolume Empty { get; } = new AStarVolume();
+    public static AStarVolume Zero { get; } = new RectVolume(0);
     public static AStarVolume One { get; } = new RectVolume(1);
 
     public virtual void Add(AStarData astar, int2 xy) { }

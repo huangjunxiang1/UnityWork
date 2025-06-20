@@ -1,10 +1,9 @@
 ﻿using System;
 
-public interface IData { }
 namespace Event
 {
-    public class EC_NetError : IData { public int code; }
-    public class EC_Disconnect : IData { public long rpc; }
+    public class EC_NetError { public int code; }
+    public class EC_Disconnect { public long rpc; }
     public class EC_ClientLanucher { }
     public class EC_ServerLanucher { }
     public class EC_SendMesssage

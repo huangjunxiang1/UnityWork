@@ -33,9 +33,6 @@ Shader "Editor/AStar"
         Pass
         {
             CGPROGRAM
-                #pragma multi_compile NOT_COMBINED COMBINED
-                #pragma multi_compile NOT_GRAYED GRAYED COLOR_FILTER
-                #pragma multi_compile NOT_CLIPPED CLIPPED SOFT_CLIPPED ALPHA_MASK
                 #pragma vertex vert
                 #pragma fragment frag
                 

@@ -41,6 +41,9 @@ namespace Game
         {
             this.World.Thread.Post(s =>
             {
+#if !Server
+                Client.Data.Add(s);
+#endif
                 var message = (IMessage)s;
                 this.World.Event.RunEvent(new EC_AcceptedMessage { message = message });
 

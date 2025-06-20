@@ -34,7 +34,7 @@ namespace Game
             SValueTask.DelayHandle -= delayHandle;
             SValueTask.DelayHandle += delayHandle;
 
-            Data = new(World);
+            Data = new();
             World.Root.AddChild(Scene = new() { isCrucialRoot = true });
 
             if (Application.isPlaying)

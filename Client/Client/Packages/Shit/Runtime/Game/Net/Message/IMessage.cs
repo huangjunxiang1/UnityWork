@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    public interface IMessage : IData
+    public interface IMessage
     {
         public long rpc { get; set; }
         public long actorId { get; set; }

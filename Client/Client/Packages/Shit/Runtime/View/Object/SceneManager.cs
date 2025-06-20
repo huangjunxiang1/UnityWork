@@ -12,6 +12,7 @@ namespace Game
     {
         public int SceneID { get; private set; }
         public int Mask { get; private set; }
+        public string SceneName { get; private set; }
 
         public STask InLoginScene() => InScene(1, 1, "Login");
         public STask InMainScene() => InScene(2, 1, "Login");
@@ -27,6 +28,7 @@ namespace Game
 
             SAsset.ReleasePoolsGameObjects();
             await SAsset.ReleaseAllUnuseObjects();
+            this.SceneName = SceneName;
             await SAsset.LoadSceneAsync($"scene_{name}");
             await SValueTask.Delay(100);
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -49,6 +50,7 @@ public class AStarData
     internal byte vs;
     internal byte[] vsArray;
     internal bool isFinding;
+    int2[] array;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddOccupation(int2 xy)
@@ -71,7 +73,93 @@ public class AStarData
     public bool isEnable(int2 xy, AStarVolume volume, int2 self)
     {
         int index = xy.y * width + xy.x;
-        return (data[index] & 1) == 1 && (Occupation[index] == 0 || xy.Equals(self) || (volume.isInScope(self, xy) && Occupation[index] == 1));
+        return (data[index] & 1) == 1 && (Occupation[index] == 0 || (volume.isInScope(self, xy) && Occupation[index] == 1));
     }
     public bool isInScope(int2 xy) => xy.x >= 0 && xy.y >= 0 && xy.x < width && xy.y < height;
+    public bool FindTarget(Func<int2, bool> func, int2 origin, out int2 value, PathFindingRound r = PathFindingRound.R4)
+    {
+        value = origin;
+        if (func(origin))
+            return true;
+        if (this.isFinding)
+        {
+            Loger.Error("cannot finding in mul thread");
+            return false;
+        }
+        if (vs == byte.MaxValue)
+        {
+            vs = 0;
+            Array.Clear(vsArray, 0, vsArray.Length);
+        }
+        ++vs;
+        int currentIndex = 0;
+        int index = 0;
+        array ??= new int2[this.width * this.height];
+        array[index++] = origin;
+        vsArray[origin.y * width + origin.x] = vs;
+
+        do
+        {
+            var v2 = array[currentIndex];
+
+            if (v2.x > 1)
+            {
+                if (breadth(func, ref index, new int2(v2.x - 1, v2.y), out value))
+                    return true;
+            }
+            if (v2.x < width - 1)
+            {
+                if (breadth(func, ref index, new int2(v2.x + 1, v2.y), out value))
+                    return true;
+            }
+            if (v2.y > 1)
+            {
+                if (breadth(func, ref index, new int2(v2.x, v2.y - 1), out value))
+                    return true;
+            }
+            if (v2.y < height - 1)
+            {
+                if (breadth(func, ref index, new int2(v2.x, v2.y + 1), out value))
+                    return true;
+            }
+
+            if (r == PathFindingRound.R8)
+            {
+                if (v2.x > 1 && v2.y > 1)
+                {
+                    if (breadth(func, ref index, new int2(v2.x - 1, v2.y - 1), out value))
+                        return true;
+                }
+                if (v2.x > 1 && v2.y < height - 1)
+                {
+                    if (breadth(func, ref index, new int2(v2.x - 1, v2.y + 1), out value))
+                        return true;
+                }
+                if (v2.x < width - 1 && v2.y > 1)
+                {
+                    if (breadth(func, ref index, new int2(v2.x + 1, v2.y - 1), out value))
+                        return true;
+                }
+                if (v2.x < width - 1 && v2.y < height - 1)
+                {
+                    if (breadth(func, ref index, new int2(v2.x + 1, v2.y + 1), out value))
+                        return true;
+                }
+            }
+
+            currentIndex++;
+        } while (currentIndex < index);
+        return false;
+    }
+    bool breadth(Func<int2, bool> func, ref int index, int2 xy, out int2 value)
+    {
+        value = xy;
+        if (!isEnable(xy))
+            return false;
+        bool isTarget = vsArray[xy.y * width + xy.x] != vs && func(xy);
+        vsArray[xy.y * width + xy.x] = vs;
+        if (!isTarget)
+            array[index++] = xy;
+        return isTarget;
+    }
 }

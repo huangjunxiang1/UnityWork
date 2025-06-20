@@ -15,7 +15,7 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
         public Action action;
     }
     internal static List<TaskItem> taskItems = new() { new TaskItem { version = 1 } };
-    internal static ConcurrentQueue<int> poolIndexs = new();
+    internal static ConcurrentQueue<int> poolIndexs = new(new int[] { 0 });
 
     public static Action<int, SValueTask> DelayHandle;
 

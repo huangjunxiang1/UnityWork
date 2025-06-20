@@ -117,7 +117,7 @@ public class TextEditor2 : UnityEditor.UI.TextEditor
         types = list.ToArray();
 
         List<Type> ds = new();
-        foreach (var item in typeof(World).Assembly.GetTypes())
+        /*foreach (var item in typeof(World).Assembly.GetTypes())
         {
             if (typeof(IData).IsAssignableFrom(item) && typeof(IData) != item && item != typeof(PB.PBMessage))
                 ds.Add(item);
@@ -131,7 +131,7 @@ public class TextEditor2 : UnityEditor.UI.TextEditor
         {
             if (typeof(IData).IsAssignableFrom(item) && typeof(IData) != item && item != typeof(PB.PBMessage))
                 ds.Add(item);
-        }
+        }*/
 
         list = new List<string>() { "无", };
         fieldName = new() { ["无"] = new string[1] { "无" } };

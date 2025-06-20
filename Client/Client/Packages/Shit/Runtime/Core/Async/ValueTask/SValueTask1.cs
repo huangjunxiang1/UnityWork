@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,6 @@ using System.Threading.Tasks;
 [AsyncMethodBuilder(typeof(SValueTaskBuilder<>))]
 public struct SValueTask<T> : ICriticalNotifyCompletion, IDispose
 {
-    internal static List<TaskItem> taskItems = new() { new TaskItem { version = 1 } };
-    internal static ConcurrentQueue<int> poolIndexs = new();
     internal class TaskItem
     {
         public uint version;
@@ -18,6 +17,8 @@ public struct SValueTask<T> : ICriticalNotifyCompletion, IDispose
 
         public T value;
     }
+    internal static List<TaskItem> taskItems = new() { new TaskItem { version = 1 } };
+    internal static ConcurrentQueue<int> poolIndexs = new(new int[] { 0 });
 
     public static SValueTask<T> Create()
     {
@@ -32,7 +33,10 @@ public struct SValueTask<T> : ICriticalNotifyCompletion, IDispose
             }
         }
         else
+        {
             ti = taskItems[task.index];
+            ti.value = default;
+        }
         task.version = ti.version;
         return task;
     }

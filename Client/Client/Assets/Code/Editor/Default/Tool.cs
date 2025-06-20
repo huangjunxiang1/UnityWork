@@ -244,7 +244,7 @@ public class Tool
         UIPackage.RemoveAllPackages();
         FontManager.Clear();
         FairyGUI.UIConfig.defaultFont = "Impact";
-        var pkg = UIPackage.AddPackage($"Assets/Res/UI/FUI/ComPkg/ComPkg");
+        var pkg = UIPackage.AddPackage($"Assets/Res/Config/raw/ComPkg/ComPkg");
         StringBuilder code = new StringBuilder(100000);
         code.AppendLine("using FairyGUI;");
         code.AppendLine("using FairyGUI.Utils;");

@@ -34,7 +34,6 @@ namespace Core
         World world;
         readonly Dictionary<EventKey, EvtQueue> _evtMap = new(97);
         Queue<EvtQueue> removed = ObjectPool.Get<Queue<EvtQueue>>();
-        internal Action<object> getEvent;
         GenericEventHelper GenericEvent;
 
         /// <summary>
@@ -44,7 +43,6 @@ namespace Core
         {
             _evtMap.Clear();
             removed.Clear();
-            getEvent = null;
             for (int i = 0; i < methods.Count; i++)
             {
                 MethodParseData m = methods[i];
@@ -251,7 +249,6 @@ namespace Core
             }
             else
             {
-                getEvent?.Invoke(data);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
                     queue.Run(data);
             }
@@ -277,7 +274,6 @@ namespace Core
             }
             else
             {
-                getEvent?.Invoke(data);
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), 0, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;
@@ -302,7 +298,6 @@ namespace Core
             }
             else
             {
-                getEvent?.Invoke(data);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
                     queue.Run(data);
             }
@@ -328,7 +323,6 @@ namespace Core
             }
             else
             {
-                getEvent?.Invoke(data);
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue))
                     return queue.RunAsync(data);
                 else return STask.Completed;

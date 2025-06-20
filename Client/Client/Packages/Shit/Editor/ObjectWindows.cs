@@ -105,7 +105,7 @@ class ObjectWindows : OdinMenuEditorWindow
     class WarpOther
     {
         [ShowInInspector]
-        public Dictionary<string, IData> Data = new();
+        public Dictionary<string, object> Data = new();
 
         [ShowInInspector]
         public Dictionary<string, List<object>> In = new();

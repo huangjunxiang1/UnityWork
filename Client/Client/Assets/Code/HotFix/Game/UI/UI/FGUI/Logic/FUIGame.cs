@@ -74,18 +74,19 @@ partial class FUIGame
         {
             item.Dispose();
         }
-        /*for (int i = 0; i < 3000; i++)
+        for (int i = 0; i < 500; i++)
         {
             SGameObject go = new() { ActorId = i + 1 };
             Client.Scene.AddChild(go);
-            //go.GameObject.SetGameObject("3D_Cube");
+            go.GameObject.SetGameObject("3D_Cube");
             int2 v2 = new int2(Util.RandomInt(0, astar.width), Util.RandomInt(0, astar.height));
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
             go.AddComponent<MoveToComponent>();
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
             move(go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0))));
-        }*/
+        }
+        return;
         {
             SGameObject go = new() { ActorId = 2 + 1 };
             Client.Scene.AddChild(go);
@@ -108,14 +109,15 @@ partial class FUIGame
             go.KV.Set((int)KType.MoveSpeed, 5);
 
             var finding = go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0)));
-            if (finding.Finding(new int2(4, 4)))
+            /*if (finding.Finding(new int2(4, 4)))
             {
 
             }
             else
             {
                 Loger.Error("false");
-            }
+            }*/
+            finding.Goto(new int2(4, 4));
 
             /*var sw = new Stopwatch();
             sw.Start();

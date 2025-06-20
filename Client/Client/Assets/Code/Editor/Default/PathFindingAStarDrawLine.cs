@@ -1,23 +1,9 @@
-﻿using FairyGUI;
-using Game;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
+﻿using Game;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEditor;
-using UnityEditor.Overlays;
-using UnityEditor.PackageManager;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.HID;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
-using static UnityEngine.UI.CanvasScaler;
 
 [CustomEditor(typeof(PathFindingAStar))]
 class PathFindingAStarDrawLine : Editor
@@ -25,9 +11,6 @@ class PathFindingAStarDrawLine : Editor
     static GUIStyle gui = new();
     static GUIStyle gui2 = new();
 
-    bool isInit = false;
-    GameObject quad;
-    Texture2D texture;
     static int selectedOption = 0;
     private string[] options = new string[] { "Enable", "Disable", "Cost" };
     private string[] viewXYStyle = new string[] { "只显示轴", "全部格子显示" };
@@ -35,6 +18,7 @@ class PathFindingAStarDrawLine : Editor
     float3 start;
     float3 end;
     PathFindingAStar root;
+    static bool viewAstar = true;
     static bool viewCost = false;
     static bool viewXY = false;
     static int cost = 1;
@@ -46,17 +30,10 @@ class PathFindingAStarDrawLine : Editor
         gui2.normal.textColor = Color.blue;
         gui2.fontSize = 20;
         root = (PathFindingAStar)this.target;
-        if (!quad)
-            quad = EditorUtility.CreateGameObjectWithHideFlags("", HideFlags.HideAndDontSave, typeof(MeshFilter), typeof(MeshRenderer));
 
-        isInit = false;
-        Load();
-    }
-    private void OnDisable()
-    {
-        if (quad)
-            GameObject.DestroyImmediate(quad);
-        quad = null;
+        if (root.data == null)
+            Load();
+        root.View(viewAstar);
     }
     private void OnSceneGUI()
     {
@@ -83,8 +60,8 @@ class PathFindingAStarDrawLine : Editor
 
                     float3 min = math.min(start, end);
                     float3 max = math.max(start, end);
-                    int2 min_i = math.clamp((int2)((min - (float3)root.transform.position) / root.size).xz, -1, root.aStarSize + 1);
-                    int2 max_i = math.clamp((int2)((max - (float3)root.transform.position) / root.size).xz, -1, root.aStarSize + 1);
+                    int2 min_i = math.clamp((int2)((min - (float3)root.transform.position) / root.size).xz, 0, root.aStarSize - 1);
+                    int2 max_i = math.clamp((int2)((max - (float3)root.transform.position) / root.size).xz, 0, root.aStarSize - 1);
 
                     if (min_i.x >= 0 && min_i.y >= 0 && max_i.x < root.aStarSize.x && max_i.y < root.aStarSize.y)
                     {
@@ -127,7 +104,7 @@ class PathFindingAStarDrawLine : Editor
                                 Debug.LogError("Cost max = 127");
                             }
                         }
-                        Init();
+                        root.View(viewAstar);
                     }
                     currentEvent.Use();
                 }
@@ -164,15 +141,13 @@ class PathFindingAStarDrawLine : Editor
     {
         base.OnInspectorGUI();
         if (root.data == null) return;
-        if (!isInit)
-        {
-            isInit = true;
-            Init();
-        }
         selectedOption = GUILayout.SelectionGrid(selectedOption, options, 1, EditorStyles.radioButton);
         if (selectedOption == 2)
             cost = EditorGUILayout.IntField(cost);
 
+        EditorGUI.BeginChangeCheck();
+        EditorGUILayout.Space();
+        viewAstar = EditorGUILayout.Toggle("显示A星数据", viewAstar);
         EditorGUILayout.Space();
         viewCost = EditorGUILayout.Toggle("显示行动力消耗", viewCost);
         EditorGUILayout.Space();
@@ -182,6 +157,8 @@ class PathFindingAStarDrawLine : Editor
             viewXYStyleIndex = GUILayout.SelectionGrid(viewXYStyleIndex, viewXYStyle, 1, EditorStyles.radioButton);
         }
         EditorGUILayout.Space();
+        if (EditorGUI.EndChangeCheck())
+            root.View(viewAstar);
 
         if (GUILayout.Button("刷新显示"))
         {
@@ -199,12 +176,12 @@ class PathFindingAStarDrawLine : Editor
                 root.data = d2;
                 root.dataSize = root.aStarSize;
             }
-            Init();
+            root.View(viewAstar);
         }
         if (GUILayout.Button("加载数据"))
         {
             Load();
-            Init();
+            root.View(viewAstar);
         }
         if (GUILayout.Button("保存数据"))
         {
@@ -239,6 +216,8 @@ class PathFindingAStarDrawLine : Editor
         }
         var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
         string path = $"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}/{currentScene.name}.bytes";
+        if (!Directory.Exists($"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}"))
+            Directory.CreateDirectory($"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}");
         if (File.Exists(path))
         {
             var buffer = new DBuffer(File.ReadAllBytes(path));
@@ -251,45 +230,5 @@ class PathFindingAStarDrawLine : Editor
         else
             root.data = new byte[root.aStarSize.x * root.aStarSize.y];
         root.dataSize = root.aStarSize;
-    }
-    void Init()
-    {
-        Mesh mesh = new Mesh();
-        var start = (float3)root.transform.position;
-        Vector3[] verts = new Vector3[4]
-        {
-            start,
-            start+new float3(root.size.x * root.aStarSize.x,0,0),
-            start+new float3(0,0,root.size.z * root.aStarSize.y),
-            start+new float3(root.size.x * root.aStarSize.x,0,root.size.z * root.aStarSize.y)
-        };
-        mesh.vertices = verts;
-        mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };
-        mesh.uv = new Vector2[4]
-        {
-            new Vector2(0,0),
-            new Vector2(1,0),
-            new Vector2(0,1),
-            new Vector2(1,1),
-        };
-
-        if (texture)
-            GameObject.DestroyImmediate(texture);
-        texture = new Texture2D(root.aStarSize.x, root.aStarSize.y);
-        texture.filterMode = FilterMode.Point;
-        for (int i = 0; i < root.data.Length; i++)
-        {
-            var b = root.data[i];
-            texture.SetPixel(i % root.aStarSize.x, i / root.aStarSize.x, ((b & 1) == 0) ? new Color(1, 0, 0, 0.5f) : new Color(0, 1, 0, 0.5f));
-        }
-        texture.Apply();
-
-        // 应用 Mesh
-        quad.GetComponent<MeshFilter>().mesh = mesh;
-        var r = quad.GetComponent<MeshRenderer>();
-        var mat = new Material(Shader.Find("Editor/AStar"));
-        mat.SetTexture("_MainTex", texture);
-        mat.SetVector("_Size", new Vector4(root.aStarSize.x, root.aStarSize.y, 0, 0));
-        r.sharedMaterial = mat;
     }
 }

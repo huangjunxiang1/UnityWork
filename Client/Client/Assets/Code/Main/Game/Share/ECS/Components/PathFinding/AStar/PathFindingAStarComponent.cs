@@ -33,7 +33,7 @@ namespace Game
         public PathFindingAStarComponent(AStarData aStar, AStarVolume volume = null)
         {
             this.AStar = aStar;
-            this.Volume = volume ?? AStarVolume.One;
+            this.Volume = volume ?? AStarVolume.Empty;
         }
 
         [Sirenix.OdinInspector.ShowInInspector]
@@ -260,9 +260,9 @@ namespace Game
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
             var move = AStar.vsArray[i] != AStar.vs && cost <= power && AStar.isEnable(xy, Volume, Current);
+            AStar.vsArray[i] = AStar.vs;
             if (move)
             {
-                AStar.vsArray[i] = AStar.vs;
                 if (arrayIndex >= paths.Length)
                     Array.Resize(ref paths, arrayIndex * 2);
                 paths[arrayIndex++] = new FindData
@@ -281,9 +281,9 @@ namespace Game
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);
             var move = AStar.vsArray[i] != AStar.vs && cost <= power && AStar.isEnable(xy, Volume, Current);
+            AStar.vsArray[i] = AStar.vs;
             if (move)
             {
-                AStar.vsArray[i] = AStar.vs;
                 if (arrayIndex >= paths.Length)
                     Array.Resize(ref paths, arrayIndex * 2);
                 int pre = math.abs(xy.x - to.x) + math.abs(xy.y - to.y);
@@ -438,7 +438,7 @@ namespace Game
             return len;
         }
 
-        void SetPoint(int2 xy)
+        public void SetPoint(int2 xy, bool setPosition = true)
         {
             var last = this.Current;
             if (last.Equals(xy)) return;
@@ -459,6 +459,15 @@ namespace Game
             }
             else
                 this.Current = int.MinValue;
+            if (setPosition)
+            {
+                var t = Entity.GetComponent<TransformComponent>();
+                if (t != null)
+                {
+                    t.position = AStar.GetPosition(xy);
+                    t.SetChange();
+                }
+            }
         }
 
         [ChangeSystem]
@@ -476,7 +485,7 @@ namespace Game
                     var to = finding.AStar.GetXY(finding.points[i]);
                     if (finding.AStar.isEnable(to, finding.Volume, finding.Current))
                     {
-                        finding.SetPoint(to);
+                        finding.SetPoint(to, false);
                         var v = await move.MoveToAsync(finding.points[i]);
                         if (!v)
                         {
@@ -498,12 +507,8 @@ namespace Game
         [InSystem]
         static void In(TransformComponent transform, PathFindingAStarComponent finding)
         {
+            if (finding.AStar == null) return;
             finding.SetPoint(finding.AStar.GetXY(transform.position));
-        }
-        [OutSystem]
-        static void Out(PathFindingAStarComponent finding)
-        {
-            finding.SetPoint(int.MinValue);
         }
     }
 }
