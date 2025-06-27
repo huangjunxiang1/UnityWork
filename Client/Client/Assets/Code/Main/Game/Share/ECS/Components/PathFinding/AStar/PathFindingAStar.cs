@@ -45,19 +45,19 @@ namespace Game
             var start = (float3)transform.position;
             Vector3[] verts = new Vector3[4]
             {
-            start,
-            start+new float3(size.x * aStarSize.x,0,0),
-            start+new float3(0,0,size.z * aStarSize.y),
-            start+new float3(size.x * aStarSize.x,0,size.z * aStarSize.y)
+               start,
+               start+new float3(size.x * aStarSize.x,0,0),
+               start+new float3(0,0,size.z * aStarSize.y),
+               start+new float3(size.x * aStarSize.x,0,size.z * aStarSize.y)
             };
             mesh.vertices = verts;
             mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };
             mesh.uv = new Vector2[4]
             {
-            new Vector2(0,0),
-            new Vector2(1,0),
-            new Vector2(0,1),
-            new Vector2(1,1),
+               new Vector2(0,0),
+               new Vector2(1,0),
+               new Vector2(0,1),
+               new Vector2(1,1),
             };
 
             if (texture)
@@ -75,8 +75,8 @@ namespace Game
             // 应用 Mesh
             quad.GetComponent<MeshFilter>().mesh = mesh;
             var r = quad.GetComponent<MeshRenderer>();
-            var mat = new Material(Resources.Load<Shader>("Shit/AStarView"));
-            mat.SetTexture("_MainTex", texture);
+            var mat = GameObject.Instantiate(Resources.Load<Material>("Shit/AStarView_Mat"));
+            mat.SetTexture("_Mask", texture);
             mat.SetVector("_Size", new Vector4(aStarSize.x, aStarSize.y, 0, 0));
             r.sharedMaterial = mat;
             var box = quad.AddComponent<BoxCollider>();

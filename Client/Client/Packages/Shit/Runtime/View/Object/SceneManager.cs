@@ -13,10 +13,11 @@ namespace Game
         public int SceneID { get; private set; }
         public int Mask { get; private set; }
         public string SceneName { get; private set; }
+        internal object[] objects;
 
         public STask InLoginScene() => InScene(1, 1, "Login");
         public STask InMainScene() => InScene(2, 1, "Login");
-        public async STask InScene(int sceneId, int mask, string name)
+        public async STask InScene(int sceneId, int mask, string name, params object[] os)
         {
             if (SceneID == sceneId) return;
 
@@ -25,10 +26,11 @@ namespace Game
 
             this.SceneID = sceneId;
             this.Mask = mask;
+            this.objects = os;
 
             SAsset.ReleasePoolsGameObjects();
             await SAsset.ReleaseAllUnuseObjects();
-            this.SceneName = SceneName;
+            this.SceneName = name;
             await SAsset.LoadSceneAsync($"scene_{name}");
             await SValueTask.Delay(100);
 

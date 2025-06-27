@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 
 namespace Game
@@ -46,15 +47,20 @@ namespace Game
         /// </summary>
         public AStarVolume Volume { get; private set; }
 
+        public float3[] points = new float3[10];
+
         FindData[] paths = new FindData[100];
         int arrayIndex = -1;
         int currentIndex = 0;
         int2 to;
         int power;
         [Sirenix.OdinInspector.ShowInInspector]
-        float3[] points = new float3[10];
         SValueTask<bool> waitTask;
         bool move = false;
+
+        byte finalPointMask = 0;//mask    1 is point     2 is quaternion
+        float3 finalPoint;
+        quaternion finalQuaternion;
 
         public bool Finding(int2 to, int power = int.MaxValue, int near = 0, AStarVolume targetVolume = null, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
@@ -236,19 +242,113 @@ namespace Game
             arrayIndex = -1;
             return false;
         }
-        public SValueTask<bool> Goto(int2 to, int power = int.MaxValue, int near = 0, AStarVolume targetVolume = null, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
+        public SValueTask<bool> Goto(int2 to,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
         {
+            this.finalPointMask = 0;
+            waitTask.TrySetResult(false);
+            waitTask = default;
             if (this.Finding(to, power, near, targetVolume, type, r))
             {
-                waitTask.TrySetResult(false);
                 waitTask = SValueTask<bool>.Create();
                 move = true;
                 this.SetChangeFlag();
-                return waitTask;
             }
-            else
-                return default;
+            return waitTask;
         }
+        public SValueTask<bool> Goto(int2 to,
+            quaternion quaternion,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.Goto(to, power, near, targetVolume, type, r);
+            this.finalPointMask = 2;
+            this.finalQuaternion = quaternion;
+            return waitTask;
+        }
+
+        public async SValueTask GotoMust(int2 to,
+            int delay = 100,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            while (!await this.Goto(to, power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+        public async SValueTask GotoMust(int2 to,
+            quaternion quaternion,
+            int delay = 100,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            while (!await this.Goto(to, quaternion, power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+
+        public SValueTask<bool> GotoPoint(float3 point,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r);
+            this.finalPointMask = 1;
+            this.finalPoint = point;
+            return waitTask;
+        }
+        public SValueTask<bool> GotoPoint(float3 point,
+            quaternion quaternion,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r);
+            this.finalPointMask = 1 | 2;
+            this.finalPoint = point;
+            this.finalQuaternion = quaternion;
+            return waitTask;
+        }
+
+        public async SValueTask GotoPointMust(float3 point,
+           int delay = 100,
+           int power = int.MaxValue,
+           int near = 0,
+           AStarVolume targetVolume = null,
+           PathFindingMethod type = PathFindingMethod.AStar,
+           PathFindingRound r = PathFindingRound.R4)
+        {
+            while (!await this.GotoPoint(point, power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+        public async SValueTask GotoPointMust(float3 point,
+           quaternion quaternion,
+           int delay = 100,
+           int power = int.MaxValue,
+           int near = 0,
+           AStarVolume targetVolume = null,
+           PathFindingMethod type = PathFindingMethod.AStar,
+           PathFindingRound r = PathFindingRound.R4)
+        {
+            while (!await this.GotoPoint(point, quaternion, power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+
         public void Stop()
         {
             move = false;
@@ -376,13 +476,15 @@ namespace Game
                 n = this.paths[n.last];
             }
             ret.Reverse(index, ret.Count - index);
+            if ((this.finalPointMask & 1) != 0)
+                ret[^1] = this.finalPoint;
         }
         public int GetFindingPoints(ref float3[] ret)
         {
             if (arrayIndex == -1) return 0;
             var n = this.paths[arrayIndex - 1];
             if (ret.Length < n.step)
-                ret = new float3[n.step];
+                Array.Resize(ref ret, n.step);
             int len = n.step;
             while (true)
             {
@@ -391,6 +493,8 @@ namespace Game
                     break;
                 n = this.paths[n.last];
             }
+            if ((this.finalPointMask & 1) != 0)
+                ret[^1] = this.finalPoint;
             return len;
         }
         public int2[] GetFindingIDs()
@@ -438,6 +542,19 @@ namespace Game
             return len;
         }
 
+        public void SetPoint(float3 point, bool setPosition = true)
+        {
+            this.SetPoint(this.AStar.GetXY(point), false);
+            if (setPosition)
+            {
+                var t = Entity.GetComponent<TransformComponent>();
+                if (t != null)
+                {
+                    t.position = point;
+                    t.SetChange();
+                }
+            }
+        }
         public void SetPoint(int2 xy, bool setPosition = true)
         {
             var last = this.Current;
@@ -480,17 +597,30 @@ namespace Game
             if (finding.arrayIndex != -1)
             {
                 int len = finding.GetFindingPoints(ref finding.points);
+                int v = finding.finalPointMask;
+                finding.finalPointMask = 0;
+                quaternion r = finding.finalQuaternion;
                 for (int i = 0; i < len; i++)
                 {
                     var to = finding.AStar.GetXY(finding.points[i]);
                     if (finding.AStar.isEnable(to, finding.Volume, finding.Current))
                     {
                         finding.SetPoint(to, false);
-                        var v = await move.MoveToAsync(finding.points[i]);
-                        if (!v)
+                        if (i < len - 1 || (v & 2) == 0)
                         {
-                            task.TrySetResult(false);
-                            return;
+                            if (!await move.MoveToAsync(finding.points[i]))
+                            {
+                                task.TrySetResult(false);
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            if (!await move.MoveToAsync(finding.points[i], r))
+                            {
+                                task.TrySetResult(false);
+                                return;
+                            }
                         }
                     }
                     else
@@ -509,6 +639,12 @@ namespace Game
         {
             if (finding.AStar == null) return;
             finding.SetPoint(finding.AStar.GetXY(transform.position));
+        }
+        [OutSystem]
+        static void Out(TransformComponent transform, PathFindingAStarComponent finding)
+        {
+            if (finding.AStar == null) return;
+            finding.SetPoint((int2)int.MinValue, false);
         }
     }
 }

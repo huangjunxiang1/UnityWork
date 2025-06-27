@@ -13,14 +13,11 @@ class PathFindingAStarDrawLine : Editor
 
     static int selectedOption = 0;
     private string[] options = new string[] { "Enable", "Disable", "Cost" };
-    private string[] viewXYStyle = new string[] { "只显示轴", "全部格子显示" };
-    static int viewXYStyleIndex = 0;
     float3 start;
     float3 end;
     PathFindingAStar root;
     static bool viewAstar = true;
     static bool viewCost = false;
-    static bool viewXY = false;
     static int cost = 1;
 
     private void OnEnable()
@@ -124,16 +121,6 @@ class PathFindingAStarDrawLine : Editor
                             Handles.Label((float3)root.transform.position + new float3(i, 0, j) * root.size + new float3(0, 0, root.size.z), (d >> 1).ToString(), gui);
                     }
                 }
-                if (viewXY)
-                {
-                    if (viewXYStyleIndex == 0)
-                    {
-                        if (i == 0 || j == 0 || i == root.aStarSize.x - 1 || j == root.aStarSize.y - 1)
-                            Handles.Label((float3)root.transform.position + new float3(i, 0, j) * root.size + new float3(0, 0, root.size.z / 2), $"({i},{j})", gui2);
-                    }
-                    else if (viewXYStyleIndex == 1)
-                        Handles.Label((float3)root.transform.position + new float3(i, 0, j) * root.size + new float3(0, 0, root.size.z / 2), $"({i},{j})", gui2);
-                }
             }
         }
     }
@@ -150,12 +137,6 @@ class PathFindingAStarDrawLine : Editor
         viewAstar = EditorGUILayout.Toggle("显示A星数据", viewAstar);
         EditorGUILayout.Space();
         viewCost = EditorGUILayout.Toggle("显示行动力消耗", viewCost);
-        EditorGUILayout.Space();
-        viewXY = EditorGUILayout.Toggle("显示坐标", viewXY);
-        if (viewXY)
-        {
-            viewXYStyleIndex = GUILayout.SelectionGrid(viewXYStyleIndex, viewXYStyle, 1, EditorStyles.radioButton);
-        }
         EditorGUILayout.Space();
         if (EditorGUI.EndChangeCheck())
             root.View(viewAstar);

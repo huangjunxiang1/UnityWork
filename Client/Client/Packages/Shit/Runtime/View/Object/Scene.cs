@@ -36,16 +36,16 @@ namespace Game
                     isCreate = true;
                     var s = (Scene)Activator.CreateInstance(scenes[i]);
                     Client.Scene.AddChild(s);
-                    s.OnCreate();
+                    s.OnCreate(Client.Scene.objects);
                 }
             }
             if (!isCreate)
             {
                 var s = new Scene();
                 Client.Scene.AddChild(s);
-                s.OnCreate();
+                s.OnCreate(Client.Scene.objects);
             }
         }
-        protected virtual void OnCreate() { }
+        protected virtual void OnCreate(params object[] os) { }
     }
 }

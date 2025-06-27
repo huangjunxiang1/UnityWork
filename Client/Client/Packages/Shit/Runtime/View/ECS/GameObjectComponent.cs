@@ -25,6 +25,14 @@ namespace Game
             {
                 this.gameRoot = new GameObject();
                 this.gameRoot.transform.SetParent(Client.transform);
+#if UNITY_EDITOR
+                string s = this.Entity.GetType().Name;
+                if (this.ActorId != 0)
+                    s += $"_actorId={this.ActorId}";
+                if (this.Entity.tid != 0)
+                    s += $"_tid={this.Entity.tid}";
+                this.gameRoot.name = s;
+#endif
             }
         }
 
@@ -153,7 +161,7 @@ namespace Game
             }
             this.SetChange();
 #if UNITY_EDITOR
-            if (this.gameRoot && this.gameObjectType != SGameObjectType.Static)
+            if (this.gameRoot && this.gameObjectType != SGameObjectType.Resource)
             {
                 string s = this.Entity.GetType().Name;
                 if (this.ActorId != 0)
@@ -163,6 +171,12 @@ namespace Game
                 this.gameRoot.name = s;
             }
 #endif
+            if (this.gameObject)
+            {
+                var info = this.gameObject.GetComponent<SObjectInfo>() ?? this.gameObject.AddComponent<SObjectInfo>();
+                info.gid = this.gid;
+                info.actorId = this.ActorId;
+            }
             EC_GameObjectReplace c = new();
             c.Component = this;
             c.old = old;
