@@ -154,10 +154,12 @@ public class AStarData
     bool breadth(Func<int2, bool> func, ref int index, int2 xy, out int2 value)
     {
         value = xy;
+        if (vsArray[xy.y * width + xy.x] == vs)
+            return false;
+        vsArray[xy.y * width + xy.x] = vs;
         if (!isEnable(xy))
             return false;
-        bool isTarget = vsArray[xy.y * width + xy.x] != vs && func(xy);
-        vsArray[xy.y * width + xy.x] = vs;
+        bool isTarget = func(xy);
         if (!isTarget)
             array[index++] = xy;
         return isTarget;

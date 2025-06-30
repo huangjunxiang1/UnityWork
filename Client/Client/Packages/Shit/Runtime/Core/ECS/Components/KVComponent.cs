@@ -5,211 +5,209 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
+public class KVCalculator
+{
+    public virtual bool ConvertKey(int k, out int fk)
+    {
+        if (k > 10000)
+        {
+            fk = k - 10000;
+            return true;
+        }
+        fk = k;
+        return false;
+    }
+    public virtual long Calculating(int k, KVComponent kv)
+    {
+        var v = kv.GetValue(KVComponent.GetRealKey(k));
+        if (k > 10000)
+            return v;
+        var pv = kv.GetValue(KVComponent.GetRealKey(k + 10000));
+        return v * (10000 + pv) / 10000;
+    }
+}
 public class KVComponent : SComponent
 {
-    public static Func<int, (bool, int)> Parse = id => (id > 10000, id > 10000 ? id / 10000 : id);
-    public static Func<int, long, long, long> Compute = (k, v, pv) => v + v * pv / 10000;
+    public const int SourceMax = 100;
 
-    public const int SourceLength = 100;
-    public const int Step = 10000;
-    public const int PercentStart = Step / 2;
+    public static KVCalculator DefaultCalculator = new();
+    /// <summary>
+    /// 数值计算器
+    /// </summary>
+    public KVCalculator Calculator = DefaultCalculator;
 
     int Max = 1;
 
 #if UNITY_EDITOR
     [Sirenix.OdinInspector.ShowInInspector]
-    SortedSet<int> Keys = ObjectPool.Get<SortedSet<int>>();
-
-    [Sirenix.OdinInspector.ShowInInspector]
     SortedDictionary<int, long> Values = ObjectPool.Get<SortedDictionary<int, long>>();
+    [Sirenix.OdinInspector.ShowInInspector]
+    SortedDictionary<int, long> FinalValue = ObjectPool.Get<SortedDictionary<int, long>>();
 #else
     [Sirenix.OdinInspector.ShowInInspector]
-    HashSet<int> Keys = ObjectPool.Get<HashSet<int>>();
-
-    [Sirenix.OdinInspector.ShowInInspector]
     Dictionary<int, long> Values = ObjectPool.Get<Dictionary<int, long>>();
+    [Sirenix.OdinInspector.ShowInInspector]
+    Dictionary<int, long> FinalValue = ObjectPool.Get<Dictionary<int, long>>();
 #endif
     Dictionary<int, long> Changed = ObjectPool.Get<Dictionary<int, long>>();
 
     public void Set(IDictionary<int, long> kvs)
     {
         HashSet<int> ck = ObjectPool.Get<HashSet<int>>();
-        Keys.Clear();
         Max = 1;
         foreach (var kv in kvs)
         {
-            if (kv.Key < Step) continue;
             if (!Values.TryGetValue(kv.Key, out var old) || old != kv.Value)
             {
-                int bk = GetBaseKey(kv.Key);
-                ck.Add(bk);
-                if (!Changed.ContainsKey(bk))
-                    Changed.Add(bk, Get(bk));
+                var k = GetBaseKey(kv.Key);
+                if (!Changed.ContainsKey(k))
+                    Changed.Add(k, Get(k));
                 Values[kv.Key] = kv.Value;
-                Keys.Add(bk);
-                if (Max < kv.Key % PercentStart)
-                    Max = kv.Key % PercentStart;
+                ck.Add(k);
+                Max = Math.Max(kv.Key % SourceMax, Max);
             }
         }
-        foreach (var k in Values.Keys.ToList())
+        foreach (var rk in Values.Keys.ToList())
         {
-            if (!kvs.ContainsKey(k) || k < Step)
+            var k = GetBaseKey(rk);
+            if (!kvs.ContainsKey(rk))
             {
-                int bk = GetBaseKey(k);
-                ck.Add(bk);
-                if (!Changed.ContainsKey(bk))
-                    Changed.Add(bk, Get(bk));
-                Values.Remove(k);
+                if (!Changed.ContainsKey(k))
+                    Changed.Add(k, Get(k));
+                Values.Remove(rk);
+                ck.Add(k);
             }
         }
-        foreach (var k in ck)
-            ComputeTotalValue(k);
+        ComputeTotalValue(ck);
         ck.Clear();
         ObjectPool.Return(ck);
         this.SetChangeFlag();
     }
-    public void Set(int id, long v, int Source = 1)
+    public void Set(int k, long v, int Source = 1)
     {
 #if DebugEnable
-        if (Source < 1 || Source >= SourceLength)
-            Loger.Error($"Source is in range 1-{SourceLength - 1}");
+        if (Source < 1 || Source >= SourceMax)
+            Loger.Error($"Source is in range 1-{SourceMax - 1}");
 #endif
-        var (p, bk) = Parse(id);
-        int rk = GetRealKey(bk, Source + (p ? PercentStart : 0));
-        Values.TryGetValue(rk, out var old);
+        var rk = GetRealKey(k, Source);
+        var old = GetValue(rk);
         if (old == v) return;
 
-        if (!Changed.ContainsKey(bk))
-            Changed.Add(bk, Get(bk));
-        if (Max < Source)
-            Max = Source;
+        if (!Changed.ContainsKey(k))
+            Changed.Add(k, Get(k));
+        Max = Math.Max(Source, Max);
 
-        Keys.Add(bk);
         Values[rk] = v;
-        ComputeTotalValue(bk);
+        ComputeTotalValue(k);
         this.SetChangeFlag();
     }
-    public void Add(int id, long v, int Source = 1)
+    public void Add(int k, long v, int Source = 1)
     {
         if (v == 0) return;
 #if DebugEnable
-        if (Source < 1 || Source >= SourceLength)
-            Loger.Error($"Source is in range 1-{SourceLength - 1}");
+        if (Source < 1 || Source >= SourceMax)
+            Loger.Error($"Source is in range 1-{SourceMax - 1}");
 #endif
-        var (p, bk) = Parse(id);
-        int rk = GetRealKey(bk, Source + (p ? PercentStart : 0));
-        Values.TryGetValue(rk, out var old);
-        if (!Changed.ContainsKey(bk))
-            Changed.Add(bk, Get(bk));
-        if (Max < Source)
-            Max = Source;
+        var rk = GetRealKey(k, Source);
+        var old = GetValue(rk);
 
-        Keys.Add(bk);
+        if (!Changed.ContainsKey(k))
+            Changed.Add(k, Get(k));
+        Max = Math.Max(Source, Max);
+
         Values[rk] = old + v;
-        ComputeTotalValue(bk);
+        ComputeTotalValue(k);
         this.SetChangeFlag();
     }
-    public void Remove(int id, int Source = 1)
+    public void Remove(int k, int Source = 1)
     {
 #if DebugEnable
-        if (Source < 1 || Source >= SourceLength)
-            Loger.Error($"Source is in range 1-{SourceLength - 1}");
+        if (Source < 1 || Source >= SourceMax)
+            Loger.Error($"Source is in range 1-{SourceMax - 1}");
 #endif
-        var (p, bk) = Parse(id);
-        int rk = GetRealKey(bk, Source + (p ? PercentStart : 0));
-        if (!Values.TryGetValue(rk, out var old) || old == 0) return;
+        var rk = GetRealKey(k, Source);
 
-        if (!Changed.ContainsKey(bk))
-            Changed.Add(bk, Get(bk));
+        if (!Changed.ContainsKey(k))
+            Changed.Add(k, Get(k));
 
         Values.Remove(rk);
-        ComputeTotalValue(bk);
+        ComputeTotalValue(k);
         this.SetChangeFlag();
     }
     public void RemoveAllBySource(int Source)
     {
 #if DebugEnable
-        if (Source < 1 || Source >= SourceLength)
-            Loger.Error($"Source is in range 1-{SourceLength - 1}");
+        if (Source < 1 || Source >= SourceMax)
+            Loger.Error($"Source is in range 1-{SourceMax - 1}");
 #endif
         if (Source > Max) return;
-        foreach (var bk in Keys)
+        HashSet<int> ck = ObjectPool.Get<HashSet<int>>();
+        foreach (var rk in Values.Keys.ToList())
         {
-            bool set = false;
+            if (rk % SourceMax == Source)
             {
-                int rk = GetRealKey(bk, Source + 0);
-                if (Values.TryGetValue(rk, out var old) && old != 0)
-                {
-                    Values.Remove(rk);
-                    set = true;
-                }
+                Values.Remove(rk);
+                var k = GetBaseKey(rk);
+                if (!Changed.ContainsKey(k))
+                    Changed.Add(k, Get(k));
+                ck.Add(k);
             }
+        }
+        if (ck.Count > 0)
+        {
+            ComputeTotalValue(ck);
+            this.SetChangeFlag();
+        }
+        ck.Clear();
+        ObjectPool.Return(ck);
+    }
+    public void RemoveAllByID(int k)
+    {
+        for (int i = 1; i < Max; i++)
+        {
+            var rk = GetRealKey(k, 1);
+            if (!Changed.ContainsKey(k))
             {
-                int rk = GetRealKey(bk, Source + PercentStart);
-                if (Values.TryGetValue(rk, out var old) && old != 0)
-                {
-                    Values.Remove(rk);
-                    set = true;
-                }
-            }
-            if (set)
-            {
-                if (!Changed.ContainsKey(bk))
-                    Changed.Add(bk, Get(bk));
-                ComputeTotalValue(bk);
+                Changed.Add(k, Get(k));
                 this.SetChangeFlag();
             }
+            Values.Remove(rk);
         }
-    }
-    public void RemoveAllByID(int id)
-    {
-        if (Values.TryGetValue(id, out var v))
-        {
-            if (!Changed.ContainsKey(id))
-                Changed.Add(id, v);
-        }
-        RemoveKey(id);
+        ComputeTotalValue(k);
     }
     public void Clear()
     {
         if (this.Values.Count == 0) return;
 
-        HashSet<int> ck = ObjectPool.Get<HashSet<int>>();
-        foreach (var k in Keys)
-            ck.Add(k);
-        foreach (var bk in ck)
+        foreach (var rk in Values.Keys)
         {
-            if (!Changed.ContainsKey(bk))
-                Changed.Add(bk, Get(bk));
+            var k = GetBaseKey(rk);
+            if (!Changed.ContainsKey(k))
+                Changed.Add(k, Get(k));
         }
         Values.Clear();
+        FinalValue.Clear();
         Max = 1;
 
         this.SetChangeFlag();
     }
 
-    public bool Has(int id) => Values.TryGetValue(id, out var v) && v != 0;
-    public bool TryGet(int id, out long v)
+    public long GetValue(int id)
     {
-        return Values.TryGetValue(id, out v) && v != 0;
+        Values.TryGetValue(id, out var v);
+        return v;
     }
     public long Get(int id)
     {
-        Values.TryGetValue(id, out long v);
+        FinalValue.TryGetValue(id, out long v);
         return v;
     }
-    public long GetAddtion(int id)
-    {
-        var (p, bk) = Parse(id);
-        Values.TryGetValue(GetRealKey(bk, p ? PercentStart : 0), out long v);
-        return v;
-    }
+
     public long Get(int id, int Source)
     {
 #if DebugEnable
-        if (Source < 1 || Source >= SourceLength)
-            Loger.Error($"Source is in range 1-{SourceLength - 1}");
+        if (Source < 1 || Source >= SourceMax)
+            Loger.Error($"Source is in range 1-{SourceMax - 1}");
 #endif
         Values.TryGetValue(GetRealKey(id, Source), out long v);
         return v;
@@ -217,60 +215,49 @@ public class KVComponent : SComponent
     public void CopyTo(Dictionary<int, long> target)
     {
         foreach (var item in Values)
-        {
-            if (item.Key % PercentStart < 1 || item.Key < Step || item.Value == 0) continue;
             target[item.Key] = item.Value;
-        }
     }
 
-    void ComputeTotalValue(int key)
+    void ComputeTotalValue(int k)
     {
         long v = 0;
         for (int i = 1; i <= Max; i++)
         {
-            var k = GetRealKey(key, i);
-            if (Values.TryGetValue(k, out var value))
-                v += value;
+            var rk = GetRealKey(k, i);
+            v += GetValue(rk);
         }
-        Values[GetRealKey(key)] = v;
-
-        long pv = 0;
-        for (int i = 1; i <= Max; i++)
-        {
-            var k = GetRealKey(key, PercentStart + i);
-            if (Values.TryGetValue(k, out var value))
-                pv += value;
-        }
-        Values[GetRealKey(key, PercentStart)] = pv;
-
-        Values[key] = Compute(key, v, pv);
+        Values[k * SourceMax] = v;
+        if (Calculator.ConvertKey(k, out var fk))
+            FinalValue[k] = Calculator.Calculating(k, this);
+        FinalValue[fk] = Calculator.Calculating(fk, this);
     }
-    void RemoveKey(int key)
+    void ComputeTotalValue(HashSet<int> ks)
     {
-        for (int i = 1; i <= Max; i++)
+        foreach (var k in ks)
         {
-            var k = GetRealKey(key, i);
-            Values.Remove(k);
+            long v = 0;
+            for (int i = 1; i <= Max; i++)
+            {
+                var rk = GetRealKey(k, i);
+                v += GetValue(rk);
+            }
+            Values[k * SourceMax] = v;
         }
-        Values.Remove(GetRealKey(key));
-
-        for (int i = 1; i <= Max; i++)
+        foreach (var k in ks)
         {
-            var k = GetRealKey(key, PercentStart + i);
-            Values.Remove(k);
+            if (Calculator.ConvertKey(k, out var fk))
+                FinalValue[k] = Calculator.Calculating(k, this);
+            FinalValue[fk] = Calculator.Calculating(fk, this);
         }
-        Values.Remove(GetRealKey(key, PercentStart));
-
-        Values.Remove(key);
     }
 
-    static int GetRealKey(int k, int source = 0)
+    public static int GetRealKey(int k, int source = 0)
     {
-        return k * Step + source;
+        return k * 100 + source;
     }
-    static int GetBaseKey(int k)
+    public static int GetBaseKey(int k)
     {
-        return k / Step;
+        return k / 100;
     }
 
     [ChangeSystem]
@@ -295,13 +282,10 @@ public class KVComponent : SComponent
     [DisposeSystem]
     static void Dispose(KVComponent t)
     {
-        t.Keys.Clear();
         t.Values.Clear();
         t.Changed.Clear();
-        ObjectPool.Return(t.Keys);
         ObjectPool.Return(t.Changed);
         ObjectPool.Return(t.Values);
-        t.Keys = null;
         t.Values = null;
         t.Changed = null;
     }

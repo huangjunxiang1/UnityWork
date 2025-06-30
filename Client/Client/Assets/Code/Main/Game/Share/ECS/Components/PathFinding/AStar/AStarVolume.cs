@@ -17,7 +17,7 @@ public class AStarVolume
     public virtual bool isInScope(int2 self, int2 target) => self.Equals(target);
     public virtual bool isNear(int2 self, int2 target, int near)
     {
-        return math.abs(self.x - target.x) + math.abs(self.y - target.y) <= near;
+        return maths.ManhattanDistance(self, target) <= near;
     }
 }
 

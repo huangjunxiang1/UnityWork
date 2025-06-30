@@ -25,14 +25,6 @@ namespace Game
             {
                 this.gameRoot = new GameObject();
                 this.gameRoot.transform.SetParent(Client.transform);
-#if UNITY_EDITOR
-                string s = this.Entity.GetType().Name;
-                if (this.ActorId != 0)
-                    s += $"_actorId={this.ActorId}";
-                if (this.Entity.tid != 0)
-                    s += $"_tid={this.Entity.tid}";
-                this.gameRoot.name = s;
-#endif
             }
         }
 

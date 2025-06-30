@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
+using UnityEngine.UIElements;
 
 namespace Game
 {
@@ -57,6 +57,7 @@ namespace Game
         [Sirenix.OdinInspector.ShowInInspector]
         SValueTask<bool> waitTask;
         bool move = false;
+        int callVersion;
 
         byte finalPointMask = 0;//mask    1 is point     2 is quaternion
         float3 finalPoint;
@@ -64,9 +65,142 @@ namespace Game
 
         public bool Finding(int2 to, int power = int.MaxValue, int near = 0, AStarVolume targetVolume = null, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
         {
-            return this.Finding(this.Current, to, power, near, targetVolume, type, r);
+            return _Finding(this.Current, to, power, near, targetVolume, type, r);
         }
         public bool Finding(int2 from, int2 to, int power = int.MaxValue, int near = 0, AStarVolume targetVolume = null, PathFindingMethod type = PathFindingMethod.AStar, PathFindingRound r = PathFindingRound.R4)
+        {
+            return _Finding(from, to, power, near, targetVolume, type, r);
+        }
+        public SValueTask<bool> Goto(int2 to,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 0;
+            ++callVersion;
+            this._Goto(to, power, near, targetVolume, type, r);
+            return waitTask;
+        }
+        public SValueTask<bool> Goto(int2 to,
+            quaternion quaternion,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 2;
+            this.finalQuaternion = quaternion;
+            ++callVersion;
+            this._Goto(to, power, near, targetVolume, type, r);
+            return waitTask;
+        }
+
+        public async SValueTask GotoMust(int2 to,
+            int delay = 100,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            var vs = ++callVersion;
+            while (vs == callVersion && !await this._Goto(to, power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+        public async SValueTask GotoMust(int2 to,
+            quaternion quaternion,
+            int delay = 100,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 2;
+            this.finalQuaternion = quaternion;
+            var vs = ++callVersion;
+            while (vs == callVersion && !await this._Goto(to, power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+
+        public SValueTask<bool> GotoPoint(float3 point,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 1;
+            this.finalPoint = point;
+            ++callVersion;
+            this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r);
+            return waitTask;
+        }
+        public SValueTask<bool> GotoPoint(float3 point,
+            quaternion quaternion,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 1 | 2;
+            this.finalPoint = point;
+            this.finalQuaternion = quaternion;
+            ++callVersion;
+            this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r);
+            return waitTask;
+        }
+
+        public async SValueTask GotoPointMust(float3 point,
+           int delay = 100,
+           int power = int.MaxValue,
+           int near = 0,
+           AStarVolume targetVolume = null,
+           PathFindingMethod type = PathFindingMethod.AStar,
+           PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 1;
+            this.finalPoint = point;
+            var vs = ++callVersion;
+            while (vs == callVersion && !await this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+        public async SValueTask GotoPointMust(float3 point,
+           quaternion quaternion,
+           int delay = 100,
+           int power = int.MaxValue,
+           int near = 0,
+           AStarVolume targetVolume = null,
+           PathFindingMethod type = PathFindingMethod.AStar,
+           PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 1 | 2;
+            this.finalPoint = point;
+            this.finalQuaternion = quaternion;
+            var vs = ++callVersion;
+            while (vs == callVersion && !await this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r))
+                await SValueTask.Delay(delay);
+        }
+
+        public void Stop()
+        {
+            ++callVersion;
+            move = false;
+            this.Entity.GetComponent<MoveToComponent>()?.Stop();
+            waitTask.TryCancel();
+        }
+
+        bool _Finding(int2 from, 
+            int2 to, 
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
         {
             if (from.x < 0 || from.y < 0 || from.x >= AStar.width || from.y >= AStar.height)
             {
@@ -242,14 +376,13 @@ namespace Game
             arrayIndex = -1;
             return false;
         }
-        public SValueTask<bool> Goto(int2 to,
+        SValueTask<bool> _Goto(int2 to,
             int power = int.MaxValue,
             int near = 0,
             AStarVolume targetVolume = null,
             PathFindingMethod type = PathFindingMethod.AStar,
             PathFindingRound r = PathFindingRound.R4)
         {
-            this.finalPointMask = 0;
             waitTask.TrySetResult(false);
             waitTask = default;
             if (this.Finding(to, power, near, targetVolume, type, r))
@@ -260,101 +393,6 @@ namespace Game
             }
             return waitTask;
         }
-        public SValueTask<bool> Goto(int2 to,
-            quaternion quaternion,
-            int power = int.MaxValue,
-            int near = 0,
-            AStarVolume targetVolume = null,
-            PathFindingMethod type = PathFindingMethod.AStar,
-            PathFindingRound r = PathFindingRound.R4)
-        {
-            this.Goto(to, power, near, targetVolume, type, r);
-            this.finalPointMask = 2;
-            this.finalQuaternion = quaternion;
-            return waitTask;
-        }
-
-        public async SValueTask GotoMust(int2 to,
-            int delay = 100,
-            int power = int.MaxValue,
-            int near = 0,
-            AStarVolume targetVolume = null,
-            PathFindingMethod type = PathFindingMethod.AStar,
-            PathFindingRound r = PathFindingRound.R4)
-        {
-            while (!await this.Goto(to, power, near, targetVolume, type, r))
-                await SValueTask.Delay(delay);
-        }
-        public async SValueTask GotoMust(int2 to,
-            quaternion quaternion,
-            int delay = 100,
-            int power = int.MaxValue,
-            int near = 0,
-            AStarVolume targetVolume = null,
-            PathFindingMethod type = PathFindingMethod.AStar,
-            PathFindingRound r = PathFindingRound.R4)
-        {
-            while (!await this.Goto(to, quaternion, power, near, targetVolume, type, r))
-                await SValueTask.Delay(delay);
-        }
-
-        public SValueTask<bool> GotoPoint(float3 point,
-            int power = int.MaxValue,
-            int near = 0,
-            AStarVolume targetVolume = null,
-            PathFindingMethod type = PathFindingMethod.AStar,
-            PathFindingRound r = PathFindingRound.R4)
-        {
-            this.Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r);
-            this.finalPointMask = 1;
-            this.finalPoint = point;
-            return waitTask;
-        }
-        public SValueTask<bool> GotoPoint(float3 point,
-            quaternion quaternion,
-            int power = int.MaxValue,
-            int near = 0,
-            AStarVolume targetVolume = null,
-            PathFindingMethod type = PathFindingMethod.AStar,
-            PathFindingRound r = PathFindingRound.R4)
-        {
-            this.Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r);
-            this.finalPointMask = 1 | 2;
-            this.finalPoint = point;
-            this.finalQuaternion = quaternion;
-            return waitTask;
-        }
-
-        public async SValueTask GotoPointMust(float3 point,
-           int delay = 100,
-           int power = int.MaxValue,
-           int near = 0,
-           AStarVolume targetVolume = null,
-           PathFindingMethod type = PathFindingMethod.AStar,
-           PathFindingRound r = PathFindingRound.R4)
-        {
-            while (!await this.GotoPoint(point, power, near, targetVolume, type, r))
-                await SValueTask.Delay(delay);
-        }
-        public async SValueTask GotoPointMust(float3 point,
-           quaternion quaternion,
-           int delay = 100,
-           int power = int.MaxValue,
-           int near = 0,
-           AStarVolume targetVolume = null,
-           PathFindingMethod type = PathFindingMethod.AStar,
-           PathFindingRound r = PathFindingRound.R4)
-        {
-            while (!await this.GotoPoint(point, quaternion, power, near, targetVolume, type, r))
-                await SValueTask.Delay(delay);
-        }
-
-        public void Stop()
-        {
-            move = false;
-            this.Entity.GetComponent<MoveToComponent>()?.Stop();
-        }
-
         bool breadth(int2 xy, AStarVolume targetVolume , int near)
         {
             int i = xy.y * AStar.width + xy.x;
@@ -643,8 +681,10 @@ namespace Game
         [OutSystem]
         static void Out(TransformComponent transform, PathFindingAStarComponent finding)
         {
-            if (finding.AStar == null) return;
-            finding.SetPoint((int2)int.MinValue, false);
+            ++finding.callVersion;
+            finding.Stop();
+            if (finding.AStar != null)
+                finding.SetPoint((int2)int.MinValue, false);
         }
     }
 }

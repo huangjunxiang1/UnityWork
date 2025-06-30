@@ -36,8 +36,8 @@ internal class KVWatcherTest
         kv.Clear();
         kv.Set(new Dictionary<int, long>
         { 
-            [10002] = 100, 
-            [15002] = 5000,
+            [102] = 100, 
+            [1000102] = 5000,
         });
         if (kv.Get(1) != 150)
             throw new Exception();

@@ -76,7 +76,7 @@ Shader "Editor/AStar"
                           numLerp=1;
                     else
                           numLerp=0;
-                    float2 uv=(float2(xy.x-clamp*cube.x,xy.y-0.45*cube.y)/(0.1*cube.x))%1;  
+                    float2 uv=(float2(xy.x-clamp*cube.x,xy.y-0.45*cube.y)/(0.1*cube))%1;  
                     fixed4 c=getNumColor(v,uv);
                     return lerp(col,c,numLerp);  
                 }
