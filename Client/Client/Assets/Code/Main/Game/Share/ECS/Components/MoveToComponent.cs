@@ -186,5 +186,10 @@ namespace Game
                 }
             }
         }
+        [DisposeSystem]
+        static void dispose(MoveToComponent move)
+        {
+            move._task.TryCancel();
+        }
     }
 }

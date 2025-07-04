@@ -1,54 +1,27 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 [AsyncMethodBuilder(typeof(SValueTaskBuilder<>))]
-public struct SValueTask<T> : ICriticalNotifyCompletion, IDispose
+public struct SValueTask<T> : ICriticalNotifyCompletionV2, IDispose
 {
-    internal class TaskItem
-    {
-        public uint version;
-        public Action action;
-
-        public T value;
-    }
-    internal static List<TaskItem> taskItems = new() { new TaskItem { version = 1 } };
-    internal static ConcurrentQueue<int> poolIndexs = new(new int[] { 0 });
-
     public static SValueTask<T> Create()
     {
         SValueTask<T> task = new();
-        TaskItem ti;
-        if (!poolIndexs.TryDequeue(out task.index))
-        {
-            lock (taskItems)
-            {
-                task.index = taskItems.Count;
-                taskItems.Add(ti = new TaskItem { });
-            }
-        }
-        else
-        {
-            ti = taskItems[task.index];
-            ti.value = default;
-        }
-        task.version = ti.version;
+        task.taskItem = ObjectPool.Get<TaskItem<T>>();
+        task._version = ++task.taskItem.version;
         return task;
     }
 
-    int index;
-    uint version;
+    uint _version;
+    TaskItem<T> taskItem;
+    TaskItem ICriticalNotifyCompletionV2.Current => taskItem;
 
-    public bool Disposed => taskItems[index].version != version;
+    public bool Disposed => taskItem == null || taskItem.version != _version;
     /// <summary>
     /// 是否已完成
     /// </summary>
-    public bool IsCompleted => taskItems[index].version != version;
+    public bool IsCompleted => taskItem == null || taskItem.version != _version;
+
 
     public SValueTask<T> GetAwaiter()
     {
@@ -56,25 +29,21 @@ public struct SValueTask<T> : ICriticalNotifyCompletion, IDispose
     }
     public T GetResult()
     {
-        if (taskItems[index].version != this.version + 1) return default;
-        return taskItems[index].value;
+        if (taskItem.version != this._version + 1) return default;
+        return taskItem.value;
     }
 
     public void TryCancel()
     {
         if (this.Disposed) return;
-        ++taskItems[index].version;
-        taskItems[index].action = null;
-        poolIndexs.Enqueue(this.index);
+        taskItem.Cancel();
     }
     public void TrySetResult(T value)
     {
         if (this.Disposed) return;
-        ++taskItems[index].version;
-        Action act = taskItems[index].action;
-        taskItems[index].action = null;
-        taskItems[index].value = value;
-        poolIndexs.Enqueue(this.index);
+        taskItem.value = value;
+        Action act = taskItem.action;
+        taskItem.SetResult();
         act?.Invoke();
     }
 
@@ -92,11 +61,21 @@ public struct SValueTask<T> : ICriticalNotifyCompletion, IDispose
 
     void INotifyCompletion.OnCompleted(Action continuation)
     {
-        taskItems[index].action += continuation;
+        taskItem.action += continuation;
     }
 
     void ICriticalNotifyCompletion.UnsafeOnCompleted(Action continuation)
     {
-        taskItems[index].action += continuation;
+        taskItem.action += continuation;
+    }
+    internal void Binding<K>(K task) where K : INotifyCompletionV2
+    {
+        if (task.Current != null)
+            task.Current.last = this.taskItem;
+    }
+    internal void BindingCritical<K>(K task) where K : ICriticalNotifyCompletionV2
+    {
+        if (task.Current != null)
+            task.Current.last = this.taskItem;
     }
 }

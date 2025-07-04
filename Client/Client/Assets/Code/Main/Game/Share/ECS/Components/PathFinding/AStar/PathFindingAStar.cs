@@ -20,6 +20,15 @@ namespace Game
         internal int2 dataSize;
         GameObject quad;
         Texture2D texture;
+        Vector3 point;
+
+#if UNITY_EDITOR
+        private void Update()
+        {
+            if (Vector3.Distance(this.point, this.transform.position) > 0.001f)
+                this.point = quad.transform.position = this.transform.position;
+        }
+#endif
 
         public void View(bool view)
         {
@@ -31,6 +40,7 @@ namespace Game
                     quad.hideFlags = HideFlags.HideAndDontSave;
                 }
                 Init();
+                this.point = quad.transform.position = this.transform.position;
             }
             else
             {
@@ -42,13 +52,12 @@ namespace Game
         void Init()
         {
             Mesh mesh = new Mesh();
-            var start = (float3)transform.position;
             Vector3[] verts = new Vector3[4]
             {
-               start,
-               start+new float3(size.x * aStarSize.x,0,0),
-               start+new float3(0,0,size.z * aStarSize.y),
-               start+new float3(size.x * aStarSize.x,0,size.z * aStarSize.y)
+               (float3)0f,
+               new float3(size.x * aStarSize.x,0,0),
+               new float3(0,0,size.z * aStarSize.y),
+               new float3(size.x * aStarSize.x,0,size.z * aStarSize.y)
             };
             mesh.vertices = verts;
             mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };

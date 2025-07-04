@@ -67,9 +67,7 @@ partial class FUIGame
         var path = c.GetFindingIDs();
         c.Move();*/
 
-        var buffer = new DBuffer(YooPkg.LoadRaw("raw_Game"));
-        buffer.Compress = false;
-        var astar = new AStarData(buffer);
+        var astar = Client.Data.Get<AStarData>();
         foreach (var item in Client.Scene.GetChildren().Where(t => t is SGameObject).ToList())
         {
             item.Dispose();
@@ -84,7 +82,8 @@ partial class FUIGame
             go.AddComponent<MoveToComponent>();
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
-            move(go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0))));
+            go.AddComponent<PathFindingAStarComponent>().Volume = new RectVolume(0);
+            move(go.GetComponent<PathFindingAStarComponent>());
         }
         return;
         {
@@ -96,7 +95,7 @@ partial class FUIGame
             go.AddComponent<MoveToComponent>();
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
-            go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0)));
+            go.AddComponent<PathFindingAStarComponent>().Volume = new RectVolume(0);
         }
         {
             SGameObject go = new() { ActorId = 0 + 1 };
@@ -108,7 +107,8 @@ partial class FUIGame
             go.KV.Set((int)KType.RotateSpeed, 20);
             go.KV.Set((int)KType.MoveSpeed, 5);
 
-            var finding = go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(0)));
+            go.AddComponent<PathFindingAStarComponent>().Volume = new RectVolume(0);
+            var finding = go.GetComponent<PathFindingAStarComponent>();
             /*if (finding.Finding(new int2(4, 4)))
             {
 

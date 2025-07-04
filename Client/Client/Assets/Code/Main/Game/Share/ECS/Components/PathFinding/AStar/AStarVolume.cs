@@ -8,17 +8,20 @@ using Unity.Mathematics;
 
 public class AStarVolume
 {
-    public static AStarVolume Empty { get; } = new AStarVolume();
-    public static AStarVolume Zero { get; } = new RectVolume(0);
-    public static AStarVolume One { get; } = new RectVolume(1);
+    public static AStarVolume Empty { get; } = new AStarVolume();//not Occupation
+    public static AStarVolume Cube { get; } = new CubeVolume();//1x1
+
+    class CubeVolume : AStarVolume
+    {
+        public override void Add(AStarData astar, int2 xy) => astar.AddOccupation(xy);
+        public override void Remove(AStarData astar, int2 xy) => astar.RemoveOccupation(xy);
+    }
+
 
     public virtual void Add(AStarData astar, int2 xy) { }
     public virtual void Remove(AStarData astar, int2 xy) { }
     public virtual bool isInScope(int2 self, int2 target) => self.Equals(target);
-    public virtual bool isNear(int2 self, int2 target, int near)
-    {
-        return maths.ManhattanDistance(self, target) <= near;
-    }
+    public virtual bool isNear(int2 self, int2 target, int near) => maths.ManhattanDistance(self, target) <= near;
 }
 
 public class RectVolume : AStarVolume
@@ -59,7 +62,7 @@ public class RectVolume : AStarVolume
             for (int y = -halfEdge; y <= halfEdge; y++)
             {
                 int2 v = target + new int2(x, y);
-                if (math.abs(self.x - v.x) + math.abs(self.y - v.y) <= near) return true;
+                if (maths.ManhattanDistance(self, v) <= near) return true;
             }
         }
         return false;

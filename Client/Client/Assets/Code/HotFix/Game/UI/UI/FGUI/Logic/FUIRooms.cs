@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.LightTransport;
 
 partial class FUIRooms
 {
@@ -59,6 +60,8 @@ partial class FUIRooms
         int id = 10001;
         Client.UI.CloseUI();
         await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
+        var buffer = new DBuffer(YooPkg.LoadRaw("raw_Game"));
+        Client.Data.Add(new AStarData(buffer));
         for (int i = 0; i < s.units.Count; i++)
         {
             var v = s.units[i];
@@ -71,9 +74,8 @@ partial class FUIRooms
                 go.AddComponent<GameInputComponent>();
             go.KV.Set(v.attribute);
             go.AddComponent<ColliderClickComponent>();
-            var buffer  = new DBuffer(YooPkg.LoadRaw("raw_Game"));
             buffer.Compress = false;
-            go.AddComponent(new PathFindingAStarComponent(new AStarData(buffer)));
+            go.AddComponent<PathFindingAStarComponent>();
             go.AddComponent<PathFindingNodeComponent>();
             go.AddComponent<MoveToComponent>();
         }

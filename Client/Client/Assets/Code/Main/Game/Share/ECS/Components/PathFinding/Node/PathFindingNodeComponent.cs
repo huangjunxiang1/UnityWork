@@ -247,6 +247,10 @@ namespace Game
             else
                 task.TrySetResult(false);
         }
+        static void Out(TransformComponent transform, PathFindingNodeComponent finding)
+        {
+            finding.waitTask.TryCancel();
+        }
 
         struct FindData
         {

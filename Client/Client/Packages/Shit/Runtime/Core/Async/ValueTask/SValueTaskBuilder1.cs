@@ -22,12 +22,14 @@ public struct SValueTaskBuilder<T>
     {
         this._task.TrySetResult(result);
     }
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletionV2 where TStateMachine : IAsyncStateMachine
     {
+        _task.Binding(awaiter);
         awaiter.OnCompleted(stateMachine.MoveNext);
     }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletionV2 where TStateMachine : IAsyncStateMachine
     {
+        _task.BindingCritical(awaiter);
         awaiter.UnsafeOnCompleted(stateMachine.MoveNext);
     }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine

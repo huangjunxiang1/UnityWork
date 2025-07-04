@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Mathematics;
-using UnityEngine.UIElements;
 
 namespace Game
 {
@@ -31,24 +30,33 @@ namespace Game
             public int totalDistance;
         }
 
-        public PathFindingAStarComponent(AStarData aStar, AStarVolume volume = null)
-        {
-            this.AStar = aStar;
-            this.Volume = volume ?? AStarVolume.Empty;
-        }
-
         [Sirenix.OdinInspector.ShowInInspector]
-        public AStarData AStar { get; private set; }
+        public AStarData AStar { get; set; } = Client.Data?.Get<AStarData>();
         [Sirenix.OdinInspector.ShowInInspector]
         public int2 Current { get; private set; }= int.MinValue;
 
         /// <summary>
         /// 单位占用体积
         /// </summary>
-        public AStarVolume Volume { get; private set; }
+        public AStarVolume Volume
+        {
+            get => _volume;
+            set
+            {
+                value ??= AStarVolume.Empty;
+                if (value == _volume) return;
+                if (AStar.isInScope(Current))
+                {
+                    _volume.Remove(AStar, Current);
+                    value.Add(AStar, Current);
+                }
+                _volume = value;
+            }
+        }
 
         public float3[] points = new float3[10];
 
+        AStarVolume _volume = AStarVolume.Empty;
         FindData[] paths = new FindData[100];
         int arrayIndex = -1;
         int currentIndex = 0;
@@ -106,6 +114,7 @@ namespace Game
             PathFindingMethod type = PathFindingMethod.AStar,
             PathFindingRound r = PathFindingRound.R4)
         {
+            this.finalPointMask = 0;
             var vs = ++callVersion;
             while (vs == callVersion && !await this._Goto(to, power, near, targetVolume, type, r))
                 await SValueTask.Delay(delay);
@@ -124,6 +133,88 @@ namespace Game
             var vs = ++callVersion;
             while (vs == callVersion && !await this._Goto(to, power, near, targetVolume, type, r))
                 await SValueTask.Delay(delay);
+        }
+        public async SValueTask GotoTimely(int2 to,
+            int delay = 100,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 0;
+            var vs = ++callVersion;
+            var move = this.Entity.GetComponent<MoveToComponent>();
+            if (move == null) return;
+            while (vs == callVersion)
+            {
+                while (!this._Finding(this.Current, to, power, near, targetVolume, type, r))
+                {
+                    await SValueTask.Delay(delay);
+                    if (vs != callVersion || move.Disposed) return;
+                }
+                int len = this.GetFindingPoints(ref this.points);
+                for (int i = 0; i < len; i++)
+                {
+                    var xy = this.AStar.GetXY(this.points[i]);
+                    this.SetPoint(xy, false);
+                    await move.MoveToAsync(this.points[i]);
+                    if (vs != callVersion || move.Disposed) return;
+                    for (int j = i + 1; j < len; j++)
+                    {
+                        var xy2 = this.AStar.GetXY(this.points[j]);
+                        if (!AStar.isEnable(xy2, Volume, Current))
+                            goto next;
+                    }
+                }
+            next: continue;
+            }
+        }
+        public async SValueTask GotoTimely(int2 to,
+            quaternion quaternion,
+            int delay = 100,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 2;
+            this.finalQuaternion = quaternion;
+            var vs = ++callVersion;
+            var move = this.Entity.GetComponent<MoveToComponent>();
+            if (move == null) return;
+            while (vs == callVersion)
+            {
+                while (!this._Finding(this.Current, to, power, near, targetVolume, type, r))
+                {
+                    await SValueTask.Delay(delay);
+                    if (vs != callVersion || move.Disposed) return;
+                }
+                int len = this.GetFindingPoints(ref this.points);
+                for (int i = 0; i < len; i++)
+                {
+                    var xy = this.AStar.GetXY(this.points[i]);
+                    this.SetPoint(xy, false);
+                    if (i < len - 1)
+                    {
+                        await move.MoveToAsync(this.points[i]);
+                        if (vs != callVersion || move.Disposed) return;
+                        for (int j = i + 1; j < len; j++)
+                        {
+                            var xy2 = this.AStar.GetXY(this.points[j]);
+                            if (!AStar.isEnable(xy2, Volume, Current))
+                                goto next;
+                        }
+                    }
+                    else
+                    {
+                        await move.MoveToAsync(this.points[i], this.finalQuaternion);
+                        if (vs != callVersion || move.Disposed) return;
+                    }
+                }
+            next: continue;
+            }
         }
 
         public SValueTask<bool> GotoPoint(float3 point,
@@ -184,6 +275,92 @@ namespace Game
             var vs = ++callVersion;
             while (vs == callVersion && !await this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r))
                 await SValueTask.Delay(delay);
+        }
+        public async SValueTask GotoTimely(float3 to,
+           int delay = 100,
+           int power = int.MaxValue,
+           int near = 0,
+           AStarVolume targetVolume = null,
+           PathFindingMethod type = PathFindingMethod.AStar,
+           PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 1;
+            this.finalPoint = to;
+            var vs = ++callVersion;
+            var move = this.Entity.GetComponent<MoveToComponent>();
+            if (move == null) return;
+            int2 target = this.AStar.GetXY(to);
+            while (vs == callVersion)
+            {
+                while (!this._Finding(this.Current, target, power, near, targetVolume, type, r))
+                {
+                    await SValueTask.Delay(delay);
+                    if (vs != callVersion || move.Disposed) return;
+                }
+                int len = this.GetFindingPoints(ref this.points);
+                for (int i = 0; i < len; i++)
+                {
+                    var xy = this.AStar.GetXY(this.points[i]);
+                    this.SetPoint(xy, false);
+                    await move.MoveToAsync(this.points[i]);
+                    if (vs != callVersion || move.Disposed) return;
+                    for (int j = i + 1; j < len; j++)
+                    {
+                        var xy2 = this.AStar.GetXY(this.points[j]);
+                        if (!AStar.isEnable(xy2, Volume, Current))
+                            goto next;
+                    }
+                }
+            next: continue;
+            }
+        }
+        public async SValueTask GotoTimely(float3 to,
+            quaternion quaternion,
+            int delay = 100,
+            int power = int.MaxValue,
+            int near = 0,
+            AStarVolume targetVolume = null,
+            PathFindingMethod type = PathFindingMethod.AStar,
+            PathFindingRound r = PathFindingRound.R4)
+        {
+            this.finalPointMask = 1 | 2;
+            this.finalPoint = to;
+            this.finalQuaternion = quaternion;
+            var vs = ++callVersion;
+            var move = this.Entity.GetComponent<MoveToComponent>();
+            if (move == null) return;
+            int2 target = this.AStar.GetXY(to);
+            while (vs == callVersion)
+            {
+                while (!this._Finding(this.Current, target, power, near, targetVolume, type, r))
+                {
+                    await SValueTask.Delay(delay);
+                    if (vs != callVersion || move.Disposed) return;
+                }
+                int len = this.GetFindingPoints(ref this.points);
+                for (int i = 0; i < len; i++)
+                {
+                    var xy = this.AStar.GetXY(this.points[i]);
+                    this.SetPoint(xy, false);
+                    if (i < len - 1)
+                    {
+                        await move.MoveToAsync(this.points[i]);
+                        if (vs != callVersion || move.Disposed) return;
+                        for (int j = i + 1; j < len; j++)
+                        {
+                            var xy2 = this.AStar.GetXY(this.points[j]);
+                            if (!AStar.isEnable(xy2, Volume, Current))
+                                goto next;
+                        }
+                    }
+                    else
+                    {
+                        await move.MoveToAsync(this.points[i], this.finalQuaternion);
+                        if (vs != callVersion || move.Disposed) return;
+                    }
+                }
+            next: continue;
+            }
         }
 
         public void Stop()
@@ -491,20 +668,27 @@ namespace Game
         {
             if (arrayIndex == -1) return Array.Empty<float3>();
             var n = this.paths[arrayIndex - 1];
-            var array = new float3[n.step];
+            int len = n.step;
+            var ret = new float3[len];
             while (true)
             {
-                array[n.step - 1] = AStar.GetPosition(n.xy);
+                ret[n.step - 1] = AStar.GetPosition(n.xy);
                 if (n.last == -1)
                     break;
                 n = this.paths[n.last];
             }
-            return array;
+            var t = this.Entity.GetComponent<TransformComponent>();
+            if (t != null)
+                ret[0] = t.position;
+            if ((this.finalPointMask & 1) != 0)
+                ret[len - 1] = this.finalPoint;
+            return ret;
         }
         public void GetFindingPoints(List<float3> ret)
         {
             if (arrayIndex == -1) return;
             var n = this.paths[arrayIndex - 1];
+            int len = n.step;
             int index = ret.Count;
             while (true)
             {
@@ -514,16 +698,19 @@ namespace Game
                 n = this.paths[n.last];
             }
             ret.Reverse(index, ret.Count - index);
+            var t = this.Entity.GetComponent<TransformComponent>();
+            if (t != null)
+                ret[0] = t.position;
             if ((this.finalPointMask & 1) != 0)
-                ret[^1] = this.finalPoint;
+                ret[len - 1] = this.finalPoint;
         }
         public int GetFindingPoints(ref float3[] ret)
         {
             if (arrayIndex == -1) return 0;
             var n = this.paths[arrayIndex - 1];
-            if (ret.Length < n.step)
-                Array.Resize(ref ret, n.step);
             int len = n.step;
+            if (ret.Length < len)
+                Array.Resize(ref ret, len);
             while (true)
             {
                 ret[n.step - 1] = AStar.GetPosition(n.xy);
@@ -531,8 +718,11 @@ namespace Game
                     break;
                 n = this.paths[n.last];
             }
+            var t = this.Entity.GetComponent<TransformComponent>();
+            if (t != null)
+                ret[0] = t.position;
             if ((this.finalPointMask & 1) != 0)
-                ret[^1] = this.finalPoint;
+                ret[len - 1] = this.finalPoint;
             return len;
         }
         public int2[] GetFindingIDs()
@@ -676,7 +866,7 @@ namespace Game
         static void In(TransformComponent transform, PathFindingAStarComponent finding)
         {
             if (finding.AStar == null) return;
-            finding.SetPoint(finding.AStar.GetXY(transform.position));
+            finding.SetPoint(finding.AStar.GetXY(transform.position), false);
         }
         [OutSystem]
         static void Out(TransformComponent transform, PathFindingAStarComponent finding)

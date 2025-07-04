@@ -1,50 +1,60 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+
+
+abstract class TaskItem
+{
+    public TaskItem last;
+    public abstract void Cancel();
+    public abstract void SetResult();
+}
+class TaskItem<T> : TaskItem
+{
+    public uint version;
+    public Action action;
+    public T value;
+
+    public override void Cancel()
+    {
+        ++version;
+        action = null;
+        value = default;
+        var a = this.last;
+        a?.Cancel();
+        ObjectPool.Return(this);
+    }
+
+    public override void SetResult()
+    {
+        ++version;
+        action = null;
+        this.last = null;
+        ObjectPool.Return(this);
+    }
+}
 
 [AsyncMethodBuilder(typeof(SValueTaskBuilder))]
-public struct SValueTask : ICriticalNotifyCompletion, IDispose
+public struct SValueTask : ICriticalNotifyCompletionV2, IDispose
 {
-    internal class TaskItem
-    {
-        public uint version;
-        public Action action;
-    }
-    internal static List<TaskItem> taskItems = new() { new TaskItem { version = 1 } };
-    internal static ConcurrentQueue<int> poolIndexs = new(new int[] { 0 });
-
     public static Action<int, SValueTask> DelayHandle;
 
     public static SValueTask Create()
     {
         SValueTask task = new();
-        TaskItem ti;
-        if (!poolIndexs.TryDequeue(out task.index))
-        {
-            lock (taskItems)
-            {
-                task.index = taskItems.Count;
-                taskItems.Add(ti = new TaskItem { });
-            }
-        }
-        else
-            ti = taskItems[task.index];
-        task.version = ti.version;
+        task.taskItem = ObjectPool.Get<TaskItem<int>>();
+        task._version = ++task.taskItem.version;
         return task;
     }
 
-    int index;
-    uint version;
+    uint _version;
+    TaskItem<int> taskItem;
+    TaskItem ICriticalNotifyCompletionV2.Current => taskItem;
 
-    public bool Disposed => taskItems[index].version != version;
+    public bool Disposed => taskItem == null || taskItem.version != _version;
     /// <summary>
     /// 是否已完成
     /// </summary>
-    public bool IsCompleted => taskItems[index].version != version ;
+    public bool IsCompleted => taskItem == null || taskItem.version != _version;
 
     public SValueTask GetAwaiter()
     {
@@ -52,23 +62,19 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
     }
     public void GetResult()
     {
-        
+
     }
 
     public void TryCancel()
     {
         if (this.Disposed) return;
-        ++taskItems[index].version;
-        taskItems[index].action = null;
-        poolIndexs.Enqueue(this.index);
+        taskItem.Cancel();
     }
     public void TrySetResult()
     {
         if (this.Disposed) return;
-        ++taskItems[index].version;
-        Action act = taskItems[index].action;
-        taskItems[index].action = null;
-        poolIndexs.Enqueue(this.index);
+        Action act = taskItem.action;
+        taskItem.SetResult();
         act?.Invoke();
     }
 
@@ -86,14 +92,23 @@ public struct SValueTask : ICriticalNotifyCompletion, IDispose
 
     void INotifyCompletion.OnCompleted(Action continuation)
     {
-        taskItems[index].action += continuation;
+        taskItem.action += continuation;
     }
 
     void ICriticalNotifyCompletion.UnsafeOnCompleted(Action continuation)
     {
-        taskItems[index].action += continuation;
+        taskItem.action += continuation;
     }
-
+    internal void Binding<K>(K task) where K : INotifyCompletionV2
+    {
+        if (task.Current != null)
+            task.Current.last = this.taskItem;
+    }
+    internal void BindingCritical<K>(K task) where K : ICriticalNotifyCompletionV2
+    {
+        if (task.Current != null)
+            task.Current.last = this.taskItem;
+    }
 
     public static SValueTask Delay(int millisecondsDelay)
     {
