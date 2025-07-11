@@ -44,13 +44,10 @@ abstract class BaseCamera
     }
     public virtual void EnableCamera()
     {
-        if (this.Enable)
         this.Enable = true;
     }
     public virtual void DisableCamera()
     {
-        if (!this.Enable)
-            return;
         this.Enable = false;
     }
     public virtual void SetFilterZone(Vector2 pos, Vector2 size)

@@ -39,6 +39,8 @@ public class AStarData
         this.Occupation = new byte[width * height];
     }
 
+    public static readonly AStarData Empty = new AStarData(0, 0, Array.Empty<byte>(), 0, 1);
+
     public int width { get; private set; }
     public int height { get; private set; }
     public byte[] data { get; private set; }//每个值 低位第一个bit是 是否激活 后续bit是消耗
@@ -102,7 +104,7 @@ public class AStarData
         {
             var v2 = array[currentIndex];
 
-            if (v2.x > 1)
+            if (v2.x > 0)
             {
                 if (breadth(func, ref index, new int2(v2.x - 1, v2.y), out value))
                     return true;
@@ -112,7 +114,7 @@ public class AStarData
                 if (breadth(func, ref index, new int2(v2.x + 1, v2.y), out value))
                     return true;
             }
-            if (v2.y > 1)
+            if (v2.y > 0)
             {
                 if (breadth(func, ref index, new int2(v2.x, v2.y - 1), out value))
                     return true;
@@ -125,17 +127,17 @@ public class AStarData
 
             if (r == PathFindingRound.R8)
             {
-                if (v2.x > 1 && v2.y > 1)
+                if (v2.x > 0 && v2.y > 0)
                 {
                     if (breadth(func, ref index, new int2(v2.x - 1, v2.y - 1), out value))
                         return true;
                 }
-                if (v2.x > 1 && v2.y < height - 1)
+                if (v2.x > 0 && v2.y < height - 1)
                 {
                     if (breadth(func, ref index, new int2(v2.x - 1, v2.y + 1), out value))
                         return true;
                 }
-                if (v2.x < width - 1 && v2.y > 1)
+                if (v2.x < width - 1 && v2.y > 0)
                 {
                     if (breadth(func, ref index, new int2(v2.x + 1, v2.y - 1), out value))
                         return true;

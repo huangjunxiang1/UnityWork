@@ -47,4 +47,8 @@ namespace Event
     /// 模块测试
     /// </summary>
     public class EC_ModuleTest { }
+    public class EC_AnimationEvent
+    {
+        public string param;
+    }
 }

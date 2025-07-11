@@ -60,6 +60,7 @@ static class Handler
         DBuffer buffL = new(new MemoryStream(YooPkg.LoadRaw($"raw_{nameof(TabL)}")));
         if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, ConstDefCore.Debug);
+        await YooPkg.raw.UnloadUnusedAssetsAsync().AsTask();
     }
 
     [Event]

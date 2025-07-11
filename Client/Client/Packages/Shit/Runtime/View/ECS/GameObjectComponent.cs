@@ -247,7 +247,7 @@ namespace Game
                         t.gameRoot.transform.localScale = Vector3.one;
                         SAsset.Release(t.gameObject);
                     }
-                    GameObject.DestroyImmediate(t.gameRoot);
+                    GameObject.Destroy(t.gameRoot);
                     break;
                 default:
                     break;

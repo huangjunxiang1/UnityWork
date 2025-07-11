@@ -25,10 +25,20 @@ namespace Game
 #if UNITY_EDITOR
         private void Update()
         {
-            if (Vector3.Distance(this.point, this.transform.position) > 0.001f)
-                this.point = quad.transform.position = this.transform.position;
+            if (quad)
+            {
+                if (Vector3.Distance(this.point, this.transform.position) > 0.001f)
+                    this.point = quad.transform.position = this.transform.position;
+            }
         }
 #endif
+        private void OnDisable()
+        {
+            if (texture)
+                GameObject.DestroyImmediate(texture);
+            if (quad)
+                GameObject.DestroyImmediate(quad);
+        }
 
         public void View(bool view)
         {

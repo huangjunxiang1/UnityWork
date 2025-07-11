@@ -9,6 +9,7 @@ public struct SValueTask<T> : ICriticalNotifyCompletionV2, IDispose
         SValueTask<T> task = new();
         task.taskItem = ObjectPool.Get<TaskItem<T>>();
         task._version = ++task.taskItem.version;
+        task.taskItem.value = default;
         return task;
     }
 
@@ -29,7 +30,7 @@ public struct SValueTask<T> : ICriticalNotifyCompletionV2, IDispose
     }
     public T GetResult()
     {
-        if (taskItem.version != this._version + 1) return default;
+        if (taskItem == null || taskItem.version != this._version + 1) return default;
         return taskItem.value;
     }
 

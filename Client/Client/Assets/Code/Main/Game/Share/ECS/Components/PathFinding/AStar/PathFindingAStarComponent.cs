@@ -31,7 +31,7 @@ namespace Game
         }
 
         [Sirenix.OdinInspector.ShowInInspector]
-        public AStarData AStar { get; set; } = Client.Data?.Get<AStarData>();
+        public AStarData AStar { get; set; } = Client.Data?.Get<AStarData>() ?? AStarData.Empty;
         [Sirenix.OdinInspector.ShowInInspector]
         public int2 Current { get; private set; }= int.MinValue;
 
@@ -116,7 +116,7 @@ namespace Game
         {
             this.finalPointMask = 0;
             var vs = ++callVersion;
-            while (vs == callVersion && !await this._Goto(to, power, near, targetVolume, type, r))
+            while (!await this._Goto(to, power, near, targetVolume, type, r) && vs == callVersion)
                 await SValueTask.Delay(delay);
         }
         public async SValueTask GotoMust(int2 to,
@@ -131,7 +131,7 @@ namespace Game
             this.finalPointMask = 2;
             this.finalQuaternion = quaternion;
             var vs = ++callVersion;
-            while (vs == callVersion && !await this._Goto(to, power, near, targetVolume, type, r))
+            while (!await this._Goto(to, power, near, targetVolume, type, r) && vs == callVersion)
                 await SValueTask.Delay(delay);
         }
         public async SValueTask GotoTimely(int2 to,
@@ -257,7 +257,7 @@ namespace Game
             this.finalPointMask = 1;
             this.finalPoint = point;
             var vs = ++callVersion;
-            while (vs == callVersion && !await this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r))
+            while (!await this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r) && vs == callVersion)
                 await SValueTask.Delay(delay);
         }
         public async SValueTask GotoPointMust(float3 point,
@@ -273,7 +273,7 @@ namespace Game
             this.finalPoint = point;
             this.finalQuaternion = quaternion;
             var vs = ++callVersion;
-            while (vs == callVersion && !await this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r))
+            while (!await this._Goto(this.AStar.GetXY(point), power, near, targetVolume, type, r) && vs == callVersion)
                 await SValueTask.Delay(delay);
         }
         public async SValueTask GotoTimely(float3 to,
@@ -560,6 +560,7 @@ namespace Game
             PathFindingMethod type = PathFindingMethod.AStar,
             PathFindingRound r = PathFindingRound.R4)
         {
+            if (this.Disposed) return default;
             waitTask.TrySetResult(false);
             waitTask = default;
             if (this.Finding(to, power, near, targetVolume, type, r))
@@ -865,7 +866,6 @@ namespace Game
         [InSystem]
         static void In(TransformComponent transform, PathFindingAStarComponent finding)
         {
-            if (finding.AStar == null) return;
             finding.SetPoint(finding.AStar.GetXY(transform.position), false);
         }
         [OutSystem]
@@ -873,7 +873,7 @@ namespace Game
         {
             ++finding.callVersion;
             finding.Stop();
-            if (finding.AStar != null)
+            if (!finding.Disposed)
                 finding.SetPoint((int2)int.MinValue, false);
         }
     }
