@@ -17,14 +17,6 @@ static class Handler
     [Event(-100, Queue = true)]
     static async STask Init(EC_GameStart e)
     {
-        YooAssets.Initialize();
-        var loader = (YooassetLoader)SAsset.Loader;
-        YooPkg.res = YooAssets.TryGetPackage("Res") ?? YooAssets.CreatePackage("Res");
-        YooPkg.raw = YooAssets.TryGetPackage("Raw") ?? YooAssets.CreatePackage("Raw");
-        loader.SetDefaultPackage(YooPkg.res);
-
-        await YooPkg.LoadAsync(APPConfig.Inst.EPlayMode);
-
         await Resources.UnloadUnusedAssets().AsTask();
 
         DG.Tweening.DOTween.Init();

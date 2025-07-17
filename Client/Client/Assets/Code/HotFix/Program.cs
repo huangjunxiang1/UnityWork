@@ -23,7 +23,7 @@ public static class Program
         UnityEngine.Debug.Log($"耗时:{(tick3 - tick2) / 10000}ms");
 
         //先运行单元测试
-        if (AppSetting.Debug)
+        if (GameStart.Inst.Debug)
         {
             long tick4 = DateTime.Now.Ticks;
             Client.World.Event.RunEvent(new EC_ModuleTest());

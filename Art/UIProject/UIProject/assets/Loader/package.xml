@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<packageDescription id="lt0uwmv0">
+  <resources>
+    <component id="vxz50" name="Loading.xml" path="/" exported="true"/>
+    <component id="vxz51" name="bar.xml" path="/"/>
+    <component id="u8eg2" name="btn.xml" path="/"/>
+  </resources>
+  <publish name="" path="..\..\..\Client\Client\Assets\Resources\Loader" packageCount="2"/>
+</packageDescription>

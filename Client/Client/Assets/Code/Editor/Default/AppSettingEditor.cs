@@ -30,21 +30,6 @@ public class AppSettingEditor : Editor
 
     void refAsmdefAndDefine()
     {
-        {
-            string path = Application.dataPath + "/Code/HotFix/Game.HotFix.asmdef";
-            AssmblyOpter ao = AssmblyOpter.Load(path);
-
-            if (setting.Runtime == CodeRuntime.Assembly)
-            {
-                ao.includePlatforms = new List<string>();
-                ao.includePlatforms.Add("Editor");
-            }
-            else
-                ao.includePlatforms = new List<string>();
-
-            ao.Save(path);
-        }
-
         NamedBuildTarget[] groups = new NamedBuildTarget[]
         {
             NamedBuildTarget.Standalone,

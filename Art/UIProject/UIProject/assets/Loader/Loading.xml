@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="768,1366">
+  <controller name="c1" pages="0,,1," selected="0"/>
+  <displayList>
+    <graph id="n2_n68q" name="n2" xy="0,0" size="768,1366" type="rect" lineSize="0" lineColor="#ff00cc66" fillColor="#ff3e9ea3">
+      <relation target="" sidePair="width-width,height-height"/>
+    </graph>
+    <component id="n1_qgu2" name="_loadingBar" src="vxz51" fileName="bar.xml" xy="74,1293" size="620,39">
+      <relation target="" sidePair="center-center,bottom-bottom"/>
+      <ProgressBar value="4" max="100"/>
+    </component>
+    <text id="n3_vxz5" name="_Text" xy="0,1181" size="768,85" font="244-SSDunDunTi" fontSize="30" color="#ffffff" align="center" vAlign="middle" autoSize="none" autoClearText="true" text="99/99">
+      <relation target="" sidePair="center-center,bottom-bottom"/>
+    </text>
+    <graph id="n4_u8eg" name="n4" xy="107,450" size="554,465" group="n7_u8eg" type="rect" lineSize="0" fillColor="#ff00ffff"/>
+    <component id="n5_u8eg" name="_yes" src="u8eg2" fileName="btn.xml" xy="302,770" size="164,71" group="n7_u8eg">
+      <Button title="yes"/>
+    </component>
+    <text id="n6_u8eg" name="_error" xy="142,493" size="482,253" group="n7_u8eg" fontSize="25" align="center" autoSize="none" autoClearText="true" text="你好你好&#xA;99988"/>
+    <group id="n7_u8eg" name="n7" xy="107,450" size="554,465" advanced="true">
+      <gearDisplay controller="c1" pages="1"/>
+      <relation target="" sidePair="center-center,middle-middle"/>
+    </group>
+  </displayList>
+</component>
