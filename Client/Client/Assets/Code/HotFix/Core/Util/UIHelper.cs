@@ -9,10 +9,8 @@ using UnityEngine;
 
 static class UIHelper
 {
-    static UnityEngine.U2D.SpriteAtlas Items = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_Items");
-    static UnityEngine.U2D.SpriteAtlas UIAtlas = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
-    public static Sprite ToUUIItemUrl(this string name) => Items.GetSprite(name);
-    public static Sprite ToUUIResUrl(this string name) => UIAtlas.GetSprite(name);
+    public static Sprite ToUUIItemUrl(this string name) => UIPkg.uui_items.GetSprite(name);
+    public static Sprite ToUUIResUrl(this string name) => UIPkg.uui_res.GetSprite(name);
 
     public static bool IsOnTouchFUI()
     {

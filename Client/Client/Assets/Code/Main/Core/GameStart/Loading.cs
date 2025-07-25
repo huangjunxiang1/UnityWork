@@ -71,9 +71,9 @@ public class Loading
         YooPkg.raw.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
         YooPkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
         YooPkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
-        if (Application.isEditor)
+        Assembly assembly = null;
+        if (Application.isEditor || GameStart.Inst.Runtime == CodeRuntime.Native)
         {
-            Assembly assembly = null;
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (asm.GetName().Name == "Game.HotFix")
@@ -87,20 +87,16 @@ public class Loading
                 Debug.LogError("not find Assembly Game.HotFix");
                 return;
             }
-            assembly
-                    .GetType("Program")
-                    .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
-                    .Invoke(null, null);
         }
         else
         {
             var dll = YooPkg.LoadRaw("raw_code");
-            var assembly = Assembly.Load(dll);
-            assembly
-                  .GetType("Program")
-                  .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
-                  .Invoke(null, null);
+            assembly = Assembly.Load(dll);
         }
+        assembly
+              .GetType("Program")
+              .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+              .Invoke(null, null);
     }
     public void ShowError(string error)
     {

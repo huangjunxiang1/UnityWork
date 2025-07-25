@@ -14,6 +14,9 @@ public class UIPkg
     public static UIPackage ResPkg { get; private set; }
     public static UIPackage Items { get; private set; }
 
+    public static UnityEngine.U2D.SpriteAtlas uui_items { get; private set; }
+    public static UnityEngine.U2D.SpriteAtlas uui_res { get; private set; }
+
     [Event(-1)]
     static async STask Init(EC_GameStart e)
     {
@@ -30,6 +33,11 @@ public class UIPkg
             return task;
         };
         UIGlobalConfig.isTouchUI += UIHelper.IsOnTouchFUI;
+
+        if (YooPkg.res.CheckLocationValid("UI_Items"))
+            uui_items = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_Items");
+        if (YooPkg.res.CheckLocationValid("UI_UIAtlas"))
+            uui_res = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
     }
     static async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
     {

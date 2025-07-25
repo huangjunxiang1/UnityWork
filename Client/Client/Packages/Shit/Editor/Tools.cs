@@ -106,7 +106,8 @@ internal class Tools
     static List<string> dirs = new()
     {
         "/Code/Editor/Default",
-        "/Code/Main/Game/Share/ECS/Components",
+        "/Code/Main/Core",
+        "/Code/HotFix/Core",
         "/../Packages/Shit"
     };
     [MenuItem("Shit/文件夹 同步到x", priority = int.MaxValue - 10)]

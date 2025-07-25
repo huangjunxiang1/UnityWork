@@ -460,7 +460,7 @@ public class Tool
     [MenuItem("Shit/CopyTexture")]
     static void CopyTexture()
     {
-        FileHelper.SyncDirectories(Application.dataPath + "/../../../Art/UI/Texture", Application.dataPath + "/Res/Texture/", exclude: ".meta");
+        FileHelper.SyncDirectories(Application.dataPath + "/../../../Art/UI/Texture", Application.dataPath + "/Res/Texture/", deleteFilter: s => !s.EndsWith(".meta"));
         AssetDatabase.Refresh();
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
@@ -663,4 +663,36 @@ public class Tool
         }
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
+
+
+    [MenuItem("Tools/AOT_Copy")]
+    static void copyAotDll()
+    {
+        string srcDir = SettingsUtil.GetAssembliesPostIl2CppStripDir(EditorUserBuildSettings.activeBuildTarget);
+        var dstDir = $"{Application.dataPath}/Resources/AOT";
+        if (!Directory.Exists(dstDir))
+            Directory.CreateDirectory(dstDir);
+        else
+        {
+            foreach (var item in Directory.GetFiles(dstDir))
+                File.Delete(item);
+        }
+        for (int i = 0; i < AOTGenericReferences.PatchedAOTAssemblyList.Count; i++)
+        {
+            File.Copy($"{srcDir}/{AOTGenericReferences.PatchedAOTAssemblyList[i]}", $"{dstDir}/{AOTGenericReferences.PatchedAOTAssemblyList[i]}.bytes");
+        }
+        AssetDatabase.Refresh();
+    }
+
+    [MenuItem("Tools/Code_Copy")]
+    static void copyCode()
+    {
+        var dstDir = $"{Application.dataPath}/Res/Config/raw/Code";
+        if (!Directory.Exists(dstDir))
+            Directory.CreateDirectory(dstDir);
+        var bs = File.ReadAllBytes($"{Application.dataPath}/../Library/ScriptAssemblies/Game.HotFix.dll");
+        File.WriteAllBytes($"{dstDir}/code.bytes", bs);
+        AssetDatabase.Refresh();
+    }
+
 }

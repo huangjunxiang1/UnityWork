@@ -12,6 +12,7 @@ public class GameStart : MonoBehaviour
     public CodeRuntime Runtime;
     public EPlayMode playMode;
     public string resUrl;
+    public string fallBackResUrl;
 
     public static GameStart Inst { get; private set; }
 

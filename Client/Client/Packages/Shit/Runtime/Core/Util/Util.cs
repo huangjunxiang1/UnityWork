@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-public static class Util
+public static partial class Util
 {
     static Util()
     {

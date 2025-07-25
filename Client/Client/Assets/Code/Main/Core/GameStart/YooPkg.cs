@@ -50,7 +50,7 @@ public static class YooPkg
             IRemoteServices remoteServices = new RemoteServices()
             {
                 url = $"{GameStart.Inst.resUrl}{pkg.PackageName}/",
-                fallBackUrl = $"{GameStart.Inst.resUrl}{pkg.PackageName}/"
+                fallBackUrl = $"{GameStart.Inst.fallBackResUrl}{pkg.PackageName}/"
             };
             var createParameters = new HostPlayModeParameters();
             createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
