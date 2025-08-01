@@ -12,7 +12,7 @@ class PathFindingAStarDrawLine : Editor
     static GUIStyle gui2 = new();
 
     static int selectedOption = 0;
-    private string[] options = new string[] { "Enable", "Disable", "Cost" };
+    private string[] options = new string[] { "None", "Enable", "Disable", "Cost" };
     float3 start;
     float3 end;
     PathFindingAStar root;
@@ -37,7 +37,7 @@ class PathFindingAStarDrawLine : Editor
         if (root.data == null) return;
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         var currentEvent = UnityEngine.Event.current;
-        if (currentEvent != null)
+        if (currentEvent != null && selectedOption > 0)
         {
             if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0)
             {
@@ -62,7 +62,7 @@ class PathFindingAStarDrawLine : Editor
 
                     if (min_i.x >= 0 && min_i.y >= 0 && max_i.x < root.aStarSize.x && max_i.y < root.aStarSize.y)
                     {
-                        if (selectedOption == 0)
+                        if (selectedOption == 1)
                         {
                             for (int i = min_i.x; i <= max_i.x; i++)
                             {
@@ -72,7 +72,7 @@ class PathFindingAStarDrawLine : Editor
                                 }
                             }
                         }
-                        else if (selectedOption == 1)
+                        else if (selectedOption == 2)
                         {
                             for (int i = min_i.x; i <= max_i.x; i++)
                             {
@@ -82,7 +82,7 @@ class PathFindingAStarDrawLine : Editor
                                 }
                             }
                         }
-                        else if (selectedOption == 2)
+                        else if (selectedOption == 3)
                         {
                             if (cost < 128)
                             {
@@ -129,7 +129,7 @@ class PathFindingAStarDrawLine : Editor
         base.OnInspectorGUI();
         if (root.data == null) return;
         selectedOption = GUILayout.SelectionGrid(selectedOption, options, 1, EditorStyles.radioButton);
-        if (selectedOption == 2)
+        if (selectedOption == 3)
             cost = EditorGUILayout.IntField(cost);
 
         EditorGUI.BeginChangeCheck();

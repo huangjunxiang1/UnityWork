@@ -10,7 +10,6 @@ using YooAsset.Editor;
 
 class Ex
 {
-    [MenuItem("Tools/剔除重复资源")]
     static void cull_res()
     {
         var dirs = Directory.GetDirectories($"{Application.dataPath}/../Bundles/");
@@ -40,18 +39,42 @@ class Ex
                 }
             }
         }
-        Debug.Log("剔除完毕");
+        EditorUtility.DisplayDialog("提示", "剔除完毕", "确定", "取消");
     }
 
     [BuildPipelineAttribute(nameof(EBuildPipeline.RawFileBuildPipeline))]
     internal class R1 : RawfileBuildpipelineViewer
     {
         protected override string GetDefaultPackageVersion() => getVer(this.BuildTarget,this.PackageName);
+        public override void CreateView(VisualElement parent)
+        {
+            base.CreateView(parent);
+
+            Button myButton = new Button();
+            myButton.style.marginTop = 10;
+            myButton.text = "剔除重复资源";
+            myButton.style.height = 50;
+            myButton.AddToClassList("my-button-style");
+            myButton.clicked += cull_res;
+            Root.Add(myButton);
+        }
     }
     [BuildPipelineAttribute(nameof(EBuildPipeline.ScriptableBuildPipeline))]
     internal class S1 : ScriptableBuildPipelineViewer
     {
         protected override string GetDefaultPackageVersion() => getVer(this.BuildTarget, this.PackageName);
+        public override void CreateView(VisualElement parent)
+        {
+            base.CreateView(parent);
+
+            Button myButton = new Button();
+            myButton.style.marginTop = 10;
+            myButton.text = "剔除重复资源";
+            myButton.style.height = 50;
+            myButton.AddToClassList("my-button-style");
+            myButton.clicked += cull_res;
+            Root.Add(myButton);
+        }
     }
 
     static string getVer(BuildTarget BuildTarget,string PackageName)

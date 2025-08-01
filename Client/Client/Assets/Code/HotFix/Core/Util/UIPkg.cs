@@ -20,8 +20,8 @@ public class UIPkg
     [Event(-1)]
     static async STask Init(EC_GameStart e)
     {
+        DG.Tweening.DOTween.Init();
         FUIBinder.Binding();
-        FairyGUI.UIConfig.defaultFont = "Impact";
         UIPkg.ComPkg = UIPackage.AddPackage(YooPkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
         UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
@@ -45,7 +45,7 @@ public class UIPkg
         {
             case PackageItemType.Sound:
             case PackageItemType.Atlas:
-                item.owner.SetItemAsset(item, await SAsset.LoadAsync<UnityEngine.Object>($"UI_{item.owner.name}/{name}"), DestroyMethod.Custom);
+                item.owner.SetItemAsset(item, await SAsset.LoadAsync<UnityEngine.Object>($"UI_{name}"), DestroyMethod.Custom);
                 break;
             default:
                 Loger.Error("未定义加载->" + item.type);

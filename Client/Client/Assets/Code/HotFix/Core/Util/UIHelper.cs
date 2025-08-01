@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-static class UIHelper
+static partial class UIHelper
 {
     public static Sprite ToUUIItemUrl(this string name) => UIPkg.uui_items.GetSprite(name);
     public static Sprite ToUUIResUrl(this string name) => UIPkg.uui_res.GetSprite(name);

@@ -95,7 +95,7 @@ class FreedomCamera : BaseCamera
     }
     void editorMove(InputAction.CallbackContext e)
     {
-        if (!Target)
+        if (!Target || !Enable)
             return;
         if (isClickOutSide || isClickFui)
             return;
@@ -119,7 +119,7 @@ class FreedomCamera : BaseCamera
     }
     void mobileMove()
     {
-        if (!Target)
+        if (!Target || !Enable)
             return;
         //2个手指不滑动
         var touches = Touchscreen.current.touches;

@@ -6,11 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Game
 {
     [ExecuteInEditMode]
-    class PathFindingAStar : MonoBehaviour
+    public class PathFindingAStar : MonoBehaviour
     {
         public float3 size = new(1, 0, 1);
         public int2 aStarSize = new int2(10, 10);
@@ -21,8 +22,13 @@ namespace Game
         GameObject quad;
         Texture2D texture;
         Vector3 point;
+        bool view;
 
 #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            this.View(view);
+        }
         private void Update()
         {
             if (quad)
@@ -42,6 +48,7 @@ namespace Game
 
         public void View(bool view)
         {
+            this.view = view;
             if (view)
             {
                 if (!quad)
