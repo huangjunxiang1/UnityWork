@@ -36,23 +36,25 @@ public abstract class FUI : FUIBase
 
         this.OnAwake(data);
         this._states = UIStatus.Loading;
-        this._ui = UIGlobalConfig.CreateUI(this, this.url);
-        (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
-        if (Close == null)
-            (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
-        if (Close == null)
-            (Close = this._ui.GetChild("_Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
+        this._ui = UIPackage.CreateObjectFromURL(this.url).asCom;
+        (Close = this._ui.GetChild("Close")
+            ?? this._ui.GetChild("Lable")?.asCom?.GetChild("Close")
+            ?? this._ui.GetChild("_Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
         this._ui.visible = false;
         this.Binding();
         this.setConfig();
         this._states = UIStatus.OnTask;
-        _taskHandle();
-        if (this.uiStates != UIStatus.Success)
+
+        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        if (!this._task.IsCompleted)
         {
             _delay1Handle();
             _delay2Handle();
         }
         await this._task;
+
+        if (this.Disposed) return;
+        _success();
     }
     public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
     {
@@ -61,28 +63,40 @@ public abstract class FUI : FUIBase
         this.OnAwake(data);
         this._states = UIStatus.Loading;
 
-        this._ui = await UIGlobalConfig.CreateUIAsync(this, this.url);
-        if (this.Disposed)
+        STask load = new();
+        UIPackage.CreateObjectFromURL(this.url, c =>
         {
-            this._ui.Dispose();
-            return;
-        }
-        (Close = this._ui.GetChild("Close"))?.onClick.Add(this.Dispose);
-        if (Close == null)
-            (Close = this._ui.GetChild("Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
-        if (Close == null)
-            (Close = this._ui.GetChild("_Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
-        this._ui.visible = false;
-        this.Binding();
-        this.setConfig();
-        this._states = UIStatus.OnTask;
-        _taskHandle();
-        if (this.uiStates != UIStatus.Success)
+            this._ui = c.asCom;
+
+            if (this.Disposed)
+            {
+                this._ui.Dispose();
+                return;
+            }
+            (Close = this._ui.GetChild("Close")
+            ?? this._ui.GetChild("Lable")?.asCom?.GetChild("Close")
+            ?? this._ui.GetChild("_Lable")?.asCom?.GetChild("Close"))?.onClick.Add(this.Dispose);
+            this._ui.visible = false;
+            this.Binding();
+            this.setConfig();
+            this._states = UIStatus.OnTask;
+
+            load.TrySetResult();
+        });
+
+        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        if (!this._task.IsCompleted)
         {
             _delay1Handle();
             _delay2Handle();
         }
+
+        await load;
         await this._task;
+
+        if (this.Disposed) return;
+        _success();
+
     }
     public override void Dispose()
     {
@@ -106,11 +120,8 @@ public abstract class FUI : FUIBase
         this._ui.AddRelation(GRoot.inst, RelationType.Center_Center);
         this._ui.fairyBatching = true;
     }
-    async void _taskHandle()
+    void _success()
     {
-        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
-        await this._task;
-        if (this.Disposed) return;
         this._states = UIStatus.Success;
         this._ui.visible = this.isShow;
         this.OnEnter(this.ParamObjects);
@@ -119,14 +130,14 @@ public abstract class FUI : FUIBase
     }
     async void _delay1Handle()
     {
-        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelay1TimeMs);
+        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelayBeginTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         _loadingView = true;
         UIGlobalConfig.LoadingView(this, true);
     }
     async void _delay2Handle()
     {
-        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelay2TimeMs);
+        await SValueTask.Delay(UIGlobalConfig.LoadingViewTimeOutTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         UIGlobalConfig.LoadingView(this, false);
         this.Dispose();

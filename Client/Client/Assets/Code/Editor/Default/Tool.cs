@@ -265,7 +265,7 @@ public class Tool
             {
                 if (item.name.StartsWith("FUI"))
                     continue;
-                code.AppendLine($"        UIObjectFactory.SetPackageItemExtension(\"{UIPackage.GetItemURL(item.owner.name, item.name)}\", typeof(G_{item.name}));");
+                code.AppendLine($"        UIObjectFactory.SetPackageItemExtension(G_{item.name}.URL, typeof(G_{item.name}));");
             }
         }
         code.AppendLine("    }");
@@ -292,7 +292,7 @@ public class Tool
                     appendField("", "ui", obj, fieldCode, bindingCode, disposeCode, typeMap);
                     code.AppendLine($"partial class {item.name} : FUI");
                     code.AppendLine("{");
-                    code.AppendLine($"    public sealed override string url => \"{item.name}\";");
+                    code.AppendLine($"    public sealed override string url => \"{UIPackage.GetItemURL(item.owner.name, item.name)}\";");
                     code.AppendLine(fieldCode.ToString());
 
                     code.AppendLine($"    protected sealed override void Binding()");
@@ -312,6 +312,7 @@ public class Tool
                     appendField("", "this", obj, fieldCode, bindingCode, disposeCode, typeMap);
                     code.AppendLine($"partial class G_{item.name} : {obj.GetType().Name}");
                     code.AppendLine("{");
+                    code.AppendLine($"    public static readonly string URL = \"{UIPackage.GetItemURL(item.owner.name, item.name)}\";");
                     code.AppendLine(fieldCode.ToString());
 
                     code.AppendLine($"    public override void ConstructFromXML(XML xml)");
@@ -320,7 +321,7 @@ public class Tool
                     code.AppendLine("        this.Enter();");
                     code.AppendLine("    }");
                     code.AppendLine("    partial void Enter();");
-                    code.AppendLine($"    public static G_{item.name} Create() => (G_{item.name})UIPackage.CreateObject(\"{item.owner.name}\", \"{item.name}\");");
+                    code.AppendLine($"    public static G_{item.name} Create() => (G_{item.name})UIPackage.CreateObjectFromURL(URL);");
                     code.AppendLine("    public override void Dispose()");
                     code.AppendLine("    {");
                     code.AppendLine("        base.Dispose();");

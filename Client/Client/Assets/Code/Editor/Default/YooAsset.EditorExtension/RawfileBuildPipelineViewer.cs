@@ -18,6 +18,18 @@ class Ex
             foreach (var dir2 in Directory.GetDirectories(dir))
             {
                 var ds = Directory.GetDirectories(dir2).Select(t => new DirectoryInfo(t)).Where(t => t.Name.Contains('.')).ToList();
+                ds.Sort((x, y) =>
+                {
+                    Version v1 = null;
+                    Version v2 = null;
+                    try { v1 = new(x.Name); }
+                    catch (Exception) { }
+                    try { v2 = new(y.Name); }
+                    catch (Exception) { }
+                    if (v1 < v2) return -1;
+                    if (v1 > v2) return 1;
+                    return 0;
+                });
                 var src = ds.LastOrDefault();
                 var cull = src.GetFiles().Select(t => t.Name);
                 //File.Delete($"{src}/PackageManifest_{AssetBundleBuilderSettingData.Setting.BuildPackage}.version");

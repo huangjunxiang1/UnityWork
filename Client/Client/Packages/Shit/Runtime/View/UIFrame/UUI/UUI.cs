@@ -28,13 +28,17 @@ public abstract class UUI : UUIBase
         this.Binding();
         this.setConfig();
         this._states = UIStatus.OnTask;
-        _taskHandle();
-        if (this.uiStates != UIStatus.Success)
+
+        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        if (!this._task.IsCompleted)
         {
             _delay1Handle();
             _delay2Handle();
         }
         await this._task;
+
+        if (this.Disposed) return;
+        _success();
     }
     public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
     {
@@ -42,19 +46,30 @@ public abstract class UUI : UUIBase
 
         this.OnAwake(data);
         this._states = UIStatus.Loading;
-        this._ui = (RectTransform)(await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy)).transform;
-        this._ui.gameObject.SetActive(false);
-        this._canvas = this._ui.GetComponent<Canvas>();
-        this.Binding();
-        this.setConfig();
-        this._states = UIStatus.OnTask;
-        _taskHandle();
-        if (this.uiStates != UIStatus.Success)
+
+        var load = SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
+        load.AddEvent(() =>
+        {
+            this._ui = (RectTransform)load.GetResult().transform;
+            this._ui.gameObject.SetActive(false);
+            this._canvas = this._ui.GetComponent<Canvas>();
+            this.Binding();
+            this.setConfig();
+            this._states = UIStatus.OnTask;
+        });
+
+        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        if (!this._task.IsCompleted)
         {
             _delay1Handle();
             _delay2Handle();
         }
+
+        await load;
         await this._task;
+
+        if (this.Disposed) return;
+        _success();
     }
 
     void setConfig()
@@ -69,11 +84,8 @@ public abstract class UUI : UUIBase
 
         this._canvas.sortingOrder = this.uiConfig.SortOrder + Game.UIConfig.SortOrderRange;
     }
-    async void _taskHandle()
+    void _success()
     {
-        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
-        await this._task;
-        if (this.Disposed) return;
         this._states = UIStatus.Success;
         this._ui.gameObject.SetActive(this.isShow);
         this.OnEnter(this.ParamObjects);
@@ -82,14 +94,14 @@ public abstract class UUI : UUIBase
     }
     async void _delay1Handle()
     {
-        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelay1TimeMs);
+        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelayBeginTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         _loadingView = true;
         UIGlobalConfig.LoadingView(this, true);
     }
     async void _delay2Handle()
     {
-        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelay2TimeMs);
+        await SValueTask.Delay(UIGlobalConfig.LoadingViewTimeOutTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         UIGlobalConfig.LoadingView(this, false);
         this.Dispose();

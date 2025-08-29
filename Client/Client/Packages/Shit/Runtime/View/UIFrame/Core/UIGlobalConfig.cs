@@ -10,10 +10,13 @@ public static class UIGlobalConfig
     /// <summary>
     /// Loading...显示
     /// </summary>
-    public static Action<bool> LoadingViewHandle;
-    public static int LoadingViewDelay1TimeMs = 1000;
-    public static int LoadingViewDelay2TimeMs = 10000;
+    public static string LoadingUrl;
+    public static int LoadingViewDelayBeginTimeMs = 1000;
+    public static int LoadingViewTimeOutTimeMs = 10000;
     static HashSet<object> loadingTokens = new();
+#if FairyGUI
+    static FairyGUI.GComponent LoadingUI;
+#endif
 
     static UnityEngine.EventSystems.EventSystem eventSysCurrent;
     static int EnableCounter;
@@ -46,7 +49,18 @@ public static class UIGlobalConfig
                 return;
             loadingTokens.Add(token);
             if (loadingTokens.Count == 1)
-                UIGlobalConfig.LoadingViewHandle?.Invoke(true);
+            {
+                if (!string.IsNullOrEmpty(LoadingUrl))
+                {
+#if FairyGUI
+                    LoadingUI = FairyGUI.UIPackage.CreateObjectFromURL(LoadingUrl).asCom;
+                    LoadingUI.sortingOrder = int.MaxValue - 2;
+                    FairyGUI.GRoot.inst.AddChild(LoadingUI);
+                    LoadingUI.MakeFullScreen();
+                    LoadingUI.AddRelation(FairyGUI.GRoot.inst, FairyGUI.RelationType.Size);
+#endif
+                }
+            }
         }
         else
         {
@@ -54,12 +68,12 @@ public static class UIGlobalConfig
                 return;
             UIGlobalConfig.loadingTokens.Remove(token);
             if (UIGlobalConfig.loadingTokens.Count == 0)
-                UIGlobalConfig.LoadingViewHandle?.Invoke(false);
+            {
+#if FairyGUI
+                LoadingUI?.Dispose();
+                LoadingUI = null;
+#endif
+            }
         }
     }
-
-#if FairyGUI
-    public static Func<FUIBase, string, FairyGUI.GComponent> CreateUI;
-    public static Func<FUIBase, string, STask<FairyGUI.GComponent>> CreateUIAsync;
-#endif
 }

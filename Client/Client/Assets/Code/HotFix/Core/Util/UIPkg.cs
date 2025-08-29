@@ -25,13 +25,6 @@ public class UIPkg
         UIPkg.ComPkg = UIPackage.AddPackage(YooPkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
         UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
-        UIGlobalConfig.CreateUI += (t, s) => UIPkg.ComPkg.CreateObject(s).asCom;
-        UIGlobalConfig.CreateUIAsync += (t, s) =>
-        {
-            STask<GComponent> task = new();
-            UIPkg.ComPkg.CreateObjectAsync(s, obj => task.TrySetResult(obj));
-            return task;
-        };
         UIGlobalConfig.isTouchUI += UIHelper.IsOnTouchFUI;
 
         if (YooPkg.res.CheckLocationValid("UI_Items"))

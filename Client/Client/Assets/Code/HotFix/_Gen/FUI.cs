@@ -4,14 +4,15 @@ class FUIBinder
 {
     public static void Binding()
     {
-        UIObjectFactory.SetPackageItemExtension("ui://zvziziwirjgbf", typeof(G_Box_YesOrNo));
-        UIObjectFactory.SetPackageItemExtension("ui://zvziziwik8hcu", typeof(G_Connecting));
-        UIObjectFactory.SetPackageItemExtension("ui://zvziziwioxwqn", typeof(G_test));
-        UIObjectFactory.SetPackageItemExtension("ui://zvziziwiqnthd", typeof(G_Tips));
+        UIObjectFactory.SetPackageItemExtension(G_Box_YesOrNo.URL, typeof(G_Box_YesOrNo));
+        UIObjectFactory.SetPackageItemExtension(G_Connecting.URL, typeof(G_Connecting));
+        UIObjectFactory.SetPackageItemExtension(G_test.URL, typeof(G_test));
+        UIObjectFactory.SetPackageItemExtension(G_Tips.URL, typeof(G_Tips));
     }
 }
 partial class G_Box_YesOrNo : GComponent
 {
+    public static readonly string URL = "ui://zvziziwirjgbf";
     public GButton _yes { get; private set; }
     public GButton _no { get; private set; }
     public GTextField _title { get; private set; }
@@ -26,7 +27,7 @@ partial class G_Box_YesOrNo : GComponent
         this.Enter();
     }
     partial void Enter();
-    public static G_Box_YesOrNo Create() => (G_Box_YesOrNo)UIPackage.CreateObject("ComPkg", "Box_YesOrNo");
+    public static G_Box_YesOrNo Create() => (G_Box_YesOrNo)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
@@ -34,13 +35,14 @@ partial class G_Box_YesOrNo : GComponent
 }
 partial class G_Connecting : GLabel
 {
+    public static readonly string URL = "ui://zvziziwik8hcu";
 
     public override void ConstructFromXML(XML xml)
     {
         this.Enter();
     }
     partial void Enter();
-    public static G_Connecting Create() => (G_Connecting)UIPackage.CreateObject("ComPkg", "Connecting");
+    public static G_Connecting Create() => (G_Connecting)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
@@ -48,7 +50,7 @@ partial class G_Connecting : GLabel
 }
 partial class FUIFighting : FUI
 {
-    public sealed override string url => "FUIFighting";
+    public sealed override string url => "ui://zvziziwin68q8";
     public GButton _btnBack { get; private set; }
     public GButton _play { get; private set; }
     public Controller _c2 { get; private set; }
@@ -69,7 +71,7 @@ partial class FUIFighting : FUI
 }
 partial class FUIFighting2 : FUI
 {
-    public sealed override string url => "FUIFighting2";
+    public sealed override string url => "ui://zvziziwifcrmg";
     public GButton _btnBack { get; private set; }
     public GButton _play { get; private set; }
 
@@ -86,7 +88,7 @@ partial class FUIFighting2 : FUI
 }
 partial class FUIFighting3 : FUI
 {
-    public sealed override string url => "FUIFighting3";
+    public sealed override string url => "ui://zvziziwiowdhh";
     public GButton _btnBack { get; private set; }
     public GButton _rangeRoad { get; private set; }
     public GButton _play { get; private set; }
@@ -107,7 +109,7 @@ partial class FUIFighting3 : FUI
 }
 partial class FUIFighting4 : FUI
 {
-    public sealed override string url => "FUIFighting4";
+    public sealed override string url => "ui://zvziziwiyj39i";
     public GButton _btnBack { get; private set; }
     public GButton _rangeRoad { get; private set; }
     public GButton _play { get; private set; }
@@ -128,7 +130,7 @@ partial class FUIFighting4 : FUI
 }
 partial class FUIGame : FUI
 {
-    public sealed override string url => "FUIGame";
+    public sealed override string url => "ui://zvziziwibe98p";
     public GButton _replay { get; private set; }
     public G_Tips _tips2 { get; private set; }
 
@@ -145,7 +147,7 @@ partial class FUIGame : FUI
 }
 partial class FUILoading : FUI
 {
-    public sealed override string url => "FUILoading";
+    public sealed override string url => "ui://zvziziwiodqh0";
     public GProgressBar _loadingBar { get; private set; }
 
     protected sealed override void Binding()
@@ -160,7 +162,7 @@ partial class FUILoading : FUI
 }
 partial class FUILogin : FUI
 {
-    public sealed override string url => "FUILogin";
+    public sealed override string url => "ui://zvziziwiqgu22";
     public GButton _btnLogin { get; private set; }
     public GLabel _acc { get; private set; }
     public GLabel _pw { get; private set; }
@@ -187,7 +189,7 @@ partial class FUILogin : FUI
 }
 partial class FUIRooms : FUI
 {
-    public sealed override string url => "FUIRooms";
+    public sealed override string url => "ui://zvziziwipivyt";
     public GButton _ref { get; private set; }
     public GList _rooms { get; private set; }
     public GLabel _roomName { get; private set; }
@@ -208,6 +210,7 @@ partial class FUIRooms : FUI
 }
 partial class G_test : GLabel
 {
+    public static readonly string URL = "ui://zvziziwioxwqn";
     public GTextFieldPropertyBinding _n0 { get; private set; }
     public GLoader _a { get; private set; }
     public G_Tips _tips { get; private set; }
@@ -224,7 +227,7 @@ partial class G_test : GLabel
         this.Enter();
     }
     partial void Enter();
-    public static G_test Create() => (G_test)UIPackage.CreateObject("ComPkg", "test");
+    public static G_test Create() => (G_test)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
@@ -233,13 +236,14 @@ partial class G_test : GLabel
 }
 partial class G_Tips : GComponent
 {
+    public static readonly string URL = "ui://zvziziwiqnthd";
 
     public override void ConstructFromXML(XML xml)
     {
         this.Enter();
     }
     partial void Enter();
-    public static G_Tips Create() => (G_Tips)UIPackage.CreateObject("ComPkg", "Tips");
+    public static G_Tips Create() => (G_Tips)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
