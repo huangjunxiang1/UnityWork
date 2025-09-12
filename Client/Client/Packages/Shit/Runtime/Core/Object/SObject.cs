@@ -450,7 +450,6 @@ namespace Core
                 World.Event.RigisteEvent(c);
 
             World.System.RigisterHandler(type, c);
-            World.System.Awake(type, c);
             if (c.Disposed) return;
             if (c.Enable)
                 World.System.In(type, c);
@@ -507,7 +506,6 @@ namespace Core
                     World.Event.RemoveEvent(item.Value);
                     item.Value.dispose(true);
                 }
-                World.System.Dispose(item.Key, item.Value);
             }
             tmp.Clear();
             ObjectPool.Return(tmp);

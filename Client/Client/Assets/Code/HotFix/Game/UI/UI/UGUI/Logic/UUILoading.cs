@@ -13,9 +13,9 @@ using Core;
 partial class UUILoading
 {
     //[Event(-100, Queue = true)]
-    static async STask EC_OutScene(EC_OutScene e)
+    static void EC_OutScene(EC_OutScene e)
     {
-        await Client.UI.OpenAsync<UUILoading>();
+        Client.UI.Open<UUILoading>();
     }
     [Event(100, Queue = true)]
     static async STask EC_InScene(EC_InScene e)

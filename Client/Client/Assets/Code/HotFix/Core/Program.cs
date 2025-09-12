@@ -31,6 +31,6 @@ public static class Program
             UnityEngine.Debug.Log($"ºÄÊ±:{(tick4 - tick3) / 10000}ms");
         }
 
-        await Client.Scene.InLoginScene();
+        await Client.Scene.InScene<LoginScene>();
     }
 }

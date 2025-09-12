@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using YooAsset;
 using Game;
 
-public static class YooPkg
+public static class Pkg
 {
-    public static ResourcePackage res;
-    public static ResourcePackage raw;
+    public static ResourcePackage res { get; private set; }
+    public static ResourcePackage raw { get; private set; }
 
     public static async void Load(EPlayMode mode, Loading loading)
     {
@@ -17,7 +17,7 @@ public static class YooPkg
         var loader = (YooassetLoader)SAsset.Loader;
         res = YooAssets.TryGetPackage("Res") ?? YooAssets.CreatePackage("Res");
         raw = YooAssets.TryGetPackage("Raw") ?? YooAssets.CreatePackage("Raw");
-        loader.SetDefaultPackage(YooPkg.res);
+        loader.SetDefaultPackage(Pkg.res);
 
         await initPackage(mode, loading, raw);
         await initPackage(mode, loading, res);
@@ -120,9 +120,9 @@ public static class YooPkg
 
     public static byte[] LoadRaw(string location)
     {
-        if (!YooPkg.raw.CheckLocationValid(location))
+        if (!Pkg.raw.CheckLocationValid(location))
             return null;
-        var handler = YooPkg.raw.LoadRawFileSync(location);
+        var handler = Pkg.raw.LoadRawFileSync(location);
         var bs = handler.GetRawFileData();
         handler.Dispose();
         return bs;

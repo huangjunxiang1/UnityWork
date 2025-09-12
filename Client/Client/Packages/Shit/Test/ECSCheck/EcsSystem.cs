@@ -11,8 +11,6 @@ static class EcsSystem
 {
     public static void test()
     {
-        Awake.test();
-        Dispose.test();
         Change.test();
         AnyChange.test();
         UpdateCheck.test();

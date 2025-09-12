@@ -312,6 +312,16 @@ public class Tool
                     appendField("", "this", obj, fieldCode, bindingCode, disposeCode, typeMap);
                     code.AppendLine($"partial class G_{item.name} : {obj.GetType().Name}");
                     code.AppendLine("{");
+                    code.AppendLine($"    static G_{item.name} _inst;");
+                    code.AppendLine($"    public static G_{item.name} Inst");
+                    code.AppendLine($"    {{");
+                    code.AppendLine($"        get");
+                    code.AppendLine($"        {{");
+                    code.AppendLine($"            if (_inst == null || _inst.isDisposed) ");
+                    code.AppendLine($"                _inst = Create();");
+                    code.AppendLine($"            return _inst;");
+                    code.AppendLine($"        }}");
+                    code.AppendLine($"    }}");
                     code.AppendLine($"    public static readonly string URL = \"{UIPackage.GetItemURL(item.owner.name, item.name)}\";");
                     code.AppendLine(fieldCode.ToString());
 

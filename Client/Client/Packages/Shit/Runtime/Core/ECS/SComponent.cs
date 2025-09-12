@@ -102,7 +102,6 @@ namespace Core
             World.System.UnRigisterHandler(this.GetType(), this);
             World.Event.RemoveEvent(this);
             this.Disposed = true;//
-            World.System.Dispose(this.GetType(), this);
             World.System.Out(this.GetType(), this);
             this.dispose(false);
         }

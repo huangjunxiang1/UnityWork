@@ -12,6 +12,16 @@ class FUIBinder
 }
 partial class G_Box_YesOrNo : GComponent
 {
+    static G_Box_YesOrNo _inst;
+    public static G_Box_YesOrNo Inst
+    {
+        get
+        {
+            if (_inst == null || _inst.isDisposed) 
+                _inst = Create();
+            return _inst;
+        }
+    }
     public static readonly string URL = "ui://zvziziwirjgbf";
     public GButton _yes { get; private set; }
     public GButton _no { get; private set; }
@@ -35,6 +45,16 @@ partial class G_Box_YesOrNo : GComponent
 }
 partial class G_Connecting : GLabel
 {
+    static G_Connecting _inst;
+    public static G_Connecting Inst
+    {
+        get
+        {
+            if (_inst == null || _inst.isDisposed) 
+                _inst = Create();
+            return _inst;
+        }
+    }
     public static readonly string URL = "ui://zvziziwik8hcu";
 
     public override void ConstructFromXML(XML xml)
@@ -210,6 +230,16 @@ partial class FUIRooms : FUI
 }
 partial class G_test : GLabel
 {
+    static G_test _inst;
+    public static G_test Inst
+    {
+        get
+        {
+            if (_inst == null || _inst.isDisposed) 
+                _inst = Create();
+            return _inst;
+        }
+    }
     public static readonly string URL = "ui://zvziziwioxwqn";
     public GTextFieldPropertyBinding _n0 { get; private set; }
     public GLoader _a { get; private set; }
@@ -236,6 +266,16 @@ partial class G_test : GLabel
 }
 partial class G_Tips : GComponent
 {
+    static G_Tips _inst;
+    public static G_Tips Inst
+    {
+        get
+        {
+            if (_inst == null || _inst.isDisposed) 
+                _inst = Create();
+            return _inst;
+        }
+    }
     public static readonly string URL = "ui://zvziziwiqnthd";
 
     public override void ConstructFromXML(XML xml)

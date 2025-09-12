@@ -61,16 +61,16 @@ public class Loading
             }
         }
 
-        YooPkg.Load(GameStart.Inst.playMode, this);
+        Pkg.Load(GameStart.Inst.playMode, this);
     }
     public void Dispose()
     {
         ui.Dispose();
         UIPackage.RemovePackage("Loader/Loader");
-        YooPkg.raw.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
-        YooPkg.raw.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
-        YooPkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
-        YooPkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
+        Pkg.raw.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
+        Pkg.raw.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
+        Pkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
+        Pkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
         Assembly assembly = null;
         if (Application.isEditor || GameStart.Inst.Runtime == CodeRuntime.Native)
         {
@@ -90,7 +90,7 @@ public class Loading
         }
         else
         {
-            var dll = YooPkg.LoadRaw("raw_code");
+            var dll = Pkg.LoadRaw("raw_code");
             assembly = Assembly.Load(dll);
         }
         assembly

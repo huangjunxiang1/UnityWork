@@ -23,8 +23,6 @@ namespace Core
         public SSystem(World world) => this.world = world;
         World world;
 
-        internal Dictionary<Type, __SystemHandle> _AwakeSystem = new();
-        internal Dictionary<Type, __SystemHandle> _DisposeSystem = new();
         internal Dictionary<Type, __SystemHandle> _BeforeUpdateSystem = new();
         internal Dictionary<Type, __SystemHandle> _UpdateSystem = new();
         internal Dictionary<Type, __SystemHandle> _LateUpdateSystem = new();
@@ -107,24 +105,6 @@ namespace Core
             for (int i = 0; i < methods.Count; i++)
             {
                 var m = methods[i];
-                if (m.attribute is AwakeSystem)
-                {
-                    var ts = ArrayCache.Get<Type>(1);
-                    ts[0] = m.mainKey;
-                    if (!_AwakeSystem.TryGetValue(m.mainKey, out var v))
-                        _AwakeSystem[m.mainKey] = v = (__SystemHandle)Activator.CreateInstance(typeof(SystemHandler<>).MakeGenericType(ts));
-                    v.Add(m.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts)));
-                    continue;
-                }
-                if (m.attribute is DisposeSystem)
-                {
-                    var ts = ArrayCache.Get<Type>(1);
-                    ts[0] = m.mainKey;
-                    if (!_DisposeSystem.TryGetValue(m.mainKey, out var v))
-                        _DisposeSystem[m.mainKey] = v = (__SystemHandle)Activator.CreateInstance(typeof(SystemHandler<>).MakeGenericType(ts));
-                    v.Add(m.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts)));
-                    continue;
-                }
                 if (m.attribute is BeforeUpdateSystem)
                 {
                     var ts = m.parameters.Select(t => t.ParameterType).ToArray();
@@ -423,18 +403,6 @@ namespace Core
                 eventWatcherWaitRemove.Add(type);
         }
 
-        internal void Awake(Type type, SComponent c)
-        {
-            if (!_AwakeSystem.TryGetValue(type, out var v))
-                return;
-            v._handle_AwakeOrDispose(c);
-        }
-        internal void Dispose(Type type, SComponent c)
-        {
-            if (!_DisposeSystem.TryGetValue(type, out var v))
-                return;
-            v._handle_AwakeOrDispose(c);
-        }
         internal void Change(SComponent c, bool call = false)
         {
             if (call)

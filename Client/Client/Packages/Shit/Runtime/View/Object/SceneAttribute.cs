@@ -5,12 +5,10 @@ namespace Game
     [AttributeUsage(AttributeTargets.Class)]
     public class SceneAttribute : SAttribute
     {
-        public int type { get; }
-        public int ID { get; }
-        public SceneAttribute(int type = 0, int id = 0)
+        public string name { get; }
+        public SceneAttribute(string name)
         {
-            this.type = type;
-            this.ID = id;
+            this.name = name;
         }
     }
 }

@@ -11,9 +11,9 @@ namespace Game
     {
         internal Dictionary<Type, object> _dataMap = new();
 
-        public T Get<T>() where T : class
+        public T Get<T>(bool log = true) where T : class
         {
-            if (!_dataMap.TryGetValue(typeof(T), out var value))
+            if (!_dataMap.TryGetValue(typeof(T), out var value) && log)
                 Loger.Error($"不包含数据 type={typeof(T)}");
             return value as T;
         }

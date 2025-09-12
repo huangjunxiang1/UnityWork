@@ -151,6 +151,7 @@ namespace Game
                 default:
                     break;
             }
+            this.gameRoot?.gameObject.SetActive(this.Enable);
             this.SetChange();
 #if UNITY_EDITOR
             if (this.gameRoot && this.gameObjectType != SGameObjectType.Resource)
@@ -163,16 +164,22 @@ namespace Game
                 this.gameRoot.name = s;
             }
 #endif
-            if (this.gameObject)
+            if (this.gameObjectType == SGameObjectType.LogicRoot)
             {
-                var info = this.gameObject.GetComponent<SObjectInfo>() ?? this.gameObject.AddComponent<SObjectInfo>();
-                info.gid = this.gid;
-                info.actorId = this.ActorId;
+                if (this.gameObject)
+                {
+                    var info = this.gameObject.GetComponent<SObjectInfo>() ?? this.gameObject.AddComponent<SObjectInfo>();
+                    info.gid = this.gid;
+                }
             }
-            EC_GameObjectReplace c = new();
-            c.Component = this;
-            c.old = old;
-            this.World.Event.RunEvent(c);
+            else
+            {
+                if (this.gameRoot)
+                {
+                    var info = this.gameRoot.GetComponent<SObjectInfo>() ?? this.gameRoot.AddComponent<SObjectInfo>();
+                    info.gid = this.gid;
+                }
+            }
         }
         public void SetGameObject(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool) => _ = LoadGameObjectAsync(url, releaseMode);
 
@@ -229,31 +236,41 @@ namespace Game
             SetGameObject(res);
         }
 
-        [DisposeSystem]
-        static void Dispose(GameObjectComponent t)
+        [InSystem]
+        static void In(GameObjectComponent t)
+        {
+            t.gameRoot?.SetActive(t.Enable);
+        }
+        [OutSystem]
+        static void Out(GameObjectComponent t)
         {
             ++t._resVersion;
-            switch (t.gameObjectType)
+            if (t.Disposed)
             {
-                case SGameObjectType.Static:
-                    break;
-                case SGameObjectType.Resource:
-                    if (t.gameObject)
-                        SAsset.Release(t.gameObject);
-                    break;
-                case SGameObjectType.LogicRoot:
-                    if (t.gameObject)
-                    {
-                        t.gameRoot.transform.localScale = Vector3.one;
-                        SAsset.Release(t.gameObject);
-                    }
-                    GameObject.Destroy(t.gameRoot);
-                    break;
-                default:
-                    break;
+                switch (t.gameObjectType)
+                {
+                    case SGameObjectType.Static:
+                        break;
+                    case SGameObjectType.Resource:
+                        if (t.gameObject)
+                            SAsset.Release(t.gameObject);
+                        break;
+                    case SGameObjectType.LogicRoot:
+                        if (t.gameObject)
+                        {
+                            t.gameRoot.transform.localScale = Vector3.one;
+                            SAsset.Release(t.gameObject);
+                        }
+                        GameObject.Destroy(t.gameRoot);
+                        break;
+                    default:
+                        break;
+                }
+                t.gameObject = null;
+                t.gameRoot = null;
             }
-            t.gameObject = null;
-            t.gameRoot = null;
+            else
+                t.gameRoot?.SetActive(t.Enable);
         }
 
         [AnyChangeSystem]

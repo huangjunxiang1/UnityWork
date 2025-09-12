@@ -71,9 +71,9 @@ partial class FUIFighting4
             block.Dispose();
         }
     }
-    void _clickBack()
+    async void _clickBack()
     {
-        _ = Client.Scene.InLoginScene();
+        await Client.Scene.InScene<LoginScene>();
     }
     void _click_rangeRoad()
     {

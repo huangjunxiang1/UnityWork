@@ -6,7 +6,6 @@ using UnityEngine;
 public class SObjectInfo : MonoBehaviour
 {
     public long gid;
-    public long actorId;
 
     /// <summary>
     /// animation event call
@@ -15,9 +14,6 @@ public class SObjectInfo : MonoBehaviour
     void Event(string param)
     {
         var e = new EC_AnimationEvent { param = param };
-        if (actorId != 0)
-            Client.World.Event.RunEvent(e, actorId: actorId);
-        else
-            Client.World.Event.RunEvent(e, gid: gid);
+        Client.World.Event.RunEvent(e, gid: gid);
     }
 }

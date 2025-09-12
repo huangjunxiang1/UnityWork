@@ -80,9 +80,9 @@ partial class FUIFighting2
             road.Dispose();
     }
 
-    void _clickBack()
+    async void _clickBack()
     {
-        _ = Client.Scene.InLoginScene();
+        await Client.Scene.InScene<LoginScene>();
     }
     void _onPlay()
     {

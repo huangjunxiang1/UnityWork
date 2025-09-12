@@ -31,7 +31,7 @@ namespace Game
         }
 
         [Sirenix.OdinInspector.ShowInInspector]
-        public AStarData AStar { get; set; } = Client.Data?.Get<AStarData>() ?? AStarData.Empty;
+        public AStarData AStar { get; set; } = Client.Data?.Get<AStarData>(false) ?? AStarData.Empty;
         [Sirenix.OdinInspector.ShowInInspector]
         public int2 Current { get; private set; }= int.MinValue;
 

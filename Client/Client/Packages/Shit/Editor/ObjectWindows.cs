@@ -148,8 +148,6 @@ class ObjectWindows : OdinMenuEditorWindow
             {
                 SystemHandler ret = new();
 
-                addHandlers(obj._components, obj.World.System._AwakeSystem, ret.Awake);
-                addHandlers(obj._components, obj.World.System._DisposeSystem, ret.Dispose);
                 addView(obj._In,ret.In);
                 addView(obj._Out, ret.Out);
                 addView(obj._Other.FindAll(t => t.type == SystemType.Change), ret.Change);
@@ -162,17 +160,6 @@ class ObjectWindows : OdinMenuEditorWindow
             }
         }
 
-        void addHandlers(Dictionary<Type, SComponent> ks, Dictionary<Type, __SystemHandle> handlerMap, List<View1> ret)
-        {
-            foreach (var k in ks)
-            {
-                if (handlerMap.TryGetValue(k.Key, out var acts))
-                {
-                    foreach (var d in (IList)acts.GetActions())
-                        addToList(ret, ((Delegate)d).Method);
-                }
-            }
-        }
         void addView(List<ComponentFilter> ds, List<View1> ret)
         {
             foreach (var d in ds)
@@ -203,13 +190,6 @@ class ObjectWindows : OdinMenuEditorWindow
 
         class SystemHandler
         {
-            [TableList(ShowIndexLabels = true)]
-            public List<View1> Awake = new();
-
-            [Space(5)]
-            [TableList(ShowIndexLabels = true)]
-            public List<View1> Dispose = new();
-
             [TableList(ShowIndexLabels = true)]
             public List<View1> In = new();
 

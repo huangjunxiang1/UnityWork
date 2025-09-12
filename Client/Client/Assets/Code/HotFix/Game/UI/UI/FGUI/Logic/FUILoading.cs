@@ -11,9 +11,9 @@ using Core;
 partial class FUILoading
 {
     [Event(-100, Queue = true)]
-    static async STask EC_OutScene(EC_OutScene e)
+    static void EC_OutScene(EC_OutScene e)
     {
-        await Client.UI.OpenAsync<FUILoading>();
+        Client.UI.Open<FUILoading>();
     }
     [Event(100, Queue = true)]
     static async STask EC_InScene(EC_InScene e)

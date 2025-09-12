@@ -1,4 +1,5 @@
-﻿using HybridCLR.Editor;
+﻿using Core;
+using HybridCLR.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,4 +39,26 @@ static class Other
     }
 
 
+    static List<string> dirs = new()
+    {
+        "/Code/Editor/Default",
+        "/Code/Main/Core",
+        "/Code/HotFix/Core",
+        "/../Packages/Shit"
+    };
+    [MenuItem("Tools/文件夹 同步到x", priority = int.MaxValue - 10)]
+    static void SyncDirsTo()
+    {
+        var src = ShitSettings.Inst.src;
+        for (int i = 0; i < dirs.Count; i++)
+            FileHelper.SyncDirectories(Application.dataPath + dirs[i], Application.dataPath + src + dirs[i]);
+    }
+    [MenuItem("Tools/文件夹 从x同步", priority = int.MaxValue - 10)]
+    static void SyncDirsFrom()
+    {
+        var src = ShitSettings.Inst.src;
+        for (int i = 0; i < dirs.Count; i++)
+            FileHelper.SyncDirectories(Application.dataPath + src + dirs[i], Application.dataPath + dirs[i]);
+        AssetDatabase.Refresh();
+    }
 }

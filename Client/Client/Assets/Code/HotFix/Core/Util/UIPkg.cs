@@ -22,14 +22,14 @@ public class UIPkg
     {
         DG.Tweening.DOTween.Init();
         FUIBinder.Binding();
-        UIPkg.ComPkg = UIPackage.AddPackage(YooPkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
+        UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
         UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
         UIGlobalConfig.isTouchUI += UIHelper.IsOnTouchFUI;
 
-        if (YooPkg.res.CheckLocationValid("UI_Items"))
+        if (Pkg.res.CheckLocationValid("UI_Items"))
             uui_items = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_Items");
-        if (YooPkg.res.CheckLocationValid("UI_UIAtlas"))
+        if (Pkg.res.CheckLocationValid("UI_UIAtlas"))
             uui_res = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
     }
     static async void fguiLoader(string name, string extension, System.Type type, PackageItem item)

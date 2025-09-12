@@ -7,6 +7,7 @@ using UnityEngine;
 using Game;
 using UnityEngine.Rendering;
 using Event;
+using System.Threading.Tasks;
 
 [UIConfig(20)]
 partial class FUIFighting
@@ -58,9 +59,9 @@ partial class FUIFighting
             es.Dispose();
     }
 
-    void _clickBack()
+    async void _clickBack()
     {
-        _ = Client.Scene.InLoginScene();
+        await Client.Scene.InScene<LoginScene>();
     }
 
 

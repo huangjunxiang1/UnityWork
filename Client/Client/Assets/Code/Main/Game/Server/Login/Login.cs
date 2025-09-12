@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 public class Login : STree
 {
     public IPEndPoint ip { get; set; }
-    [AwakeSystem]
+    [InSystem]
     static async void Awake(Login t)
     {
         TcpListener tcp = new(t.ip);

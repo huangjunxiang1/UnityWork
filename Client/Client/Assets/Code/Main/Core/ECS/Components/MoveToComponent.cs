@@ -186,10 +186,11 @@ namespace Game
                 }
             }
         }
-        [DisposeSystem]
-        static void dispose(MoveToComponent move)
+        [OutSystem]
+        static void Out(MoveToComponent move)
         {
-            move._task.TryCancel();
+            if (move.Disposed)
+                move._task.TryCancel();
         }
     }
 }

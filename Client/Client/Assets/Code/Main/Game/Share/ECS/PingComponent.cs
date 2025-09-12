@@ -14,8 +14,8 @@ class PingComponent : SComponent
     static S2C_Ping s_p = new();
     int counter;
 
-    [AwakeSystem]
-    static async void Awake(NetComponent t)
+    [InSystem]
+    static async void In(NetComponent t)
     {
         if (t.isClient) return;
         var ping = t.Entity.AddComponent<PingComponent>();

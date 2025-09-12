@@ -9,11 +9,11 @@ class TabDataTest
     [Test]
     public static void testDBuffer()
     {
-        using DBuffer buffM = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM)}.bytes")));
-        using DBuffer buffL = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabL)}.bytes")));
-        using DBuffer buff_cn = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_Chinese.bytes")));
-        using DBuffer buff_en = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/Tabs/Language_English.bytes")));
-        using DBuffer buffM_ST = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/Tabs/{nameof(TabM_ST)}.bytes")));
+        using DBuffer buffM = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabM)}.bytes")));
+        using DBuffer buffL = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabL)}.bytes")));
+        using DBuffer buff_cn = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/raw/Tabs/Language_Chinese.bytes")));
+        using DBuffer buff_en = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + "/Res/Config/raw/Tabs/Language_English.bytes")));
+        using DBuffer buffM_ST = new(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabM_ST)}.bytes")));
 
         test(buffM, buffL, buff_cn, buff_en, false);
         buffM.Seek(0);

@@ -12,7 +12,7 @@ partial class UUILogin
     //[Event]
     static async void EC_InScene(EC_InScene e)
     {
-        if (e.sceneId == 1)
+        if (Client.Scene.Current is LoginScene)
             await Client.UI.OpenAsync<UUILogin>();
     }
 
@@ -50,10 +50,9 @@ partial class UUILogin
             this.Dispose();
         }
     }
-    int v = 5;
     void login()
     {
-        World.Event.RunEvent(new EC_InScene() { sceneId = ++v });
+        World.Event.RunEvent(new EC_InScene() {  });
         //ugui 只做个展示  实际使用fgui
     }
 }

@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 
 public class SystemAttribute : SAttribute { }
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class AwakeSystem : SystemAttribute { }
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class DisposeSystem : SystemAttribute { }
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public class InSystem : SystemAttribute { }
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public class OutSystem : SystemAttribute { }

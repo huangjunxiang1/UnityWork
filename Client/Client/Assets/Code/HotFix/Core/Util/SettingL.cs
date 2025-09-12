@@ -20,7 +20,7 @@ static partial class SettingL
     static void loadLocationText()
     {
         var t = LanguageUtil.LanguageType;
-        DBuffer buff = new(new MemoryStream(YooPkg.LoadRaw($"raw_Language_{LanguageUtil.LanguageType}")));
+        DBuffer buff = new(new MemoryStream(Pkg.LoadRaw($"raw_Language_{LanguageUtil.LanguageType}")));
         if (LanguageUtil.LanguageType != t)
         {
             buff.Dispose();

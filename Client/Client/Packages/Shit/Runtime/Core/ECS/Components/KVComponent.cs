@@ -165,7 +165,7 @@ public class KVComponent : SComponent
     {
         for (int i = 1; i < Max; i++)
         {
-            var rk = GetRealKey(k, 1);
+            var rk = GetRealKey(k, i);
             if (!Changed.ContainsKey(k))
             {
                 Changed.Add(k, Get(k));
@@ -279,14 +279,17 @@ public class KVComponent : SComponent
         tmp.Clear();
         ObjectPool.Return(tmp);
     }
-    [DisposeSystem]
+    [OutSystem]
     static void Dispose(KVComponent t)
     {
-        t.Values.Clear();
-        t.Changed.Clear();
-        ObjectPool.Return(t.Changed);
-        ObjectPool.Return(t.Values);
-        t.Values = null;
-        t.Changed = null;
+        if (t.Disposed)
+        {
+            t.Values.Clear();
+            t.Changed.Clear();
+            ObjectPool.Return(t.Changed);
+            ObjectPool.Return(t.Values);
+            t.Values = null;
+            t.Changed = null;
+        }
     }
 }

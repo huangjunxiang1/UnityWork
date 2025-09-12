@@ -13,7 +13,7 @@ partial class FUILogin
     [Event]
     static async void EC_InScene(EC_InScene e)
     {
-        if (e.sceneId == 1)
+        if (Client.Scene.Current is LoginScene)
             await Client.UI.OpenAsync<FUILogin>();
     }
 

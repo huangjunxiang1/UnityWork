@@ -11,15 +11,15 @@ namespace Game
         float2 last;
         PlayerControl ctr;
 
-        [AwakeSystem]
-        static void Awake(GameInputComponent t)
+        [InSystem]
+        static void In(GameInputComponent t)
         {
             t.ctr = new();
             t.ctr.PlayerMove.performed += t.input;
             t.ctr.PlayerMove.canceled += t.cancel;
         }
-        [DisposeSystem]
-        static void Dispose(GameInputComponent t) => t.ctr.Dispose();
+        [OutSystem]
+        static void Out(GameInputComponent t) => t.ctr.Dispose();
 
         void input(UnityEngine.InputSystem.InputAction.CallbackContext e)
         {

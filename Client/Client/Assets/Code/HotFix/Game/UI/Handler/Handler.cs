@@ -25,18 +25,18 @@ static class Handler
 
         UIGlobalConfig.LoadingUrl = G_Connecting.URL;
 
-        DBuffer buffM_ST = new(new MemoryStream(YooPkg.LoadRaw($"raw_{nameof(TabM_ST)}")));
+        DBuffer buffM_ST = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM_ST)}")));
         if (buffM_ST.ReadHeaderInfo())
             TabM_ST.Init(buffM_ST);
 
-        DBuffer buffM = new(new MemoryStream(YooPkg.LoadRaw($"raw_{nameof(TabM)}")));
+        DBuffer buffM = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM)}")));
         if (buffM.ReadHeaderInfo())
             TabM.Init(buffM, ConstDefCore.Debug);
 
-        DBuffer buffL = new(new MemoryStream(YooPkg.LoadRaw($"raw_{nameof(TabL)}")));
+        DBuffer buffL = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabL)}")));
         if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, ConstDefCore.Debug);
-        await YooPkg.raw.UnloadUnusedAssetsAsync().AsTask();
+        await Pkg.raw.UnloadUnusedAssetsAsync().AsTask();
     }
 
     [Event]
@@ -62,25 +62,7 @@ static class Handler
             };
         }
     }
-    [Event]
-    static void EC_OutScene(EC_OutScene e)
-    {
-        BaseCamera.Current?.Dispose();
-    }
-    [Event]
-    static void EC_InScene(EC_InScene e)
-    {
-        if (e.sceneId == 1)
-            Client.Data.Clear();
-        if (e.sceneId > 10000)
-        {
-            BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
-            GameObject cm = new("CMTarget");
-            cm.transform.position = new Vector3(0, 0, 0);
-            BaseCamera.Current.Init(cm);
-            BaseCamera.Current.EnableCamera();
-        }
-    }
+   
     [Event]
     static void EC_QuitGame(EC_QuitGame e)
     {

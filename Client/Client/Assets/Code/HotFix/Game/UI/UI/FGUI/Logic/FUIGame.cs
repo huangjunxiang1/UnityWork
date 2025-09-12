@@ -37,27 +37,11 @@ partial class FUIGame
             es.Dispose();
         }
     }
-    void onClose()
+    async void onClose()
     {
         NetComponent.Inst.Send(new C2S_PlayerQuit());
         NetComponent.Inst.Dispose();
-        Client.Scene.InLoginScene();
-    }
-    [Event]
-    void join(S2C_PlayerJoinRoom t)
-    {
-        var v = t.info;
-        SGameObject go = new() { ActorId = v.id };
-        Client.Scene.AddChild(go);
-        go.GameObject.SetGameObject("3D_chan");
-        go.Transform.position = v.t.p;
-        go.Transform.rotation = v.t.r;
-        go.KV.Set(v.attribute);
-    }
-    [Event]
-    void S2C_PlayerQuit(S2C_PlayerQuit e)
-    {
-        Client.Scene.GetChildByActorId(e.id)?.Dispose();
+        await Client.Scene.InScene<LoginScene>();
     }
 
     async void replay()
@@ -68,14 +52,14 @@ partial class FUIGame
         c.Move();*/
 
         var astar = Client.Data.Get<AStarData>();
-        foreach (var item in Client.Scene.GetChildren().Where(t => t is SGameObject).ToList())
+        foreach (var item in Client.Scene.Current.GetChildren().Where(t => t is SGameObject).ToList())
         {
             item.Dispose();
         }
         for (int i = 0; i < 500; i++)
         {
             SGameObject go = new() { ActorId = i + 1 };
-            Client.Scene.AddChild(go);
+            Client.Scene.Current.AddChild(go);
             go.GameObject.SetGameObject("3D_Cube");
             int2 v2 = new int2(Util.RandomInt(0, astar.width), Util.RandomInt(0, astar.height));
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
@@ -88,7 +72,7 @@ partial class FUIGame
         return;
         {
             SGameObject go = new() { ActorId = 2 + 1 };
-            Client.Scene.AddChild(go);
+            Client.Scene.Current.AddChild(go);
             go.GameObject.SetGameObject("3D_Cube");
             int2 v2 = new int2(2, 2);
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
@@ -99,7 +83,7 @@ partial class FUIGame
         }
         {
             SGameObject go = new() { ActorId = 0 + 1 };
-            Client.Scene.AddChild(go);
+            Client.Scene.Current.AddChild(go);
             go.GameObject.SetGameObject("3D_Cube");
             int2 v2 = new int2(1, 2);
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
@@ -132,7 +116,7 @@ partial class FUIGame
         //PathFindingAStarComponent target = null;
         {
             SGameObject go = new() { ActorId = 1 + 1 };
-            Client.Scene.AddChild(go);
+            Client.Scene.Current.AddChild(go);
             go.GameObject.SetGameObject("3D_Cube");
             int2 v2 = new int2(5, 2);
             go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;

@@ -1,40 +1,43 @@
-﻿using Event;
+﻿using Core;
+using Event;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Game
 {
-    public class SceneManager : Core.STree
+    public class SceneManager
     {
-        public int SceneID { get; private set; }
-        public int Mask { get; private set; }
-        public string SceneName { get; private set; }
-        internal object[] objects;
+        public SceneManager(World world) { this.world = world; }
+        World world;
 
-        public STask InLoginScene() => InScene(1, 1, "Login");
-        public STask InMainScene() => InScene(2, 1, "Login");
-        public async STask InScene(int sceneId, int mask, string name, params object[] os)
+        public Scene Current { get; private set; }
+
+        public async STask InScene<T>(params object[] os) where T : Scene, new()
         {
-            if (SceneID == sceneId) return;
+            var attr = typeof(T).GetCustomAttributes(typeof(SceneAttribute), true).FirstOrDefault() as SceneAttribute;
+            if (attr == null)
+                throw new Exception($"Scene {typeof(T).FullName} need SceneAttribute");
+            if (string.IsNullOrEmpty(attr.name))
+                throw new Exception($"Scene {typeof(T).FullName} SceneAttribute name is null or empty");
 
-            this.DisposeAllChildren();
-            await World.Event.RunEventAsync(new EC_OutScene { sceneId = SceneID, sceneType = this.Mask });
-
-            this.SceneID = sceneId;
-            this.Mask = mask;
-            this.objects = os;
+            var old = Current;
+            Current = new T();
+            world.Root.AddChild(Current);
+            old?.Dispose();
+            Client.UI.CloseUI();
+            await world.Event.RunEventAsync(new EC_OutScene { });
 
             SAsset.ReleasePoolsGameObjects();
             await SAsset.ReleaseAllUnuseObjects();
-            this.SceneName = name;
-            await SAsset.LoadSceneAsync($"scene_{name}");
+            await SAsset.LoadSceneAsync($"scene_{attr.name}");
             await SValueTask.Delay(100);
 
-            await World.Event.RunEventAsync(new EC_InScene { sceneId = SceneID, sceneType = this.Mask });
+            Current.OnCreate(os);
+
+            await world.Event.RunEventAsync(new EC_InScene { });
         }
     }
 }

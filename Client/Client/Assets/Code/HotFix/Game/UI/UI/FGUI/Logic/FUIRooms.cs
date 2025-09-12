@@ -57,28 +57,6 @@ partial class FUIRooms
         var c = new C2S_JoinRoom();
         c.id = d.id;
         var s = (S2C_JoinRoom)await NetComponent.Inst.SendAsync(c);
-        int id = 10001;
-        Client.UI.CloseUI();
-        await Client.Scene.InScene(id, TabL.GetScene(id).type, TabL.GetScene(id).name);
-        var buffer = new DBuffer(YooPkg.LoadRaw("raw_Game"));
-        Client.Data.Add(new AStarData(buffer));
-        for (int i = 0; i < s.units.Count; i++)
-        {
-            var v = s.units[i];
-            SGameObject go = new() { ActorId = v.id, Group = 1 };
-            Client.Scene.AddChild(go);
-            go.GameObject.SetGameObject("3D_chan");
-            go.Transform.position = v.t.p;
-            go.Transform.rotation = v.t.r;
-            if (go.ActorId == s.myid)
-                go.AddComponent<GameInputComponent>();
-            go.KV.Set(v.attribute);
-            go.AddComponent<ColliderClickComponent>();
-            buffer.Compress = false;
-            go.AddComponent<PathFindingAStarComponent>();
-            go.AddComponent<PathFindingNodeComponent>();
-            go.AddComponent<MoveToComponent>();
-        }
-        await Client.UI.OpenAsync<FUIGame>();
+        await Client.Scene.InScene<GameScene>();
     }
 }
