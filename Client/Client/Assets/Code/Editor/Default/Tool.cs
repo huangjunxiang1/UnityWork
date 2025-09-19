@@ -328,14 +328,16 @@ public class Tool
                     code.AppendLine($"    public override void ConstructFromXML(XML xml)");
                     code.AppendLine("    {");
                     code.Append(bindingCode.ToString());
-                    code.AppendLine("        this.Enter();");
+                    code.AppendLine("        this.OnEnter();");
                     code.AppendLine("    }");
-                    code.AppendLine("    partial void Enter();");
+                    code.AppendLine("    partial void OnEnter();");
+                    code.AppendLine("    partial void OnExit();");
                     code.AppendLine($"    public static G_{item.name} Create() => (G_{item.name})UIPackage.CreateObjectFromURL(URL);");
                     code.AppendLine("    public override void Dispose()");
                     code.AppendLine("    {");
                     code.AppendLine("        base.Dispose();");
                     code.Append(disposeCode.ToString());
+                    code.AppendLine("        this.OnExit();");
                     code.AppendLine("    }");
 
                     code.AppendLine("}");

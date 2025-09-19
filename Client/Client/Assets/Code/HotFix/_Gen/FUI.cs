@@ -34,13 +34,15 @@ partial class G_Box_YesOrNo : GComponent
         _no = (GButton)this.GetChildAt(2);
         _title = (GTextField)this.GetChildAt(3);
         _text = (GTextField)this.GetChildAt(4);
-        this.Enter();
+        this.OnEnter();
     }
-    partial void Enter();
+    partial void OnEnter();
+    partial void OnExit();
     public static G_Box_YesOrNo Create() => (G_Box_YesOrNo)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
+        this.OnExit();
     }
 }
 partial class G_Connecting : GLabel
@@ -59,13 +61,15 @@ partial class G_Connecting : GLabel
 
     public override void ConstructFromXML(XML xml)
     {
-        this.Enter();
+        this.OnEnter();
     }
-    partial void Enter();
+    partial void OnEnter();
+    partial void OnExit();
     public static G_Connecting Create() => (G_Connecting)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
+        this.OnExit();
     }
 }
 partial class FUIFighting : FUI
@@ -254,14 +258,16 @@ partial class G_test : GLabel
         _tips = (G_Tips)this.GetChildAt(3);
         _c2 = this.GetControllerAt(1);
         _t0 = this.GetTransitionAt(0);
-        this.Enter();
+        this.OnEnter();
     }
-    partial void Enter();
+    partial void OnEnter();
+    partial void OnExit();
     public static G_test Create() => (G_test)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
         _n0.Dispose();
+        this.OnExit();
     }
 }
 partial class G_Tips : GComponent
@@ -280,13 +286,15 @@ partial class G_Tips : GComponent
 
     public override void ConstructFromXML(XML xml)
     {
-        this.Enter();
+        this.OnEnter();
     }
-    partial void Enter();
+    partial void OnEnter();
+    partial void OnExit();
     public static G_Tips Create() => (G_Tips)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
+        this.OnExit();
     }
 }
 partial class FUI3DHeader : FUI3D

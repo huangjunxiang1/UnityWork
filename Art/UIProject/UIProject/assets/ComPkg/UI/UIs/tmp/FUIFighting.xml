@@ -3,13 +3,15 @@
   <controller name="c1" pages="0,,1," selected="0"/>
   <controller name="_c2" pages="0,,1," selected="0"/>
   <displayList>
-    <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
+    <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/Close.xml" xy="1071,50" size="210,65">
       <relation target="" sidePair="right-right,top-top"/>
     </component>
     <component id="n4_omwm" name="_play" src="qgu27" fileName="Common/btn/btn.xml" xy="36,57" size="113,43">
       <relation target="" sidePair="left-left,top-top"/>
       <Button title="播放"/>
     </component>
+    <text id="n6_ws85" name="n6" xy="282,91" size="140,72" fontSize="12" autoSize="none" text="kdsjkhk客家话共和国999188"/>
+    <text id="n7_ws85" name="n7" xy="557,345" size="140,72" fontSize="12" autoSize="none" text="看电视剧"/>
   </displayList>
   <transition name="open">
     <item time="0" type="XY" target="n2_n68q" tween="true" startValue="-,-114" endValue="-,50" duration="6"/>

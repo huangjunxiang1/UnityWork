@@ -2,7 +2,7 @@
 path= %~dp0;%~dp0\..\Client\Tools\ExcelToDB\win-x64\;
 
 set compress=true
-set type=0
+set type=ExcelToDB
 set assetsPath=%~dp0..\Client\Client\Assets\Res\Config\raw\Tabs\
 
 set codePath=%~dp0..\Client\Client\Assets\Code\Main\_Gen\
@@ -24,7 +24,7 @@ set genEcs=false
 ExcelToDB.exe false
 
 set excelPath=%~dp0\Language\
-set type=1
+set type=ExcelToLanguage
 ExcelToDB.exe false
 
 pause

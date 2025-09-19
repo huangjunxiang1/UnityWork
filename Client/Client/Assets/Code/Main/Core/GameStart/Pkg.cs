@@ -127,6 +127,15 @@ public static class Pkg
         handler.Dispose();
         return bs;
     }
+    public static string LoadRawText(string location)
+    {
+        if (!Pkg.raw.CheckLocationValid(location))
+            return null;
+        var handler = Pkg.raw.LoadRawFileSync(location);
+        var bs = handler.GetRawFileText();
+        handler.Dispose();
+        return bs;
+    }
 
     class RemoteServices : IRemoteServices
     {

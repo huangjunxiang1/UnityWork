@@ -13,8 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Define\ConstDefCore.cs" Link="ConstDefCore.cs" />
-    <Compile Include="..\..\Client\Packages\Shit\Runtime\Game\Serialized\DBuffer.cs" Link="DBuffer.cs" />
+    <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Define\ConstDefCore.cs" Link="excelToDB\ConstDefCore.cs" />
+    <Compile Include="..\..\Client\Packages\Shit\Runtime\Game\Serialized\DBuffer.cs" Link="excelToDB\DBuffer.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -53,9 +53,12 @@ namespace Game
         {
             sendQueues.Enqueue(message);
         }
-        public virtual void Work()
+        public virtual void Work(bool mulThread = true)
         {
-            new Thread(_work) { IsBackground = true }.Start();
+            if (mulThread)
+                new Thread(_work) { IsBackground = true }.Start();
+            else
+                _work();
         }
 
         protected abstract void ReceiveBuffer();

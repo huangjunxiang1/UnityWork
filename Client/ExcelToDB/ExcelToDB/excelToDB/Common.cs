@@ -1105,12 +1105,18 @@ static class Common
     public static List<string> getFiles(string path)
     {
         List<string> files = new List<string>();
-        string[] s = Directory.GetFiles(path);
+        string[] s = Directory.GetFiles(path, "*.xlsx", SearchOption.AllDirectories);
         for (int i = 0; i < s.Length; i++)
         {
             FileInfo fi = new FileInfo(s[i]);
             if (fi.Name.StartsWith("~")) continue;
-            if (fi.Extension != ".xls" && fi.Extension != ".xlsx") continue;
+            files.Add(s[i]);
+        }
+        s = Directory.GetFiles(path, "*.xls", SearchOption.AllDirectories);
+        for (int i = 0; i < s.Length; i++)
+        {
+            FileInfo fi = new FileInfo(s[i]);
+            if (fi.Name.StartsWith("~")) continue;
             files.Add(s[i]);
         }
         return files;

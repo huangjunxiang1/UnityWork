@@ -215,22 +215,24 @@ namespace PB
         }
         public void Writestring(string v)
         {
-            int len = string.IsNullOrEmpty(v) ? 0 : Encoding.UTF8.GetByteCount(v);
-            Writeint32(len);
-
-            if (len > 0)
+            if (string.IsNullOrEmpty(v))
             {
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(len);
-                try
-                {
-                    Encoding.UTF8.GetBytes(v, 0, v.Length, buffer, 0);
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-                stream.Write(buffer, 0, len);
+                Writeint32(0);
+                return;
             }
+
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(ushort.MaxValue / 2);
+            int len = 0;
+            try
+            {
+                len = Encoding.UTF8.GetBytes(v, 0, v.Length, buffer, 0);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+            Writeint32(len);
+            stream.Write(buffer, 0, len);
         }
         public void Writebytes(int tag, byte[] v)
         {

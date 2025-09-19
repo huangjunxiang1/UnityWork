@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+  <string name="zvziziwin68q9-n3_n68q" cn="返回1233">返回1233</string>
+  <string name="zvziziwiqgu27-n3_qgu2" cn="按钮">按钮</string>
+  <string name="zvziziwipivyr-n1_pivy" cn="标签">标签</string>
+  <string name="zvziziwimxupl-n3_mxup" cn="显示Cube">显示Cube</string>
+  <string name="zvziziwirjgbf-n1_rjgb" cn="确定">确定</string>
+  <string name="zvziziwirjgbf-n2_rjgb" cn="取消">取消</string>
+  <string name="zvziziwik8hcu-n1_k8hc" cn="连接中...">连接中...</string>
+  <string name="zvziziwioxwqn-n1_ntjl" cn="item.exported">item.exported</string>
+  <string name="zvziziwibe98p-n3_pivy" cn="重新播放">重新播放</string>
+  <string name="zvziziwiqgu22-n2_qgu2" cn="登录">登录</string>
+  <string name="zvziziwiqgu22-n3_qgu2-prompt" cn="请输入账号">请输入账号</string>
+  <string name="zvziziwiqgu22-n4_qgu2-prompt" cn="请输入密码">请输入密码</string>
+  <string name="zvziziwiqgu22-n14_pivy" cn="进入游戏">进入游戏</string>
+  <string name="zvziziwiqgu22-n16_pivy" cn="作为服务器">作为服务器</string>
+  <string name="zvziziwiqgu22-n17_pivy-prompt" cn="请输入服务器ip">请输入服务器ip</string>
+  <string name="zvziziwipivyt-n2_pivy" cn="刷新列表2">刷新列表2</string>
+  <string name="zvziziwipivyt-n3_pivy-prompt" cn="请输入房间名字">请输入房间名字</string>
+  <string name="zvziziwipivyt-n4_pivy" cn="创建房间">创建房间</string>
+  <string name="zvziziwin68q8-n4_omwm" cn="播放">播放</string>
+  <string name="zvziziwin68q8-n6_ws85" cn="kdsjkhk客家话共和国999">kdsjkhk客家话共和国999</string>
+  <string name="zvziziwin68q8-n7_ws85" cn="看电视剧">看电视剧</string>
+  <string name="zvziziwifcrmg-n4_omwm" cn="播放">播放</string>
+  <string name="zvziziwiowdhh-n4_omwm" cn="随机地图">随机地图</string>
+  <string name="zvziziwiowdhh-n5_ub09" cn="播放">播放</string>
+  <string name="zvziziwiowdhh-n6_l0o3-0" cn="job+burst寻路">job+burst寻路</string>
+  <string name="zvziziwiowdhh-n6_l0o3-1" cn="ComputeShader寻路">ComputeShader寻路</string>
+  <string name="zvziziwiyj39i-n4_omwm" cn="随机地图">随机地图</string>
+  <string name="zvziziwiyj39i-n5_ub09" cn="播放">播放</string>
+  <string name="lt0uwmv0vxz50-n5_u8eg" cn="yes">yes</string>
+
+
+</resources>

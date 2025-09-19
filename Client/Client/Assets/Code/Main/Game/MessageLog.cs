@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 static class MessageLog
 {
+#if (UNITY_2017_1_OR_NEWER&&DebugEnable)||Server
     [Event]
     static void EC_SendMesssage(EC_SendMesssage e)
     {
@@ -21,6 +22,7 @@ static class MessageLog
 #endif
         }
     }
+#endif
     [Event]
     static void EC_AcceptedMessage(EC_AcceptedMessage e)
     {

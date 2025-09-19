@@ -17,23 +17,19 @@ public class ResImportAutoSetting : AssetPostprocessor
         {
             if (this.assetImporter is TextureImporter ti)
             {
-                texture(ti);
-                if (this.assetPath.StartsWith("Assets/Res/UI/FUI/ComPkg"))
-                {
-                    EditorUtility.DisplayDialog("错误", "FUI的组件包不应该导出texture 请检查导出设置", "确定");
-                }
+                uiSprite(ti);
             }
             return;
+        }
+        if (this.assetPath.StartsWith("Assets/Res/Config/raw/ComPkg") && this.assetImporter is TextureImporter)
+        {
+            EditorUtility.DisplayDialog("错误", "FUI的组件包不应该导出texture 请检查导出设置", "确定");
         }
     }
 
     void uiSprite(TextureImporter ti)
     {
         ti.textureType = TextureImporterType.Sprite;
-    }
-
-    void texture(TextureImporter ti)
-    {
         ti.mipmapEnabled = false;
     }
 }

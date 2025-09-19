@@ -5,6 +5,7 @@ using UnityEngine;
 
 static partial class SettingL
 {
+    static bool isFirst = true;
     public static SystemLanguage Languege
     {
         get { return LanguageUtil.LanguageType; }
@@ -19,16 +20,22 @@ static partial class SettingL
 
     static void loadLocationText()
     {
-        var t = LanguageUtil.LanguageType;
         DBuffer buff = new(new MemoryStream(Pkg.LoadRaw($"raw_Language_{LanguageUtil.LanguageType}")));
-        if (LanguageUtil.LanguageType != t)
-        {
-            buff.Dispose();
-            return;
-        }
 
         if (buff.ReadHeaderInfo())
             LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefCore.Debug);
+
+        if (!isFirst || LanguageUtil.LanguageType != SystemLanguage.Chinese)
+        {
+            var txt = Pkg.LoadRawText($"raw_Language_UIText_{LanguageUtil.LanguageType}");
+            if (!string.IsNullOrEmpty(txt))
+            {
+                FairyGUI.Utils.XML xml = new FairyGUI.Utils.XML(txt);
+                FairyGUI.UIPackage.SetStringsSource(xml);
+            }
+        }
+        isFirst = false;
+
         Client.World.Event.RunEvent(new EC_LanguageChange());
     }
 }
