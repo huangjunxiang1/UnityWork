@@ -28,7 +28,7 @@ namespace Game
             {
                 var v = s.units[i];
                 SGameObject go = new() { ActorId = v.id, Group = 1 };
-                Client.Scene.Current.AddChild(go);
+                this.AddChild(go);
                 go.GameObject.SetGameObject("3D_chan");
                 go.Transform.position = v.t.p;
                 go.Transform.rotation = v.t.r;

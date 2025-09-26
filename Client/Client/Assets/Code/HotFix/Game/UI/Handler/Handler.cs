@@ -24,6 +24,11 @@ static class Handler
         Application.targetFrameRate = -1;
 
         UIGlobalConfig.LoadingUrl = G_Connecting.URL;
+        FairyGUI.UIConfig.defaultFont = "UIFont";
+        TMPFont font = new() { };
+        font.name = "UIFont";
+        font.fontAsset = await SAsset.LoadAsync<TMPro.TMP_FontAsset>("UI_UIFont");
+        FontManager.RegisterFont(font);
 
         DBuffer buffM_ST = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM_ST)}")));
         if (buffM_ST.ReadHeaderInfo())
@@ -36,7 +41,6 @@ static class Handler
         DBuffer buffL = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabL)}")));
         if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, ConstDefCore.Debug);
-        await Pkg.raw.UnloadUnusedAssetsAsync().AsTask();
     }
 
     [Event]

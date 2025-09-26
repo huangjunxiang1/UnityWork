@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using YooAsset.Editor;
+using TMPro;
 
 class Ex
 {
@@ -55,7 +56,7 @@ class Ex
     }
 
     [BuildPipelineAttribute(nameof(EBuildPipeline.RawFileBuildPipeline))]
-    internal class R1 : RawfileBuildpipelineViewer
+    internal class Raw : RawfileBuildpipelineViewer
     {
         protected override string GetDefaultPackageVersion() => getVer(this.BuildTarget,this.PackageName);
         public override void CreateView(VisualElement parent)
@@ -72,7 +73,7 @@ class Ex
         }
     }
     [BuildPipelineAttribute(nameof(EBuildPipeline.ScriptableBuildPipeline))]
-    internal class S1 : ScriptableBuildPipelineViewer
+    internal class Res : ScriptableBuildPipelineViewer
     {
         protected override string GetDefaultPackageVersion() => getVer(this.BuildTarget, this.PackageName);
         public override void CreateView(VisualElement parent)
@@ -86,6 +87,20 @@ class Ex
             myButton.AddToClassList("my-button-style");
             myButton.clicked += cull_res;
             Root.Add(myButton);
+        }
+        protected override void ExecuteBuild()
+        {
+            // 需要引入 TMPro 命名空间: using TMPro;
+            string[] guids = AssetDatabase.FindAssets("t:TMP_FontAsset");
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var asset = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(path);
+                if (asset.atlasPopulationMode != AtlasPopulationMode.Static)
+                    asset.ClearFontAssetData(true);
+            }
+            AssetDatabase.Refresh();
+            base.ExecuteBuild();
         }
     }
 

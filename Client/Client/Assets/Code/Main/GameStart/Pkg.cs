@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YooAsset;
 using Game;
+using UnityEngine;
 
 public static class Pkg
 {
@@ -49,8 +50,8 @@ public static class Pkg
         {
             IRemoteServices remoteServices = new RemoteServices()
             {
-                url = $"{GameStart.Inst.resUrl}{pkg.PackageName}/",
-                fallBackUrl = $"{GameStart.Inst.fallBackResUrl}{pkg.PackageName}/"
+                url = getUrl(pkg),
+                fallBackUrl = getUrl(pkg),
             };
             var createParameters = new HostPlayModeParameters();
             createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
@@ -63,9 +64,11 @@ public static class Pkg
         {
             var createParameters = new WebPlayModeParameters();
 #if UNITY_WEBGL && WEIXINMINIGAME && !UNITY_EDITOR
-			string defaultHostServer = GetHostServerURL();
-            string fallbackHostServer = GetHostServerURL();
-            IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+            IRemoteServices remoteServices = new RemoteServices()
+            {
+                url = getUrl(pkg),
+                fallBackUrl = getUrl(pkg),
+            };
             createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
 #else
             createParameters.WebServerFileSystemParameters = FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
@@ -116,6 +119,24 @@ public static class Pkg
     static string getSizeStr(long bytes)
     {
         return $"{bytes / (float)(1024 * 1024):0.00#}MB";
+    }
+    static string getUrl(ResourcePackage pkg)
+    {
+        return $"{GameStart.Inst.resUrl}/{pkg.PackageName}/{GetPlatformName(Application.platform)}/";
+    }
+    static string GetPlatformName(RuntimePlatform platform)
+    {
+        if (platform == RuntimePlatform.WindowsEditor
+            || platform == RuntimePlatform.WindowsPlayer)
+            return "win";
+        if (platform == RuntimePlatform.OSXEditor
+            || platform == RuntimePlatform.OSXPlayer
+            || platform == RuntimePlatform.IPhonePlayer)
+            return "ios";
+        if (platform == RuntimePlatform.Android)
+            return "android";
+        Loger.Error($"unknown platform={platform}");
+        return "unknown";
     }
 
     public static byte[] LoadRaw(string location)

@@ -1,3 +1,9 @@
 {
-  "langFiles": []
+  "langFiles": [
+    {
+      "name": "Language_UIText_Chinese",
+      "path": "D:\\work\\UnityWork\\Excel\\Language\\UIText\\Language_UIText_Chinese.txt",
+      "fontName": ""
+    }
+  ]
 }

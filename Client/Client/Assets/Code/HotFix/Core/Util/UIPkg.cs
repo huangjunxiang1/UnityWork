@@ -20,7 +20,6 @@ public class UIPkg
     [Event(-1)]
     static async STask Init(EC_GameStart e)
     {
-        DG.Tweening.DOTween.Init();
         FUIBinder.Binding();
         UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);

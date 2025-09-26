@@ -2,7 +2,8 @@
     "name": "YooAsset.EditorExtension",
     "rootNamespace": "",
     "references": [
-        "GUID:4d1926c9df5b052469a1c63448b7609a"
+        "GUID:4d1926c9df5b052469a1c63448b7609a",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [
         "Editor"
