@@ -14,5 +14,6 @@ namespace Game
         public string error { get; set; }
         public abstract void Write(PBWriter writer);
         public abstract void Read(PBReader reader);
+        public abstract void Merge(PBMessage reader);
     }
 }

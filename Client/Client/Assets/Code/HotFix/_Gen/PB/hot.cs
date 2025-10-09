@@ -4,6 +4,7 @@ using Unity.Mathematics;
 
 namespace hot
 {
+    [Message(454764400)]
     public partial class TestPBhot
     {
         public int test;
@@ -13,5 +14,4 @@ namespace hot
         public float test5;
         public long test7;
     }
-
 }

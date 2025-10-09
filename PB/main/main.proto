@@ -1,72 +1,149 @@
-///目前简单测试了下 就是下面这些 我测试的标准pb版本是3.4.1的 互相编码解码都能通过
-///注意项:
-///1.赞未支持message里面再定义message或者enum的定义方式 例如下面这种 
-///message testA
-///{
-///  message testb
-///  {
-///    int32 testb1=1;
-///  }
-///  int32 testA1=1;
-///}
-///2.一些目前我基本没用到过的东西 比如oneof什么的 pb定义方式  也都没支持
-///3.考虑ilruntime的热更  因此  此pb没有使用任何泛型 反射  对ilruntime比较友好  List<> 之类的泛型除外 这个没法解决
 
-
-////枚举定义注释
-enum COM_Client_Status
-{
-    S_Disconnected = 0;
-    S_Connected = 1;//枚举注释
-    S_Logined = 2;
-    S_Loading = 3;
-    //S_Creating = 4;//注释忽略测试
-    S_Playing = 5;
-    S_Relocating = 6;
+// 枚举类型定义
+enum UserRole {
+  ROLE_UNSPECIFIED = 0;  // 必须包含0值
+  ROLE_USER = 1;
+  ROLE_ADMIN = 2;
+  ROLE_MODERATOR = 3;
+  ROLE_GUEST = 4;
+}
+// 嵌套消息定义
+message GeoLocation {
+  double latitude = 1;
+  double longitude = 2;
+  optional float altitude = 3;  // 可选的海拔
+  optional float altitude4 = 4;  // 可选的海拔
+    optional float altitude5 = 5;  // 可选的海拔
+	optional float altitude6 = 6;  // 可选的海拔
+	optional float altitude7 = 7;  // 可选的海拔
+	optional float altitude8 = 8;  // 可选的海拔
+	optional float altitude9 = 9;  // 可选的海拔
+	optional float altitude10 = 10;  // 可选的海拔
+	optional float altitude11 = 11;  // 可选的海拔
+	optional float altitude12 = 12;  // 可选的海拔
+	optional float altitude13 = 13;  // 可选的海拔
+	optional float altitude14 = 14;  // 可选的海拔
+	optional float altitude15 = 15;  // 可选的海拔
+	optional float altitude16 = 16;  // 可选的海拔
+	optional float altitude17 = 17;  // 可选的海拔
+	optional float altitude18 = 18;  // 可选的海拔
+	optional float altitude19 = 19;  // 可选的海拔
+	optional float altitude20 = 20;  // 可选的海拔
+	optional float altitude21 = 21;  // 可选的海拔
+	optional float altitude22 = 22;  // 可选的海拔
+	optional float altitude23 = 23;  // 可选的海拔
+	optional float altitude24 = 24;  // 可选的海拔
+	optional float altitude25 = 25;  // 可选的海拔
+	optional float altitude26 = 26;  // 可选的海拔
+	optional float altitude27 = 27;  // 可选的海拔
+	optional float altitude28 = 28;  // 可选的海拔
+	optional float altitude29 = 29;  // 可选的海拔
+	optional float altitude30 = 30;  // 可选的海拔
+	optional float altitude31 = 31;  // 可选的海拔
+	optional float altitude32 = 32;  // 可选的海拔
+	optional float altitude33 = 33;  // 可选的海拔
+	optional float altitude34 = 34;  // 可选的海拔
+	optional float altitude35 = 35;  // 可选的海拔
+	optional float altitude36 = 36;  // 可选的海拔
+	optional float altitude37 = 37;  // 可选的海拔
+	optional float altitude38 = 38;  // 可选的海拔
+	optional float altitude39 = 39;  // 可选的海拔
+	optional float altitude40 = 40;  // 可选的海拔
 }
 
-//类定义注释
-message TestPBmain
-{
-  bool test =1;//字段注释
-  int32 test2 =2;
-  sint32 test3 =3;
-  int64 test4 =4;
-  sint64 test5 =5;
-  float test6 =6;
-  string test7 =7;
-  TestPB2 test8 =8;
-  map<string, TestPB2> test9  = 9; // map<string, TestPB2> test9  = 9;
-  map<int64,bool> test10=10;
-  map<sint32,sint64> test11=11;
-  bytes test12=12;
-  //int32 tst13 =13;//注释行测试
-  fixed32 test14=14;
-  fixed64 test16=16;
-  COM_Client_Status test15=15;
-  double test18=18;
-  map<fixed32,double> test19=19;
-
-  repeated bool test21 =21;
-  repeated int32 test22 =22;
-  repeated sint32 test23 =23;
-  repeated int64 test24 =24;
-  repeated sint64 test25 =25;
-  repeated float test26 =26;
-  repeated string test27 =27;
-  repeated TestPB2 test28 =28;
-  repeated fixed32 test29 =29;
-  repeated fixed64 test31 =31;
-  repeated double test33 =33;
-
-  float2 test34 =34;
-  float3 test35 =35;
-  float4 test36 =36;
+message Address {
+  string street = 1;
+  string city = 2;
+  string country = 3;
+  string postal_code = 4;
+  optional GeoLocation location = 5;  // 可选的坐标
 }
-message TestPB2
-{
-   int32 test2 =2;
-   repeated int32 test22 =22;
+
+// 主消息定义 - 包含所有基础类型和特性
+message ComprehensiveMessage {
+  // ========== 基础数值类型 ==========
+  double double_field = 1;           // 双精度浮点数
+  optional double optional_double_field = 2;  // 可选的双精度浮点数
+  
+  float float_field = 3;             // 单精度浮点数
+  optional float optional_float_field = 4;    // 可选的单精度浮点数
+  
+  int32 int32_field = 5;             // 32位有符号整数
+  optional int32 optional_int32_field = 6;    // 可选的32位有符号整数
+  
+  int64 int64_field = 7;             // 64位有符号整数
+  optional int64 optional_int64_field = 8;    // 可选的64位有符号整数
+  
+  uint32 uint32_field = 9;           // 32位无符号整数
+  optional uint32 optional_uint32_field = 10; // 可选的32位无符号整数
+  
+  uint64 uint64_field = 11;          // 64位无符号整数
+  optional uint64 optional_uint64_field = 12; // 可选的64位无符号整数
+  
+  sint32 sint32_field = 13;          // 有符号32位整数（对负数编码更高效）
+  optional sint32 optional_sint32_field = 14; // 可选的有符号32位整数
+  
+  sint64 sint64_field = 15;          // 有符号64位整数（对负数编码更高效）
+  optional sint64 optional_sint64_field = 16; // 可选的有符号64位整数
+  
+  fixed32 fixed32_field = 17;        // 固定32位无符号整数
+  optional fixed32 optional_fixed32_field = 18; // 可选的固定32位无符号整数
+  
+  fixed64 fixed64_field = 19;        // 固定64位无符号整数
+  optional fixed64 optional_fixed64_field = 20; // 可选的固定64位无符号整数
+  
+  //sfixed32 sfixed32_field = 21;      // 固定32位有符号整数
+  //optional sfixed32 optional_sfixed32_field = 22; // 可选的固定32位有符号整数
+  //
+  //sfixed64 sfixed64_field = 23;      // 固定64位有符号整数
+  //optional sfixed64 optional_sfixed64_field = 24; // 可选的固定64位有符号整数
+
+  // ========== 布尔和字符串类型 ==========
+  bool bool_field = 25;              // 布尔值
+  optional bool optional_bool_field = 26;       // 可选的布尔值
+  
+  string string_field = 27;          // 字符串
+  optional string optional_string_field = 28;   // 可选的字符串
+
+  // ========== Bytes类型 ==========
+  bytes bytes_field = 29;            // 二进制数据
+  optional bytes optional_bytes_field = 30;     // 可选的二进制数据
+
+  // ========== 枚举类型 ==========
+  UserRole enum_field = 31;          // 枚举字段
+  optional UserRole optional_enum_field = 32;   // 可选的枚举字段
+
+  // ========== 嵌套消息类型 ==========
+  Address address_field = 33;        // 嵌套消息
+  optional Address optional_address_field = 34; // 可选的嵌套消息
+
+  // ========== Repeated字段（数组/列表） ==========
+  repeated string tags = 35;                           // 字符串数组
+  repeated int32 scores = 36;                          // 整数数组
+  repeated UserRole role_history = 37;                 // 枚举数组
+  repeated Address addresses = 38;                     // 消息对象数组
+  repeated bytes binary_chunks = 39;                   // bytes数组
+  
+  // 可选的repeated字段（proto3中不常用，但语法支持）
+  repeated double optional_double_list = 40;
+
+  // ========== Map字段（键值对） ==========
+  map<string, string> string_map = 41;                 // string → string 映射
+  map<int32, string> id_to_name_map = 42;              // int → string 映射
+  map<string, Address> location_map = 43;              // string → 消息对象 映射
+  map<string, UserRole> role_assignments = 44;         // string → 枚举 映射
+  map<string, bytes> resource_map = 45;                // string → bytes 映射
+  map<UserRole, fixed32> resource_map2 = 46;                // string → bytes 映射
+  
+  int2 xy=47;
+  repeated int2 lstxy=48;
+  map<int32,int2> mapxy=49;
+  optional int2 optional_xy=50;
+
+  float2 f2=51;
+  repeated float2 lstf2=52;
+  map<int32,float2> mapf2=53;
+  optional float2 optional_f2=54;
 }
 
 //测试空行 跳行不被认为是注释

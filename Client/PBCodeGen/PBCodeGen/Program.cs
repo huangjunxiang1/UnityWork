@@ -21,11 +21,12 @@ class Enter
 
 
         {
-            Gen gen = new Gen();
-            gen.resPath = protoPath;
-            gen.outDefinePath = outputPath;
-            gen.outRWPath = outputPath;
-            gen.gen();
+            Parser gen = new Parser();
+            gen.path = protoPath;
+            var ret = gen.parse();
+
+            CmdGenAndResponse.Gen(ret);
+            CodeGen.Gen(ret, outputPath);
         }
 
         Console.WriteLine($"生成结束");

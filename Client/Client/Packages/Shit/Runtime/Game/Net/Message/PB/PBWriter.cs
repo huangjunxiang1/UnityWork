@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using System.Buffers;
 using Unity.Mathematics;
 
 namespace PB
@@ -29,36 +30,6 @@ namespace PB
         public void Writeint32(int v)
         {
             Writeint64(v);
-        }
-        public void Writeint2(int tag, int2 v)
-        {
-            if (v.Equals(0))
-                return;
-            PBWriter writer = PBBuffPool.Get();
-            for (int i = 0; i < 2; i++)
-                writer.Writeint32(v[i]);
-            WriteBuff(tag, writer);
-            PBBuffPool.Return(writer);
-        }
-        public void Writeint3(int tag, int3 v)
-        {
-            if (v.Equals(0))
-                return;
-            PBWriter writer = PBBuffPool.Get();
-            for (int i = 0; i < 3; i++)
-                writer.Writeint32(v[i]);
-            WriteBuff(tag, writer);
-            PBBuffPool.Return(writer);
-        }
-        public void Writeint4(int tag, int4 v)
-        {
-            if (v.Equals(0))
-                return;
-            PBWriter writer = PBBuffPool.Get();
-            for (int i = 0; i < 4; i++)
-                writer.Writeint32(v[i]);
-            WriteBuff(tag, writer);
-            PBBuffPool.Return(writer);
         }
         public void Writeuint32(uint v)
         {
@@ -117,13 +88,43 @@ namespace PB
             WriteTag(tag);
             Writeint32(v);
         }
+        public void Writeint2(int tag, int2 v)
+        {
+            if (v.Equals(0))
+                return;
+            PBWriter writer = PBBuffPool.Get();
+            for (int i = 0; i < 2; i++)
+                writer.Writeint32(v[i]);
+            WriteBuff(tag, writer);
+            PBBuffPool.Return(writer);
+        }
+        public void Writeint3(int tag, int3 v)
+        {
+            if (v.Equals(0))
+                return;
+            PBWriter writer = PBBuffPool.Get();
+            for (int i = 0; i < 3; i++)
+                writer.Writeint32(v[i]);
+            WriteBuff(tag, writer);
+            PBBuffPool.Return(writer);
+        }
+        public void Writeint4(int tag, int4 v)
+        {
+            if (v.Equals(0))
+                return;
+            PBWriter writer = PBBuffPool.Get();
+            for (int i = 0; i < 4; i++)
+                writer.Writeint32(v[i]);
+            WriteBuff(tag, writer);
+            PBBuffPool.Return(writer);
+        }
         public void Writesint32(int tag, int v)
         {
             if (v == 0) return;
             WriteTag(tag);
             Writesint32(v);
         }
-        public void Writeuint32(int tag, int v)
+        public void Writeuint32(int tag, uint v)
         {
             Writeint64(tag, v);
         }
@@ -138,6 +139,12 @@ namespace PB
             if (v == 0) return;
             WriteTag(tag);
             Writesint64(v);
+        }
+        public void Writeuint64(int tag, ulong v)
+        {
+            if (v == 0) return;
+            WriteTag(tag);
+            Writeint64((long)v);
         }
         public void Writefixed32(int tag, int v)
         {
@@ -270,6 +277,26 @@ namespace PB
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
+        public void Writeenum<T>(int tag, T t) where T : unmanaged, Enum
+        {
+            unsafe
+            {
+                void* valuePtr = &t;
+                int v = *(int*)valuePtr;
+                if (v == 0) return;
+                WriteTag(tag);
+                Writeint32(v);
+            }
+        }
+        public void Writemessage(int tag, PBMessage message)
+        {
+            if (message == null)
+                return;
+            PBWriter writer = PBBuffPool.Get();
+            message.Write(writer);
+            WriteBuff(tag, writer);
+            PBBuffPool.Return(writer);
+        }
 
         public void Writebools(int tag, List<bool> v)
         {
@@ -291,6 +318,54 @@ namespace PB
                 writer.Writeint32(v[i]);
             WriteBuff(tag, writer);
             PBBuffPool.Return(writer);
+        }
+        public void Writeint2s(int tag, List<int2> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (v[i].Equals(0))
+                {
+                    WriteTag(tag);
+                    Writeint32(0);
+                    continue;
+                }
+                Writeint2(tag, v[i]);
+            }
+        }
+        public void Writeint3s(int tag, List<int3> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (v[i].Equals(0))
+                {
+                    WriteTag(tag);
+                    Writeint32(0);
+                    continue;
+                }
+                Writeint3(tag, v[i]);
+            }
+        }
+        public void Writeint4s(int tag, List<int4> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (v[i].Equals(0))
+                {
+                    WriteTag(tag);
+                    Writeint32(0);
+                    continue;
+                }
+                Writeint4(tag, v[i]);
+            }
         }
         public void Writeuint32s(int tag, List<uint> v)
         {
@@ -380,6 +455,54 @@ namespace PB
             WriteBuff(tag, writer);
             PBBuffPool.Return(writer);
         }
+        public void Writefloat2s(int tag, List<float2> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (v[i].Equals(0))
+                {
+                    WriteTag(tag);
+                    Writeint32(0);
+                    continue;
+                }
+                Writefloat2(tag, v[i]);
+            }
+        }
+        public void Writefloat3s(int tag, List<float3> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (v[i].Equals(0))
+                {
+                    WriteTag(tag);
+                    Writeint32(0);
+                    continue;
+                }
+                Writefloat3(tag, v[i]);
+            }
+        }
+        public void Writefloat4s(int tag, List<float4> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (v[i].Equals(0))
+                {
+                    WriteTag(tag);
+                    Writeint32(0);
+                    continue;
+                }
+                Writefloat4(tag, v[i]);
+            }
+        }
         public void Writestrings(int tag, List<string> v)
         {
             if (v == null || v.Count == 0)
@@ -396,16 +519,58 @@ namespace PB
                 Writestring(tag, v[i]);
             }
         }
-        public void Writemessage(int tag, PBMessage message)
+        public void Writemessages<T>(int tag, List<T> messages) where T : PBMessage
         {
-            if (message == null)
+            if (messages == null || messages.Count == 0)
+                return;
+            int len = messages.Count;
+            for (int i = 0; i < len; i++)
+                Writemessage(tag, messages[i]);
+        }
+        public void Writeenums<T>(int tag, List<T> v) where T : unmanaged, Enum
+        {
+            if (v == null || v.Count == 0)
                 return;
             PBWriter writer = PBBuffPool.Get();
-            message.Write(writer);
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                unsafe
+                {
+                    var t = v[i];
+                    void* valuePtr = &t;
+                    int vv = *(int*)valuePtr;
+                    writer.Writeint32(vv);
+                }
+            }
             WriteBuff(tag, writer);
             PBBuffPool.Return(writer);
         }
+        public void Writebytess(int tag, List<byte[]> v)
+        {
+            if (v == null || v.Count == 0)
+                return;
+            int len = v.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (v[i] == null || v[i].Length == 0)
+                {
+                    WriteTag(tag);
+                    Writeint32(0);
+                    continue;
+                }
+                Writebytes(tag, v[i]);
+            }
+        }
 
+        public byte[] ToBytes()
+        {
+            int len = (int)stream.Position;
+            byte[] bs = new byte[len];
+            stream.Seek(0, SeekOrigin.Begin);
+            stream.Read(bs, 0, len);
+            return bs;
+        }
         public void Seek(int index)
         {
             stream.Seek(index, SeekOrigin.Begin);

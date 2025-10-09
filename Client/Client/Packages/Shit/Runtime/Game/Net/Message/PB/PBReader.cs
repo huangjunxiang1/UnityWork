@@ -11,6 +11,8 @@ namespace PB
 {
     public unsafe class PBReader : IDisposable
     {
+        public PBReader(byte[] s) : this(new MemoryStream(s), 0, s.Length) { }
+        public PBReader(byte[] s, int index, int length) : this(new MemoryStream(s), index, length) { }
         public PBReader(Stream s, int index, int length)
         {
             min = index;
@@ -34,7 +36,7 @@ namespace PB
         }
         public bool Readbool()
         {
-            return stream.ReadByte() == 1;
+            return Readuint64() == 1;
         }
         public int Readint32()
         {
@@ -89,7 +91,8 @@ namespace PB
         public ulong Readuint64()
         {
             ulong v = 0;
-            for (int i = 0; i < sizeof(ulong) + 2; i++)
+            int max = math.min(this.max - Position, sizeof(ulong) + 2);
+            for (int i = 0; i < max; i++)
             {
                 ulong bv = (ulong)stream.ReadByte();
                 v |= ((bv & 0x7f) << 7 * i);
@@ -177,14 +180,16 @@ namespace PB
             }
             return Encoding.UTF8.GetString(buffer, 0, len);
         }
-        public void Readmessage(PBMessage message)
+        public T Readmessage<T>(T message) where T : PBMessage, new()
         {
+            message ??= new();
             int max = this.max;
             int len = this.Readint32();
             this.SetMax(Position + len);
             message.Read(this);
             this.SeekLast();
             this.SetMax(max);
+            return message;
         }
         public byte[] Readbytes()
         {
@@ -193,6 +198,7 @@ namespace PB
             stream.Read(bs, 0, len);
             return bs;
         }
+
         public void Readbools(List<bool> lst)
         {
             int len = Readint32();
@@ -277,15 +283,16 @@ namespace PB
                 lst.Add(Readfloat());
             this.Seek(next);
         }
-        public void Readstrings(int tag, List<string> lst)
+        public void Readenums<T>(List<T> lst) where T : unmanaged, Enum
         {
-            int point;
-            do
+            int len = Readint32();
+            int next = Position + len;
+            while (Position < next)
             {
-                lst.Add(Readstring());
-                point = Position;
-            } while (ReadTag() == tag);
-            this.Seek(point);
+                var v = Readint32();
+                unsafe { lst.Add(*(T*)&v); }
+            }
+            this.Seek(next);
         }
 
         public void Seek(int index)

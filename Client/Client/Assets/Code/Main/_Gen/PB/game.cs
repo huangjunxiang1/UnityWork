@@ -5,16 +5,15 @@ using Unity.Mathematics;
 namespace game
 {
     /// <summary>
-    /// MsgID=50@0
+    /// //MsgID=50@0
     /// </summary>
-    [Message(540237658, typeof(S2C_SyncTransform))]
+    [Message(540237658, typeof(game.S2C_SyncTransform))]
     public partial class C2S_SyncTransform
     {
         public float2 dir;
     }
-
     /// <summary>
-    /// MsgID=50@1
+    /// //MsgID=50@1
     /// </summary>
     [Message(539189066)]
     public partial class S2C_SyncTransform
@@ -23,15 +22,12 @@ namespace game
         public float4 r;
         public bool isMoving;
     }
-
-    [Message(943545107, typeof(S2C_Ping))]
+    [Message(943545107, typeof(game.S2C_Ping))]
     public partial class C2S_Ping
     {
     }
-
     [Message(942496515)]
     public partial class S2C_Ping
     {
     }
-
 }

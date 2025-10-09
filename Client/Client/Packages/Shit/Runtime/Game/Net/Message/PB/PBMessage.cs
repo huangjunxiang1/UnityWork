@@ -19,5 +19,6 @@ namespace PB
 
         public abstract void Write(PBWriter writer);
         public abstract void Read(PBReader reader);
+        public abstract void Merge(PBMessage message);
     }
 }
