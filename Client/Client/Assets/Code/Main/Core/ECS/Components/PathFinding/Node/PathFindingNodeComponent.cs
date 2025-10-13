@@ -10,7 +10,6 @@ namespace Game
 {
     public class PathFindingNodeComponent : SComponent
     {
-        [Sirenix.OdinInspector.ShowInInspector]
 #if !Server
         public MulNode Root { get; set; } = PathFindingNode.GetCurrent();
 #else
@@ -24,7 +23,7 @@ namespace Game
         bool move = false;
         long toId;
 
-        [Sirenix.OdinInspector.ShowInInspector]
+        [ShowInInspector]
         float3[] points = new float3[10];
 
         public bool Finding(long toId)

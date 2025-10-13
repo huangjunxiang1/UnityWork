@@ -29,11 +29,8 @@ namespace Core
 
         public void Update()
         {
-            while (true)
+            while (this.queue.TryDequeue(out var a))
             {
-                if (!this.queue.TryDequeue(out var a))
-                    return;
-
                 try
                 {
                     a.Item1(a.Item2);

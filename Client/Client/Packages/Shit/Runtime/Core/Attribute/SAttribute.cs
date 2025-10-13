@@ -13,3 +13,11 @@ public sealed class AssemblyInfoInShitRuntime : SAttribute
         this.SortOrder = sortOrder;
     }
 }
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class ShowInInspector : SAttribute
+{
+}
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class HideInInspector : SAttribute
+{
+}

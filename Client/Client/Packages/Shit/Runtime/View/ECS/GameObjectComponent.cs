@@ -52,19 +52,16 @@ namespace Game
             }
         }
 
-        [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
         ///  
         /// </summary>
         public SGameObjectType gameObjectType { get; }
 
-        [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
         /// 逻辑节点 SGameObjectType.Resource模式下 gameRoot==gameObject
         /// </summary>
         public GameObject gameRoot { get; private set; }
 
-        [Sirenix.OdinInspector.ShowInInspector]
         /// <summary>
         /// 资源模型
         /// </summary>

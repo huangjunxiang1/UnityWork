@@ -48,7 +48,7 @@ namespace FairyGUI
             this.shader = "FairyGUI/TextMeshPro/Distance Field";
             this.keepCrisp = true;
 
-            _defaultFontWeight = FontWeight.Medium;
+            _defaultFontWeight = FontWeight.Regular;
             _fallbackFonts = new List<TMPFont>();
             _atlasTextures = new NTexture[0];
             _subMeshBuffers = new VertexBuffer[0];

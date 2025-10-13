@@ -59,5 +59,6 @@ namespace Core
             Close?.Invoke();
             Thread.Post(s => Root.Dispose());
         }
+        public override string ToString() => this.Name;
     }
 }

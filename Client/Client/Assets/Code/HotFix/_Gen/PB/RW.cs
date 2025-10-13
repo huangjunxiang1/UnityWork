@@ -8,12 +8,12 @@ namespace hot
     {
         public override void Write(PB.PBWriter writer)
         {
-            writer.Writesint32(8, test);
-            writer.Writeint32(16, test2);
-            writer.Writestring(26, test3);
-            writer.Writebool(32, test4);
-            writer.Writefloat(45, test5);
-            writer.Writeint64(56, test7);
+            writer.Writesint32(8, this.test);
+            writer.Writeint32(16, this.test2);
+            writer.Writestring(26, this.test3);
+            writer.Writebool(32, this.test4);
+            writer.Writefloat(45, this.test5);
+            writer.Writeint64(56, this.test7);
         }
         public override void Read(PB.PBReader reader)
         {

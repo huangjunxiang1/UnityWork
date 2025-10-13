@@ -10,13 +10,10 @@ namespace Game
 {
     public class MoveToComponent : SComponent
     {
-        [Sirenix.OdinInspector.ShowInInspector]
         quaternion _r = quaternion.identity;
-        [Sirenix.OdinInspector.ShowInInspector]
+        [ShowInInspector]
         IList<float3> _paths;
-        [Sirenix.OdinInspector.ShowInInspector]
         int _index = -1;
-        [Sirenix.OdinInspector.ShowInInspector]
         int _endIndex;
 
         SValueTask<bool> _task;
@@ -43,7 +40,6 @@ namespace Game
                 this.SetChangeFlag();
             }
         }
-        [Sirenix.OdinInspector.ShowInInspector]
         public float3 forward
         {
             get => math.mul(_r, math.forward());

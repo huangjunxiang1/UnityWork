@@ -39,14 +39,12 @@ public class KVComponent : SComponent
     int Max = 1;
 
 #if UNITY_EDITOR
-    [Sirenix.OdinInspector.ShowInInspector]
+    [ShowInInspector]
     SortedDictionary<int, long> Values = ObjectPool.Get<SortedDictionary<int, long>>();
-    [Sirenix.OdinInspector.ShowInInspector]
+    [ShowInInspector]
     SortedDictionary<int, long> FinalValue = ObjectPool.Get<SortedDictionary<int, long>>();
 #else
-    [Sirenix.OdinInspector.ShowInInspector]
     Dictionary<int, long> Values = ObjectPool.Get<Dictionary<int, long>>();
-    [Sirenix.OdinInspector.ShowInInspector]
     Dictionary<int, long> FinalValue = ObjectPool.Get<Dictionary<int, long>>();
 #endif
     Dictionary<int, long> Changed = ObjectPool.Get<Dictionary<int, long>>();

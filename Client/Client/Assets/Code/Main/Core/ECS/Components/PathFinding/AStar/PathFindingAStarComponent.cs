@@ -30,9 +30,7 @@ namespace Game
             public int totalDistance;
         }
 
-        [Sirenix.OdinInspector.ShowInInspector]
         public AStarData AStar { get; set; } = Client.Data?.Get<AStarData>(false) ?? AStarData.Empty;
-        [Sirenix.OdinInspector.ShowInInspector]
         public int2 Current { get; private set; }= int.MinValue;
 
         /// <summary>
@@ -62,7 +60,6 @@ namespace Game
         int currentIndex = 0;
         int2 to;
         int power;
-        [Sirenix.OdinInspector.ShowInInspector]
         SValueTask<bool> waitTask;
         bool move = false;
         int callVersion;

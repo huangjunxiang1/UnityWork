@@ -9,13 +9,10 @@ using Unity.Mathematics;
 
 public class MulNodeInfo
 {
-    [Sirenix.OdinInspector.ShowInInspector]
     public long id { get; internal set; }
-    [Sirenix.OdinInspector.ShowInInspector]
     public float3 position { get; internal set; }
     public MulNode Node { get; internal set; }
 
-    [Sirenix.OdinInspector.ShowInInspector]
     public List<MulNodeLinkInfo> Next { get; } = new();
 
     internal int vs;

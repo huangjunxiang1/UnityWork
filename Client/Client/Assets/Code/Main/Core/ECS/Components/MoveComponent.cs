@@ -10,7 +10,6 @@ namespace Game
 {
     public class MoveComponent : SComponent
     {
-        [Sirenix.OdinInspector.ShowInInspector]
         float3 _t;
         public float3 Direction
         {

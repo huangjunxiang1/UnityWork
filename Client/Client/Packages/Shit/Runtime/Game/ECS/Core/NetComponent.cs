@@ -23,7 +23,7 @@ namespace Game
         public static NetComponent Inst { get; private set; }
 #endif
 
-        [Sirenix.OdinInspector.ShowInInspector]
+        [ShowInInspector]
         string IP => Session?.IP.ToString();
         static long rpc; 
 

@@ -1,5 +1,4 @@
-﻿using Sirenix.OdinInspector;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -91,41 +90,32 @@ namespace Core
             }
         }
 
+        [HideInInspector]
         public sealed override SObject Entity { get => base.Entity; internal set => base.Entity = value; }
 
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public sealed override long ActorId { get; init; }
 
         /// <summary>
         /// 随机生成的ID
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public sealed override long gid { get; } = Util.RandomLong();
 
         /// <summary>
         /// 自用 表id
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public long tid { get; init; }
 
         /// <summary>
         /// 对象组
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public int Group { get; init; }
 
         /// <summary>
         /// 事件监听
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public override bool EventEnable
         {
             get => _eventEnable;
@@ -141,8 +131,6 @@ namespace Core
             }
         }
 
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public virtual bool TimerEnable { get; set; } = true;
 
         /// <summary>
@@ -153,8 +141,6 @@ namespace Core
         /// <summary>
         /// 关键节点
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-99)]
         public sealed override STree CrucialRoot
         {
             get
@@ -226,8 +212,6 @@ namespace Core
         /// <summary>
         /// 显示组件 是否显示
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public bool View
         {
             get => _view;

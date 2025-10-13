@@ -1,5 +1,4 @@
-﻿using Sirenix.OdinInspector;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -23,8 +22,6 @@ namespace Core
         /// <summary>
         /// 关键节点
         /// </summary>
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public bool isCrucialRoot { get; init; }
 
         public override void Dispose()

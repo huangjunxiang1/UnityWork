@@ -4,45 +4,44 @@ class FUIBinder
 {
     public static void Binding()
     {
-        UIObjectFactory.SetPackageItemExtension(G_Box_YesOrNo.URL, typeof(G_Box_YesOrNo));
         UIObjectFactory.SetPackageItemExtension(G_Connecting.URL, typeof(G_Connecting));
         UIObjectFactory.SetPackageItemExtension(G_test.URL, typeof(G_test));
         UIObjectFactory.SetPackageItemExtension(G_Tips.URL, typeof(G_Tips));
+        UIObjectFactory.SetPackageItemExtension(G_Box_YesOrNo.URL, typeof(G_Box_YesOrNo));
     }
 }
-partial class G_Box_YesOrNo : GComponent
+partial class FUIGame : FUI
 {
-    static G_Box_YesOrNo _inst;
-    public static G_Box_YesOrNo Inst
-    {
-        get
-        {
-            if (_inst == null || _inst.isDisposed) 
-                _inst = Create();
-            return _inst;
-        }
-    }
-    public static readonly string URL = "ui://zvziziwirjgbf";
-    public GButton _yes { get; private set; }
-    public GButton _no { get; private set; }
-    public GTextField _title { get; private set; }
-    public GTextField _text { get; private set; }
+    public sealed override string url => "ui://zvziziwibe98p";
+    public GButton _replay { get; private set; }
+    public G_Tips _tips2 { get; private set; }
 
-    public override void ConstructFromXML(XML xml)
+    protected sealed override void Binding()
     {
-        _yes = (GButton)this.GetChildAt(1);
-        _no = (GButton)this.GetChildAt(2);
-        _title = (GTextField)this.GetChildAt(3);
-        _text = (GTextField)this.GetChildAt(4);
-        this.OnEnter();
+        GComponent ui = this.ui;
+        _replay = (GButton)ui.GetChildAt(1);
+        _tips2 = (G_Tips)ui.GetChildAt(2);
     }
-    partial void OnEnter();
-    partial void OnExit();
-    public static G_Box_YesOrNo Create() => (G_Box_YesOrNo)UIPackage.CreateObjectFromURL(URL);
     public override void Dispose()
     {
         base.Dispose();
-        this.OnExit();
+    }
+}
+partial class FUIFighting2 : FUI
+{
+    public sealed override string url => "ui://zvziziwifcrmg";
+    public GButton _btnBack { get; private set; }
+    public GButton _play { get; private set; }
+
+    protected sealed override void Binding()
+    {
+        GComponent ui = this.ui;
+        _btnBack = (GButton)ui.GetChildAt(0);
+        _play = (GButton)ui.GetChildAt(1);
+    }
+    public override void Dispose()
+    {
+        base.Dispose();
     }
 }
 partial class G_Connecting : GLabel
@@ -93,17 +92,15 @@ partial class FUIFighting : FUI
         base.Dispose();
     }
 }
-partial class FUIFighting2 : FUI
+partial class FUILoading : FUI
 {
-    public sealed override string url => "ui://zvziziwifcrmg";
-    public GButton _btnBack { get; private set; }
-    public GButton _play { get; private set; }
+    public sealed override string url => "ui://zvziziwiodqh0";
+    public GProgressBar _loadingBar { get; private set; }
 
     protected sealed override void Binding()
     {
         GComponent ui = this.ui;
-        _btnBack = (GButton)ui.GetChildAt(0);
-        _play = (GButton)ui.GetChildAt(1);
+        _loadingBar = (GProgressBar)ui.GetChildAt(1);
     }
     public override void Dispose()
     {
@@ -125,107 +122,6 @@ partial class FUIFighting3 : FUI
         _rangeRoad = (GButton)ui.GetChildAt(1);
         _play = (GButton)ui.GetChildAt(2);
         _findStyle = (GComboBox)ui.GetChildAt(3);
-    }
-    public override void Dispose()
-    {
-        base.Dispose();
-    }
-}
-partial class FUIFighting4 : FUI
-{
-    public sealed override string url => "ui://zvziziwiyj39i";
-    public GButton _btnBack { get; private set; }
-    public GButton _rangeRoad { get; private set; }
-    public GButton _play { get; private set; }
-    public GButton _showCube { get; private set; }
-
-    protected sealed override void Binding()
-    {
-        GComponent ui = this.ui;
-        _btnBack = (GButton)ui.GetChildAt(0);
-        _rangeRoad = (GButton)ui.GetChildAt(1);
-        _play = (GButton)ui.GetChildAt(2);
-        _showCube = (GButton)ui.GetChildAt(3);
-    }
-    public override void Dispose()
-    {
-        base.Dispose();
-    }
-}
-partial class FUIGame : FUI
-{
-    public sealed override string url => "ui://zvziziwibe98p";
-    public GButton _replay { get; private set; }
-    public G_Tips _tips2 { get; private set; }
-
-    protected sealed override void Binding()
-    {
-        GComponent ui = this.ui;
-        _replay = (GButton)ui.GetChildAt(1);
-        _tips2 = (G_Tips)ui.GetChildAt(2);
-    }
-    public override void Dispose()
-    {
-        base.Dispose();
-    }
-}
-partial class FUILoading : FUI
-{
-    public sealed override string url => "ui://zvziziwiodqh0";
-    public GProgressBar _loadingBar { get; private set; }
-
-    protected sealed override void Binding()
-    {
-        GComponent ui = this.ui;
-        _loadingBar = (GProgressBar)ui.GetChildAt(1);
-    }
-    public override void Dispose()
-    {
-        base.Dispose();
-    }
-}
-partial class FUILogin : FUI
-{
-    public sealed override string url => "ui://zvziziwiqgu22";
-    public GButton _btnLogin { get; private set; }
-    public GLabel _acc { get; private set; }
-    public GLabel _pw { get; private set; }
-    public GButton _btnEnter { get; private set; }
-    public GButton _asServer { get; private set; }
-    public GLabel _serverIP { get; private set; }
-    public Controller _c1 { get; private set; }
-
-    protected sealed override void Binding()
-    {
-        GComponent ui = this.ui;
-        _btnLogin = (GButton)ui.GetChildAt(1);
-        _acc = (GLabel)ui.GetChildAt(2);
-        _pw = (GLabel)ui.GetChildAt(3);
-        _btnEnter = (GButton)ui.GetChildAt(5);
-        _asServer = (GButton)ui.GetChildAt(7);
-        _serverIP = (GLabel)ui.GetChildAt(8);
-        _c1 = ui.GetControllerAt(0);
-    }
-    public override void Dispose()
-    {
-        base.Dispose();
-    }
-}
-partial class FUIRooms : FUI
-{
-    public sealed override string url => "ui://zvziziwipivyt";
-    public GButton _ref { get; private set; }
-    public GList _rooms { get; private set; }
-    public GLabel _roomName { get; private set; }
-    public GButton _create { get; private set; }
-
-    protected sealed override void Binding()
-    {
-        GComponent ui = this.ui;
-        _ref = (GButton)ui.GetChildAt(1);
-        _rooms = (GList)ui.GetChildAt(2);
-        _roomName = (GLabel)ui.GetChildAt(3);
-        _create = (GButton)ui.GetChildAt(4);
     }
     public override void Dispose()
     {
@@ -270,6 +166,54 @@ partial class G_test : GLabel
         this.OnExit();
     }
 }
+partial class FUIRooms : FUI
+{
+    public sealed override string url => "ui://zvziziwipivyt";
+    public GButton _ref { get; private set; }
+    public GList _rooms { get; private set; }
+    public GLabel _roomName { get; private set; }
+    public GButton _create { get; private set; }
+
+    protected sealed override void Binding()
+    {
+        GComponent ui = this.ui;
+        _ref = (GButton)ui.GetChildAt(1);
+        _rooms = (GList)ui.GetChildAt(2);
+        _roomName = (GLabel)ui.GetChildAt(3);
+        _create = (GButton)ui.GetChildAt(4);
+    }
+    public override void Dispose()
+    {
+        base.Dispose();
+    }
+}
+partial class FUILogin : FUI
+{
+    public sealed override string url => "ui://zvziziwiqgu22";
+    public GButton _btnLogin { get; private set; }
+    public GLabel _acc { get; private set; }
+    public GLabel _pw { get; private set; }
+    public GButton _btnEnter { get; private set; }
+    public GButton _asServer { get; private set; }
+    public GLabel _serverIP { get; private set; }
+    public Controller _c1 { get; private set; }
+
+    protected sealed override void Binding()
+    {
+        GComponent ui = this.ui;
+        _btnLogin = (GButton)ui.GetChildAt(1);
+        _acc = (GLabel)ui.GetChildAt(2);
+        _pw = (GLabel)ui.GetChildAt(3);
+        _btnEnter = (GButton)ui.GetChildAt(5);
+        _asServer = (GButton)ui.GetChildAt(7);
+        _serverIP = (GLabel)ui.GetChildAt(8);
+        _c1 = ui.GetControllerAt(0);
+    }
+    public override void Dispose()
+    {
+        base.Dispose();
+    }
+}
 partial class G_Tips : GComponent
 {
     static G_Tips _inst;
@@ -295,6 +239,62 @@ partial class G_Tips : GComponent
     {
         base.Dispose();
         this.OnExit();
+    }
+}
+partial class G_Box_YesOrNo : GComponent
+{
+    static G_Box_YesOrNo _inst;
+    public static G_Box_YesOrNo Inst
+    {
+        get
+        {
+            if (_inst == null || _inst.isDisposed) 
+                _inst = Create();
+            return _inst;
+        }
+    }
+    public static readonly string URL = "ui://zvziziwirjgbf";
+    public GButton _yes { get; private set; }
+    public GButton _no { get; private set; }
+    public GTextField _title { get; private set; }
+    public GTextField _text { get; private set; }
+
+    public override void ConstructFromXML(XML xml)
+    {
+        _yes = (GButton)this.GetChildAt(1);
+        _no = (GButton)this.GetChildAt(2);
+        _title = (GTextField)this.GetChildAt(3);
+        _text = (GTextField)this.GetChildAt(4);
+        this.OnEnter();
+    }
+    partial void OnEnter();
+    partial void OnExit();
+    public static G_Box_YesOrNo Create() => (G_Box_YesOrNo)UIPackage.CreateObjectFromURL(URL);
+    public override void Dispose()
+    {
+        base.Dispose();
+        this.OnExit();
+    }
+}
+partial class FUIFighting4 : FUI
+{
+    public sealed override string url => "ui://zvziziwiyj39i";
+    public GButton _btnBack { get; private set; }
+    public GButton _rangeRoad { get; private set; }
+    public GButton _play { get; private set; }
+    public GButton _showCube { get; private set; }
+
+    protected sealed override void Binding()
+    {
+        GComponent ui = this.ui;
+        _btnBack = (GButton)ui.GetChildAt(0);
+        _rangeRoad = (GButton)ui.GetChildAt(1);
+        _play = (GButton)ui.GetChildAt(2);
+        _showCube = (GButton)ui.GetChildAt(3);
+    }
+    public override void Dispose()
+    {
+        base.Dispose();
     }
 }
 partial class FUI3DHeader : FUI3D

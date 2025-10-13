@@ -21,7 +21,6 @@ static class _main
 
         TypeLstCheck.test();
         EcsSystem.test();
-        GenericEventTest.test();
         EventTest2.test();
         EventTest.test();
         STaskTest.test();

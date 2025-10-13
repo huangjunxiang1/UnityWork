@@ -1,5 +1,4 @@
-﻿using Sirenix.OdinInspector;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,8 +39,6 @@ namespace Core
         public virtual long gid => this.Entity.gid;
         public virtual STree CrucialRoot => this.Entity.CrucialRoot;
 
-        [ShowInInspector]
-        [PropertyOrder(-100)]
         public virtual bool Enable
         {
             get => _enable;
