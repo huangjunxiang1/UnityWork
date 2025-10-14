@@ -13,65 +13,80 @@ using TMPro;
 
 class Ex
 {
-    static void cull_res()
+    static void cull_res(bool deleteVs, string packageName,BuildTarget buildTarget)
     {
-        var dirs = Directory.GetDirectories($"{Application.dataPath}/../Bundles/");
-        foreach (var dir in dirs)
+        var dir = $"{Application.dataPath}/../Bundles/{buildTarget}/{packageName}";
+        var ds = Directory.GetDirectories(dir).Select(t => new DirectoryInfo(t)).Where(t => t.Name.Contains('.')).ToList();
+        ds.Sort((x, y) =>
         {
-            foreach (var dir2 in Directory.GetDirectories(dir))
-            {
-                var ds = Directory.GetDirectories(dir2).Select(t => new DirectoryInfo(t)).Where(t => t.Name.Contains('.')).ToList();
-                ds.Sort((x, y) =>
-                {
-                    Version v1 = null;
-                    Version v2 = null;
-                    try { v1 = new(x.Name); }
-                    catch (Exception) { }
-                    try { v2 = new(y.Name); }
-                    catch (Exception) { }
-                    if (v1 < v2) return -1;
-                    if (v1 > v2) return 1;
-                    return 0;
-                });
-                var src = ds.LastOrDefault();
-                var cull = src.GetFiles().Select(t => t.Name);
-                //File.Delete($"{src}/PackageManifest_{AssetBundleBuilderSettingData.Setting.BuildPackage}.version");
-                HashSet<string> olds = new(100000);
-                for (int i = 0; i < ds.Count - 1; i++)
-                {
-                    var target = ds[i];
-                    foreach (var item in target.GetFiles())
-                        olds.Add(item.Name);
-                }
-                foreach (var item in src.GetFiles())
-                {
-                    if (item.Name.EndsWith(".version"))
-                        continue;
-                    if (item.Name.EndsWith(".json") || item.Name.EndsWith(".xml") || item.Name.EndsWith(".report"))
-                        item.Delete();
-                    if (olds.Contains(item.Name))
-                        item.Delete();
-                }
-            }
+            Version v1 = null;
+            Version v2 = null;
+            try { v1 = new(x.Name); }
+            catch (Exception) { }
+            try { v2 = new(y.Name); }
+            catch (Exception) { }
+            if (v1 < v2) return -1;
+            if (v1 > v2) return 1;
+            return 0;
+        });
+        var src = ds.LastOrDefault();
+        if (src == null)
+            return;
+        var cull = src.GetFiles().Select(t => t.Name);
+        if (deleteVs)
+            File.Delete($"{src}/{packageName}.version");
+        HashSet<string> olds = new(100000);
+        for (int i = 0; i < ds.Count - 1; i++)
+        {
+            var target = ds[i];
+            foreach (var item in target.GetFiles())
+                olds.Add(item.Name);
+        }
+        foreach (var item in src.GetFiles())
+        {
+            if (item.Name.EndsWith(".version"))
+                continue;
+            if (item.Name.EndsWith(".json") || item.Name.EndsWith(".xml") || item.Name.EndsWith(".report"))
+                item.Delete();
+            if (olds.Contains(item.Name))
+                item.Delete();
         }
         EditorUtility.DisplayDialog("提示", "剔除完毕", "确定", "取消");
+    }
+
+    // 新增：提取的复用 UI 创建函数（Toggle + Button）
+    static void AddCullControls(VisualElement root, string packageName,BuildTarget buildTarget)
+    {
+        // Toggle：是否删除 PackageManifest 文件（默认从 EditorPrefs 读取）
+        string prefKey = $"YooAsset.Cull.vs";
+        var deleteToggle = new Toggle($"删除 x.version");
+        deleteToggle.value = EditorPrefs.GetBool(prefKey, false);
+        deleteToggle.style.marginTop = 6;
+        deleteToggle.RegisterValueChangedCallback(evt =>
+        {
+            EditorPrefs.SetBool(prefKey, evt.newValue);
+        });
+        root.Add(deleteToggle);
+
+        Button myButton = new Button();
+        myButton.style.marginTop = 10;
+        myButton.text = "剔除重复资源";
+        myButton.style.height = 50;
+        myButton.AddToClassList("my-button-style");
+        myButton.clicked += () => cull_res(deleteToggle.value, packageName, buildTarget);
+        root.Add(myButton);
     }
 
     [BuildPipelineAttribute(nameof(EBuildPipeline.RawFileBuildPipeline))]
     internal class Raw : RawfileBuildpipelineViewer
     {
-        protected override string GetDefaultPackageVersion() => getVer(this.BuildTarget,this.PackageName);
+        protected override string GetDefaultPackageVersion() => getVer(this.BuildTarget, this.PackageName);
         public override void CreateView(VisualElement parent)
         {
             base.CreateView(parent);
 
-            Button myButton = new Button();
-            myButton.style.marginTop = 10;
-            myButton.text = "剔除重复资源";
-            myButton.style.height = 50;
-            myButton.AddToClassList("my-button-style");
-            myButton.clicked += cull_res;
-            Root.Add(myButton);
+            // 使用提取后的复用函数
+            Ex.AddCullControls(Root, this.PackageName, this.BuildTarget);
 
             // 添加 FTP 上传面板
             Ex.AddFtpUploader(Root, this.BuildTarget, this.PackageName);
@@ -85,13 +100,8 @@ class Ex
         {
             base.CreateView(parent);
 
-            Button myButton = new Button();
-            myButton.style.marginTop = 10;
-            myButton.text = "剔除重复资源";
-            myButton.style.height = 50;
-            myButton.AddToClassList("my-button-style");
-            myButton.clicked += cull_res;
-            Root.Add(myButton);
+            // 使用提取后的复用函数
+            Ex.AddCullControls(Root,this.PackageName, this.BuildTarget);
 
             Ex.AddFtpUploader(Root, this.BuildTarget, this.PackageName);
         }
@@ -328,7 +338,7 @@ class Ex
                             {
                                 progressBar.value = totalProgress;
                                 // 显示总进度与当前文件进度，附带已上传字节/文件总字节的可读文本
-                                statusLabel.text = $"总 { (int)(totalProgress * 100) }%  |  文件 { (int)(currentFileProgress * 100) }%  —  {relative} ({FormatBytes(currentFileSent)}/{FormatBytes(fileLength)})";
+                                statusLabel.text = $"总 { (int)(totalProgress * 100) }%  ({FormatBytes(uploadedBytes)}/{FormatBytes(totalBytes)})  |  {(int)(currentFileProgress * 100) }%  —  {relative} ({FormatBytes(currentFileSent)}/{FormatBytes(fileLength)})";
                             };
                         });
 
@@ -337,7 +347,7 @@ class Ex
                         {
                             float totalProgressAfterFile = totalBytes > 0 ? Math.Min(1f, (float)uploadedBytes / totalBytes) : 1f;
                             progressBar.value = totalProgressAfterFile;
-                            statusLabel.text = $"总 { (int)(totalProgressAfterFile * 100) }%  |  文件 100%  —  {relative} ({FormatBytes(fileLength)}/{FormatBytes(fileLength)})";
+                            statusLabel.text = $"总 { (int)(totalProgressAfterFile * 100) }% ({FormatBytes(uploadedBytes)}/{FormatBytes(totalBytes)}) | 100%  —  {relative} ({FormatBytes(fileLength)}/{FormatBytes(fileLength)})";
                         };
                     }
 
