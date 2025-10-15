@@ -128,13 +128,15 @@ public static class Pkg
     {
         if (platform == RuntimePlatform.WindowsEditor
             || platform == RuntimePlatform.WindowsPlayer)
-            return "win";
+            return "StandaloneWindows64";
         if (platform == RuntimePlatform.OSXEditor
             || platform == RuntimePlatform.OSXPlayer
             || platform == RuntimePlatform.IPhonePlayer)
-            return "ios";
+            return "iOS";
         if (platform == RuntimePlatform.Android)
-            return "android";
+            return "Android";
+        if (platform == RuntimePlatform.WebGLPlayer)
+            return "WebGL";
         Loger.Error($"unknown platform={platform}");
         return "unknown";
     }

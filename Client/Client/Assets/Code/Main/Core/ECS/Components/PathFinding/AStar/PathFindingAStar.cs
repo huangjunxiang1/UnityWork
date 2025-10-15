@@ -49,7 +49,7 @@ namespace Game
         public void View(bool view)
         {
             this.view = view;
-            if (view)
+            if (view && this.enabled && this.gameObject.activeSelf)
             {
                 if (!quad)
                 {
