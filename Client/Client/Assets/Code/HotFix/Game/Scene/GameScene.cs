@@ -35,7 +35,7 @@ namespace Game
                 if (go.ActorId == s.myid)
                     go.AddComponent<GameInputComponent>();
                 go.KV.Set(v.attribute);
-                go.AddComponent<PathFindingAStarComponent>();
+                go.AddComponent<PathFindingAStarComponent>().Volume = new RectVolume(2);
                 go.AddComponent<PathFindingNodeComponent>();
                 go.AddComponent<MoveToComponent>();
             }

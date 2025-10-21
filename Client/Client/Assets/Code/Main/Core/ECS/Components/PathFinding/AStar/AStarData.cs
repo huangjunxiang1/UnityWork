@@ -52,17 +52,26 @@ public class AStarData
     internal byte vs;
     internal byte[] vsArray;
     internal bool isFinding;
+#if UNITY_EDITOR
+    internal Action<int2> occupationChange;
+#endif
     int2[] array;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddOccupation(int2 xy)
     {
         Occupation[xy.y * width + xy.x]++;
+#if UNITY_EDITOR
+        occupationChange?.Invoke(xy);
+#endif
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveOccupation(int2 xy)
     {
         Occupation[xy.y * width + xy.x]--;
+#if UNITY_EDITOR
+        occupationChange?.Invoke(xy);
+#endif
     }
     public float3 GetPosition(int2 xy) => start + size * new float3(xy.x, 0, xy.y) + size / 2;
     public int2 GetXY(float3 position) => ((int3)((position - start) / size)).xz;

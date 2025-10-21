@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Game
 {
@@ -20,11 +19,23 @@ namespace Game
         internal byte[] data;
         internal int2 dataSize;
         GameObject quad;
-        Texture2D texture;
         Vector3 point;
         bool view;
+        GraphicsBuffer buffer;
+        AStarData astar;
+        int[] cost;
 
 #if UNITY_EDITOR
+        private void OnEnable()
+        {
+            this.View(view);
+        }
+        void change(int2 xy)
+        {
+            int index = xy.y * astar.width + xy.x;
+            cost[0] = astar.data[index] | (astar.Occupation[index] << 8);
+            buffer.SetData(cost, 0, index, 1);
+        }
         private void OnValidate()
         {
             this.View(view);
@@ -40,10 +51,17 @@ namespace Game
 #endif
         private void OnDisable()
         {
-            if (texture)
-                GameObject.DestroyImmediate(texture);
             if (quad)
                 GameObject.DestroyImmediate(quad);
+            if (buffer != null)
+            {
+                buffer.Dispose();
+                buffer = null;
+            }
+#if UNITY_EDITOR
+            if (astar != null)
+                astar.occupationChange -= change;
+#endif
         }
 
         public void View(bool view)
@@ -86,24 +104,38 @@ namespace Game
                new Vector2(1,1),
             };
 
-            if (texture)
-                texture.Reinitialize(aStarSize.x, aStarSize.y);
-            else
-                texture = new Texture2D(aStarSize.x, aStarSize.y);
-            texture.filterMode = FilterMode.Point;
+#if UNITY_EDITOR
+            if (astar != null)
+                astar.occupationChange -= change;
+#endif
+            astar = Client.Data?.Get<AStarData>(false);
+#if UNITY_EDITOR
+            if (astar != null)
+                astar.occupationChange += change;
+#endif
+
+            if (cost == null || cost.Length != aStarSize.x * aStarSize.y)
+                cost = new int[aStarSize.x * aStarSize.y];
             for (int i = 0; i < data.Length; i++)
             {
                 var b = data[i];
-                texture.SetPixel(i % aStarSize.x, i / aStarSize.x, ((b & 1) == 0) ? new Color(1, 0, 0, 0.5f) : new Color(0, 1, 0, 0.5f));
+                var oc = (astar != null && i < astar.Occupation.Length) ? astar.Occupation[i] : 0;
+                cost[i] = b;
+                cost[i] |= oc << 8;
             }
-            texture.Apply();
 
             // 应用 Mesh
             quad.GetComponent<MeshFilter>().mesh = mesh;
             var r = quad.GetComponent<MeshRenderer>();
             var mat = GameObject.Instantiate(Resources.Load<Material>("Shit/AStarView_Mat"));
-            mat.SetTexture("_Mask", texture);
             mat.SetVector("_Size", new Vector4(aStarSize.x, aStarSize.y, 0, 0));
+            if (buffer == null || buffer.count != aStarSize.x * aStarSize.y)
+            {
+                buffer?.Dispose();
+                buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, aStarSize.x * aStarSize.y, 4);
+            }
+            buffer.SetData(cost);
+            mat.SetBuffer("_Cost", buffer);
             r.sharedMaterial = mat;
             var box = quad.AddComponent<BoxCollider>();
             box.center = mesh.bounds.center;

@@ -17,7 +17,6 @@ class PathFindingAStarDrawLine : Editor
     float3 end;
     PathFindingAStar root;
     static bool viewAstar = true;
-    static bool viewCost = false;
     static int cost = 1;
 
     private void OnEnable()
@@ -107,22 +106,6 @@ class PathFindingAStarDrawLine : Editor
                 }
             }
         }
-        for (int i = 0; i < root.aStarSize.x; i++)
-        {
-            for (int j = 0; j < root.aStarSize.y; j++)
-            {
-                if (viewCost)
-                {
-                    int index = j * root.aStarSize.x + i;
-                    if (index< root.data.Length)
-                    {
-                        var d = root.data[index];
-                        if ((d & 1) == 1 && d >> 1 != 0)
-                            Handles.Label((float3)root.transform.position + new float3(i, 0, j) * root.size + new float3(0, 0, root.size.z), (d >> 1).ToString(), gui);
-                    }
-                }
-            }
-        }
     }
     public override void OnInspectorGUI()
     {
@@ -135,8 +118,6 @@ class PathFindingAStarDrawLine : Editor
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.Space();
         viewAstar = EditorGUILayout.Toggle("显示A星数据", viewAstar);
-        EditorGUILayout.Space();
-        viewCost = EditorGUILayout.Toggle("显示行动力消耗", viewCost);
         EditorGUILayout.Space();
         if (EditorGUI.EndChangeCheck())
             root.View(viewAstar);
@@ -172,7 +153,6 @@ class PathFindingAStarDrawLine : Editor
                 return;
             }
             DBuffer buffer = new(10000);
-            buffer.Compress = false;
             buffer.Write(root.transform.position);
             buffer.Write(root.size);
             buffer.Write(root.aStarSize);
@@ -202,7 +182,6 @@ class PathFindingAStarDrawLine : Editor
         if (File.Exists(path))
         {
             var buffer = new DBuffer(File.ReadAllBytes(path));
-            buffer.Compress = false;
             root.transform.position = buffer.Readfloat3();
             root.size = buffer.Readfloat3();
             root.aStarSize = math.max(buffer.Readint2(), 1);

@@ -46,105 +46,21 @@ partial class FUIGame
 
     async void replay()
     {
-        /*var c = Client.Scene.GetChildren().First(t => t is SGameObject)?.GetComponent<PathFindingAStarComponent>();
-        c.Finding(0, new(49, 49), 50, PathFindingMethod.AStar, PathFindingRound.R4);
-        var path = c.GetFindingIDs();
-        c.Move();*/
-
-        var astar = Client.Data.Get<AStarData>();
-        foreach (var item in Client.Scene.Current.GetChildren().Where(t => t is SGameObject).ToList())
-        {
-            item.Dispose();
-        }
-        for (int i = 0; i < 500; i++)
-        {
-            SGameObject go = new() { ActorId = i + 1 };
-            Client.Scene.Current.AddChild(go);
-            go.GameObject.SetGameObject("3D_Cube");
-            int2 v2 = new int2(Util.RandomInt(0, astar.width), Util.RandomInt(0, astar.height));
-            go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
-            go.AddComponent<MoveToComponent>();
-            go.KV.Set((int)KType.RotateSpeed, 20);
-            go.KV.Set((int)KType.MoveSpeed, 5);
-            go.AddComponent<PathFindingAStarComponent>().Volume = new RectVolume(0);
-            move(go.GetComponent<PathFindingAStarComponent>());
-        }
+        var move = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+        await move.Goto(new int2(Util.RandomInt(0, 50), Util.RandomInt(0, 50)));
         return;
-        {
-            SGameObject go = new() { ActorId = 2 + 1 };
-            Client.Scene.Current.AddChild(go);
-            go.GameObject.SetGameObject("3D_Cube");
-            int2 v2 = new int2(2, 2);
-            go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
-            go.AddComponent<MoveToComponent>();
-            go.KV.Set((int)KType.RotateSpeed, 20);
-            go.KV.Set((int)KType.MoveSpeed, 5);
-            go.AddComponent<PathFindingAStarComponent>().Volume = new RectVolume(0);
-        }
-        {
-            SGameObject go = new() { ActorId = 0 + 1 };
-            Client.Scene.Current.AddChild(go);
-            go.GameObject.SetGameObject("3D_Cube");
-            int2 v2 = new int2(1, 2);
-            go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
-            go.AddComponent<MoveToComponent>();
-            go.KV.Set((int)KType.RotateSpeed, 20);
-            go.KV.Set((int)KType.MoveSpeed, 5);
-
-            go.AddComponent<PathFindingAStarComponent>().Volume = new RectVolume(0);
-            var finding = go.GetComponent<PathFindingAStarComponent>();
-            /*if (finding.Finding(new int2(4, 4)))
-            {
-
-            }
-            else
-            {
-                Loger.Error("false");
-            }*/
-            finding.Goto(new int2(4, 4));
-
-            /*var sw = new Stopwatch();
-            sw.Start();
-            for (int i = 0; i < 5000; i++)
-                finding.Finding(199);
-            sw.Stop();
-            Loger.Error(sw.ElapsedMilliseconds);*/
-
-
-            //move2();
-        }
-        //PathFindingAStarComponent target = null;
-        {
-            SGameObject go = new() { ActorId = 1 + 1 };
-            Client.Scene.Current.AddChild(go);
-            go.GameObject.SetGameObject("3D_Cube");
-            int2 v2 = new int2(5, 2);
-            go.Transform.position = new float3(v2.x * astar.size.x, 0, v2.y * astar.size.z) + astar.size / 2;
-            go.AddComponent<MoveToComponent>();
-            go.KV.Set((int)KType.RotateSpeed, 20);
-            go.KV.Set((int)KType.MoveSpeed, 5);
-            //move2(go.AddComponent(new PathFindingAStarComponent(astar, new RectVolume(1))), new int2(0, 1));
-        }
-        async SValueTask move(PathFindingAStarComponent finding)
-        {
-            while (true)
-            {
-                await SValueTask.Delay(Util.RandomInt(500, 1000));
-                if (finding.Disposed) return;
-                int2 v2 = new int2(Util.RandomInt(0, astar.width), Util.RandomInt(0, astar.height));
-                await finding.Goto(v2, r: PathFindingRound.R8);
-            }
-        }
-        async void move2(PathFindingAStarComponent finding,int2 xy)
-        {
-            do
-            {
-                await SValueTask.Delay(Util.RandomInt(500, 1000));
-                if (finding.Disposed) return;
-            } while (!await finding.Goto(xy, near: 2, targetVolume: new RectVolume(1), r: PathFindingRound.R4));
-        }
-
-        return;
+        /*var p = move.Entity.GetComponent<TransformComponent>();
+        List<float3> ps = new();
+        ps.Add(p.position);
+        ps.Add(p.position + new float3(1, 0, 0));
+        ps.Add(p.position + new float3(1, 0, 1));
+        ps.Add(p.position + new float3(2, 0, 1));
+        ps.Add(p.position + new float3(2, 0, 2));
+        ps.Add(p.position + new float3(3, 0, 2));
+        ps.Add(p.position + new float3(3, 0, 3));
+        ps.Add(p.position + new float3(4, 0, 3));
+        ps.Add(p.position + new float3(4, 0, 4));
+        move.MoveTo(ps, quaternion.LookRotation(math.back(), math.up()), style: MoveStyle.CatmullRom);*/
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         em.DestroyEntity(es.AsArray());
         es.Clear();

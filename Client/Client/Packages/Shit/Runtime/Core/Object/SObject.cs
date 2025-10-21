@@ -302,6 +302,11 @@ namespace Core
         }
         public SComponent AddComponent(Type type)
         {
+            if (this.Disposed)
+            {
+                Loger.Error("Entity is disposed");
+                return default;
+            }
             if (typeof(SComponent).IsAssignableFrom(type))
             {
                 Loger.Error($"{type}不是{nameof(SComponent)}组件");
@@ -315,10 +320,7 @@ namespace Core
         public T GetComponent<T>() where T : SComponent
         {
             if (this.Disposed)
-            {
-                Loger.Error($"实体已经销毁 entity={this}");
                 return default;
-            }
             if (_components.TryGetValue(typeof(T), out var c))
                 return (T)c;
             return default;
@@ -327,31 +329,32 @@ namespace Core
         {
             if (this.Disposed)
             {
-                Loger.Error($"实体已经销毁 entity={this}");
-                yield return null;
+                foreach (var item in Enumerable.Empty<T>())
+                    yield return item;
             }
-            foreach (var c in _components.Values)
+            else
             {
-                if (c is T)
-                    yield return c as T;
+                foreach (var c in _components.Values)
+                {
+                    if (c is T)
+                        yield return c as T;
+                }
             }
         }
         public SComponent GetComponent(Type type)
         {
-            if (this.Disposed)
-            {
-                Loger.Error($"实体已经销毁 entity={this}");
+            //这一步不可判断this.Disposed 因为Dispose对象时 需要走System Out逻辑 里面需要获取组件
+            if (_components == null)
                 return default;
-            }
             if (_components.TryGetValue(type, out var c))
                 return c;
             return default;
         }
         public bool TryGetComponent<T>(out T c) where T : SComponent
         {
-            if (this.Disposed)
+            //这一步不可判断this.Disposed 因为Dispose对象时 需要走System Out逻辑 里面需要获取组件
+            if (_components == null)
             {
-                Loger.Error($"实体已经销毁 entity={this}");
                 c = default;
                 return false;
             }
@@ -365,9 +368,9 @@ namespace Core
         }
         public bool TryGetComponent(Type type, out SComponent c)
         {
-            if (this.Disposed)
+            //这一步不可判断this.Disposed 因为Dispose对象时 需要走System Out逻辑 里面需要获取组件
+            if (_components == null)
             {
-                Loger.Error($"实体已经销毁 entity={this}");
                 c = default;
                 return false;
             }
@@ -397,19 +400,13 @@ namespace Core
         public bool HasComponent<T>() where T : SComponent
         {
             if (this.Disposed)
-            {
-                Loger.Error($"实体已经销毁 entity={this}");
                 return false;
-            }
             return _components.ContainsKey(typeof(T));
         }
         public bool HasComponent(Type type)
         {
             if (this.Disposed)
-            {
-                Loger.Error($"实体已经销毁 entity={this}");
                 return false;
-            }
             return _components.ContainsKey(type);
         }
 
@@ -453,7 +450,8 @@ namespace Core
         }
         internal void RemoveFromComponents(SComponent c)
         {
-            _components.Remove(c.GetType());
+            if (!this.Disposed)
+                _components.Remove(c.GetType());
         }
 
         /// <summary>
@@ -473,6 +471,10 @@ namespace Core
 
             if (this.Parent != null)
                 this.Parent.Remove(this);
+
+            //先标记为dispose
+            foreach (var item in _components)
+                item.Value.Disposed = true;
 
             foreach (var item in _components)
                 World.System.Out(item.Key, this);
