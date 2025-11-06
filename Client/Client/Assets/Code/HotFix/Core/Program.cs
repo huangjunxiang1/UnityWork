@@ -1,11 +1,11 @@
-using Event;
+ï»¿using Event;
 using Game;
 using System;
 using System.Collections.Generic;
 
 public static class Program
 {
-    public static async void Main()
+    public async static void Main()
     {
         long tick = DateTime.Now.Ticks;
         List<Type> types = Types.ReflectionAllTypes();
@@ -13,22 +13,22 @@ public static class Program
         Client.Load(types);
 
         long tick2 = DateTime.Now.Ticks;
-        UnityEngine.Debug.Log("¿ò¼Ü³õÊ¼»¯³É¹¦");
-        UnityEngine.Debug.Log($"ºÄÊ±:{(tick2 - tick) / 10000}ms");
+        UnityEngine.Debug.Log("æ¡†æ¶åˆå§‹åŒ–æˆåŠŸ");
+        UnityEngine.Debug.Log($"è€—æ—¶:{(tick2 - tick) / 10000}ms");
 
         await Client.World.Event.RunEventAsync(new EC_GameStart());
 
         long tick3 = DateTime.Now.Ticks;
-        UnityEngine.Debug.Log("ÓÎÏ·³õÊ¼»¯³É¹¦");
-        UnityEngine.Debug.Log($"ºÄÊ±:{(tick3 - tick2) / 10000}ms");
+        UnityEngine.Debug.Log("æ¸¸æˆåˆå§‹åŒ–æˆåŠŸ");
+        UnityEngine.Debug.Log($"è€—æ—¶:{(tick3 - tick2) / 10000}ms");
 
-        //ÏÈÔËĞĞµ¥Ôª²âÊÔ
+        //å…ˆè¿è¡Œå•å…ƒæµ‹è¯•
         if (GameStart.Inst.Debug)
         {
             long tick4 = DateTime.Now.Ticks;
             Client.World.Event.RunEvent(new EC_ModuleTest());
-            UnityEngine.Debug.Log("µ¥Ôª²âÊÔÍê³É");
-            UnityEngine.Debug.Log($"ºÄÊ±:{(tick4 - tick3) / 10000}ms");
+            UnityEngine.Debug.Log("å•å…ƒæµ‹è¯•å®Œæˆ");
+            UnityEngine.Debug.Log($"è€—æ—¶:{(tick4 - tick3) / 10000}ms");
         }
 
         await Client.Scene.InScene<LoginScene>();

@@ -4,6 +4,15 @@ using System.Threading.Tasks;
 
 class EventTest
 {
+    class aa
+    {
+        public static int bb;
+        [Event]
+        static void test(EC_Event t)
+        {
+            bb++;
+        }
+    }
     public static void test()
     {
         testValue = 0;
@@ -20,7 +29,10 @@ class EventTest
 
         Client.World.Event.RigisteEvent<EC_Event>(t0, 2);
 
+        aa.bb = 0;
         Client.World.Event.RunEvent(new EC_Event());
+        if (aa.bb != 1)
+            throw new System.Exception();
 
         o2.test();
         c.test();

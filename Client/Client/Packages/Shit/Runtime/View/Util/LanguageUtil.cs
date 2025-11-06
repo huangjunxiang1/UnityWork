@@ -84,6 +84,16 @@ public static class LanguageUtil
     {
         return string.Format(key.ToLan(), args);
     }
+    public static string ToAuto(this string key)
+    {
+        if (LanguageType == SystemLanguage.Chinese || LanguageType == SystemLanguage.ChineseSimplified)
+            return key;
+        return key.ToLan();
+    }
+    public static string ToAuto(this string key, params object[] args)
+    {
+        return string.Format(key.ToAuto(), args);
+    }
     public static string[] ToLans(this string key)
     {
         Language lan = languageArray[(int)LanguageType];

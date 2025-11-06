@@ -33,6 +33,8 @@ internal static class toLanguage
             {
                 List<int> lines = new List<int>();
                 var array = (object[,])pkg.Workbook.Worksheets[i].Cells.Value;
+                if (array == null)
+                    continue;
                 int len = array.GetLength(0);
                 for (int j = 3; j <= len; j++)
                 {

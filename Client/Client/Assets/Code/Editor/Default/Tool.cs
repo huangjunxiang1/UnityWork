@@ -14,6 +14,14 @@ using UnityEngine.UI;
 using HybridCLR.Editor;
 
 using static UnityEngine.GraphicsBuffer;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using NUnit.Framework;
+using OfficeOpenXml;
+
+
+
+
 
 #endif
 #if FairyGUI
@@ -708,4 +716,110 @@ public class Tool
         AssetDatabase.Refresh();
     }
 
+    [MenuItem("Tools/Gen_ForLanString")]
+    static void GenForLanString()
+    {
+        if (!File.Exists($"{Application.dataPath}/../Library/ScriptAssemblies/Game.HotFix.dll"))
+        {
+            EditorUtility.DisplayDialog("失败", "没有dll", "OK", "取消");
+            return;
+        }
+
+        var dll = File.ReadAllBytes($"{Application.dataPath}/../Library/ScriptAssemblies/Game.HotFix.dll");
+        var asm = AssemblyDefinition.ReadAssembly(new MemoryStream(dll));
+
+        var types = new List<TypeDefinition>();
+        void addTypes(TypeDefinition type)
+        {
+            types.Add(type);
+
+            //遍历嵌套类型
+            var arr = type.NestedTypes;
+            for (int i = 0; i < arr.Count; i++)
+                addTypes(arr[i]);
+        }
+        var arr = asm.MainModule.Types;
+        for (int i = 0; i < arr.Count; i++)
+            addTypes(arr[i]);
+
+        Dictionary<string,string> ret = new(10000);
+        for (int i = 0; i < types.Count; i++)
+        {
+            var type = types[i];
+            var methods = type.Methods;
+            for (int j = 0; j < methods.Count; j++)
+            {
+                var method = methods[j];
+                if (!method.HasBody)
+                    continue;
+                var body = method.Body;
+                var instructions = body.Instructions;
+                for (int k = 0; k < instructions.Count; k++)
+                {
+                    var instr = instructions[k];
+                    if (instr.OpCode == OpCodes.Call)
+                    {
+                        var member = instr.Operand as MemberReference;
+                        if (member == null)
+                        {
+                            Debug.LogError("未知 op");
+                            continue;
+                        }
+                        if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToAuto)}(System.String,System.Object[])"))
+                        {
+                            var last = instr.Previous;
+                            while (last != null && last.OpCode != OpCodes.Newarr)
+                                last = last.Previous;
+                            if (last == null)
+                            {
+                                Debug.LogError($"未找到 Newarr {type.Name} {method.Name}");
+                                continue;
+                            }
+                            last = last.Previous?.Previous;
+                            if (last != null && last.OpCode == OpCodes.Ldstr)
+                                ret.Add((string)last.Operand, $"{type.Name} {method.Name}");
+                            else
+                                Debug.LogError($"未识别OpCode {last?.OpCode} {last?.Operand} {type.Name} {method.Name}");
+                        }
+                        else if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToAuto)}(System.String)"))
+                        {
+                            var last = instr.Previous;
+                            if (last != null && last.OpCode == OpCodes.Ldstr)
+                                ret.Add((string)last.Operand, $"{type.Name} {method.Name}");
+                            else
+                                Debug.LogError($"未识别OpCode {last?.OpCode} {last?.Operand} {type.Name} {method.Name}");
+                        }
+                    }
+                }
+            }
+        }
+
+        ExcelPackage.License.SetNonCommercialPersonal("joker");
+        FileInfo fi = new FileInfo($"{Application.dataPath}/../../../Excel/Language/#genFromCode.xlsx");
+        ExcelPackage excel = new ExcelPackage(fi);
+        var cells = excel.Workbook.Worksheets[0].Cells;
+        var values = (object[,])cells.Value;
+        int len = values.GetLength(0);
+        HashSet<string> keys = new();
+        for (int i = 2; i < len; i++)
+        {
+            if (values[i, 0] != null)
+            {
+                var key = values[i, 0].ToString();
+                if (ret.TryGetValue(key, out var method))
+                    cells[i + 1, 2].Value = method;
+                else
+                    cells[i + 1, 2].Value = null;
+                ret.Remove(key);
+            }
+        }
+        foreach (var item in ret)
+        {
+            int index = ++len;
+            cells[index, 1].Value = item.Key;
+            cells[index, 2].Value = item.Value;
+        }
+        excel.Save();
+        EditorUtility.DisplayDialog("完成", "完成导出", "OK", "取消");
+    }
 }

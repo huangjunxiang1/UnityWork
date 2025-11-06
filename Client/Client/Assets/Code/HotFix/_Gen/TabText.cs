@@ -50,20 +50,4 @@ static class TabText
     /// [5,6]
     /// </summary>
     public static string[] bb3 => "gk_bb3".ToLans();
-    /// <summary>
-    /// 草泥马
-    /// </summary>
-    public static string a_1 => "gk_a_1".ToLan();
-    /// <summary>
-    /// 2
-    /// </summary>
-    public static string b_1 => "gk_b_1".ToLan();
-    /// <summary>
-    /// [3,4]
-    /// </summary>
-    public static string[] aa_1 => "gk_aa_1".ToLans();
-    /// <summary>
-    /// [5,6]
-    /// </summary>
-    public static string[] bb_1 => "gk_bb_1".ToLans();
 }

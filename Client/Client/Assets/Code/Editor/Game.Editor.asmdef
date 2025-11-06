@@ -11,15 +11,19 @@
         "GUID:2373f786d14518f44b0f475db77ba4de",
         "GUID:d8b63aba1907145bea998dd612889d6b",
         "GUID:e34a5702dd353724aa315fb8011f08c3",
-        "GUID:4d1926c9df5b052469a1c63448b7609a"
+        "GUID:4d1926c9df5b052469a1c63448b7609a",
+        "GUID:a381c639117e5a745a08a1479448330b"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Mono.Cecil.dll",
+        "EPPlus.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
