@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualBasic;
-using OfficeOpenXml;
+using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1122,46 +1122,4 @@ static class Common
         return files;
     }
 
-    //解析头 获得类型和字段名
-    public static void GetHead(List<string> tag, ExcelPackage pkg)
-    {
-        var array = (object[,])pkg.Workbook.Worksheets[0].Cells.Value;
-        int len = array.GetLength(1);
-        for (int i = 1; i <= len; i++)
-        {
-            string s = pkg.Workbook.Worksheets[0].Cells[2, i].Text;
-            if (string.IsNullOrEmpty(s))
-                continue;
-            tag.Add(s);
-        }
-    }
-
-}
-
-class temp
-{
-    public List<KV> kv = new List<KV>();
-    public List<KV2> kv2 = new List<KV2>();
-    public List<KV3> kv3 = new List<KV3>();
-}
-class temp3
-{
-    public FileInfo fi;
-    public List<(int, List<int>)> dataLines = new();
-    public bool genCS = false;
-}
-struct KV
-{
-    public int key;
-    public string v;
-}
-struct KV2
-{
-    public string key;
-    public string v;
-}
-struct KV3
-{
-    public string key;
-    public string[] v;
 }

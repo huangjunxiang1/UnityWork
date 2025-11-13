@@ -1,5 +1,4 @@
 ﻿using System;
-using OfficeOpenXml;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -40,9 +39,8 @@ class Program
                 File.Delete(item);
         }
 
-        ExcelPackage.LicenseContext = LicenseContext.Commercial;
         //main
-        if (type == "ExcelToDB")
+        if (type == "ExcelToDB" || debug)
         {
             if (!debug)
             {
@@ -62,12 +60,14 @@ class Program
             gen.genEcs = genEcs;
             gen.Gen();
         }
-        else if (type == "ExcelToLanguage")
+        if (type == "ExcelToLanguage" || debug)
         //Language表 
         {
+            if(debug)
+                excelPath = Environment.CurrentDirectory + "/../../../../../../Excel/Language";
             toLanguage.Excute();
         }
-        else if (type == "CombineLanguage")
+        if (type == "CombineLanguage" || debug)
         {
             CombineLanguage.Excute();
         }

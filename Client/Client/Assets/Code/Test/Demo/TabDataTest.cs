@@ -1,4 +1,4 @@
-using NUnit.Framework;
+ï»¿using NUnit.Framework;
 using UnityEngine;
 using System.IO;
 using Unity.Mathematics;
@@ -28,199 +28,185 @@ class TabDataTest
     static void test(DBuffer buffM, DBuffer buffL, DBuffer buff_cn, DBuffer buff_en, bool debug)
     {
         if (!buffM.ReadHeaderInfo())
-            throw new System.Exception("Êı¾İ´íÎó");
+            throw new System.Exception("æ•°æ®é”™è¯¯");
         TabM.Init(buffM, debug);
         int key = 1;
 
         if (TabM.Get_test2(key).value2[0] != 5)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(key).value2[1] != 1221)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM.Get_test2(2).value2[0] != -5)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(2).value2[1] != -1588994477)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM.Get_test2(key).longValue != 888888888888)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(key).longValue2[0] != 123456456123)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(key).longValue2[1] != 789456456789)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM.Get_test2(2).longValue != -888888888888)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(2).longValue2[0] != -1)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(2).longValue2[1] != -445566778899)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
-        if (TabM.Get_test2(key).des != "µÄ¼¡·ô µØ·½")
-            throw new System.Exception("Êı¾İ³ö´í");
+        if (TabM.Get_test2(key).des != "çš„è‚Œè‚¤ åœ°æ–¹")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(key).des2[0] != "jkhs")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if (TabM.Get_test2(key).des2[1] != "¿îµ½·¢»õ")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
+        if (TabM.Get_test2(key).des2[1] != "æ¬¾åˆ°å‘è´§")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.all(TabM.Get_test2(key).v2t != new int2(5, 5)))
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.all(TabM.Get_test2(key).v2t2[0] != new int2(9, 82)))
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.all(TabM.Get_test2(key).v2t2[1] != new int2(45, 65)))
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.abs(TabM.Get_test2(key).f1 - 5.122) >= 0.0001f)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.abs(TabM.Get_test2(key).f2[0] - 0.945) >= 0.0001)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.abs(TabM.Get_test2(2).f2[1] - 0.878655) >= 0.0001)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(key).b1 != true)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(key).b2[0] != true)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM.Get_test2(key).b2[1] != false)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM._test2Array[1].b2[0] != true)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[1].b2[1] != false)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[1].b2[2] != false)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM._test2Array[0].arrs[0][0] != 5)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[0].arrs[0][1] != 9)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[0].arrs[1][0] != 6)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[0].arrs[1][1] != 8)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM._test2Array[0].arr2s[0][0] != "ss")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[0].arr2s[0][1] != "gg")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[0].arr2s[1][0] != "df")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[0].arr2s[1][1] != "hh")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM._test2Array[1].arrs.Length != 0)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM._test2Array[1].arr2s.Length != 0)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
 
         if (!buffL.ReadHeaderInfo())
-            throw new System.Exception("²»ÊÇTabLÊı¾İ");
+            throw new System.Exception("ä¸æ˜¯TabLæ•°æ®");
         else
             TabL.Init(buffL, debug);
 
         if (!buff_cn.ReadHeaderInfo())
-            throw new System.Exception("²»ÊÇLanguage_cnÊı¾İ");
+            throw new System.Exception("ä¸æ˜¯Language_cnæ•°æ®");
         else
             LanguageUtil.Load((int)SystemLanguage.Chinese, buff_cn, true);
         LanguageUtil.LanguageType = SystemLanguage.Chinese;
 
-        if ("gk_a".ToLan() != "²İÄàÂí")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if ("gk_aa".ToLans()[1] != "4")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if ("gk_a3".ToLan() != "²İÄàÂí3")
-            throw new System.Exception("Êı¾İ³ö´í");
-
-        if (2.ToLan() != "²İÄàÂí2")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if (3.ToLan() != "²İÄàÂí3")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if ("k2".ToLan() != "²İÄàÂí2")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if ("k3".ToLan() != "²İÄàÂí3")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if (23.ToLan() != "²İÄàÂí23")
-            throw new System.Exception("Êı¾İ³ö´í");
+        if ("2".ToLan() != "è‰æ³¥é©¬2")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
+        if ("3".ToLan() != "è‰æ³¥é©¬3")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
+        if ("k2".ToLan() != "è‰æ³¥é©¬2")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
+        if ("k3".ToLan() != "è‰æ³¥é©¬3")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
+        if ("23".ToLan() != "è‰æ³¥é©¬23")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (!buff_en.ReadHeaderInfo())
-            throw new System.Exception("²»ÊÇLanguage_enÊı¾İ");
+            throw new System.Exception("ä¸æ˜¯Language_enæ•°æ®");
         else
             LanguageUtil.Load((int)SystemLanguage.English, buff_en, true);
         LanguageUtil.LanguageType = SystemLanguage.English;
 
-        if ("gk_a".ToLan() != "english")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if ("gk_aa".ToLans()[1] != "b")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if ("gk_aa3".ToLans()[1] != "bu")
-            throw new System.Exception("Êı¾İ³ö´í");
-
-        if (2.ToLan() != "english2")
-            throw new System.Exception("Êı¾İ³ö´í");
-        if (3.ToLan() != "english3")
-            throw new System.Exception("Êı¾İ³ö´í");
+        if ("2".ToLan() != "english2")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
+        if ("3".ToLan() != "english3")
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if ("k2".ToLan() != "english2")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if ("k3".ToLan() != "english3")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if ("k33".ToLan() != "english33")
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
     }
     static void test_ST(DBuffer buffM)
     {
         if (!buffM.ReadHeaderInfo())
-            throw new System.Exception("²»ÊÇTabMÊı¾İ");
+            throw new System.Exception("ä¸æ˜¯TabMæ•°æ®");
 
         TabM_ST.Init(buffM);
         int key = 1;
 
         if (TabM_ST.Tab.Data.Get_test2(key).value2[0] != 5)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(key).value2[1] != 1221)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM_ST.Tab.Data.Get_test2(2).value2[0] != -5)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(2).value2[1] != -1588994477)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM_ST.Tab.Data.Get_test2(key).longValue != 888888888888)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(key).longValue2[0] != 123456456123)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(key).longValue2[1] != 789456456789)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM_ST.Tab.Data.Get_test2(2).longValue != -888888888888)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(2).longValue2[0] != -1)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(2).longValue2[1] != -445566778899)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (math.all(TabM_ST.Tab.Data.Get_test2(key).v2t != new int2(5, 5)))
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.all(TabM_ST.Tab.Data.Get_test2(key).v2t2[0] != new int2(9, 82)))
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.all(TabM_ST.Tab.Data.Get_test2(key).v2t2[1] != new int2(45, 65)))
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.abs(TabM_ST.Tab.Data.Get_test2(key).f1 - 5.122) >= 0.0001f)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.abs(TabM_ST.Tab.Data.Get_test2(key).f2[0] - 0.945) >= 0.0001)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (math.abs(TabM_ST.Tab.Data.Get_test2(2).f2[1] - 0.878655) >= 0.0001)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(key).b1 != true)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(key).b2[0] != true)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data.Get_test2(key).b2[1] != false)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
 
         if (TabM_ST.Tab.Data._test2Array[1].b2[0] != true)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data._test2Array[1].b2[1] != false)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
         if (TabM_ST.Tab.Data._test2Array[1].b2[2] != false)
-            throw new System.Exception("Êı¾İ³ö´í");
+            throw new System.Exception("æ•°æ®å‡ºé”™");
     }
 }

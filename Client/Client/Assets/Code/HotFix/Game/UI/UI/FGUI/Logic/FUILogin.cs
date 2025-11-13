@@ -10,13 +10,6 @@ using main;
 
 partial class FUILogin
 {
-    [Event]
-    static async void EC_InScene(EC_InScene e)
-    {
-        if (Client.Scene.Current is LoginScene)
-            await Client.UI.OpenAsync<FUILogin>();
-    }
-
     protected override void OnEnter(params object[] data)
     {
         _acc.text = SettingL.Account;

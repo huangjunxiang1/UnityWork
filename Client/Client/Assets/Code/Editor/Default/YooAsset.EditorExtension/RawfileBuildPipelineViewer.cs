@@ -937,15 +937,10 @@ class Ex
                         progressBar.value = 1f;
                         statusLabel.text = "上传完成";
                         if (failedCount == 0)
-                            EditorUtility.DisplayDialog("完成", "FTP 上传完成。", "确定");
-                        else
                             EditorUtility.DisplayDialog("完成", $"FTP 上传完成，失败 {failedCount} 个文件，请检查并使用“重传失败”。", "确定");
                         uploadBtn.SetEnabled(true);
                         retryFailedBtn.SetEnabled(true);
                     };
-
-                    // 上传完成后刷新 pending 列表（以防有残留或清理）
-                    await PopulatePendingForContainer(container, buildTarget, packageName);
                 }
                 catch (Exception ex)
                 {
@@ -1148,15 +1143,10 @@ class Ex
                     {
                         progressBar.value = 1f;
                         if (failedCount == 0)
-                            statusLabel.text = "重传完成，所有失败项已重传成功";
-                        else
                             statusLabel.text = $"重传完成，仍有 {failedCount} 个失败";
                         retryFailedBtn.SetEnabled(true);
                         uploadBtn.SetEnabled(true);
                     };
-
-                    // 重传完成后刷新 pending 列表
-                    await PopulatePendingForContainer(container, buildTarget, packageName);
                 }
                 catch (Exception ex)
                 {
@@ -1320,7 +1310,7 @@ class Ex
 
     static Task UploadFileWithProgress(string uri, string user, string pass, string localFile, Action<long> onProgress)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             const int bufferSize = 81920;
             var request = (FtpWebRequest)WebRequest.Create(uri);
@@ -1337,7 +1327,17 @@ class Ex
                 int bytesRead;
                 while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    requestStream.Write(buffer, 0, bytesRead);
+                    try
+                    {
+                        await requestStream.WriteAsync(buffer, 0, bytesRead);
+                    }
+                    catch (Exception e)
+                    {
+                        EditorApplication.delayCall += () =>
+                        {
+                            Debug.LogError("传输失败 " + e);
+                        };
+                    }
                     try { onProgress?.Invoke(bytesRead); } catch { }
                 }
             }
@@ -1345,6 +1345,10 @@ class Ex
             // 获取响应以确保上传完成并捕获可能的服务器端错误
             using (var response = (FtpWebResponse)request.GetResponse())
             {
+                EditorApplication.delayCall += () =>
+                {
+                    Debug.LogError("传输失败 " + response.StatusDescription);
+                };
                 // 可选：检查 response.StatusDescription
             }
         });

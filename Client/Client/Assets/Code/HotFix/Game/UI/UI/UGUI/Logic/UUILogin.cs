@@ -9,13 +9,6 @@ using System.Threading.Tasks;
 
 partial class UUILogin
 {
-    //[Event]
-    static async void EC_InScene(EC_InScene e)
-    {
-        if (Client.Scene.Current is LoginScene)
-            await Client.UI.OpenAsync<UUILogin>();
-    }
-
     protected override void OnEnter(params object[] data)
     {
         _loginButton.onClick.AddListener(login);

@@ -1,4 +1,12 @@
-﻿using UnityEditor;
+﻿#if UGUI
+using UnityEngine.UI;
+#endif
+
+#if FairyGUI
+using FairyGUI;
+#endif
+
+using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Text;
@@ -8,25 +16,13 @@ using System.Diagnostics;
 using System;
 using Core;
 using Debug = UnityEngine.Debug;
-
-#if UGUI
-using UnityEngine.UI;
 using HybridCLR.Editor;
 
-using static UnityEngine.GraphicsBuffer;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using NUnit.Framework;
-using OfficeOpenXml;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 
-
-
-
-
-#endif
-#if FairyGUI
-using FairyGUI;
-#endif
 
 public class Tool
 {
@@ -716,7 +712,7 @@ public class Tool
         AssetDatabase.Refresh();
     }
 
-    [MenuItem("Tools/Gen_ForLanString")]
+    [MenuItem("Tools/Gen_ToXLanString")]
     static void GenForLanString()
     {
         if (!File.Exists($"{Application.dataPath}/../Library/ScriptAssemblies/Game.HotFix.dll"))
@@ -765,7 +761,7 @@ public class Tool
                             Debug.LogError("未知 op");
                             continue;
                         }
-                        if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToAuto)}(System.String,System.Object[])"))
+                        if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToXLan)}(System.String,System.Object[])"))
                         {
                             var last = instr.Previous;
                             while (last != null && last.OpCode != OpCodes.Newarr)
@@ -777,49 +773,56 @@ public class Tool
                             }
                             last = last.Previous?.Previous;
                             if (last != null && last.OpCode == OpCodes.Ldstr)
-                                ret.Add((string)last.Operand, $"{type.Name} {method.Name}");
+                                ret.Add((string)last.Operand, $"{(type.DeclaringType ?? type).Name}[{method.Name}]");
                             else
                                 Debug.LogError($"未识别OpCode {last?.OpCode} {last?.Operand} {type.Name} {method.Name}");
                         }
-                        else if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToAuto)}(System.String)"))
+                        else if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToXLan)}(System.String)"))
                         {
                             var last = instr.Previous;
                             if (last != null && last.OpCode == OpCodes.Ldstr)
-                                ret.Add((string)last.Operand, $"{type.Name} {method.Name}");
+                                ret.Add((string)last.Operand, $"{(type.DeclaringType ?? type).Name}[{method.Name}]");
                             else
-                                Debug.LogError($"未识别OpCode {last?.OpCode} {last?.Operand} {type.Name} {method.Name}");
+                                Debug.LogError($"未识别OpCode {last?.OpCode} {last?.Operand} {(type.DeclaringType ?? type).Name} {method.Name}");
                         }
                     }
                 }
             }
         }
 
-        ExcelPackage.License.SetNonCommercialPersonal("joker");
         FileInfo fi = new FileInfo($"{Application.dataPath}/../../../Excel/Language/#genFromCode.xlsx");
-        ExcelPackage excel = new ExcelPackage(fi);
-        var cells = excel.Workbook.Worksheets[0].Cells;
-        var values = (object[,])cells.Value;
-        int len = values.GetLength(0);
+
+        var bytes = File.ReadAllBytes(fi.FullName);
+        IWorkbook workbook = new XSSFWorkbook(new MemoryStream(bytes));
+        ISheet sheet = workbook.GetSheetAt(0);
         HashSet<string> keys = new();
-        for (int i = 2; i < len; i++)
+        for (int row = 2; row <= sheet.LastRowNum; row++)
         {
-            if (values[i, 0] != null)
+            var rowInst = sheet.GetRow(row);
+            if (rowInst != null) //null is when the row only contains empty cells
             {
-                var key = values[i, 0].ToString();
-                if (ret.TryGetValue(key, out var method))
-                    cells[i + 1, 2].Value = method;
+                var key = rowInst.GetCell(0)?.ToString();
+                if (key != null && ret.TryGetValue(key, out var method))
+                    (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(method);
                 else
-                    cells[i + 1, 2].Value = null;
+                    (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue("");
                 ret.Remove(key);
             }
         }
+        int len = sheet.LastRowNum;
         foreach (var item in ret)
         {
             int index = ++len;
-            cells[index, 1].Value = item.Key;
-            cells[index, 2].Value = item.Value;
+            var rowInst = sheet.CreateRow(index);
+            (rowInst.GetCell(0) ?? rowInst.CreateCell(0)).SetCellValue(item.Key);
+            (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(item.Value);
         }
-        excel.Save();
+
+        using (FileStream fs = new FileStream(fi.FullName, FileMode.Create, FileAccess.Write))
+        {
+            workbook.Write(fs); // 保存到文件
+        }
+
         EditorUtility.DisplayDialog("完成", "完成导出", "OK", "取消");
     }
 }

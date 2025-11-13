@@ -62,13 +62,19 @@ public class TabLScene
 }
 public class TabLPublic
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    public string[] dd => getdd();
 
     DBuffer dbuff;
+    int _ddIdx; string[] _ddTmp; string[] getdd() => _ddTmp ??= TabL.__getstrings(_ddIdx);
 
     public TabLPublic(DBuffer buffer, bool loadAll = false)
     {
         dbuff = buffer;
-        if (loadAll) { }
+        buffer.Seek(buffer.Readint() + (this._ddIdx = buffer.Position));
+        if (loadAll) { _ = dd; }
     }
 }
 public class TabL_test1

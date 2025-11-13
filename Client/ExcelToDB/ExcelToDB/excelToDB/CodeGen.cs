@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -8,7 +10,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using OfficeOpenXml;
 
 class DClass
 {
@@ -121,8 +122,8 @@ class CodeGen
                 FileInfo fi = new FileInfo(mains[i]);
                 Console.WriteLine("开始解析->" + fi.Name);
 
-                ExcelPackage pkg = new ExcelPackage(fi);
-                var sheet = pkg.Workbook.Worksheets[0];
+                IWorkbook workbook = new XSSFWorkbook(new MemoryStream(File.ReadAllBytes(fi.FullName)));
+                ISheet sheet = workbook.GetSheetAt(0);
 
                 DClass c = new DClass();
                 cs.Add(c);
@@ -133,23 +134,22 @@ class CodeGen
                     c.isSingle = true;
 
                     int arrayIdx2 = 0;
-                    var array1 = (object[,])sheet.Cells.Value;
-                    int len1 = array1 == null ? 0 : array1.GetLength(0);
-                    DFieldValue[] fvs = new DFieldValue[len1];
-                    c.fv.Add(fvs);
-                    for (int x = 1; x <= len1; x++)
+                    List<DFieldValue> fvs = new List<DFieldValue>();
+                    for (int x = 0; x <= sheet.LastRowNum; x++)
                     {
                         DField f = new DField();
-                        var tag = sheet.Cells[x, 3].Text.ToLower();
+                        var tag = sheet.GetRow(x)?.GetCell(2)?.ToString().ToLower();
 
                         f.dc = c;
                         f.index = x;
                         f.arrayIndex = arrayIdx2++;
 
-                        f.name = sheet.Cells[x, 1].Text;
-                        f.des = sheet.Cells[x, 2].Text.Replace("\n", "\n    /// ");
+                        f.name = sheet.GetRow(x)?.GetCell(0)?.ToString();
+                        f.des = sheet.GetRow(x)?.GetCell(1)?.ToString().Replace("\n", "\n    /// ");
 
-                        string v = sheet.Cells[x, 4].Text;
+                        string v = sheet.GetRow(x)?.GetCell(3)?.ToString() ?? string.Empty;
+                        if (string.IsNullOrEmpty(v))
+                            continue;
                         f.f1 = Common.GetFtype1(v);
                         f.f2 = Common.GetFtype2(v);
                         f.typeStr = Common.GetFTypeStr(v);
@@ -161,40 +161,40 @@ class CodeGen
                         if (tag.Contains('e'))
                             c.ecs.Add(f);
 
-                        if (string.IsNullOrEmpty(sheet.Cells[x, 5].Text))
+                        if (string.IsNullOrEmpty(sheet.GetRow(x)?.GetCell(4)?.ToString()))
                             continue;
-                        var s = sheet.Cells[x, 5].Text;
+                        var s = sheet.GetRow(x)?.GetCell(4)?.ToString();
                         if (!Common.GetFv(f, s, out var fv))
                         {
-                            Console.WriteLine($"解析出错 {f.dc.name}  {4}-{(char)('A' + f.index - 1)} 类型:{f.typeStr} 字符:{s}");
+                            Console.WriteLine($"解析出错 {f.dc.name}  {4}-{(char)('A' + f.index)} 类型:{f.typeStr} 字符:{s}");
                             return;
                         }
-                        fvs[x - 1] = fv;
+                        fvs.Add(fv);
                     }
+                    c.fv.Add(fvs.ToArray());
                     continue;
                 }
 
                 c.name = fi.Name.Split('.')[0];
 
-                var keyType = sheet.Cells[2, 1].Text;
-                var keyName = sheet.Cells[3, 1].Text;
+                var keyType = sheet.GetRow(1)?.GetCell(0)?.ToString();
+                var keyName = sheet.GetRow(2)?.GetCell(0)?.ToString();
                 if (string.IsNullOrEmpty(keyType) || string.IsNullOrEmpty(keyName))
                 {
-                    Console.WriteLine(pkg.File.Name + "表没有key索引");
+                    Console.WriteLine(fi.Name + "表没有key索引");
                     Console.ReadLine();
                     return;
                 }
-                var array = (object[,])sheet.Cells.Value;
-                int len = array.GetLength(1);
                 int arrayIdx = 0;
-                for (int j = 1; j <= len; j++)
+                int len = sheet.GetRow(1).LastCellNum;
+                for (int j = 0; j < len; j++)
                 {
-                    bool nor = j == 1;
-                    bool ecs = j == 1;
+                    bool nor = j == 0;
+                    bool ecs = j == 0;
                     bool group = false;
-                    if (j > 1)
+                    if (j > 0)
                     {
-                        string s = sheet.Cells[4, j].Text.ToLower();
+                        string s = sheet.GetRow(3)?.GetCell(j)?.ToString().ToLower() ?? string.Empty;
                         nor = s.Contains('c');
                         ecs = s.Contains('e');
                         group = s.Contains('g');
@@ -208,14 +208,15 @@ class CodeGen
                     f.index = j;
                     f.arrayIndex = arrayIdx++;
 
-                    f.name = sheet.Cells[3, j].Text;
-                    f.des = sheet.Cells[1, j].Text.Replace("\n", "\n    /// ");
+                    f.name = sheet.GetRow(2)?.GetCell(j)?.ToString();
+                    f.des = sheet.GetRow(0)?.GetCell(j)?.ToString().Replace("\n", "\n    /// ");
 
-                    f.f1 = Common.GetFtype1(sheet.Cells[2, j].Text);
-                    f.f2 = Common.GetFtype2(sheet.Cells[2, j].Text);
-                    f.typeStr = Common.GetFTypeStr(sheet.Cells[2, j].Text);
-                    f.typeStrECS = Common.GetFTypeStrECS(sheet.Cells[2, j].Text);
-                    f.realType = Common.GetFRealType(sheet.Cells[2, j].Text);
+                    var str = sheet.GetRow(1)?.GetCell(j)?.ToString();
+                    f.f1 = Common.GetFtype1(str);
+                    f.f2 = Common.GetFtype2(str);
+                    f.typeStr = Common.GetFTypeStr(str);
+                    f.typeStrECS = Common.GetFTypeStrECS(str);
+                    f.realType = Common.GetFRealType(str);
 
                     if (nor)
                         c.fs.Add(f);
@@ -231,20 +232,19 @@ class CodeGen
                         c.groups.Add(f);
                     }
                 }
-                int dataLen = array.GetLength(0);
-                for (int j = 5; j <= dataLen; j++)
+                for (int j = 4; j <= sheet.LastRowNum; j++)
                 {
-                    if (string.IsNullOrEmpty(sheet.Cells[j, 1].Text))
+                    if (string.IsNullOrEmpty(sheet.GetRow(j)?.GetCell(0)?.ToString()))
                         continue;
                     DFieldValue[] fvs = new DFieldValue[c.fs.Count];
                     c.fv.Add(fvs);
                     for (int k = 0; k < c.fs.Count; k++)
                     {
                         var f = c.fs[k];
-                        var s = sheet.Cells[j, f.index].Text;
+                        var s = sheet.GetRow(j)?.GetCell(f.index)?.ToString(); 
                         if (!Common.GetFv(f, s, out var fv))
                         {
-                            Console.WriteLine($"解析出错 {f.dc.name}  {j}-{(char)('A' + f.index - 1)} 类型:{f.typeStr} 字符:{s}");
+                            Console.WriteLine($"解析出错 {f.dc.name}  {j}-{(char)('A' + f.index)} 类型:{f.typeStr} 字符:{s}");
                             return;
                         }
                         fvs[k] = fv;

@@ -589,7 +589,7 @@ namespace Game
             }
             return false;
         }
-        bool round4(int2 xy, AStarVolume targetVolume , int near)
+        bool round4(int2 xy, AStarVolume targetVolume, int near)
         {
             int i = xy.y * AStar.width + xy.x;
             int cost = paths[currentIndex].cost + (AStar.data[i] >> 1);

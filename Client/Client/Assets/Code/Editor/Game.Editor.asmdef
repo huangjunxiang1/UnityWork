@@ -22,7 +22,9 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "Mono.Cecil.dll",
-        "EPPlus.dll"
+        "NPOI.Core.dll",
+        "NPOI.OOXML.dll",
+        "NPOI.OpenXml4Net.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
