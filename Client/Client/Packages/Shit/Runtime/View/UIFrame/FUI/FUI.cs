@@ -3,6 +3,18 @@
 #if FairyGUI
 using FairyGUI;
 using Game;
+using Unity.Mathematics;
+
+public enum AdaptStyle
+{
+    FullScreen,
+    Center,
+    Left,
+    Right,
+    Top,
+    Bottom,
+}
+
 public abstract class FUI : FUIBase
 {
     GComponent _ui;
@@ -111,13 +123,73 @@ public abstract class FUI : FUIBase
         base.Dispose();
     }
 
+    public void SetAdapt(AdaptStyle style)
+    {
+        this._ui.relations.ClearAll();
+        switch (style)
+        {
+            case AdaptStyle.FullScreen:
+                {
+                    this._ui.MakeFullScreen();
+                    this._ui.xy = new(0, 0);
+                    this._ui.AddRelation(this._ui.parent, RelationType.Size);
+                    this._ui.AddRelation(this._ui.parent, RelationType.Center_Center);
+                }
+                break;
+            case AdaptStyle.Center:
+                this._ui.Center();
+                this._ui.AddRelation(this._ui.parent, RelationType.Center_Center);
+                break;
+            case AdaptStyle.Left:
+                this._ui.height = this._ui.parent.height;
+                this._ui.xy = new(0, 0);
+                this._ui.AddRelation(this._ui.parent, RelationType.Height);
+                break;
+            case AdaptStyle.Right:
+                this._ui.height = this._ui.parent.height;
+                this._ui.xy = new(this._ui.parent.width - this._ui.width, 0);
+                this._ui.AddRelation(this._ui.parent, RelationType.Height);
+                break;
+            case AdaptStyle.Top:
+                this._ui.width = this._ui.parent.width;
+                this._ui.xy = new(0, 0);
+                this._ui.AddRelation(this._ui.parent, RelationType.Width);
+                break;
+            case AdaptStyle.Bottom:
+                this._ui.width = this._ui.parent.width;
+                this._ui.xy = new(0, this._ui.parent.height - this._ui.height);
+                this._ui.AddRelation(this._ui.parent, RelationType.Width);
+                break;
+            default:
+                break;
+        }
+    }
+   
+    public void AutoAdapt()
+    {
+        UIContentScaler scaler = Stage.inst.gameObject.GetComponent<UIContentScaler>();
+        float2 abs = math.abs(this.ui.size - new UnityEngine.Vector2(scaler.designResolutionX, scaler.designResolutionY));
+        if (abs.x < 0.1f)
+        {
+            if (abs.y < 0.1f)
+                this.SetAdapt(AdaptStyle.FullScreen);
+            else
+                this.SetAdapt(AdaptStyle.Bottom);
+        }
+        else
+        {
+            if (abs.y > 0.1f)
+                this.SetAdapt(AdaptStyle.Center);
+            else
+                this.SetAdapt(AdaptStyle.Left);
+        }
+    }
+
     void setConfig()
     {
         this._ui.sortingOrder = this.uiConfig.SortOrder + Game.UIConfig.SortOrderRange;
-        GRoot.inst.AddChild(this._ui);
-        this._ui.MakeFullScreen();
-        this._ui.AddRelation(GRoot.inst, RelationType.Size);
-        this._ui.AddRelation(GRoot.inst, RelationType.Center_Center);
+        Client.UI.FGUIRoot.AddChild(this._ui);
+        this.AutoAdapt();
         this._ui.fairyBatching = true;
     }
     void _success()

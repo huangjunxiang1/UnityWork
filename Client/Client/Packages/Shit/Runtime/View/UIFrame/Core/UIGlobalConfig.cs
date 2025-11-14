@@ -13,7 +13,7 @@ public static class UIGlobalConfig
     public static string LoadingUrl;
     public static int LoadingViewDelayBeginTimeMs = 1000;
     public static int LoadingViewTimeOutTimeMs = 10000;
-    static HashSet<object> loadingTokens = new();
+    static HashSet<object> loadingCaller = new();
 #if FairyGUI
     static FairyGUI.GComponent LoadingUI;
 #endif
@@ -36,19 +36,19 @@ public static class UIGlobalConfig
 #endif
     }
 
-    public static void LoadingView(object token, bool view)
+    public static void LoadingView(object caller, bool view)
     {
-        if (token == null)
+        if (caller == null)
         {
             Loger.Error("key is null");
             return;
         }
         if (view)
         {
-            if (loadingTokens.Contains(token))
+            if (loadingCaller.Contains(caller))
                 return;
-            loadingTokens.Add(token);
-            if (loadingTokens.Count == 1)
+            loadingCaller.Add(caller);
+            if (loadingCaller.Count == 1)
             {
                 if (!string.IsNullOrEmpty(LoadingUrl))
                 {
@@ -64,10 +64,10 @@ public static class UIGlobalConfig
         }
         else
         {
-            if (!loadingTokens.Contains(token))
+            if (!loadingCaller.Contains(caller))
                 return;
-            UIGlobalConfig.loadingTokens.Remove(token);
-            if (UIGlobalConfig.loadingTokens.Count == 0)
+            UIGlobalConfig.loadingCaller.Remove(caller);
+            if (UIGlobalConfig.loadingCaller.Count == 0)
             {
 #if FairyGUI
                 LoadingUI?.Dispose();

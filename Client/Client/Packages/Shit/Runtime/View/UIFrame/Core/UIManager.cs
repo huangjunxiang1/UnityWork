@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Reflection;
-using Event;
+
+#if FairyGUI
+using FairyGUI;
+#endif
 
 public enum UIModel
 {
@@ -30,8 +33,19 @@ namespace Game
             UGUIRoot.position = Vector3.zero;
 
 #if FairyGUI
-            FairyGUI.NTexture.CustomDestroyMethod += t => SAsset.Release(t);
-            FairyGUI.NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
+            NTexture.CustomDestroyMethod += t => SAsset.Release(t);
+            NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
+
+            this.FGUIRoot_3d = new GComponent();
+            GRoot.inst.AddChild(FGUIRoot_3d);
+            FGUIRoot_3d.size = GRoot.inst.size;
+            FGUIRoot_3d.AddRelation(GRoot.inst, RelationType.Size);
+            FGUIRoot_3d.fairyBatching = true;
+
+            this.FGUIRoot = new GComponent();
+            GRoot.inst.AddChild(FGUIRoot);
+            FGUIRoot.size = GRoot.inst.size;
+            FGUIRoot.AddRelation(GRoot.inst, RelationType.Size);
 #endif
 
             Client.World.Root.AddChild(this);
@@ -41,6 +55,11 @@ namespace Game
         /// UGUI模式有效
         /// </summary>
         public RectTransform UGUIRoot { get; }
+
+#if FairyGUI
+        public GComponent FGUIRoot_3d { get; private set; }
+        public GComponent FGUIRoot { get; private set; }
+#endif
 
         public T Open<T>(params object[] data) where T : UIBase, new()
         {

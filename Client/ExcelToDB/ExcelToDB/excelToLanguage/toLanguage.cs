@@ -17,8 +17,8 @@ internal static class toLanguage
         for (int fileIndex = 0; fileIndex < mains.Count; fileIndex++)
         {
             var fi = new FileInfo(mains[fileIndex]);
-            var bytes = File.ReadAllBytes(fi.FullName);
-            IWorkbook workbook = new XSSFWorkbook(new MemoryStream(bytes));
+            using var fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            IWorkbook workbook = new XSSFWorkbook(fs);
 
             for (int sheetIndex = 0; sheetIndex < workbook.NumberOfSheets; sheetIndex++)
             {

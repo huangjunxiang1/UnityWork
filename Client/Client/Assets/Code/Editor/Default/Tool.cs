@@ -792,35 +792,39 @@ public class Tool
 
         FileInfo fi = new FileInfo($"{Application.dataPath}/../../../Excel/Language/#genFromCode.xlsx");
 
-        var bytes = File.ReadAllBytes(fi.FullName);
-        IWorkbook workbook = new XSSFWorkbook(new MemoryStream(bytes));
-        ISheet sheet = workbook.GetSheetAt(0);
-        HashSet<string> keys = new();
-        for (int row = 2; row <= sheet.LastRowNum; row++)
+        IWorkbook workbook;
+        using (var fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
         {
-            var rowInst = sheet.GetRow(row);
-            if (rowInst != null) //null is when the row only contains empty cells
+            workbook = new XSSFWorkbook(fs);
+            ISheet sheet = workbook.GetSheetAt(0);
+            HashSet<string> keys = new();
+            for (int row = 2; row <= sheet.LastRowNum; row++)
             {
-                var key = rowInst.GetCell(0)?.ToString();
-                if (key != null && ret.TryGetValue(key, out var method))
-                    (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(method);
-                else
-                    (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue("");
-                ret.Remove(key);
+                var rowInst = sheet.GetRow(row);
+                if (rowInst != null) //null is when the row only contains empty cells
+                {
+                    var key = rowInst.GetCell(0)?.ToString();
+                    if (key != null && ret.TryGetValue(key, out var method))
+                        (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(method);
+                    else
+                        (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue("");
+                    ret.Remove(key);
+                }
+            }
+            int len = sheet.LastRowNum;
+            foreach (var item in ret)
+            {
+                int index = ++len;
+                var rowInst = sheet.CreateRow(index);
+                (rowInst.GetCell(0) ?? rowInst.CreateCell(0)).SetCellValue(item.Key);
+                (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(item.Value);
             }
         }
-        int len = sheet.LastRowNum;
-        foreach (var item in ret)
-        {
-            int index = ++len;
-            var rowInst = sheet.CreateRow(index);
-            (rowInst.GetCell(0) ?? rowInst.CreateCell(0)).SetCellValue(item.Key);
-            (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(item.Value);
-        }
+       
 
-        using (FileStream fs = new FileStream(fi.FullName, FileMode.Create, FileAccess.Write))
+        using (FileStream fs2 = new FileStream(fi.FullName, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
         {
-            workbook.Write(fs); // 保存到文件
+            workbook.Write(fs2); // 保存到文件
         }
 
         EditorUtility.DisplayDialog("完成", "完成导出", "OK", "取消");

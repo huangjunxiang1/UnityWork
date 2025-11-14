@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 #if FairyGUI
 using FairyGUI;

@@ -122,7 +122,8 @@ class CodeGen
                 FileInfo fi = new FileInfo(mains[i]);
                 Console.WriteLine("开始解析->" + fi.Name);
 
-                IWorkbook workbook = new XSSFWorkbook(new MemoryStream(File.ReadAllBytes(fi.FullName)));
+                using var fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                IWorkbook workbook = new XSSFWorkbook(fs);
                 ISheet sheet = workbook.GetSheetAt(0);
 
                 DClass c = new DClass();
