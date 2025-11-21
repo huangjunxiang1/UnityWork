@@ -13,15 +13,29 @@ public class AStarVolume
 
     class CubeVolume : AStarVolume
     {
-        public override void Add(AStarData astar, int2 xy) => astar.AddOccupation(xy);
-        public override void Remove(AStarData astar, int2 xy) => astar.RemoveOccupation(xy);
+        public override void Add(AStarData astar, int2 xy)
+        {
+            if (xy.x > -1 && xy.y > -1 && xy.x < astar.width && xy.y < astar.height)
+            {
+                astar.AddOccupation(xy);
+                astar.GridChangeHandle(xy);
+            }
+        }
+        public override void Remove(AStarData astar, int2 xy)
+        {
+            if (xy.x > -1 && xy.y > -1 && xy.x < astar.width && xy.y < astar.height)
+            {
+                astar.RemoveOccupation(xy);
+                astar.GridChangeHandle(xy);
+            }
+        }
     }
 
 
     public virtual void Add(AStarData astar, int2 xy) { }
     public virtual void Remove(AStarData astar, int2 xy) { }
-    public virtual bool isInScope(int2 self, int2 target) => self.Equals(target);
-    public virtual bool isNear(int2 self, int2 target, int near) => maths.ManhattanDistance(self, target) <= near;
+    public virtual bool isInScope(int2 point, int2 center) => point.Equals(center);
+    public virtual bool isNear(int2 point, int2 center, int near) => maths.ManhattanDistance(point, center) <= near;
 }
 
 public class RectVolume : AStarVolume
@@ -37,7 +51,10 @@ public class RectVolume : AStarVolume
         for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
         {
             for (int y = math.max(0, xy.y - halfEdge); y < my; y++)
+            {
                 astar.AddOccupation(new int2(x, y));
+                astar.GridChangeHandle(new int2(x, y));
+            }
         }
     }
     public override void Remove(AStarData astar, int2 xy)
@@ -47,22 +64,25 @@ public class RectVolume : AStarVolume
         for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
         {
             for (int y = math.max(0, xy.y - halfEdge); y < my; y++)
+            {
                 astar.RemoveOccupation(new int2(x, y));
+                astar.GridChangeHandle(new int2(x, y));
+            }
         }
     }
-    public override bool isInScope(int2 self, int2 target)
+    public override bool isInScope(int2 point, int2 center)
     {
-        int2 xy = math.abs(self - target);
+        int2 xy = math.abs(point - center);
         return xy.x <= halfEdge && xy.y <= halfEdge;
     }
-    public override bool isNear(int2 self, int2 target, int near)
+    public override bool isNear(int2 point, int2 center, int near)
     {
         for (int x = -halfEdge; x <= halfEdge; x++)
         {
             for (int y = -halfEdge; y <= halfEdge; y++)
             {
-                int2 v = target + new int2(x, y);
-                if (maths.ManhattanDistance(self, v) <= near) return true;
+                int2 v = center + new int2(x, y);
+                if (maths.ManhattanDistance(point, v) <= near) return true;
             }
         }
         return false;

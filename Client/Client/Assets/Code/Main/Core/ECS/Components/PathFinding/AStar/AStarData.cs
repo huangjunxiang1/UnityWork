@@ -8,6 +8,15 @@ using System.Threading.Tasks;
 using Unity.Mathematics;
 
 
+public struct AStarGrid
+{
+    public int step;//步长
+
+    public byte vs;//搜索标记
+    public byte data;//每个值 低位第一个bit是 是否激活 后续bit是消耗
+    public byte Occupation;//动态占用计数（单位站在上面）
+    public byte PathOccupation;//路线占用  低4位是执行路径 高4位是遍历路径
+}
 public class AStarData
 {
     public AStarData(int width, int height, byte[] data, float3 start, float3 size)
@@ -19,12 +28,12 @@ public class AStarData
         }
         this.width = width;
         this.height = height;
-        this.data = data;
         this.start = start;
         this.size = size;
 
-        this.vsArray = new byte[width * height];
-        this.Occupation = new byte[width * height];
+        this.data = new AStarGrid[width * height];
+        for (int i = 0; i < data.Length; i++)
+            this.data[i].data = data[i];
     }
     public AStarData(DBuffer buffer)
     {
@@ -33,59 +42,90 @@ public class AStarData
         int2 wh = buffer.Readint2();
         this.width = wh.x;
         this.height = wh.y;
-        this.data = buffer.Readbytes();
+        buffer.Readint();
 
-        this.vsArray = new byte[width * height];
-        this.Occupation = new byte[width * height];
+        this.data = new AStarGrid[width * height];
+        for (int i = 0; i < data.Length; i++)
+            this.data[i].data = buffer.Readbyte();
     }
 
     public static readonly AStarData Empty = new AStarData(0, 0, Array.Empty<byte>(), 0, 1);
 
     public int width { get; private set; }
     public int height { get; private set; }
-    public byte[] data { get; private set; }//每个值 低位第一个bit是 是否激活 后续bit是消耗
-    public byte[] Occupation { get; private set; }//动态占用计数（单位站在上面）
+#if !Native
+    public NativeArray<AStarGrid> data { get; private set; }
+#else
+    public AStarGrid[] data { get; private set; }
+#endif
 
     public float3 start { get; private set; }//起始坐标
     public float3 size { get; private set; } = new float3(1, 0, 1);//块间隔
 
     internal byte vs;
-    internal byte[] vsArray;
     internal bool isFinding;
 #if UNITY_EDITOR
-    internal Action<int2> occupationChange;
+    internal Action<int2> gridChange;
+    internal Action change;
 #endif
     int2[] array;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddOccupation(int2 xy)
     {
-        Occupation[xy.y * width + xy.x]++;
-#if UNITY_EDITOR
-        occupationChange?.Invoke(xy);
-#endif
+        this.data[xy.y * width + xy.x].Occupation++;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveOccupation(int2 xy)
     {
-        Occupation[xy.y * width + xy.x]--;
+        this.data[xy.y * width + xy.x].Occupation--;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetPathOccupation(int2 xy, bool value, bool isPath = true)
+    {
+        var grid = this.data[xy.y * width + xy.x];
+        if (isPath)
+        {
+            if (value)
+                grid.PathOccupation++;
+            else
+                grid.PathOccupation--;
+        }
+        else
+        {
+            if (value)
+                grid.PathOccupation += (1 << 4);
+            else
+                grid.PathOccupation -= (1 << 4);
+        }
+        this.data[xy.y * width + xy.x] = grid;
+    }
+    public void GridChangeHandle(int2 xy)
+    {
 #if UNITY_EDITOR
-        occupationChange?.Invoke(xy);
+        gridChange?.Invoke(xy);
 #endif
     }
+    public void ChangeHandle()
+    {
+#if UNITY_EDITOR
+        change?.Invoke();
+#endif
+    }
+
     public float3 GetPosition(int2 xy) => start + size * new float3(xy.x, 0, xy.y) + size / 2;
     public int2 GetXY(float3 position) => ((int3)((position - start) / size)).xz;
     public bool isEnable(int2 xy)
     {
         int index = xy.y * width + xy.x;
-        return (data[index] & 1) == 1 && Occupation[index] == 0;
+        return (data[index].data & 1) == 1 && data[index].Occupation == 0;
     }
-    public bool isEnable(int index) => (data[index] & 1) == 1 && Occupation[index] == 0;
-    public bool isEnable(int2 xy, AStarVolume volume, int2 self)
+    public bool isEnableExceptSelfVolume(int2 xy, AStarVolume volume, int2 self)
     {
         int index = xy.y * width + xy.x;
-        return (data[index] & 1) == 1 && (Occupation[index] == 0 || (volume.isInScope(self, xy) && Occupation[index] == 1));
+        return (data[index].data & 1) == 1 && (data[index].Occupation == 0 || (volume.isInScope(self, xy) && data[index].Occupation == 1));
     }
+    public bool isEnable(int index) => (data[index].data & 1) == 1 && data[index].Occupation == 0;
     public bool isInScope(int2 xy) => xy.x >= 0 && xy.y >= 0 && xy.x < width && xy.y < height;
     public bool FindTarget(Func<int2, bool> func, int2 origin, out int2 value, PathFindingRound r = PathFindingRound.R4)
     {
@@ -97,18 +137,16 @@ public class AStarData
             Loger.Error("cannot finding in mul thread");
             return false;
         }
-        if (vs == byte.MaxValue)
-        {
-            vs = 0;
-            Array.Clear(vsArray, 0, vsArray.Length);
-        }
+        this.isFinding = true;
+        this.CheckVersionValue();
         ++vs;
         int currentIndex = 0;
         int index = 0;
         array ??= new int2[this.width * this.height];
         array[index++] = origin;
-        vsArray[origin.y * width + origin.x] = vs;
+        data[origin.y * width + origin.x].vs = vs;
 
+        bool ret = false;
         do
         {
             var v2 = array[currentIndex];
@@ -116,22 +154,34 @@ public class AStarData
             if (v2.x > 0)
             {
                 if (breadth(func, ref index, new int2(v2.x - 1, v2.y), out value))
-                    return true;
+                {
+                    ret = true;
+                    break;
+                }
             }
             if (v2.x < width - 1)
             {
                 if (breadth(func, ref index, new int2(v2.x + 1, v2.y), out value))
-                    return true;
+                {
+                    ret = true;
+                    break;
+                }
             }
             if (v2.y > 0)
             {
                 if (breadth(func, ref index, new int2(v2.x, v2.y - 1), out value))
-                    return true;
+                {
+                    ret = true;
+                    break;
+                }
             }
             if (v2.y < height - 1)
             {
                 if (breadth(func, ref index, new int2(v2.x, v2.y + 1), out value))
-                    return true;
+                {
+                    ret = true;
+                    break;
+                }
             }
 
             if (r == PathFindingRound.R8)
@@ -139,35 +189,58 @@ public class AStarData
                 if (v2.x > 0 && v2.y > 0)
                 {
                     if (breadth(func, ref index, new int2(v2.x - 1, v2.y - 1), out value))
-                        return true;
+                    {
+                        ret = true;
+                        break;
+                    }
                 }
                 if (v2.x > 0 && v2.y < height - 1)
                 {
                     if (breadth(func, ref index, new int2(v2.x - 1, v2.y + 1), out value))
-                        return true;
+                    {
+                        ret = true;
+                        break;
+                    }
                 }
                 if (v2.x < width - 1 && v2.y > 0)
                 {
                     if (breadth(func, ref index, new int2(v2.x + 1, v2.y - 1), out value))
-                        return true;
+                    {
+                        ret = true;
+                        break;
+                    }
                 }
                 if (v2.x < width - 1 && v2.y < height - 1)
                 {
                     if (breadth(func, ref index, new int2(v2.x + 1, v2.y + 1), out value))
-                        return true;
+                    {
+                        ret = true;
+                        break;
+                    }
                 }
             }
 
             currentIndex++;
         } while (currentIndex < index);
-        return false;
+        this.isFinding = false;
+        return ret;
     }
+    public void CheckVersionValue()
+    {
+        if (vs == byte.MaxValue)
+        {
+            vs = 0;
+            for (int i = 0; i < data.Length; i++)
+                data[i].vs = 0;
+        }
+    }
+
     bool breadth(Func<int2, bool> func, ref int index, int2 xy, out int2 value)
     {
         value = xy;
-        if (vsArray[xy.y * width + xy.x] == vs)
+        if (data[xy.y * width + xy.x].vs == vs)
             return false;
-        vsArray[xy.y * width + xy.x] = vs;
+        data[xy.y * width + xy.x].vs = vs;
         if (!isEnable(xy))
             return false;
         bool isTarget = func(xy);

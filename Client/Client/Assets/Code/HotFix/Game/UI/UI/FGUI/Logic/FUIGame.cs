@@ -15,15 +15,25 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using static UnityEngine.InputSystem.InputAction;
 
 partial class FUIGame
 {
     NativeList<Entity> es = new NativeList<Entity>(10000, AllocatorManager.Persistent);
+    CMInput input = new();
     protected override void OnEnter(params object[] data)
     {
         base.OnEnter(data);
         this.Close.onClick.Add(onClose);
-        this._replay.onClick.Add(replay);
+        this._genMap.onClick.Add(on_genMap);
+
+        var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+        finding.ShowGrid = true;
+
+        input.CMEditorMouseClick.started += OnMouseClick;
+        input.CMEditorMouseClick.performed += OnMouseClick;
+        input.CMEditorMouseClick.canceled += OnMouseClick;
 
         //_gen_cube();
     }
@@ -36,6 +46,7 @@ partial class FUIGame
             em.DestroyEntity(es.AsArray());
             es.Dispose();
         }
+        input.Dispose();
     }
     async void onClose()
     {
@@ -44,11 +55,77 @@ partial class FUIGame
         await Client.Scene.InScene<LoginScene>();
     }
 
+    int len = 1000;
+    void on_genMap()
+    {
+        byte[] bytes = new byte[len * len];
+        for (int i = 0; i < len; i++)
+        {
+            for (int j = 0; j < len; j++)
+            {
+                bytes[j * len + i] = Util.RandomInt(0, 100) < 20 ? (byte)0 : (byte)1;
+            }
+        }
+        for (int i = 10; i < len; i++)
+        {
+            bytes[i * len + len - 20] = 0;
+        }
+        for (int i = 0; i < len - 10; i++)
+        {
+            bytes[i * len + 20] = 0;
+        }
+        var astar = new AStarData(len, len, bytes, 0, 1);
+        Client.Data.Add(astar);
+
+        var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+        finding.AStar = astar;
+
+        GameObject.FindFirstObjectByType<PathFindingAStar>().View(true);
+    }
+    int method = (int)PathFindingMethod.AStar;
+    int round = (int)PathFindingRound.R4;
+    int solve = (int)PathFindingSolve.Fast;
+
+    float2 _mouseStartPos;
+    bool _isMouseDown;
+    void OnMouseClick(CallbackContext context)
+    {
+        if (UIHelper.IsOnTouchFUI()) return;
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                // 鼠标按下：记录初始位置，重置状态[citation:6]
+                _mouseStartPos = Mouse.current.position.ReadValue();
+                _isMouseDown = true;
+                break;
+            case InputActionPhase.Performed:
+                if (_isMouseDown && math.distance(_mouseStartPos, Mouse.current.position.ReadValue()) > 1)
+                    _isMouseDown = false;
+                break;
+            case InputActionPhase.Canceled:
+                // 鼠标抬起：判定为点击或拖拽结束[citation:6]
+                if (_isMouseDown)
+                {
+                    var point = UnityEngine.InputSystem.Pointer.current.position.value;
+                    var ray = Camera.main.ScreenPointToRay(point);
+                    if (Physics.Raycast(ray, out var hit, 1000, 1 << LayerMask.NameToLayer("ground")))
+                    {
+                        var p = hit.point;
+                        var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+
+                        var stop = Stopwatch.StartNew();
+                        finding.Goto((int2)len - 1, algorithm: (PathFindingMethod)method, round: (PathFindingRound)round, solve: (PathFindingSolve)solve);
+                        stop.Stop();
+                        Loger.Log($"time:{stop.Elapsed}");
+                    }
+                }
+                _isMouseDown = false;
+                break;
+        }
+    }
+
     async void replay()
     {
-        var move = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
-        await move.Goto(new int2(Util.RandomInt(0, 50), Util.RandomInt(0, 50)));
-        return;
         /*var p = move.Entity.GetComponent<TransformComponent>();
         List<float3> ps = new();
         ps.Add(p.position);

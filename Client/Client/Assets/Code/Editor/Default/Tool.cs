@@ -761,7 +761,7 @@ public class Tool
                             Debug.LogError("未知 op");
                             continue;
                         }
-                        if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToXLan)}(System.String,System.Object[])"))
+                        if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToLanx)}(System.String,System.Object[])"))
                         {
                             var last = instr.Previous;
                             while (last != null && last.OpCode != OpCodes.Newarr)
@@ -777,7 +777,7 @@ public class Tool
                             else
                                 Debug.LogError($"未识别OpCode {last?.OpCode} {last?.Operand} {type.Name} {method.Name}");
                         }
-                        else if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToXLan)}(System.String)"))
+                        else if (member.FullName.Contains($"System.String {nameof(LanguageUtil)}::{nameof(LanguageUtil.ToLanx)}(System.String)"))
                         {
                             var last = instr.Previous;
                             if (last != null && last.OpCode == OpCodes.Ldstr)

@@ -22,19 +22,38 @@ namespace Game
         Vector3 point;
         bool view;
         GraphicsBuffer buffer;
-        AStarData astar;
+        public AStarData astar;
         int[] cost;
+        int[] tempSet = new int[1];
 
 #if UNITY_EDITOR
         private void OnEnable()
         {
             this.View(view);
         }
-        void change(int2 xy)
+        void gridChange(int2 xy)
         {
             int index = xy.y * astar.width + xy.x;
-            cost[0] = astar.data[index] | (astar.Occupation[index] << 8);
-            buffer.SetData(cost, 0, index, 1);
+            tempSet[0] = astar.data[index].data | (astar.data[index].Occupation << 8) | (astar.data[index].PathOccupation << 16);
+            buffer.SetData(tempSet, 0, index, 1);
+        }
+        void change()
+        {
+            if (cost == null || cost.Length != astar.width * astar.height)
+                cost = new int[astar.width * astar.height];
+            if (buffer == null || buffer.count != astar.width * astar.height)
+            {
+                buffer?.Dispose();
+                buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, astar.width * astar.height, 4);
+            }
+            for (int i = 0; i < astar.data.Length; i++)
+            {
+                var b = astar.data[i];
+                cost[i] = b.data;
+                cost[i] |= b.Occupation << 8;
+                cost[i] |= b.PathOccupation << 16;
+            }
+            buffer.SetData(cost);
         }
         private void OnValidate()
         {
@@ -60,7 +79,10 @@ namespace Game
             }
 #if UNITY_EDITOR
             if (astar != null)
-                astar.occupationChange -= change;
+            {
+                astar.gridChange -= gridChange;
+                astar.change -= change;
+            }
 #endif
         }
 
@@ -86,13 +108,24 @@ namespace Game
         }
         void Init()
         {
+#if UNITY_EDITOR
+            if (astar != null)
+            {
+                astar.gridChange -= gridChange;
+                astar.change -= change;
+            }
+#endif
+            if (Application.isPlaying)
+                astar = Client.Data?.Get<AStarData>(false);
+            if (astar == null) return;
+
             Mesh mesh = new Mesh();
             Vector3[] verts = new Vector3[4]
             {
                (float3)0f,
-               new float3(size.x * aStarSize.x,0,0),
-               new float3(0,0,size.z * aStarSize.y),
-               new float3(size.x * aStarSize.x,0,size.z * aStarSize.y)
+               new float3(astar.size.x * astar.width,0,0),
+               new float3(0,0,astar.size.z * astar.height),
+               new float3(astar.size.x * astar.width,0,astar.size.z * astar.height)
             };
             mesh.vertices = verts;
             mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };
@@ -106,36 +139,20 @@ namespace Game
 
 #if UNITY_EDITOR
             if (astar != null)
-                astar.occupationChange -= change;
-#endif
-            astar = Client.Data?.Get<AStarData>(false);
-#if UNITY_EDITOR
-            if (astar != null)
-                astar.occupationChange += change;
+            {
+                astar.gridChange += gridChange;
+                astar.change += change;
+            }
 #endif
 
-            if (cost == null || cost.Length != aStarSize.x * aStarSize.y)
-                cost = new int[aStarSize.x * aStarSize.y];
-            for (int i = 0; i < data.Length; i++)
-            {
-                var b = data[i];
-                var oc = (astar != null && i < astar.Occupation.Length) ? astar.Occupation[i] : 0;
-                cost[i] = b;
-                cost[i] |= oc << 8;
-            }
+            change();
 
             // 应用 Mesh
             quad.GetComponent<MeshFilter>().mesh = mesh;
             var r = quad.GetComponent<MeshRenderer>();
             var mat = GameObject.Instantiate(Resources.Load<Material>("Shit/AStarView_Mat"));
-            mat.SetVector("_Size", new Vector4(aStarSize.x, aStarSize.y, 0, 0));
-            if (buffer == null || buffer.count != aStarSize.x * aStarSize.y)
-            {
-                buffer?.Dispose();
-                buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, aStarSize.x * aStarSize.y, 4);
-            }
-            buffer.SetData(cost);
-            mat.SetBuffer("_Cost", buffer);
+            mat.SetVector("_Size", new Vector4(astar.width, astar.height, 0, 0));
+            mat.SetBuffer("_Data", buffer);
             r.sharedMaterial = mat;
             var box = quad.AddComponent<BoxCollider>();
             box.center = mesh.bounds.center;

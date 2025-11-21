@@ -13,7 +13,9 @@
         "GUID:df380645f10b7bc4b97d4f5eb6303d95",
         "GUID:457756d89b35d2941b3e7b37b4ece6f1",
         "GUID:8c8f9d96103e94a7da84b012fd7e9f13",
-        "GUID:e34a5702dd353724aa315fb8011f08c3"
+        "GUID:e34a5702dd353724aa315fb8011f08c3",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:2665a8d13d1b3f18800f46e256720795"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -61,6 +63,16 @@
             "name": "com.tuyoogame.yooasset",
             "expression": "1.0.0",
             "define": "Yooasset"
+        },
+        {
+            "name": "com.unity.collections",
+            "expression": "1.0.0",
+            "define": "Native"
+        },
+        {
+            "name": "com.unity.burst",
+            "expression": "1.0.0",
+            "define": "Burst"
         }
     ],
     "noEngineReferences": false

@@ -24,6 +24,7 @@ static class Handler
         Application.targetFrameRate = -1;
 
         UIGlobalConfig.LoadingUrl = G_Connecting.URL;
+        GRoot.inst.SetContentScaleFactor(1334, 750);
         /*FairyGUI.UIConfig.defaultFont = "UIFont";
         TMPFont font = new() { };
         font.name = "UIFont";

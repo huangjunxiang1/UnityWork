@@ -48,15 +48,15 @@ public static class LanguageUtil
     {
         return string.Format(key.ToLan(), args);
     }
-    public static string ToXLan(this string key)
+    public static string ToLanx(this string key)
     {
         if (LanguageType == SystemLanguage.Chinese || LanguageType == SystemLanguage.ChineseSimplified)
             return key;
         return key.ToLan();
     }
-    public static string ToXLan(this string key, params object[] args)
+    public static string ToLanx(this string key, params object[] args)
     {
-        return string.Format(key.ToXLan(), args);
+        return string.Format(key.ToLanx(), args);
     }
     public static void Load(int languageType, DBuffer buff, bool isDebug)
     {

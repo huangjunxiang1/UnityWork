@@ -186,6 +186,8 @@ class PathFindingAStarDrawLine : Editor
             root.size = buffer.Readfloat3();
             root.aStarSize = math.max(buffer.Readint2(), 1);
             root.data = buffer.Readbytes();
+            buffer.Seek(0);
+            root.astar = new(buffer);
         }
         else
             root.data = new byte[root.aStarSize.x * root.aStarSize.y];

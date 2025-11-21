@@ -1,4 +1,4 @@
-// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
 Shader "Editor/AStar"
@@ -48,7 +48,6 @@ Shader "Editor/AStar"
                 struct v2f
                 {
                     float4 vertex : SV_POSITION;
-                    float4 worldPos : TEXCOORD1;
                     fixed4 color : COLOR;
                     float4 texcoord : TEXCOORD0;
                 };
@@ -56,7 +55,7 @@ Shader "Editor/AStar"
                 sampler2D _Num;
                 float2 _Size;
                 float _Power;
-                StructuredBuffer<int> _Cost;
+                StructuredBuffer<int> _Data;
                 
                 static float xOffset[4] = {0,10.0/40,21.0/40,31.0/40};
                 static float yOffset[3] = {0,13.0/37,26.0/37};
@@ -95,7 +94,6 @@ Shader "Editor/AStar"
                 {
                     v2f o;
                     o.vertex = UnityObjectToClipPos(v.vertex);
-                    o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyzw;
                     o.texcoord = v.texcoord;
                     o.color = v.color;
 
@@ -109,14 +107,31 @@ Shader "Editor/AStar"
                     float2 cube=1/_Size;
                     float2 xy=float2(uv.x%cube.x,uv.y%cube.y);
                     int2 nxy=uv*_Size;
-                    int buffer=_Cost[nxy.y*_Size.x+nxy.x];
+                    int buffer=_Data[nxy.y*_Size.x+nxy.x];
+
+                    int enable=buffer&1;
+                    int cost=(buffer&0xff)>>1;
+                    int Occupation=(buffer>>8)&0xff;
+                    int PathOccupation=(buffer>>16)&0xff;
+                    int path=PathOccupation&0x0f;
+                    int path_f=PathOccupation>>4;
 
                     float m=min(abs(xy.x-cube.x),abs(xy.y-cube.y));
                     m=min(m,xy.x);
                     m=min(m,xy.y);
                     float s=step(m,_Power*min(cube.x,cube.y));
-                    col.rg=lerp(float2(1,0),float2(0,1),buffer&1);//�赲
-                    col.b=1-step(buffer>>8,0.1);//ռλ
+
+                    //阻挡显示
+                    col.rg=lerp(float2(1,0),float2(0,1),enable);
+
+                    //单位占位
+                    col.rgb=lerp(col.rgb,float3(col.r,0,1),min(Occupation,1));//占位(只显示可行走区域)
+
+                    //搜索路径+执行路径
+                    col.rgb=lerp(col.rgb,float3(1,1,0),min(path_f,1));
+                    col.rgb=lerp(col.rgb,float3(0,1,1),min(path,1));
+
+                    //格子边缘线条
                     col.a=lerp(0.5,1,s);
                     
                     col=blendColor((nxy/1000).x,0.05,xy,cube,col);
@@ -128,7 +143,6 @@ Shader "Editor/AStar"
                     col=blendColor((nxy/10).y,0.75,xy,cube,col);
                     col=blendColor(nxy.y,0.85,xy,cube,col);
 
-                    int cost=(buffer&0xff)>>1;
                     col=blendColorCost(cost,cost/100,0.05,xy,cube,col);
                     col=blendColorCost(cost,cost/10,0.35,xy,cube,col);
                     col=blendColorCost(cost,cost,0.65,xy,cube,col);

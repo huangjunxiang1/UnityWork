@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component size="1334,750" opaque="false">
   <displayList>
-    <component id="n2_n68q" name="Close" src="n68q9" fileName="Common/btn/Close.xml" xy="1071,50" size="210,65">
+    <component id="n2_n68q" name="Close" src="n68q9" fileName="Common/btn/Close.xml" xy="1101,21" size="210,65">
       <relation target="" sidePair="right-right,top-top"/>
     </component>
-    <component id="n3_pivy" name="_replay" src="qgu27" fileName="Common/btn/btn.xml" xy="1067,156">
-      <Button title="重新播放"/>
-    </component>
     <component id="n4_pwce" name="_tips2" src="qnthd" fileName="UI/Box/Tips.xml" xy="21,15"/>
+    <component id="n5_bbhj" name="_genMap" src="qgu27" fileName="Common/btn/btn.xml" xy="1106,129">
+      <Button title="生成地图"/>
+    </component>
   </displayList>
   <transition name="open">
     <item time="0" type="XY" target="n2_n68q" value="1071,-"/>

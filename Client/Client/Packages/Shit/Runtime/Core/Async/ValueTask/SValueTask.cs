@@ -20,6 +20,7 @@ class TaskItem<T> : TaskItem
         action = null;
         value = default;
         var a = this.last;
+        this.last = null;
         a?.Cancel();
         ObjectPool.Return(this);
     }

@@ -32,6 +32,17 @@
     ],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.collections",
+            "expression": "1.0.0",
+            "define": "Native"
+        },
+        {
+            "name": "com.unity.burst",
+            "expression": "1.0.0",
+            "define": "Burst"
+        }
+    ],
     "noEngineReferences": false
 }

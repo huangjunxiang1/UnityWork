@@ -126,7 +126,7 @@ namespace Game
             var old = this._task;
             this._task = default;
             this._index = -1;
-            old.TrySetResult(false);
+            old.TryCancel();
         }
 
         void setPaths(IList<float3> paths, quaternion r, int startIndex, int endIndex, bool newTask = false, MoveStyle style = MoveStyle.Linear)
@@ -145,7 +145,7 @@ namespace Game
             this._r = r;
             var old = _task;
             _task = newTask ? SValueTask<bool>.Create() : default;
-            old.TrySetResult(false);
+            old.TryCancel();
         }
 
         [UpdateSystem]

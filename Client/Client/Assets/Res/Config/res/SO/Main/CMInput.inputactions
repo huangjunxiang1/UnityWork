@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "CMInput",
     "maps": [
         {
@@ -11,7 +12,7 @@
                     "id": "f6e24bbd-e3fa-44d8-923a-9248bdefedc6",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "Press",
+                    "interactions": "Press(behavior=2)",
                     "initialStateCheck": true
                 },
                 {
@@ -47,7 +48,7 @@
                     "name": "",
                     "id": "8d8b0a6e-49ab-4744-bacb-58af0d5329c5",
                     "path": "<Mouse>/leftButton",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "processors": "",
                     "groups": "",
                     "action": "MouseClick",
