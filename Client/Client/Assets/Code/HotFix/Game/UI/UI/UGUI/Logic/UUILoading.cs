@@ -33,7 +33,7 @@ partial class UUILoading
     float cur = 0;
     float max = 0.7f;
 
-    protected override void OnEnter(params object[] data)
+    protected override void OnEnter()
     {
         refView();
     }

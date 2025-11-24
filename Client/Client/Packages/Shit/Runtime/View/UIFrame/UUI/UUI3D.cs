@@ -14,11 +14,11 @@ public abstract class UUI3D : UUIBase
     public sealed override RectTransform ui => this._ui;
     public sealed override STask onTask => _task;
 
-    public sealed override async STask LoadConfig(UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(UIConfig config, STask completed)
     {
-        await base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
         this._ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
         this._ui.SetParent(Client.UI.UGUIRoot);
@@ -29,16 +29,16 @@ public abstract class UUI3D : UUIBase
 
         this.Binding();
         this._states = UIStatus.OnTask;
-        await (_task = this.OnTask(data));
+        await (_task = this.OnTask());
         if (this.Disposed) return;
         this._states = UIStatus.Success;
-        this.OnEnter(data);
+        this.OnEnter();
     }
-    public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(UIConfig config, STask completed)
     {
-        await base.LoadConfigAsync(config, completed, data);
+        await base.LoadConfigAsync(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
         GameObject ui = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
         this._ui = (RectTransform)ui.transform;
@@ -50,10 +50,10 @@ public abstract class UUI3D : UUIBase
 
         this.Binding();
         this._states = UIStatus.OnTask;
-        await (_task = this.OnTask(data));
+        await (_task = this.OnTask());
         if (this.Disposed) return;
         this._states = UIStatus.Success;
-        this.OnEnter(data);
+        this.OnEnter();
     }
 }
 #endif

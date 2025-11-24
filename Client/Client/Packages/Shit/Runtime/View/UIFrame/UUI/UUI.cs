@@ -16,11 +16,11 @@ public abstract class UUI : UUIBase
     public sealed override RectTransform ui => this._ui;
     public sealed override STask onTask => _task;
 
-    public sealed override async STask LoadConfig(UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(UIConfig config, STask completed)
     {
-        await base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
         this._ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
         this._ui.gameObject.SetActive(false);
@@ -29,7 +29,7 @@ public abstract class UUI : UUIBase
         this.setConfig();
         this._states = UIStatus.OnTask;
 
-        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        this._task = this.OnTask() ?? STask.Completed;
         if (!this._task.IsCompleted)
         {
             _delay1Handle();
@@ -40,11 +40,11 @@ public abstract class UUI : UUIBase
         if (this.Disposed) return;
         _success();
     }
-    public sealed override async STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(UIConfig config, STask completed)
     {
-        await base.LoadConfigAsync(config, completed, data);
+        await base.LoadConfigAsync(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
 
         var load = SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
@@ -58,7 +58,7 @@ public abstract class UUI : UUIBase
             this._states = UIStatus.OnTask;
         });
 
-        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        this._task = this.OnTask() ?? STask.Completed;
         if (!this._task.IsCompleted)
         {
             _delay1Handle();
@@ -88,7 +88,7 @@ public abstract class UUI : UUIBase
     {
         this._states = UIStatus.Success;
         this._ui.gameObject.SetActive(this.isShow);
-        this.OnEnter(this.ParamObjects);
+        this.OnEnter();
         if (_loadingView)
             UIGlobalConfig.LoadingView(this, false);
     }

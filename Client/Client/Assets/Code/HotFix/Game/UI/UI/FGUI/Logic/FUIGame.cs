@@ -22,9 +22,8 @@ partial class FUIGame
 {
     NativeList<Entity> es = new NativeList<Entity>(10000, AllocatorManager.Persistent);
     CMInput input = new();
-    protected override void OnEnter(params object[] data)
+    protected override void OnEnter()
     {
-        base.OnEnter(data);
         this.Close.onClick.Add(onClose);
         this._genMap.onClick.Add(on_genMap);
 
@@ -55,7 +54,7 @@ partial class FUIGame
         await Client.Scene.InScene<LoginScene>();
     }
 
-    int len = 1000;
+    int len = 100;
     void on_genMap()
     {
         byte[] bytes = new byte[len * len];
@@ -114,7 +113,7 @@ partial class FUIGame
                         var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
 
                         var stop = Stopwatch.StartNew();
-                        finding.Goto((int2)len - 1, algorithm: (PathFindingMethod)method, round: (PathFindingRound)round, solve: (PathFindingSolve)solve);
+                        finding.Goto(p, algorithm: (PathFindingMethod)method, round: (PathFindingRound)round, solve: (PathFindingSolve)solve);
                         stop.Stop();
                         Loger.Log($"time:{stop.Elapsed}");
                     }

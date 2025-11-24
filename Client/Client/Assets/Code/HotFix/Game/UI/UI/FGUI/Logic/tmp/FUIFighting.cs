@@ -14,7 +14,7 @@ partial class FUIFighting
 {
     NativeArray<Entity> es = default;
 
-    protected override async void OnEnter(params object[] data)
+    protected override async void OnEnter()
     {
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity one = await ECSHelper.LoadEntity(@"3D_Cube");

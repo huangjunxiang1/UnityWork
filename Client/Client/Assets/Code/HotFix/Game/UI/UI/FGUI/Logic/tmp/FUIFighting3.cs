@@ -23,10 +23,8 @@ partial class FUIFighting3
     public const int playerCount = 2000;
     SystemHandle sys;
 
-    protected override async void OnEnter(params object[] data)
+    protected override async void OnEnter()
     {
-        base.OnEnter(data);
-
         Entity one = await ECSHelper.LoadEntity(@"3D_Cube");
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });

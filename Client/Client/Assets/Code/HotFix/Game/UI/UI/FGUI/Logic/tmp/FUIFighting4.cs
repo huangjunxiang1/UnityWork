@@ -29,7 +29,7 @@ partial class FUIFighting4
     ComputeBuffer mvs = new ComputeBuffer(playerCount, sizeof(int));
     ComputeBuffer temp = new ComputeBuffer(size * size * playerCount, 4 * 4);
     ComputeBuffer targetP = new ComputeBuffer(playerCount, sizeof(int) * 2);
-    protected override async STask OnTask(params object[] data)
+    protected override async STask OnTask()
     {
         mat = await SAsset.LoadAsync<Material>(@"other_ECSLit2");
         var go = await SAsset.LoadGameObjectAsync(@"3D_Cube");

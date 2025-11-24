@@ -30,10 +30,9 @@ partial class FUILoading
 
     float cur = 0;
     public float max = 0.7f;
-    protected override void OnEnter(params object[] data)
+    protected override void OnEnter()
     {
-        if (data.Length >= 1)
-            max = Convert.ToSingle(data[0]);
+        max = this.GetParam<float>(0);
         refView();
         _loadingBar.value = 0;
         _loadingBar.max = 1;

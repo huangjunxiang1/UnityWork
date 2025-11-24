@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 partial class UUILogin
 {
-    protected override void OnEnter(params object[] data)
+    protected override void OnEnter()
     {
         _loginButton.onClick.AddListener(login);
 

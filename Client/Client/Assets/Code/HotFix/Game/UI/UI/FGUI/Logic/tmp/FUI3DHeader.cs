@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 partial class FUI3DHeader
 {
-    protected override void OnEnter(params object[] data)
+    protected override void OnEnter()
     {
       
     }

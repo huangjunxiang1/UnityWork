@@ -11,11 +11,11 @@ using UnityEngine;
 
 partial class FUIRooms
 {
-    protected override async STask OnTask(params object[] data)
+    protected override async STask OnTask()
     {
         await NetComponent.Inst.SendAsync(new C2S_RoomList());
     }
-    protected override void OnEnter(params object[] data)
+    protected override void OnEnter()
     {
         this._ref.onClick.Add(refRoom);
         this._create.onClick.Add(create);

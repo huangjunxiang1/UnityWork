@@ -36,6 +36,10 @@ public class AStarVolume
     public virtual void Remove(AStarData astar, int2 xy) { }
     public virtual bool isInScope(int2 point, int2 center) => point.Equals(center);
     public virtual bool isNear(int2 point, int2 center, int near) => maths.ManhattanDistance(point, center) <= near;
+    public virtual IEnumerable<int2> GetAllNearPoints(AStarData astar, int2 center, int near)
+    {
+        yield return center;
+    }
 }
 
 public class RectVolume : AStarVolume
@@ -86,5 +90,15 @@ public class RectVolume : AStarVolume
             }
         }
         return false;
+    }
+    public override IEnumerable<int2> GetAllNearPoints(AStarData astar, int2 xy, int near)
+    {
+        int mx = math.min(xy.x + halfEdge + 1, astar.width);
+        int my = math.min(xy.y + halfEdge + 1, astar.height);
+        for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
+        {
+            for (int y = math.max(0, xy.y - halfEdge); y < my; y++)
+                yield return new int2(x, y);
+        }
     }
 }

@@ -124,15 +124,16 @@ Shader "Editor/AStar"
                     //阻挡显示
                     col.rg=lerp(float2(1,0),float2(0,1),enable);
 
-                    //单位占位
-                    col.rgb=lerp(col.rgb,float3(col.r,0,1),min(Occupation,1));//占位(只显示可行走区域)
-
                     //搜索路径+执行路径
                     col.rgb=lerp(col.rgb,float3(1,1,0),min(path_f,1));
                     col.rgb=lerp(col.rgb,float3(0,1,1),min(path,1));
 
                     //格子边缘线条
                     col.a=lerp(0.5,1,s);
+
+                    //单位占位
+                    float dis=step(distance(cube/2,xy),cube.x*0.3f/2);
+                    col.rgba=lerp(col.rgba,float4(1,0,0,0.8f),dis*min(Occupation,1));
                     
                     col=blendColor((nxy/1000).x,0.05,xy,cube,col);
                     col=blendColor((nxy/100).x,0.15,xy,cube,col);

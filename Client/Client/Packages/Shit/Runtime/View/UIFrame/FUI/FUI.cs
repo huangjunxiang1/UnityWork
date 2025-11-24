@@ -42,11 +42,11 @@ public abstract class FUI : FUIBase
     public sealed override STask onTask => _task;
     public GObject Close { get; private set; }
 
-    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed)
     {
-        await base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
         this._ui = UIPackage.CreateObjectFromURL(this.url).asCom;
         (Close = this._ui.GetChild("Close")
@@ -57,7 +57,7 @@ public abstract class FUI : FUIBase
         this.setConfig();
         this._states = UIStatus.OnTask;
 
-        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        this._task = this.OnTask() ?? STask.Completed;
         if (!this._task.IsCompleted)
         {
             _delay1Handle();
@@ -68,11 +68,11 @@ public abstract class FUI : FUIBase
         if (this.Disposed) return;
         _success();
     }
-    public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed)
     {
-        await base.LoadConfigAsync(config, completed, data);
+        await base.LoadConfigAsync(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
 
         STask load = new();
@@ -96,7 +96,7 @@ public abstract class FUI : FUIBase
             load.TrySetResult();
         });
 
-        this._task = this.OnTask(this.ParamObjects) ?? STask.Completed;
+        this._task = this.OnTask() ?? STask.Completed;
         if (!this._task.IsCompleted)
         {
             _delay1Handle();
@@ -196,7 +196,7 @@ public abstract class FUI : FUIBase
     {
         this._states = UIStatus.Success;
         this._ui.visible = this.isShow;
-        this.OnEnter(this.ParamObjects);
+        this.OnEnter();
         if (_loadingView)
             UIGlobalConfig.LoadingView(this, false);
     }

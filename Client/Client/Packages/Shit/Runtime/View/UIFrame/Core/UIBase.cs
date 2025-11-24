@@ -10,6 +10,8 @@ using Game;
 
 public abstract class UIBase : STree
 {
+    internal object[] ParamObjects;
+
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
 
@@ -30,18 +32,15 @@ public abstract class UIBase : STree
     /// 加载中异步
     /// </summary>
     public STask onCompleted { get; private set; }
-    public object[] ParamObjects { get; private set; }
 
-    public virtual STask LoadConfig(UIConfig config, STask completed, params object[] data)
+    public virtual STask LoadConfig(UIConfig config, STask completed)
     {
-        this.ParamObjects = data;
         this.uiConfig = config;
         onCompleted = completed;
         return STask.Completed;
     }
-    public virtual STask LoadConfigAsync(UIConfig config, STask completed, params object[] data)
+    public virtual STask LoadConfigAsync(UIConfig config, STask completed)
     {
-        this.ParamObjects = data;
         this.uiConfig = config;
         onCompleted = completed;
         return STask.Completed;
@@ -62,7 +61,8 @@ public abstract class UIBase : STree
 
         ui = new();
         this.AddChild(ui);
-        ui.LoadConfig(cfg, new STask<T>(), data).AddEvent(() =>
+        ui.ParamObjects = data;
+        ui.LoadConfig(cfg, new STask<T>()).AddEvent(() =>
         {
             ui.Show();
             ui.onCompleted.TrySetResult(ui);
@@ -98,7 +98,8 @@ public abstract class UIBase : STree
                     UIGlobalConfig.EnableUIInput(true);
             });
             this.AddChild(ui);
-            await ui.LoadConfigAsync(cfg, new STask<T>(), data);
+            ui.ParamObjects = data;
+            await ui.LoadConfigAsync(cfg, new STask<T>());
             if (ui.Disposed)
                 return ui;
 
@@ -184,14 +185,20 @@ public abstract class UIBase : STree
             ui.Dispose();
         }
     }
+    public T GetParam<T>(int index)
+    {
+        if (ParamObjects != null && index < ParamObjects.Length)
+            return (T)ParamObjects[index];
+        return default;
+    }
 
-    protected virtual void OnAwake(params object[] data) { }//open 的时候立刻调用
-    protected virtual STask OnTask(params object[] data)//自定义何时界面可以打开
+    protected virtual void OnAwake() { }//open 的时候立刻调用
+    protected virtual STask OnTask()//自定义何时界面可以打开
     {
         return STask.Completed;
     }
 
-    protected virtual void OnEnter(params object[] data) { }//UI加载完毕调用
+    protected virtual void OnEnter() { }//UI加载完毕调用
     protected virtual void OnExit() { }//UI关闭调用
 
     protected virtual void OnShow() { }//UI每次重显示调用 包括第一次打开

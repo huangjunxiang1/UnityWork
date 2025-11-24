@@ -20,9 +20,8 @@ partial class FUIFighting2
     public int2 roadSize = new int2(200, 200);
     public NativeArray<int> road;
     public bool start = false;
-    protected override async void OnEnter(params object[] data)
+    protected override async void OnEnter()
     {
-        base.OnEnter(data);
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity one = await ECSHelper.LoadEntity(@"3D_Cube");
 

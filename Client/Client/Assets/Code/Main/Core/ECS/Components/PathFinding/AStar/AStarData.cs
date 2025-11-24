@@ -7,6 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Mathematics;
 
+#if Native
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+#endif
+
 
 public struct AStarGrid
 {
@@ -17,6 +22,7 @@ public struct AStarGrid
     public byte Occupation;//动态占用计数（单位站在上面）
     public byte PathOccupation;//路线占用  低4位是执行路径 高4位是遍历路径
 }
+
 public class AStarData
 {
     public AStarData(int width, int height, byte[] data, float3 start, float3 size)
@@ -31,9 +37,23 @@ public class AStarData
         this.start = start;
         this.size = size;
 
+#if Native
+        if (width > 0 && height > 0)
+        {
+            int len = width * height;
+            this.data = new UnsafeList<AStarGrid>(len, AllocatorManager.Persistent);
+            for (int i = 0; i < len; i++)
+            {
+                var item = new AStarGrid();
+                item.data = data[i];
+                this.data.Add(item);
+            }
+        }
+#else
         this.data = new AStarGrid[width * height];
         for (int i = 0; i < data.Length; i++)
             this.data[i].data = data[i];
+#endif
     }
     public AStarData(DBuffer buffer)
     {
@@ -44,17 +64,31 @@ public class AStarData
         this.height = wh.y;
         buffer.Readint();
 
+#if Native
+        if (width > 0 && height > 0)
+        {
+            int len = width * height;
+            this.data = new UnsafeList<AStarGrid>(len, AllocatorManager.Persistent);
+            for (int i = 0; i < len; i++)
+            {
+                var item = new AStarGrid();
+                item.data = buffer.Readbyte();
+                this.data.Add(item);
+            }
+        }
+#else
         this.data = new AStarGrid[width * height];
         for (int i = 0; i < data.Length; i++)
             this.data[i].data = buffer.Readbyte();
+#endif
     }
 
     public static readonly AStarData Empty = new AStarData(0, 0, Array.Empty<byte>(), 0, 1);
 
     public int width { get; private set; }
     public int height { get; private set; }
-#if !Native
-    public NativeArray<AStarGrid> data { get; private set; }
+#if Native
+    public UnsafeList<AStarGrid> data;
 #else
     public AStarGrid[] data { get; private set; }
 #endif
@@ -73,12 +107,12 @@ public class AStarData
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddOccupation(int2 xy)
     {
-        this.data[xy.y * width + xy.x].Occupation++;
+        this.data.ElementAt(xy.y * width + xy.x).Occupation++;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveOccupation(int2 xy)
     {
-        this.data[xy.y * width + xy.x].Occupation--;
+        this.data.ElementAt(xy.y * width + xy.x).Occupation--;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetPathOccupation(int2 xy, bool value, bool isPath = true)
@@ -144,7 +178,7 @@ public class AStarData
         int index = 0;
         array ??= new int2[this.width * this.height];
         array[index++] = origin;
-        data[origin.y * width + origin.x].vs = vs;
+        data.ElementAt(origin.y * width + origin.x).vs = vs;
 
         bool ret = false;
         do
@@ -231,7 +265,10 @@ public class AStarData
         {
             vs = 0;
             for (int i = 0; i < data.Length; i++)
-                data[i].vs = 0;
+            {
+                data.ElementAt(i).vs = 0;
+                data.ElementAt(i).step = 0;
+            }
         }
     }
 
@@ -240,12 +277,23 @@ public class AStarData
         value = xy;
         if (data[xy.y * width + xy.x].vs == vs)
             return false;
-        data[xy.y * width + xy.x].vs = vs;
+        data.ElementAt(xy.y * width + xy.x).vs = vs;
         if (!isEnable(xy))
             return false;
         bool isTarget = func(xy);
         if (!isTarget)
             array[index++] = xy;
         return isTarget;
+    }
+
+    public void Dispose()
+    {
+#if Native
+        data.Dispose();
+#endif
+    }
+    ~AStarData()
+    {
+        this.Dispose();
     }
 }

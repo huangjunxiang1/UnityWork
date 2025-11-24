@@ -77,7 +77,8 @@ namespace Game
 
             ui = new() { isCrucialRoot = true };
             this.AddChild(ui);
-            ui.LoadConfig(cfg, new STask<T>(), data).AddEvent(() =>
+            ui.ParamObjects = data;
+            ui.LoadConfig(cfg, new STask<T>()).AddEvent(() =>
             {
                 for (int i = this.GetChildren().Count - 1; i >= 0; i--)
                 {
@@ -117,13 +118,14 @@ namespace Game
                 UIGlobalConfig.EnableUIInput(false);
                 ui = new() { isCrucialRoot = true };
                 this.AddChild(ui);
+                ui.ParamObjects = data;
                 //在执行异步的过程中有可能会关闭这个UI
                 ui.onDispose.Add(() =>
                 {
                     if (ui.uiStates < UIStatus.Success)
                         UIGlobalConfig.EnableUIInput(true);
                 });
-                await ui.LoadConfigAsync(cfg, new STask<T>(), data);
+                await ui.LoadConfigAsync(cfg, new STask<T>());
                 if (ui.Disposed)
                     return ui;
 
@@ -152,7 +154,8 @@ namespace Game
 
             T ui = new();
             this.AddChild(ui);
-            ui.LoadConfig(cfg, new STask<T>(), data);
+            ui.ParamObjects = data;
+            ui.LoadConfig(cfg, new STask<T>());
             ui.onCompleted.TrySetResult(ui);
 
             return ui;
@@ -165,7 +168,8 @@ namespace Game
 
                 T ui = new();
                 this.AddChild(ui);
-                await ui.LoadConfigAsync(cfg, new STask<T>(), data);
+                ui.ParamObjects = data;
+                await ui.LoadConfigAsync(cfg, new STask<T>());
                 if (ui.Disposed)
                     return ui;
 

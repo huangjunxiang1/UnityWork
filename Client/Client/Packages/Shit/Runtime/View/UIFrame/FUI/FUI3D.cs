@@ -35,11 +35,11 @@ public abstract class FUI3D : FUIBase
     public GameObject goRoot { get; private set; }
     public UIPanel Panel { get; private set; }
 
-    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed)
     {
-        await base.LoadConfig(config, completed, data);
+        await base.LoadConfig(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
         this.goRoot = SAsset.LoadGameObject(url, ReleaseMode.Destroy);
         this.goRoot.transform.SetParent(Client.transform);
@@ -47,17 +47,17 @@ public abstract class FUI3D : FUIBase
 
         this.Binding();
         this._states = UIStatus.OnTask;
-        await (_task = this.OnTask(data));
+        await (_task = this.OnTask());
         if (this.Disposed) return;
         this._states = UIStatus.Success;
         this.goRoot.SetActive(this.isShow);
-        this.OnEnter(data);
+        this.OnEnter();
     }
-    public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed, params object[] data)
+    public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed)
     {
-        await base.LoadConfigAsync(config, completed, data);
+        await base.LoadConfigAsync(config, completed);
 
-        this.OnAwake(data);
+        this.OnAwake();
         this._states = UIStatus.Loading;
         this.goRoot = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
         this.goRoot.transform.SetParent(Client.transform);
@@ -65,11 +65,11 @@ public abstract class FUI3D : FUIBase
 
         this.Binding();
         this._states = UIStatus.OnTask;
-        await (_task = this.OnTask(data));
+        await (_task = this.OnTask());
         if (this.Disposed) return;
         this._states = UIStatus.Success;
         this.goRoot.SetActive(this.isShow);
-        this.OnEnter(data);
+        this.OnEnter();
     }
     public override void Dispose()
     {

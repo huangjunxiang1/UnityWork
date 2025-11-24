@@ -10,7 +10,7 @@ using main;
 
 partial class FUILogin
 {
-    protected override void OnEnter(params object[] data)
+    protected override void OnEnter()
     {
         _acc.text = SettingL.Account;
         _acc.GetTextField().asTextInput.onChanged.Add(acc);
