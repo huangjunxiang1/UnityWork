@@ -28,7 +28,6 @@ partial class FUIGame
         this._genMap.onClick.Add(on_genMap);
 
         var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
-        finding.ShowGrid = true;
 
         input.CMEditorMouseClick.started += OnMouseClick;
         input.CMEditorMouseClick.performed += OnMouseClick;
@@ -111,11 +110,14 @@ partial class FUIGame
                     {
                         var p = hit.point;
                         var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+                        finding.ShowGrid = false;
 
                         var stop = Stopwatch.StartNew();
                         finding.Goto(p, algorithm: (PathFindingMethod)method, round: (PathFindingRound)round, solve: (PathFindingSolve)solve);
                         stop.Stop();
                         Loger.Log($"time:{stop.Elapsed}");
+
+                        finding.ShowGrid = true;
                     }
                 }
                 _isMouseDown = false;

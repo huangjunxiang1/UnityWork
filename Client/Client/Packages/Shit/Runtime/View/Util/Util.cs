@@ -9,8 +9,8 @@ public static partial class Util
 {
     public static T AddOrGetComponent<T>(this GameObject target) where T : Component
     {
-        if (!target.GetComponent<T>())
-            target.AddComponent<T>();
-        return target.GetComponent<T>();
+        var c = target.GetComponent<T>();
+        if (c) return c;
+        return target.AddComponent<T>();
     }
 }

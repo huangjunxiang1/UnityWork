@@ -712,7 +712,7 @@ public class Tool
         AssetDatabase.Refresh();
     }
 
-    [MenuItem("Tools/Gen_ToXLanString")]
+    [MenuItem("Tools/Gen_ToLanxString")]
     static void GenForLanString()
     {
         if (!File.Exists($"{Application.dataPath}/../Library/ScriptAssemblies/Game.HotFix.dll"))

@@ -198,20 +198,20 @@ public abstract class FUI : FUIBase
         this._ui.visible = this.isShow;
         this.OnEnter();
         if (_loadingView)
-            UIGlobalConfig.LoadingView(this, false);
+            SSetting.ViewSetting.LoadingView(this, false);
     }
     async void _delay1Handle()
     {
-        await SValueTask.Delay(UIGlobalConfig.LoadingViewDelayBeginTimeMs);
+        await SValueTask.Delay(SSetting.ViewSetting.LoadingViewDelayBeginTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         _loadingView = true;
-        UIGlobalConfig.LoadingView(this, true);
+        SSetting.ViewSetting.LoadingView(this, true);
     }
     async void _delay2Handle()
     {
-        await SValueTask.Delay(UIGlobalConfig.LoadingViewTimeOutTimeMs);
+        await SValueTask.Delay(SSetting.ViewSetting.LoadingViewTimeOutTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
-        UIGlobalConfig.LoadingView(this, false);
+        SSetting.ViewSetting.LoadingView(this, false);
         this.Dispose();
     }
 }

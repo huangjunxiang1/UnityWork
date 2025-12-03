@@ -6,13 +6,17 @@ using System.Text;
 
 public static class PrintField
 {
-    static Newtonsoft.Json.JsonSerializerSettings settings = new Newtonsoft.Json.JsonSerializerSettings
+    static JsonSerializerSettings settings = new JsonSerializerSettings
     {
-        Formatting = Newtonsoft.Json.Formatting.Indented,
-        ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore, // 处理循环引用
+#if !Server
+        Formatting = Formatting.Indented,
+#else
+        Formatting = Formatting.None,
+#endif
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore, // 处理循环引用
         Converters = Game.UnityMathematicsJsonConverter.Converters,
     };
-    [Conditional(ConstDefCore.DebugEnableString)]
+    [Conditional(SSetting.CoreSetting.DebugEnableString)]
     public static void Print(string format, object o)
     {
         if (o == null)
@@ -20,32 +24,12 @@ public static class PrintField
             Loger.Log(string.Format(format, "null"));
             return;
         }
-#if !Server
         var str = string.Empty;
-        try
-        {
-            settings.Formatting = Formatting.Indented;
-            str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
-        }
-        catch (Exception ex)
-        {
-            Loger.Error(ex);
-        }
-#else
-        var str = string.Empty;
-        try
-        {
-            settings.Formatting = Formatting.None;
-            str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
-        }
-        catch (Exception ex)
-        {
-            Loger.Error(ex);
-        }
-#endif
+        try { str = JsonConvert.SerializeObject(o, settings); }
+        catch (Exception ex) { Loger.Error(ex); }
         Loger.Log(string.Format(format, str.ToString()));
     }
-    [Conditional(ConstDefCore.DebugEnableString)]
+    [Conditional(SSetting.CoreSetting.DebugEnableString)]
     public static void Print(object o)
     {
         if (o == null)
@@ -53,29 +37,9 @@ public static class PrintField
             Loger.Log("null");
             return;
         }
-#if !Server
         var str = string.Empty;
-        try
-        {
-            settings.Formatting = Formatting.Indented;
-            str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
-        }
-        catch (Exception ex)
-        {
-            Loger.Error(ex);
-        }
-#else
-        var str = string.Empty;
-        try
-        {
-            settings.Formatting = Formatting.None;
-            str = Newtonsoft.Json.JsonConvert.SerializeObject(o, settings);
-        }
-        catch (Exception ex)
-        {
-            Loger.Error(ex);
-        }
-#endif
+        try { str = JsonConvert.SerializeObject(o, settings); }
+        catch (Exception ex) { Loger.Error(ex); }
         Loger.Log(str.ToString());
     }
 }

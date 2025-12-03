@@ -17,21 +17,19 @@ public static class LanguageUtil
 
     static readonly Language[] languageArray = new Language[(int)SystemLanguage.Unknown];
 
-    public static SystemLanguage LanguageType { get; set; } = SystemLanguage.Unknown;
-
     public static string ToLan(this string key)
     {
-        Language lan = languageArray[(int)LanguageType];
+        Language lan = languageArray[(int)SSetting.ViewSetting.LanguageType];
 
         if (lan == null)
         {
-            Loger.Error($"没有加载语言包 SystemLanguage={LanguageType}");
+            Loger.Error($"没有加载语言包 SystemLanguage={SSetting.ViewSetting.LanguageType}");
             return string.Empty;
         }
 
         if (!lan.kvs_str.TryGetValue(key, out Mapping kv))
         {
-            Loger.Error($"Language没有key:{key} SystemLanguage={LanguageType}");
+            Loger.Error($"Language没有key:{key} SystemLanguage={SSetting.ViewSetting.LanguageType}");
             return string.Empty;
         }
 
@@ -50,7 +48,7 @@ public static class LanguageUtil
     }
     public static string ToLanx(this string key)
     {
-        if (LanguageType == SystemLanguage.Chinese || LanguageType == SystemLanguage.ChineseSimplified)
+        if (SSetting.ViewSetting.LanguageType == SystemLanguage.Chinese || SSetting.ViewSetting.LanguageType == SystemLanguage.ChineseSimplified)
             return key;
         return key.ToLan();
     }

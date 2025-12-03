@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Core
 {
-    public class FastList<T>
+    public class FastList<T> where T : unmanaged
     {
         public FastList() : this(0) { }
         public FastList(int capacity)

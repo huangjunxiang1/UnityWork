@@ -12,7 +12,7 @@ namespace Game
     [Scene("Game")]
     class GameScene:Scene
     {
-        public override async void OnCreate(params object[] os)
+        public override async void OnEnter()
         {
             BaseCamera.SetCamera(new FreedomCamera(Camera.main.GetComponent<CinemachineBrain>()));
             GameObject cm = new("CMTarget");

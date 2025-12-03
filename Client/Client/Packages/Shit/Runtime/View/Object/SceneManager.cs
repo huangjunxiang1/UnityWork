@@ -35,7 +35,8 @@ namespace Game
             await SAsset.LoadSceneAsync($"scene_{attr.name}");
             await SValueTask.Delay(100);
 
-            Current.OnCreate(os);
+            Current._paramObjects = os;
+            Current.OnEnter();
 
             await world.Event.RunEventAsync(new EC_InScene { });
         }

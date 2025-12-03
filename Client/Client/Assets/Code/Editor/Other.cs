@@ -1,5 +1,4 @@
 ﻿using Core;
-using HybridCLR.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,19 +20,19 @@ static class Other
             var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabM)}.bytes")));
             if (!buff.ReadHeaderInfo())
                 throw new System.Exception("数据错误");
-            TabM.Init(buff, ConstDefCore.Debug);
+            TabM.Init(buff, SSetting.CoreSetting.Debug);
         }
         {
             var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabL)}.bytes")));
             if (!buff.ReadHeaderInfo())
                 throw new System.Exception("数据错误");
-            TabL.Init(buff, ConstDefCore.Debug);
+            TabL.Init(buff, SSetting.CoreSetting.Debug);
         }
         {
-            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/Language_{LanguageUtil.LanguageType}.bytes")));
+            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/Language_{SSetting.ViewSetting.LanguageType}.bytes")));
             if (!buff.ReadHeaderInfo())
                 throw new System.Exception("数据错误");
-            LanguageUtil.Load((int)LanguageUtil.LanguageType, buff, ConstDefCore.Debug);
+            LanguageUtil.Load((int)SSetting.ViewSetting.LanguageType, buff, SSetting.CoreSetting.Debug);
         }
         EditorUtility.DisplayDialog("完成", "重载完成", "确定");
     }

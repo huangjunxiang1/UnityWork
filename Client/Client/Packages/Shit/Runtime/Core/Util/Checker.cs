@@ -10,7 +10,7 @@ namespace Core
 {
     internal static class Checker
     {
-        [Conditional(ConstDefCore.DebugEnableString)]
+        [Conditional(SSetting.CoreSetting.DebugEnableString)]
         public static void Check(List<Type> types)
         {
             for (int i = 0; i < types.Count; i++)
@@ -72,7 +72,7 @@ namespace Core
                 }
             }
         }
-        [Conditional(ConstDefCore.DebugEnableString)]
+        [Conditional(SSetting.CoreSetting.DebugEnableString)]
         public static void Check(MethodInfo method)
         {
             var ps = method.GetParameters();

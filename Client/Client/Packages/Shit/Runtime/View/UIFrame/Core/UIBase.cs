@@ -10,7 +10,7 @@ using Game;
 
 public abstract class UIBase : STree
 {
-    internal object[] ParamObjects;
+    internal object[] _paramObjects;
 
     public UIConfig uiConfig { get; private set; }
     public abstract string url { get; }
@@ -61,7 +61,7 @@ public abstract class UIBase : STree
 
         ui = new();
         this.AddChild(ui);
-        ui.ParamObjects = data;
+        ui._paramObjects = data;
         ui.LoadConfig(cfg, new STask<T>()).AddEvent(() =>
         {
             ui.Show();
@@ -89,22 +89,22 @@ public abstract class UIBase : STree
         {
             UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
-            UIGlobalConfig.EnableUIInput(false);
+            SSetting.ViewSetting.EnableUIInput(false);
             ui = new();
             //在执行异步的过程中有可能会关闭这个UI
             ui.onDispose.Add(() =>
             {
                 if (ui.uiStates < UIStatus.Success)
-                    UIGlobalConfig.EnableUIInput(true);
+                    SSetting.ViewSetting.EnableUIInput(true);
             });
             this.AddChild(ui);
-            ui.ParamObjects = data;
+            ui._paramObjects = data;
             await ui.LoadConfigAsync(cfg, new STask<T>());
             if (ui.Disposed)
                 return ui;
 
             ui.Show();
-            UIGlobalConfig.EnableUIInput(true);
+            SSetting.ViewSetting.EnableUIInput(true);
 
             ui.onCompleted.TrySetResult(ui);
             return ui;
@@ -187,8 +187,8 @@ public abstract class UIBase : STree
     }
     public T GetParam<T>(int index)
     {
-        if (ParamObjects != null && index < ParamObjects.Length)
-            return (T)ParamObjects[index];
+        if (_paramObjects != null && index < _paramObjects.Length)
+            return (T)_paramObjects[index];
         return default;
     }
 

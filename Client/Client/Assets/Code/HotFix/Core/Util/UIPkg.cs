@@ -24,7 +24,7 @@ public class UIPkg
         UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
         UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
-        UIGlobalConfig.isTouchUI += UIHelper.IsOnTouchFUI;
+        SSetting.ViewSetting.isTouchUI += UIHelper.IsOnTouchFUI;
 
         if (Pkg.res.CheckLocationValid("UI_Items"))
             uui_items = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_Items");

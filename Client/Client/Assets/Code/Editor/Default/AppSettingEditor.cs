@@ -42,11 +42,11 @@ public class AppSettingEditor : Editor
 
             if (setting.Debug)
             {
-                if (!defs.Contains(ConstDefCore.DebugEnableString))
-                    defs.Add(ConstDefCore.DebugEnableString);
+                if (!defs.Contains(SSetting.CoreSetting.DebugEnableString))
+                    defs.Add(SSetting.CoreSetting.DebugEnableString);
             }
             else
-                defs.RemoveAll(t => t == ConstDefCore.DebugEnableString);
+                defs.RemoveAll(t => t == SSetting.CoreSetting.DebugEnableString);
 
             StringBuilder str1 = new StringBuilder();
             for (int j = 0; j < defs.Count; j++)

@@ -55,11 +55,11 @@ public abstract class UUIBase : UIBase
                     ani.Play("close");
                     isHiding = true;
                     hideTask = new();
-                    UIGlobalConfig.EnableUIInput(false);
+                    SSetting.ViewSetting.EnableUIInput(false);
                     World.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
-                        UIGlobalConfig.EnableUIInput(true);
+                        SSetting.ViewSetting.EnableUIInput(true);
                         this.isShow = false;
                         callBack?.Invoke();
                         hideTask.TrySetResult();
@@ -72,11 +72,11 @@ public abstract class UUIBase : UIBase
                     ani.Rewind("open");
                     isHiding = true;
                     hideTask = new();
-                    UIGlobalConfig.EnableUIInput(false);
+                    SSetting.ViewSetting.EnableUIInput(false);
                     World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
-                        UIGlobalConfig.EnableUIInput(true);
+                        SSetting.ViewSetting.EnableUIInput(true);
                         this.isShow = false;
                         callBack?.Invoke();
                         hideTask.TrySetResult();
@@ -107,11 +107,11 @@ public abstract class UUIBase : UIBase
                     ani.Play("close");
                     isHiding = true;
                     hideTask = new();
-                    UIGlobalConfig.EnableUIInput(false);
+                    SSetting.ViewSetting.EnableUIInput(false);
                     World.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
-                        UIGlobalConfig.EnableUIInput(true);
+                        SSetting.ViewSetting.EnableUIInput(true);
                         this.isShow = false;
                         hideTask.TrySetResult();
                     });
@@ -123,11 +123,11 @@ public abstract class UUIBase : UIBase
                     ani.Rewind("open");
                     isHiding = true;
                     hideTask = new();
-                    UIGlobalConfig.EnableUIInput(false);
+                    SSetting.ViewSetting.EnableUIInput(false);
                     World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
-                        UIGlobalConfig.EnableUIInput(true);
+                        SSetting.ViewSetting.EnableUIInput(true);
                         this.isShow = false;
                         hideTask.TrySetResult();
                     });
@@ -160,11 +160,11 @@ public abstract class UUIBase : UIBase
                 {
                     isShowing = true;
                     showTask = new();
-                    UIGlobalConfig.EnableUIInput(false);
+                    SSetting.ViewSetting.EnableUIInput(false);
                     World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isShowing = false;
-                        UIGlobalConfig.EnableUIInput(true);
+                        SSetting.ViewSetting.EnableUIInput(true);
                         callBack?.Invoke();
                         showTask.TrySetResult();
                     });
@@ -192,10 +192,10 @@ public abstract class UUIBase : UIBase
                 {
                     isShowing = true;
                     showTask = new();
-                    UIGlobalConfig.EnableUIInput(false);
+                    SSetting.ViewSetting.EnableUIInput(false);
                     World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
-                        UIGlobalConfig.EnableUIInput(true);
+                        SSetting.ViewSetting.EnableUIInput(true);
                         showTask.TrySetResult();
                     });
                     return showTask;

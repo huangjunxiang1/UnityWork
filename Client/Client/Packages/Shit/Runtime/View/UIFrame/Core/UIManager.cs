@@ -77,7 +77,7 @@ namespace Game
 
             ui = new() { isCrucialRoot = true };
             this.AddChild(ui);
-            ui.ParamObjects = data;
+            ui._paramObjects = data;
             ui.LoadConfig(cfg, new STask<T>()).AddEvent(() =>
             {
                 for (int i = this.GetChildren().Count - 1; i >= 0; i--)
@@ -115,15 +115,15 @@ namespace Game
             {
                 UIConfig cfg = typeof(T).GetCustomAttribute<UIConfig>() ?? UIConfig.Default;
 
-                UIGlobalConfig.EnableUIInput(false);
+                SSetting.ViewSetting.EnableUIInput(false);
                 ui = new() { isCrucialRoot = true };
                 this.AddChild(ui);
-                ui.ParamObjects = data;
+                ui._paramObjects = data;
                 //在执行异步的过程中有可能会关闭这个UI
                 ui.onDispose.Add(() =>
                 {
                     if (ui.uiStates < UIStatus.Success)
-                        UIGlobalConfig.EnableUIInput(true);
+                        SSetting.ViewSetting.EnableUIInput(true);
                 });
                 await ui.LoadConfigAsync(cfg, new STask<T>());
                 if (ui.Disposed)
@@ -141,7 +141,7 @@ namespace Game
                     }
                 }
                 ui.Show();
-                UIGlobalConfig.EnableUIInput(true);
+                SSetting.ViewSetting.EnableUIInput(true);
 
                 ui.onCompleted.TrySetResult(ui);
                 return ui;
@@ -154,7 +154,7 @@ namespace Game
 
             T ui = new();
             this.AddChild(ui);
-            ui.ParamObjects = data;
+            ui._paramObjects = data;
             ui.LoadConfig(cfg, new STask<T>());
             ui.onCompleted.TrySetResult(ui);
 
@@ -168,7 +168,7 @@ namespace Game
 
                 T ui = new();
                 this.AddChild(ui);
-                ui.ParamObjects = data;
+                ui._paramObjects = data;
                 await ui.LoadConfigAsync(cfg, new STask<T>());
                 if (ui.Disposed)
                     return ui;

@@ -9,9 +9,8 @@ namespace Game
     [Scene(name: "Login")]
     class LoginScene : Scene
     {
-        public override async void OnCreate(params object[] os)
+        public override async void OnEnter()
         {
-            base.OnCreate(os);
             Client.Data.Clear();
             await Client.UI.OpenAsync<FUILogin>();
         }

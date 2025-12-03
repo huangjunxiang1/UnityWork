@@ -159,6 +159,45 @@ public static class Pkg
         handler.Dispose();
         return bs;
     }
+    public static string GetRawPath(string location)
+    {
+        if (!Pkg.raw.CheckLocationValid(location))
+            return null;
+        var handler = Pkg.raw.LoadRawFileSync(location);
+        var path = handler.GetRawFilePath();
+        handler.Dispose();
+        return path;
+    }
+    public static async STask<byte[]> LoadRawAsync(string location)
+    {
+        if (!Pkg.raw.CheckLocationValid(location))
+            return null;
+        var handler = Pkg.raw.LoadRawFileAsync(location);
+        await handler.AsTask();
+        var bs = handler.GetRawFileData();
+        handler.Dispose();
+        return bs;
+    }
+    public static async STask<string> LoadRawTextAsync(string location)
+    {
+        if (!Pkg.raw.CheckLocationValid(location))
+            return null;
+        var handler = Pkg.raw.LoadRawFileAsync(location);
+        await handler.AsTask();
+        var bs = handler.GetRawFileText();
+        handler.Dispose();
+        return bs;
+    }
+    public static async STask<string> GetRawPathAsync(string location)
+    {
+        if (!Pkg.raw.CheckLocationValid(location))
+            return null;
+        var handler = Pkg.raw.LoadRawFileAsync(location);
+        await handler.AsTask();
+        var path = handler.GetRawFilePath();
+        handler.Dispose();
+        return path;
+    }
 
     class RemoteServices : IRemoteServices
     {

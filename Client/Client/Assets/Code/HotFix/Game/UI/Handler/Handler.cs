@@ -20,11 +20,12 @@ static class Handler
         await Resources.UnloadUnusedAssets().AsTask();
 
         DG.Tweening.DOTween.Init();
-        SettingL.Languege = SystemLanguage.Chinese;
+        SSetting.ViewSetting.LanguageType = SystemLanguage.Chinese;
+        SettingL.loadLocationText();
         Application.targetFrameRate = -1;
-
-        UIGlobalConfig.LoadingUrl = G_Connecting.URL;
+        SSetting.ViewSetting.LoadingUrl = G_Connecting.URL;
         GRoot.inst.SetContentScaleFactor(1334, 750);
+
         /*FairyGUI.UIConfig.defaultFont = "UIFont";
         TMPFont font = new() { };
         font.name = "UIFont";
@@ -37,11 +38,11 @@ static class Handler
 
         DBuffer buffM = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM)}")));
         if (buffM.ReadHeaderInfo())
-            TabM.Init(buffM, ConstDefCore.Debug);
+            TabM.Init(buffM, SSetting.CoreSetting.Debug);
 
         DBuffer buffL = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabL)}")));
         if (buffL.ReadHeaderInfo())
-            TabL.Init(buffL, ConstDefCore.Debug);
+            TabL.Init(buffL, SSetting.CoreSetting.Debug);
     }
 
     [Event]

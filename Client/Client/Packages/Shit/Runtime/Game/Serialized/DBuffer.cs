@@ -1065,9 +1065,10 @@ public class DBuffer : IDisposable
         }
         return ret | (((ulong)stream.ReadByte()) << (7 * 9));
     }
-    [Conditional(ConstDefCore.DebugEnableString)]
+    [Conditional(SSetting.CoreSetting.DebugEnableString)]
     void checkArrayLengthLimit(int len)
     {
+        //byte[] is verry long, so we dont check it
         /*if (len > int.MaxValue)
             throw new Exception($"长度超过{ushort.MaxValue}的限制 当前长度={len}");*/
     }

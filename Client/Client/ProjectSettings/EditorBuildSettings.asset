@@ -13,4 +13,3 @@ EditorBuildSettings:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 99f9c9493070a9d4c979a8fec7c5a8d3, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: 8087b7fa37d44da44bcb44f5c431d887, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 9f4aef91fa34be246a9e16c35ea53153, type: 2}
-  m_UseUCBPForAssetBundles: 0
