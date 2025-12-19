@@ -40,7 +40,7 @@ public class Loading
 
         if (!Application.isEditor)
         {
-            using UnityWebRequest www = UnityWebRequest.Get($"{GameStart.Inst.resUrl}main.json");
+            using UnityWebRequest www = UnityWebRequest.Get($"{GameStart.Inst.resUrl.TrimEnd('/')}/main.json");
             await www.SendWebRequest().AsTask();
             if (!string.IsNullOrEmpty(www.error))
             {
@@ -48,7 +48,14 @@ public class Loading
                 this.ShowError(www.error);
                 return;
             }
-            MainJson main = JsonConvert.DeserializeObject<MainJson>(www.downloadHandler.text);
+            MainJson main = null;
+            try { main = JsonConvert.DeserializeObject<MainJson>(www.downloadHandler.text); }
+            catch (Exception) { }
+            if (main == null)
+            {
+                this.ShowError($"download this [{www.downloadHandler.text}]");
+                return;
+            }
             if (!main.open)
             {
                 this.ShowError(main.text);

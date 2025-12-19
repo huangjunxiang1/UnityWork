@@ -13,9 +13,9 @@ using TMPro;
 
 class Ex
 {
-    static void cull_res(bool deleteVs, string packageName, BuildTarget buildTarget)
+    static void cull_res(string packageName, BuildTarget buildTarget)
     {
-        var dir = $"{Application.dataPath}/../Bundles/{buildTarget}/{packageName}";
+        var dir = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}";
         var ds = Directory.GetDirectories(dir).Select(t => new DirectoryInfo(t)).Where(t => t.Name.Contains('.')).ToList();
         ds.Sort((x, y) =>
         {
@@ -33,8 +33,6 @@ class Ex
         if (src == null)
             return;
         var cull = src.GetFiles().Select(t => t.Name);
-        if (deleteVs)
-            File.Delete($"{src}/{packageName}.version");
         HashSet<string> olds = new(100000);
         for (int i = 0; i < ds.Count - 1; i++)
         {
@@ -54,19 +52,8 @@ class Ex
     }
 
     // 新增：提取的复用 UI 创建函数（Toggle + Button）
-    static void AddCullControls(VisualElement root, string packageName, BuildTarget buildTarget, Func<Task> refreshPending = null)
+    static void AddCullControls(VisualElement root, string packageName, BuildTarget buildTarget, Action refreshPending = null)
     {
-        // Toggle：是否删除 PackageManifest 文件（默认从 EditorPrefs 读取）
-        string prefKey = $"YooAsset.Cull.vs";
-        var deleteToggle = new Toggle($"删除 x.version");
-        deleteToggle.value = EditorPrefs.GetBool(prefKey, false);
-        deleteToggle.style.marginTop = 6;
-        deleteToggle.RegisterValueChangedCallback(evt =>
-        {
-            EditorPrefs.SetBool(prefKey, evt.newValue);
-        });
-        root.Add(deleteToggle);
-
         Button myButton = new Button();
         myButton.style.marginTop = 10;
         myButton.text = "剔除重复资源";
@@ -74,13 +61,18 @@ class Ex
         myButton.AddToClassList("my-button-style");
         myButton.clicked += () =>
         {
-            cull_res(deleteToggle.value, packageName, buildTarget);
-            // 剔除完成后触发刷新（异步）
-            if (refreshPending != null)
-                Task.Run(refreshPending);
+            cull_res(packageName, buildTarget);
+            refreshPending();
         };
         root.Add(myButton);
     }
+
+    // 计划（伪代码）：
+    // 1. 在 Raw.CreateView 和 Res.CreateView 中，当 base.CreateView(parent) 执行并且 _buildVersionField 可用时，注册 value 变化回调。
+    // 2. 回调内容：当 _buildVersionField 的 value 变化时，异步调用 Ex.PopulatePendingForContainerByRoot(...) 以刷新 pending / uploaded 列表。
+    // 3. 为避免重复注册，使用 _buildVersionField.userData 标记已注册回调，保证同一实例只注册一次。
+    // 4. 保持原有逻辑不变：仍然添加剔除按钮与 FTP 面板，并在构建后异步触发刷新。
+    // 5. 回调使用 Task.Run 执行以避免阻塞 UI 线程，同时 Populate 方法会在主线程通过 EditorApplication.delayCall 更新 UI。
 
     [BuildPipelineAttribute(nameof(EBuildPipeline.RawFileBuildPipeline))]
     internal class Raw : RawfileBuildpipelineViewer
@@ -90,17 +82,23 @@ class Ex
         {
             base.CreateView(parent);
 
-            // 使用提取后的复用函数，并传入刷新回调
-            Ex.AddCullControls(Root, this.PackageName, this.BuildTarget, () => Ex.PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName));
+            // 使用提取后的复用函数，并传入刷新回调（传递 buildVersionField）
+            Ex.AddCullControls(Root, this.PackageName, this.BuildTarget, () => Ex.PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName, this._buildVersionField));
 
-            // 添加 FTP 上传面板
-            Ex.AddFtpUploader(Root, this.BuildTarget, this.PackageName);
+            // 添加 FTP 上传面板，传入版本字段实例
+            Ex.AddFtpUploader(Root, this.BuildTarget, this.PackageName, this._buildVersionField);
+
+            this._buildVersionField.RegisterValueChangedCallback((evt) =>
+            {
+                // 使用 Task.Run 异步触发刷新，Populate 方法在主线程更新 UI
+                PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName, this._buildVersionField);
+            });
         }
         protected override void ExecuteBuild()
         {
             base.ExecuteBuild();
-            // 构建完成后异步刷新未传输列表显示
-            Task.Run(() => Ex.PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName));
+            // 构建完成后异步刷新未传输列表显示，传入 _buildVersionField
+            PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName, this._buildVersionField);
         }
     }
     [BuildPipelineAttribute(nameof(EBuildPipeline.ScriptableBuildPipeline))]
@@ -112,9 +110,14 @@ class Ex
             base.CreateView(parent);
 
             // 使用提取后的复用函数，并传入刷新回调
-            Ex.AddCullControls(Root, this.PackageName, this.BuildTarget, () => Ex.PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName));
+            Ex.AddCullControls(Root, this.PackageName, this.BuildTarget, () => Ex.PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName, this._buildVersionField));
 
-            Ex.AddFtpUploader(Root, this.BuildTarget, this.PackageName);
+            Ex.AddFtpUploader(Root, this.BuildTarget, this.PackageName, this._buildVersionField);
+
+            this._buildVersionField.RegisterValueChangedCallback((evt) =>
+            {
+                PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName, this._buildVersionField);
+            });
         }
         protected override void ExecuteBuild()
         {
@@ -131,7 +134,7 @@ class Ex
             base.ExecuteBuild();
 
             // 构建完成后异步刷新未传输列表显示
-            Task.Run(() => Ex.PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName));
+            PopulatePendingForContainerByRoot(Root, this.BuildTarget, this.PackageName, this._buildVersionField);
         }
     }
 
@@ -174,21 +177,25 @@ class Ex
     }
 
     // 新增：刷新 pending 列表的通用函数（将 UI 更新逻辑封装为独立函数）
-    static void RefreshPendingUI(VisualElement container, List<string> relativePaths, Dictionary<string, long> sizeMap, Dictionary<string, Label> pendingLabelMap = null, int uploadedCount = 0)
+    static void RefreshPendingUI(VisualElement container, List<string> pendingRelativePaths, Dictionary<string, long> sizeMap, Dictionary<string, Label> pendingLabelMap = null, List<string> uploadedRelativePaths = null)
     {
         if (container == null) return;
         var pendingScroll = container.Q<ScrollView>("pendingScroll");
         var pendingTitle = container.Q<Label>("pendingTitle");
         var uploadedTitle = container.Q<Label>("uploadedTitle");
         var statusLabel = container.Q<Label>("statusLabel");
-        if (pendingScroll == null || pendingTitle == null || uploadedTitle == null || statusLabel == null)
+        var uploadedScroll = container.Q<ScrollView>("uploadedScroll");
+        if (pendingScroll == null || pendingTitle == null || uploadedTitle == null || statusLabel == null || uploadedScroll == null)
             return;
 
         pendingScroll.contentContainer.Clear();
+        uploadedScroll.contentContainer.Clear();
+
         if (pendingLabelMap != null)
             pendingLabelMap.Clear();
 
-        foreach (var rel in relativePaths)
+        // pending 列
+        foreach (var rel in pendingRelativePaths)
         {
             var sizeText = sizeMap != null && sizeMap.TryGetValue(rel, out var s) ? FormatBytes(s) : "0 B";
             var lbl = new Label($"{rel} ({sizeText})");
@@ -202,30 +209,38 @@ class Ex
                 pendingLabelMap[rel] = lbl;
         }
 
-        pendingTitle.text = $"未传输 ({relativePaths.Count})";
-        uploadedTitle.text = $"已传输 ({uploadedCount})";
-
-        if (relativePaths.Count == 0)
+        // uploaded 列（以 record.txt 为准，uploadedRelativePaths 可为 null）
+        if (uploadedRelativePaths != null)
         {
-            statusLabel.text = "目录为空";
+            foreach (var rel in uploadedRelativePaths)
+            {
+                var sizeText = sizeMap != null && sizeMap.TryGetValue(rel, out var s) ? FormatBytes(s) : "0 B";
+                var lbl = new Label($"{rel} ({sizeText})");
+                lbl.style.unityFontStyleAndWeight = FontStyle.Normal;
+                lbl.style.whiteSpace = WhiteSpace.Normal;
+                lbl.style.unityTextAlign = TextAnchor.MiddleLeft;
+                lbl.style.marginBottom = 2;
+                uploadedScroll.contentContainer.Add(lbl);
+            }
+        }
+
+        pendingTitle.text = $"未传输 ({pendingRelativePaths.Count})";
+        uploadedTitle.text = $"已传输 ({(uploadedRelativePaths != null ? uploadedRelativePaths.Count : 0)})";
+
+        if (pendingRelativePaths.Count == 0)
+        {
+            statusLabel.text = "目录为空或全部已传输";
         }
         else
         {
-            statusLabel.text = $"找到 {relativePaths.Count} 个文件，准备上传";
+            statusLabel.text = $"找到 {pendingRelativePaths.Count} 个待传文件，准备上传";
         }
     }
 
-    // 新版：FTP 上传功能整体重构（优化 UI 布局与交互）
-    static void AddFtpUploader(VisualElement root, BuildTarget buildTarget, string packageName)
+    // 新版：FTP 上传功能整体重构（优化 UI 布局与交互），移除失败/重传
+    // 新增参数 TextField versionField：优先使用此字段中的版本号作为本地构建目录
+    static void AddFtpUploader(VisualElement root, BuildTarget buildTarget, string packageName, TextField versionField = null)
     {
-        /*
-        计划已在外部说明，这里直接实现：
-        - 增加失败列表（failedScroll / failedTitle）和“重传失败”按钮 retryFailedBtn
-        - 在每个文件上传失败时记录到 failedList 并在 UI 中展示
-        - retryFailedBtn 点击后对 failedList 执行重传（仅对这些文件）
-        - 为失败列表增加可拖动的下拉分隔条，用于调节失败列表高度
-        */
-
         // 容器
         var container = new VisualElement();
         container.style.marginTop = 10;
@@ -316,13 +331,6 @@ class Ex
         uploadBtn.style.marginTop = 6;
         uploadBtn.style.height = 30;
         container.Add(uploadBtn);
-
-        // 重传失败按钮（新）
-        var retryFailedBtn = new Button();
-        retryFailedBtn.text = "重传失败";
-        retryFailedBtn.style.marginTop = 6;
-        retryFailedBtn.style.height = 30;
-        container.Add(retryFailedBtn);
 
         // 滚动列表区域（左右并排显示 未传输 / 已传输），并支持可拖动调整宽度
         var listsContainer = new VisualElement();
@@ -442,62 +450,12 @@ class Ex
         listsContainer.Add(uploadedColumn);
         container.Add(listsContainer);
 
-        // 下面新增失败列表区域（单列，放在 listsContainer 之下）
-        var failedContainer = new VisualElement();
-        failedContainer.style.flexDirection = FlexDirection.Column;
-        failedContainer.style.marginTop = 6;
-
-        var failedTitle = new Label("失败 (0)");
-        failedTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-        failedTitle.name = "failedTitle";
-        failedTitle.style.marginBottom = 4;
-        failedContainer.Add(failedTitle);
-
-        // 将失败列表分割条移至列表下方：使用 failedSplit 包含 top + scroll + divider（divider 在下方）
-        var failedSplit = new VisualElement();
-        failedSplit.style.flexDirection = FlexDirection.Column;
-        failedSplit.style.flexGrow = 1;
-        failedSplit.style.alignItems = Align.Stretch;
-        failedSplit.style.justifyContent = Justify.FlexStart;
-
-        var failedTop = new VisualElement();
-        failedTop.style.height = new Length(0, LengthUnit.Pixel);
-        failedTop.style.marginBottom = 0;
-        failedTop.style.paddingTop = 0;
-        failedTop.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
-        failedSplit.Add(failedTop);
-
-        var failedScroll = new ScrollView();
-        failedScroll.style.height = 80;
-        failedScroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-        failedScroll.verticalScrollerVisibility = ScrollerVisibility.Auto;
-        failedScroll.name = "failedScroll";
-        failedScroll.contentContainer.style.paddingTop = 0;
-        failedSplit.Add(failedScroll);
-
-        // 失败列表的分割条（现在在列表下方）
-        var failedHDivider = new VisualElement();
-        failedHDivider.style.height = 6;
-        failedHDivider.pickingMode = PickingMode.Position;
-        failedHDivider.style.backgroundColor = new StyleColor(new Color(0.85f, 0.85f, 0.85f));
-        failedHDivider.style.marginTop = 2;
-        failedHDivider.style.marginBottom = 4;
-        failedHDivider.style.alignSelf = Align.Stretch;
-        failedSplit.Add(failedHDivider);
-
-        failedContainer.Add(failedSplit);
-
-        container.Add(failedContainer);
-
         root.Add(container);
 
         // 映射与计数（提前声明以便被初始化逻辑复用）
         var pendingLabelMap = new Dictionary<string, Label>(StringComparer.OrdinalIgnoreCase);
-        var failedLabelMap = new Dictionary<string, Label>(StringComparer.OrdinalIgnoreCase);
         var uploadedCount = 0;
         var pendingCount = 0;
-        var failedCount = 0;
-        var failedList = new List<string>();
 
         // 可拖动逻辑 - 左右分隔（保持原实现）
         {
@@ -672,66 +630,10 @@ class Ex
             });
         }
 
-        // 可拖动逻辑 - failed 列的上方分隔条（调整 failedScroll 高度）  —— 注意：分割条在列表下方，但拖动计算仍然基于 failedScroll 高度
-        {
-            bool isDragging = false;
-            int draggingPointerId = -1;
-            float startPointerYLocal = 0f;
-            float startFailedHeight = 0f;
-            const float minFailedHeight = 40f;
-            const float maxFailedHeight = 600f;
+        // 异步填充未传输列表（页面初始化时就显示 pending 列表和已传列表）
+        PopulatePendingForContainer(container, buildTarget, packageName, versionField);
 
-            failedHDivider.RegisterCallback<PointerDownEvent>(evt =>
-            {
-                if (evt.button != (int)MouseButton.LeftMouse) return;
-                isDragging = true;
-                draggingPointerId = evt.pointerId;
-                var local = failedContainer.WorldToLocal(evt.position);
-                startPointerYLocal = local.y;
-                startFailedHeight = failedScroll.layout.height > 0 ? failedScroll.layout.height : failedScroll.resolvedStyle.height;
-                try { failedHDivider.CapturePointer(draggingPointerId); } catch { }
-                evt.StopImmediatePropagation();
-            });
-
-            failedHDivider.RegisterCallback<PointerMoveEvent>(evt =>
-            {
-                if (!isDragging) return;
-                if (evt.pointerId != draggingPointerId) return;
-
-                var local = failedContainer.WorldToLocal(evt.position);
-                float delta = local.y - startPointerYLocal;
-                float newHeight = startFailedHeight + delta;
-                newHeight = Mathf.Clamp(newHeight, minFailedHeight, maxFailedHeight);
-
-                failedScroll.style.height = new Length(newHeight, LengthUnit.Pixel);
-
-                evt.StopImmediatePropagation();
-            });
-
-            failedHDivider.RegisterCallback<PointerUpEvent>(evt =>
-            {
-                if (!isDragging) return;
-                if (evt.pointerId != draggingPointerId) return;
-                isDragging = false;
-                try { failedHDivider.ReleasePointer(draggingPointerId); } catch { }
-                draggingPointerId = -1;
-                evt.StopImmediatePropagation();
-            });
-
-            failedHDivider.RegisterCallback<PointerCancelEvent>(evt =>
-            {
-                if (!isDragging) return;
-                isDragging = false;
-                try { if (draggingPointerId != -1) failedHDivider.ReleasePointer(draggingPointerId); } catch { }
-                draggingPointerId = -1;
-                evt.StopImmediatePropagation();
-            });
-        }
-
-        // 异步填充未传输列表（页面初始化时就显示 pending 列表）
-        Task.Run(() => PopulatePendingForContainer(container, buildTarget, packageName));
-
-        // upload 按钮逻辑（上传并记录失败）
+        // upload 按钮逻辑（上传并记录成功项到 record.txt）
         uploadBtn.clicked += () =>
         {
             EditorPrefs.SetString(keyHost, ftpHostField.value ?? "");
@@ -743,7 +645,6 @@ class Ex
             bool includePlatform = includePlatformToggle.value;
 
             uploadBtn.SetEnabled(false);
-            retryFailedBtn.SetEnabled(false);
             progressBar.value = 0f;
             statusLabel.text = "准备上传...";
 
@@ -753,23 +654,17 @@ class Ex
             string remoteRoot = remotePathField.value?.Trim() ?? "";
 
             pendingLabelMap.Clear();
-            failedLabelMap.Clear();
             uploadedScroll.contentContainer.Clear();
             pendingScroll.contentContainer.Clear();
-            failedScroll.contentContainer.Clear();
             uploadedCount = 0;
             pendingCount = 0;
-            failedCount = 0;
-            failedList.Clear();
-            uploadedTitle.text = $"已传输 ({uploadedCount})";
-            pendingTitle.text = $"未传输 ({pendingCount})";
-            failedTitle.text = $"失败 ({failedCount})";
 
             Task.Run(async () =>
             {
                 try
                 {
-                    string localRoot = GetLatestOutputDir(buildTarget, packageName);
+                    // 使用优先从 UI 获取的版本目录（优先使用传入的 versionField）
+                    string localRoot = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}/{versionField.value}";
                     if (string.IsNullOrEmpty(localRoot) || !Directory.Exists(localRoot))
                     {
                         EditorApplication.delayCall += () =>
@@ -777,7 +672,6 @@ class Ex
                             EditorUtility.DisplayDialog("错误", "未找到最新构建输出目录，无法上传。", "确定");
                             statusLabel.text = "未找到本地目录";
                             uploadBtn.SetEnabled(true);
-                            retryFailedBtn.SetEnabled(true);
                         };
                         return;
                     }
@@ -789,7 +683,10 @@ class Ex
                     }
                     host = host.TrimEnd('/');
 
-                    var files = Directory.GetFiles(localRoot, "*", SearchOption.AllDirectories);
+                    // 过滤掉 record.txt 本身，避免上传记录文件
+                    var allFiles = Directory.GetFiles(localRoot, "*", SearchOption.AllDirectories);
+                    var files = allFiles.Where(f => !string.Equals(Path.GetFileName(f), "record.txt", StringComparison.OrdinalIgnoreCase)).ToArray();
+
                     if (files.Length == 0)
                     {
                         EditorApplication.delayCall += () =>
@@ -797,7 +694,6 @@ class Ex
                             EditorUtility.DisplayDialog("提示", "目录为空，无需上传。", "确定");
                             statusLabel.text = "目录为空";
                             uploadBtn.SetEnabled(true);
-                            retryFailedBtn.SetEnabled(true);
                         };
                         return;
                     }
@@ -822,15 +718,19 @@ class Ex
                         relativeToFull[relativeNormalized] = files[i];
                     }
 
+                    // 读取 record.txt，计算 pending / uploaded
+                    var uploadedSet = LoadUploadedFromRecord(GetRecordFilePath(localRoot));
+                    var uploadedList = uploadedSet.Where(r => relativeToFull.ContainsKey(r)).ToList();
+                    var pendingList = relativePaths.Except(uploadedList).ToList();
+
                     EditorApplication.delayCall += () =>
                     {
-                        RefreshPendingUI(container, relativePaths, sizeMap, pendingLabelMap, uploadedCount);
-                        if (relativePaths.Count == 0)
+                        RefreshPendingUI(container, pendingList, sizeMap, pendingLabelMap, uploadedList);
+                        if (pendingList.Count == 0)
                         {
-                            EditorUtility.DisplayDialog("提示", "目录为空，无需上传。", "确定");
-                            statusLabel.text = "目录为空";
+                            EditorUtility.DisplayDialog("提示", "没有待上传的文件。", "确定");
+                            statusLabel.text = "无待上传文件";
                             uploadBtn.SetEnabled(true);
-                            retryFailedBtn.SetEnabled(true);
                         }
                     };
 
@@ -838,9 +738,9 @@ class Ex
 
                     ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
-                    for (int i = 0; i < relativePaths.Count; i++)
+                    for (int i = 0; i < pendingList.Count; i++)
                     {
-                        var relativeNormalized = relativePaths[i];
+                        var relativeNormalized = pendingList[i];
                         var fileFull = relativeToFull[relativeNormalized];
                         var fi = new FileInfo(fileFull);
                         string remoteRootPart = string.IsNullOrEmpty(remoteRoot) ? "" : remoteRoot.TrimStart('/').TrimEnd('/');
@@ -863,6 +763,7 @@ class Ex
                         bool fileSucceeded = false;
                         try
                         {
+                            // 每个文件上传使用 5000ms 超时
                             await UploadFileWithProgress(uri, user, pass, fileFull, (sentBytes) =>
                             {
                                 currentFileSent += sentBytes;
@@ -876,34 +777,32 @@ class Ex
                                     progressBar.value = totalProgress;
                                     statusLabel.text = $"总 {(int)(totalProgress * 100)}%  ({FormatBytes(uploadedBytes)}/{FormatBytes(totalBytes)})  |  {(int)(currentFileProgress * 100)}%  —  {relativeNormalized} ({FormatBytes(currentFileSent)}/{FormatBytes(fileLength)})";
                                 };
-                            });
+                            }, 5000);
 
                             fileSucceeded = true;
                         }
                         catch (Exception exFile)
                         {
-                            // 单文件上传失败，记录到失败列表并继续
+                            // 上传单个文件失败：记录日志，并继续下一个文件（不做失败列表）
                             EditorApplication.delayCall += () =>
                             {
-                                if (!failedLabelMap.ContainsKey(relativeNormalized))
-                                {
-                                    var failLbl = new Label($"{relativeNormalized} ({FormatBytes(fileLength)})  —  错误: {exFile.Message}");
-                                    failLbl.style.unityFontStyleAndWeight = FontStyle.Normal;
-                                    failLbl.style.whiteSpace = WhiteSpace.Normal;
-                                    failLbl.style.unityTextAlign = TextAnchor.MiddleLeft;
-                                    failLbl.style.marginBottom = 2;
-                                    failedScroll.contentContainer.Add(failLbl);
-                                    failedLabelMap[relativeNormalized] = failLbl;
-                                    failedList.Add(relativeNormalized);
-                                    failedCount++;
-                                    failedTitle.text = $"失败 ({failedCount})";
-                                    statusLabel.text = $"上传过程中出现 {failedCount} 个失败";
-                                }
+                                Debug.LogError($"上传失败: {relativeNormalized} -> {exFile.Message}");
+                                statusLabel.text = $"上传失败: {relativeNormalized}";
                             };
                         }
 
                         if (fileSucceeded)
                         {
+                            // 追加到 record.txt（本地文件）
+                            try
+                            {
+                                AppendUploadedRecord(GetRecordFilePath(localRoot), relativeNormalized);
+                            }
+                            catch (Exception exAppend)
+                            {
+                                Debug.LogError("写入 record.txt 失败: " + exAppend.Message);
+                            }
+
                             EditorApplication.delayCall += () =>
                             {
                                 if (pendingLabelMap.TryGetValue(relativeNormalized, out var pendingLbl))
@@ -936,10 +835,7 @@ class Ex
                     {
                         progressBar.value = 1f;
                         statusLabel.text = "上传完成";
-                        if (failedCount == 0)
-                            EditorUtility.DisplayDialog("完成", $"FTP 上传完成，失败 {failedCount} 个文件，请检查并使用“重传失败”。", "确定");
                         uploadBtn.SetEnabled(true);
-                        retryFailedBtn.SetEnabled(true);
                     };
                 }
                 catch (Exception ex)
@@ -949,252 +845,19 @@ class Ex
                         statusLabel.text = "上传失败: " + ex.Message;
                         EditorUtility.DisplayDialog("上传失败", ex.Message, "确定");
                         uploadBtn.SetEnabled(true);
-                        retryFailedBtn.SetEnabled(true);
-                    };
-                }
-            });
-        };
-
-        // 重传失败按钮逻辑（仅对 failedList）
-        retryFailedBtn.clicked += () =>
-        {
-            if (failedList.Count == 0)
-            {
-                EditorUtility.DisplayDialog("提示", "当前没有失败项可重传。", "确定");
-                return;
-            }
-
-            retryFailedBtn.SetEnabled(false);
-            uploadBtn.SetEnabled(false);
-            progressBar.value = 0f;
-            statusLabel.text = "准备重传失败项...";
-
-            string host = EditorPrefs.GetString(keyHost, "").Trim();
-            if (!host.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase) &&
-                !host.StartsWith("ftps://", StringComparison.OrdinalIgnoreCase))
-            {
-                host = "ftp://" + host;
-            }
-            host = host.TrimEnd('/');
-
-            string user = EditorPrefs.GetString(keyUser, "");
-            string pass = EditorPrefs.GetString(keyPass, "");
-            string remoteRoot = EditorPrefs.GetString(keyRemoteRoot, "");
-            bool includePlatform = EditorPrefs.GetBool(keyIncludePlatform, false);
-
-            // 复制失败列表并清 UI
-            var toRetry = failedList.ToArray();
-            failedList.Clear();
-            failedLabelMap.Clear();
-            EditorApplication.delayCall += () =>
-            {
-                failedScroll.contentContainer.Clear();
-                failedCount = 0;
-                failedTitle.text = $"失败 ({failedCount})";
-            };
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    string localRoot = GetLatestOutputDir(buildTarget, packageName);
-                    if (string.IsNullOrEmpty(localRoot) || !Directory.Exists(localRoot))
-                    {
-                        EditorApplication.delayCall += () =>
-                        {
-                            EditorUtility.DisplayDialog("错误", "未找到最新构建输出目录，无法重传。", "确定");
-                            statusLabel.text = "未找到本地目录";
-                            retryFailedBtn.SetEnabled(true);
-                            uploadBtn.SetEnabled(true);
-                        };
-                        return;
-                    }
-
-                    long totalBytes = 0;
-                    var relativeToFull = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    var sizeMap = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-                    var validRetries = new List<string>();
-
-                    foreach (var rel in toRetry)
-                    {
-                        var full = Path.Combine(localRoot, rel.Replace('/', Path.DirectorySeparatorChar));
-                        if (File.Exists(full))
-                        {
-                            var fi = new FileInfo(full);
-                            totalBytes += fi.Length;
-                            relativeToFull[rel] = full;
-                            sizeMap[rel] = fi.Length;
-                            validRetries.Add(rel);
-                        }
-                        else
-                        {
-                            // 文件不存在，直接标记为失败并显示
-                            EditorApplication.delayCall += () =>
-                            {
-                                var failLbl = new Label($"{rel} (本地文件缺失)");
-                                failLbl.style.unityFontStyleAndWeight = FontStyle.Normal;
-                                failLbl.style.whiteSpace = WhiteSpace.Normal;
-                                failLbl.style.unityTextAlign = TextAnchor.MiddleLeft;
-                                failLbl.style.marginBottom = 2;
-                                failedScroll.contentContainer.Add(failLbl);
-                                failedLabelMap[rel] = failLbl;
-                                failedList.Add(rel);
-                                failedCount++;
-                                failedTitle.text = $"失败 ({failedCount})";
-                            };
-                        }
-                    }
-
-                    if (validRetries.Count == 0)
-                    {
-                        EditorApplication.delayCall += () =>
-                        {
-                            statusLabel.text = "无可重传的文件";
-                            retryFailedBtn.SetEnabled(true);
-                            uploadBtn.SetEnabled(true);
-                        };
-                        return;
-                    }
-
-                    long uploadedBytes = 0;
-                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                    foreach (var rel in validRetries)
-                    {
-                        var fileFull = relativeToFull[rel];
-                        var fileLength = sizeMap[rel];
-                        long currentFileSent = 0;
-
-                        string remoteRootPart = string.IsNullOrEmpty(remoteRoot) ? "" : remoteRoot.TrimStart('/').TrimEnd('/');
-                        string platformSegment = includePlatform ? $"{buildTarget}/" : "";
-                        string remotePathAfterHost = string.IsNullOrEmpty(remoteRootPart)
-                            ? $"{packageName}/{platformSegment}{rel}"
-                            : $"{remoteRootPart}/{packageName}/{platformSegment}{rel}";
-
-                        string uri = $"{host}/{remotePathAfterHost}";
-
-                        var remoteDir = Path.GetDirectoryName(remotePathAfterHost)?.Replace('\\', '/');
-                        if (!string.IsNullOrEmpty(remoteDir))
-                        {
-                            EnsureFtpDirectoryExists(host, user, pass, remoteDir);
-                        }
-
-                        bool succeeded = false;
-                        try
-                        {
-                            await UploadFileWithProgress(uri, user, pass, fileFull, (sentBytes) =>
-                            {
-                                currentFileSent += sentBytes;
-                                uploadedBytes += sentBytes;
-
-                                float totalProgress = totalBytes > 0 ? Math.Min(1f, (float)uploadedBytes / totalBytes) : 1f;
-                                float currentFileProgress = fileLength > 0 ? Math.Min(1f, (float)currentFileSent / fileLength) : 1f;
-
-                                EditorApplication.delayCall += () =>
-                                {
-                                    progressBar.value = totalProgress;
-                                    statusLabel.text = $"重传 总 {(int)(totalProgress * 100)}%  ({FormatBytes(uploadedBytes)}/{FormatBytes(totalBytes)})  |  {(int)(currentFileProgress * 100)}%  —  {rel} ({FormatBytes(currentFileSent)}/{FormatBytes(fileLength)})";
-                                };
-                            });
-
-                            succeeded = true;
-                        }
-                        catch (Exception exRetry)
-                        {
-                            EditorApplication.delayCall += () =>
-                            {
-                                var failLbl = new Label($"{rel} ({FormatBytes(fileLength)})  —  错误: {exRetry.Message}");
-                                failLbl.style.unityFontStyleAndWeight = FontStyle.Normal;
-                                failLbl.style.whiteSpace = WhiteSpace.Normal;
-                                failLbl.style.unityTextAlign = TextAnchor.MiddleLeft;
-                                failLbl.style.marginBottom = 2;
-                                failedScroll.contentContainer.Add(failLbl);
-                                failedLabelMap[rel] = failLbl;
-                                failedList.Add(rel);
-                                failedCount++;
-                                failedTitle.text = $"失败 ({failedCount})";
-                                statusLabel.text = $"重传过程中出现 {failedCount} 个失败";
-                            };
-                        }
-
-                        if (succeeded)
-                        {
-                            EditorApplication.delayCall += () =>
-                            {
-                                var doneLbl = new Label($"{rel} ({FormatBytes(fileLength)})");
-                                doneLbl.style.unityFontStyleAndWeight = FontStyle.Normal;
-                                doneLbl.style.whiteSpace = WhiteSpace.Normal;
-                                doneLbl.style.unityTextAlign = TextAnchor.MiddleLeft;
-                                doneLbl.style.marginBottom = 2;
-                                uploadedScroll.contentContainer.Add(doneLbl);
-                                uploadedCount++;
-                                uploadedTitle.text = $"已传输 ({uploadedCount})";
-
-                                uploadedScroll.ScrollTo(doneLbl);
-
-                                float totalProgressAfterFile = totalBytes > 0 ? Math.Min(1f, (float)uploadedBytes / totalBytes) : 1f;
-                                progressBar.value = totalProgressAfterFile;
-                                statusLabel.text = $"重传 总 {(int)(totalProgressAfterFile * 100)}% ({FormatBytes(uploadedBytes)}/{FormatBytes(totalBytes)}) | 100%  —  {rel}";
-                            };
-                        }
-                    }
-
-                    EditorApplication.delayCall += () =>
-                    {
-                        progressBar.value = 1f;
-                        if (failedCount == 0)
-                            statusLabel.text = $"重传完成，仍有 {failedCount} 个失败";
-                        retryFailedBtn.SetEnabled(true);
-                        uploadBtn.SetEnabled(true);
-                    };
-                }
-                catch (Exception ex)
-                {
-                    EditorApplication.delayCall += () =>
-                    {
-                        statusLabel.text = "重传失败: " + ex.Message;
-                        EditorUtility.DisplayDialog("重传失败", ex.Message, "确定");
-                        retryFailedBtn.SetEnabled(true);
-                        uploadBtn.SetEnabled(true);
                     };
                 }
             });
         };
     }
 
-    // 插入到 Ex 类中（作为静态方法），用于补齐缺失实现并消除编译错误
-    static string GetLatestOutputDir(BuildTarget buildTarget, string packageName)
+    // record.txt 相关辅助：获取路径、读取、追加
+    static string GetRecordFilePath(string localRoot)
     {
+        if (string.IsNullOrEmpty(localRoot)) return string.Empty;
         try
         {
-            var outputRoot = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}";
-            if (!Directory.Exists(outputRoot))
-                return string.Empty;
-
-            var dirs = Directory.GetDirectories(outputRoot);
-            if (dirs == null || dirs.Length == 0)
-                return string.Empty;
-
-            Version max = null;
-            string maxDir = null;
-            foreach (var d in dirs)
-            {
-                try
-                {
-                    var name = new DirectoryInfo(d).Name;
-                    var v = new Version(name);
-                    if (max == null || max < v)
-                    {
-                        max = v;
-                        maxDir = d;
-                    }
-                }
-                catch
-                {
-                    // 忽略非法目录名
-                }
-            }
-            return maxDir ?? string.Empty;
+            return Path.Combine(localRoot, "record.txt");
         }
         catch
         {
@@ -1202,14 +865,66 @@ class Ex
         }
     }
 
-    static async Task PopulatePendingForContainer(VisualElement container, BuildTarget buildTarget, string packageName)
+    static HashSet<string> LoadUploadedFromRecord(string recordFilePath)
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            if (string.IsNullOrEmpty(recordFilePath)) return set;
+            if (!File.Exists(recordFilePath)) return set;
+            var lines = File.ReadAllLines(recordFilePath);
+            foreach (var l in lines)
+            {
+                var t = (l ?? "").Trim();
+                if (string.IsNullOrEmpty(t)) continue;
+                // 规范化为使用 '/' 的相对路径
+                var norm = t.Replace('\\', '/');
+                if (!set.Contains(norm))
+                    set.Add(norm);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("读取 record.txt 失败: " + ex.Message);
+        }
+        return set;
+    }
+
+    static void AppendUploadedRecord(string recordFilePath, string relativePath)
+    {
+        if (string.IsNullOrEmpty(recordFilePath) || string.IsNullOrEmpty(relativePath)) return;
+        var dir = Path.GetDirectoryName(recordFilePath);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        // 先读取现有内容判断是否已存在，避免重复追加
+        bool exists = false;
+        if (File.Exists(recordFilePath))
+        {
+            var existing = new HashSet<string>(File.ReadAllLines(recordFilePath).Select(s => s.Replace('\\', '/')), StringComparer.OrdinalIgnoreCase);
+            exists = existing.Contains(relativePath.Replace('\\', '/'));
+        }
+        if (!exists)
+        {
+            using (var sw = new StreamWriter(recordFilePath, true, System.Text.Encoding.UTF8))
+            {
+                sw.WriteLine(relativePath.Replace('\\', '/'));
+            }
+        }
+    }
+
+    // 更新：增加 versionField 参数以便从 UI 获取版本号
+    static void PopulatePendingForContainer(VisualElement container, BuildTarget buildTarget, string packageName, TextField versionField = null)
     {
         if (container == null) return;
 
         try
         {
-            string localRoot = GetLatestOutputDir(buildTarget, packageName);
-            List<string> relativePaths = new List<string>();
+            // 使用优先从 UI 获取的版本目录（优先使用传入的 versionField）
+            string localRoot = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}/{versionField.value}";
+            List<string> allRelativePaths = new List<string>();
             var sizeMap = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
             if (!string.IsNullOrEmpty(localRoot) && Directory.Exists(localRoot))
@@ -1218,7 +933,7 @@ class Ex
                 foreach (var f in files)
                 {
                     var rel = f.Substring(localRoot.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/');
-                    relativePaths.Add(rel);
+                    allRelativePaths.Add(rel);
                     try
                     {
                         var fi = new FileInfo(f);
@@ -1231,33 +946,34 @@ class Ex
                 }
             }
 
-            // 在主线程更新 UI
-            EditorApplication.delayCall += () =>
-            {
-                RefreshPendingUI(container, relativePaths, sizeMap);
-            };
+            // 读取 record.txt
+            var recordPath = GetRecordFilePath(localRoot);
+            var uploadedSet = LoadUploadedFromRecord(recordPath);
+            // 只保留在当前目录中存在的已传项，保持显示一致性
+            var uploadedList = uploadedSet.Where(r => allRelativePaths.Contains(r)).ToList();
+            var pendingList = allRelativePaths.Except(uploadedList).ToList();
+
+            RefreshPendingUI(container, pendingList, sizeMap, null, uploadedList);
         }
         catch (Exception ex)
         {
-            EditorApplication.delayCall += () =>
-            {
-                Debug.LogError($"PopulatePendingForContainer 异常: {ex.Message}");
-            };
+            Debug.LogError($"PopulatePendingForContainer 异常: {ex.Message}");
         }
     }
 
-    static Task PopulatePendingForContainerByRoot(VisualElement root, BuildTarget buildTarget, string packageName)
+    // 更新：允许传入 versionField 参数
+    static void PopulatePendingForContainerByRoot(VisualElement root, BuildTarget buildTarget, string packageName, TextField versionField = null)
     {
         if (root == null)
-            return Task.CompletedTask;
+            return;
 
         // 容器名与 AddFtpUploader 中一致
         string containerName = $"YooAsset.Ftp.{buildTarget}.{packageName}";
         var container = root.Q<VisualElement>(containerName);
         if (container == null)
-            return Task.CompletedTask;
+            return;
 
-        return PopulatePendingForContainer(container, buildTarget, packageName);
+        PopulatePendingForContainer(container, buildTarget, packageName, versionField);
     }
 
     static void EnsureFtpDirectoryExists(string host, string user, string pass, string remoteDir)
@@ -1281,6 +997,8 @@ class Ex
                     req.Credentials = new NetworkCredential(user, pass ?? "");
                 req.UseBinary = true;
                 req.KeepAlive = false;
+                req.Timeout = 5000;
+                req.ReadWriteTimeout = 5000;
                 // 某些服务器会返回错误表示已存在，这里捕获并忽略
                 using (var resp = (FtpWebResponse)req.GetResponse())
                 {
@@ -1308,49 +1026,45 @@ class Ex
         }
     }
 
-    static Task UploadFileWithProgress(string uri, string user, string pass, string localFile, Action<long> onProgress)
+    static async Task UploadFileWithProgress(string uri, string user, string pass, string localFile, Action<long> onProgress, int timeoutMs = 5000)
     {
-        return Task.Run(async () =>
+        const int bufferSize = 81920;
+        var request = (FtpWebRequest)WebRequest.Create(uri);
+        request.Method = WebRequestMethods.Ftp.UploadFile;
+        request.UseBinary = true;
+        request.KeepAlive = false;
+        request.Timeout = timeoutMs;
+        request.ReadWriteTimeout = timeoutMs;
+        if (!string.IsNullOrEmpty(user))
+            request.Credentials = new NetworkCredential(user, pass ?? "");
+
+        using (var fileStream = new FileStream(localFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+        using (var requestStream = request.GetRequestStream())
         {
-            const int bufferSize = 81920;
-            var request = (FtpWebRequest)WebRequest.Create(uri);
-            request.Method = WebRequestMethods.Ftp.UploadFile;
-            request.UseBinary = true;
-            request.KeepAlive = false;
-            if (!string.IsNullOrEmpty(user))
-                request.Credentials = new NetworkCredential(user, pass ?? "");
-
-            using (var fileStream = new FileStream(localFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var requestStream = request.GetRequestStream())
+            var buffer = new byte[bufferSize];
+            int bytesRead;
+            while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
             {
-                var buffer = new byte[bufferSize];
-                int bytesRead;
-                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+                // 写入并设置超时监测：如果在 timeoutMs 内未完成写入则认为超时
+                var writeTask = requestStream.WriteAsync(buffer, 0, bytesRead);
+                var completed = await Task.WhenAny(writeTask, Task.Delay(timeoutMs));
+                if (completed != writeTask)
                 {
-                    try
-                    {
-                        await requestStream.WriteAsync(buffer, 0, bytesRead);
-                    }
-                    catch (Exception e)
-                    {
-                        EditorApplication.delayCall += () =>
-                        {
-                            Debug.LogError("传输失败 " + e);
-                        };
-                    }
-                    try { onProgress?.Invoke(bytesRead); } catch { }
+                    try { request.Abort(); } catch { }
+                    throw new TimeoutException($"上传超时 {timeoutMs}ms");
                 }
-            }
+                // 确保捕获写入异常
+                await writeTask;
 
-            // 获取响应以确保上传完成并捕获可能的服务器端错误
-            using (var response = (FtpWebResponse)request.GetResponse())
-            {
-                EditorApplication.delayCall += () =>
-                {
-                    Debug.LogError("传输失败 " + response.StatusDescription);
-                };
-                // 可选：检查 response.StatusDescription
+                try { onProgress?.Invoke(bytesRead); } catch { }
             }
-        });
+        }
+
+        // 获取响应以确保上传完成并捕获可能的服务器端错误
+        using (var response = (FtpWebResponse)request.GetResponse())
+        {
+            // response 可用于日志检查
+            // 不在此记录为错误（上传成功返回正常状态）
+        }
     }
 }

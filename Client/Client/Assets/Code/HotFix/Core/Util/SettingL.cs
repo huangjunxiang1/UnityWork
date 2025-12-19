@@ -5,6 +5,18 @@ using UnityEngine;
 
 static partial class SettingL
 {
+    public static bool Debug
+    {
+        get
+        {
+#if DebugEnable
+            return true;
+#else 
+            return false;
+#endif
+        }
+    }
+
     static bool isFirst = true;
     public static void loadLocationText()
     {

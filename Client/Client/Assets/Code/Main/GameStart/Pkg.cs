@@ -122,7 +122,7 @@ public static class Pkg
     }
     static string getUrl(ResourcePackage pkg)
     {
-        return $"{GameStart.Inst.resUrl}/{pkg.PackageName}/{GetPlatformName(Application.platform)}/";
+        return $"{GameStart.Inst.resUrl.TrimEnd('/')}/{pkg.PackageName}/{GetPlatformName(Application.platform)}/";
     }
     static string GetPlatformName(RuntimePlatform platform)
     {

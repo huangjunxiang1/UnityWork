@@ -232,6 +232,21 @@ partial class FUIRooms : FUI
         base.Dispose();
     }
 }
+partial class FUIWorld : FUI
+{
+    public sealed override string url => "ui://zvziziwiuy8jv";
+    public GTextField _hex { get; private set; }
+
+    protected sealed override void Binding()
+    {
+        GComponent ui = this.ui;
+        _hex = (GTextField)ui.GetChildAt(0);
+    }
+    public override void Dispose()
+    {
+        base.Dispose();
+    }
+}
 partial class G_test : GLabel
 {
     static G_test _inst;

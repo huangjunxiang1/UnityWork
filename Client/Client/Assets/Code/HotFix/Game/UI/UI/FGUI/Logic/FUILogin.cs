@@ -30,6 +30,8 @@ partial class FUILogin
 
     async void login()
     {
+        await Client.Scene.InScene<WorldScene>();
+        return;
         if (string.IsNullOrEmpty(this._serverIP.text)) return;
         if (NetComponent.Inst != null && !NetComponent.Inst.Disposed)
             NetComponent.Inst.Dispose();

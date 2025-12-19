@@ -3,12 +3,21 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.Mathematics;
 using Unity.Mathematics.Geometry;
+using UnityEngine;
 
 namespace Game
 {
     public class Scene : STree
     {
+        public Scene()
+        {
+            root = new(this.GetType().Name);
+            root.transform.parent = Client.transform;
+        }
+
         internal object[] _paramObjects;
+
+        public GameObject root { get; private set; }
 
         public virtual void OnEnter() { }
 
@@ -17,6 +26,11 @@ namespace Game
             if (_paramObjects != null && index < _paramObjects.Length)
                 return (T)_paramObjects[index];
             return default;
+        }
+        public override void Dispose()
+        {
+            base.Dispose();
+            GameObject.Destroy(root);
         }
     }
 
