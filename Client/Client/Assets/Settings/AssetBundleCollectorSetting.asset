@@ -94,8 +94,13 @@ MonoBehaviour:
       GroupDesc: 
       AssetTags: 
       ActiveRuleName: EnableGroup
+      Collectors: []
+    - GroupName: shader
+      GroupDesc: 
+      AssetTags: 
+      ActiveRuleName: EnableGroup
       Collectors:
-      - CollectPath: Assets/Res/Other/Shader
+      - CollectPath: Assets/Res/Shader
         CollectorGUID: 34e3d0b953521c5469f54927bc4718f2
         CollectorType: 0
         AddressRuleName: AddressByGroupAndFileName

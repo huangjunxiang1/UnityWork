@@ -236,11 +236,13 @@ partial class FUIWorld : FUI
 {
     public sealed override string url => "ui://zvziziwiuy8jv";
     public GTextField _hex { get; private set; }
+    public GButton _logging { get; private set; }
 
     protected sealed override void Binding()
     {
         GComponent ui = this.ui;
         _hex = (GTextField)ui.GetChildAt(0);
+        _logging = (GButton)ui.GetChildAt(1);
     }
     public override void Dispose()
     {

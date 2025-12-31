@@ -9,7 +9,5 @@ public static partial class SSetting
     {
         public static int OcTree_MaxTreesPerNode = 32;
         public static int OcTree_MaxOcTreeDepth = 16;
-        public static SystemLanguage LanguageType { get; set; } = SystemLanguage.Unknown;
-
     }
 }

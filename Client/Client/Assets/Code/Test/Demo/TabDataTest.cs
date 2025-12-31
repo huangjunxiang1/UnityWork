@@ -121,7 +121,7 @@ class TabDataTest
             throw new System.Exception("不是Language_cn数据");
         else
             LanguageUtil.Load((int)SystemLanguage.Chinese, buff_cn, true);
-        SSetting.ViewSetting.LanguageType = SystemLanguage.Chinese;
+        SettingL.LanguageType = SystemLanguage.Chinese;
 
         if ("2".ToLan() != "草泥马2")
             throw new System.Exception("数据出错");
@@ -138,7 +138,7 @@ class TabDataTest
             throw new System.Exception("不是Language_en数据");
         else
             LanguageUtil.Load((int)SystemLanguage.English, buff_en, true);
-        SSetting.ViewSetting.LanguageType = SystemLanguage.English;
+        SettingL.LanguageType = SystemLanguage.English;
 
         if ("2".ToLan() != "english2")
             throw new System.Exception("数据出错");

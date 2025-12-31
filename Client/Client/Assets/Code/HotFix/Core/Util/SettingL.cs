@@ -17,17 +17,32 @@ static partial class SettingL
         }
     }
 
-    static bool isFirst = true;
-    public static void loadLocationText()
+    static SystemLanguage _languageType = SystemLanguage.Unknown;
+    public static SystemLanguage LanguageType
     {
-        DBuffer buff = new(new MemoryStream(Pkg.LoadRaw($"raw_Language_{SSetting.ViewSetting.LanguageType}")));
+        get => _languageType;
+        set
+        {
+            if (_languageType != value)
+            {
+                _languageType = value;
+                if (Application.isPlaying)
+                    loadLocationText();
+            }
+        }
+    }
+
+    static bool isFirst = true;
+    static void loadLocationText()
+    {
+        DBuffer buff = new(new MemoryStream(Pkg.LoadRaw($"raw_Language_{SettingL.LanguageType}")));
 
         if (buff.ReadHeaderInfo())
-            LanguageUtil.Load((int)SSetting.ViewSetting.LanguageType, buff, SSetting.CoreSetting.Debug);
+            LanguageUtil.Load((int)SettingL.LanguageType, buff, SSetting.CoreSetting.Debug);
 
-        if (!isFirst || SSetting.ViewSetting.LanguageType != SystemLanguage.Chinese)
+        if (!isFirst || SettingL.LanguageType != SystemLanguage.Chinese)
         {
-            var txt = Pkg.LoadRawText($"raw_Language_UIText_{SSetting.ViewSetting.LanguageType}");
+            var txt = Pkg.LoadRawText($"raw_Language_UIText_{SettingL.LanguageType}");
             if (!string.IsNullOrEmpty(txt))
             {
                 FairyGUI.Utils.XML xml = new FairyGUI.Utils.XML(txt);

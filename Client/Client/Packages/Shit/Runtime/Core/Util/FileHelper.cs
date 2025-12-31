@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Core
 {
@@ -67,6 +68,12 @@ namespace Core
                 return path;
             }
             return "Assets" + ps[1];
+        }
+        public static string ToFullPath(this string path)
+        {
+            if (path.StartsWith("Assets/"))
+                return $"{Application.dataPath}/{path.Replace("Assets/", null)}";
+            return path;
         }
     }
 }

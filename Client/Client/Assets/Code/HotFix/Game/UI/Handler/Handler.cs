@@ -20,8 +20,7 @@ static class Handler
         await Resources.UnloadUnusedAssets().AsTask();
 
         DG.Tweening.DOTween.Init();
-        SSetting.ViewSetting.LanguageType = SystemLanguage.Chinese;
-        SettingL.loadLocationText();
+        SettingL.LanguageType = SystemLanguage.Chinese;
         Application.targetFrameRate = -1;
         SSetting.ViewSetting.LoadingUrl = G_Connecting.URL;
         GRoot.inst.SetContentScaleFactor(1334, 750);

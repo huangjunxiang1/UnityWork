@@ -1,0 +1,297 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+struct Point
+{
+    int2 xy;
+    int2 link;
+};
+
+int2 size;
+Buffer<int> road;
+RWStructuredBuffer<float2> ps;
+RWStructuredBuffer<int> mark;
+RWStructuredBuffer<int> mvs;
+RWStructuredBuffer<Point> temp;
+RWStructuredBuffer<float2> targetP;
+
+
+int2 m_random(int2 seed, int2 min, int2 max)
+{
+  
+    float fx = frac(sin(dot(seed.x, 456.45456)) * 43758.5453123);
+    float fy = frac(sin(dot(seed.y, 456.45456)) * 43758.5453123);
+
+    return int2((int) (fx * size.x), (int) (fy * size.y));
+}
+[numthreads(8,8,1)]
+void CSMain(uint3 id:SV_DispatchThreadID)
+{
+    int index = id.x +
+        id.y * 8 * 8 +
+        id.z * 8 * 8 * 8 * 8;
+    if (index >= ps.Length)
+        return;
+
+    int mIdx = index * size.x * size.y;
+    int tIdx = index * size.x * size.y;
+
+    int2 now = int2((int)ps[index].x, (int)ps[index].y);
+    int2 target = (int2)targetP[index];
+    Point p = (Point)0;
+    p.xy = now;
+    p.link = now;
+    int2 link = now;
+    bool find = false;
+    int sIdx = 0;
+    int eIdx = 0;
+    int mv = ++mvs[index];
+
+    {
+        Point pp = p;
+        if (pp.xy.x > 0)
+        {
+            int2 xy = int2(pp.xy.x - 1, pp.xy.y);
+            int idx = xy.y * size.x + xy.x;
+            if (road[idx] == 0)
+            {
+                if (xy.x == target.x && xy.y == target.y)
+                {
+                    find = true;
+                    link = xy;
+                }
+                else if (mark[mIdx + idx] != mv)
+                {
+                    Point t = (Point)0;
+                    t.xy = xy;
+                    t.link = xy;
+                    temp[tIdx + eIdx++] = t;
+                    mark[mIdx + idx] = mv;
+                }
+            }
+        }
+
+        if (pp.xy.y > 0)
+        {
+            int2 xy = int2(pp.xy.x, pp.xy.y - 1);
+            int idx = xy.y * size.x + xy.x;
+            if (road[idx] == 0)
+            {
+                if (xy.x == target.x && xy.y == target.y)
+                {
+                    find = true;
+                    link = xy;
+                }
+                else if (mark[mIdx + idx] != mv)
+                {
+                    Point t = (Point)0;
+                    t.xy = xy;
+                    t.link = xy;
+                    temp[tIdx + eIdx++] = t;
+                    mark[mIdx + idx] = mv;
+                }
+            }
+        }
+
+        if (pp.xy.x < size.x - 1)
+        {
+            int2 xy = int2(pp.xy.x + 1, pp.xy.y);
+            int idx = xy.y * size.x + xy.x;
+            if (road[idx] == 0)
+            {
+                if (xy.x == target.x && xy.y == target.y)
+                {
+                    find = true;
+                    link = xy;
+                }
+                else if (mark[mIdx + idx] != mv)
+                {
+                    Point t = (Point)0;
+                    t.xy = xy;
+                    t.link = xy;
+                    temp[tIdx + eIdx++] = t;
+                    mark[mIdx + idx] = mv;
+                }
+            }
+        }
+
+        if (pp.xy.y < size.y - 1)
+        {
+            int2 xy = int2(pp.xy.x, pp.xy.y + 1);
+            int idx = xy.y * size.x + xy.x;
+            if (road[idx] == 0)
+            {
+                if (xy.x == target.x && xy.y == target.y)
+                {
+                    find = true;
+                    link = xy;
+                }
+                else if (mark[mIdx + idx] != mv)
+                {
+                    Point t = (Point)0;
+                    t.xy = xy;
+                    t.link = xy;
+                    temp[tIdx + eIdx++] = t;
+                    mark[mIdx + idx] = mv;
+                }
+            }
+        }
+    }
+
+    if (!find)
+    {
+        while (sIdx < eIdx)
+        {
+            int next = eIdx;
+            for (int i = sIdx; i < next; i++)
+            {
+                Point pp = temp[tIdx + i];
+
+                if (pp.xy.x > 0)
+                {
+                    int2 xy = int2(pp.xy.x - 1, pp.xy.y);
+                    int idx = xy.y * size.x + xy.x;
+                    if (road[idx] == 0)
+                    {
+                        if (xy.x == target.x && xy.y == target.y)
+                        {
+                            find = true;
+                            link = pp.link;
+                            break;
+                        }
+                        else if (mark[mIdx + idx] != mv)
+                        {
+                            Point t = (Point)0;
+                            t.xy = xy;
+                            t.link = pp.link;
+                            temp[tIdx + eIdx++] = t;
+                            mark[mIdx + idx] = mv;
+                        }
+                    }
+                }
+
+                if (pp.xy.y > 0)
+                {
+                    int2 xy = int2(pp.xy.x, pp.xy.y - 1);
+                    int idx = xy.y * size.x + xy.x;
+                    if (road[idx] == 0)
+                    {
+                        if (xy.x == target.x && xy.y == target.y)
+                        {
+                            find = true;
+                            link = pp.link;
+                            break;
+                        }
+                        else if (mark[mIdx + idx] != mv)
+                        {
+                            Point t = (Point)0;
+                            t.xy = xy;
+                            t.link = pp.link;
+                            temp[tIdx + eIdx++] = t;
+                            mark[mIdx + idx] = mv;
+                        }
+                    }
+                }
+
+                if (pp.xy.x < size.x - 1)
+                {
+                    int2 xy = int2(pp.xy.x + 1, pp.xy.y);
+                    int idx = xy.y * size.x + xy.x;
+                    if (road[idx] == 0)
+                    {
+                        if (xy.x == target.x && xy.y == target.y)
+                        {
+                            find = true;
+                            link = pp.link;
+                            break;
+                        }
+                        else if (mark[mIdx + idx] != mv)
+                        {
+                            Point t = (Point)0;
+                            t.xy = xy;
+                            t.link = pp.link;
+                            temp[tIdx + eIdx++] = t;
+                            mark[mIdx + idx] = mv;
+                        }
+                    }
+                }
+
+                if (pp.xy.y < size.y - 1)
+                {
+                    int2 xy = int2(pp.xy.x, pp.xy.y + 1);
+                    int idx = xy.y * size.x + xy.x;
+                    if (road[idx] == 0)
+                    {
+                        if (xy.x == target.x && xy.y == target.y)
+                        {
+                            find = true;
+                            link = pp.link;
+                            break;
+                        }
+                        else if (mark[mIdx + idx] != mv)
+                        {
+                            Point t = (Point)0;
+                            t.xy = xy;
+                            t.link = pp.link;
+                            temp[tIdx + eIdx++] = t;
+                            mark[mIdx + idx] = mv;
+                        }
+                    }
+                }
+            }
+            if (find)
+                break;
+            sIdx = next;
+        }
+    }
+
+    {
+        float2 np = ps[index];
+        if (!find || (target.x == now.x && target.y == now.y) || (target.x == 0 && target.y == 0))
+        {
+            int2 r = m_random(target.x + target.y, int2(0, 0), size);
+            int2 xy = int2(0, 0);
+            bool find = false;
+            for (int i = r.y * size.x + r.x; i < road.Length; i++)
+            {
+                if (road[i] > 0 || i == now.y * size.x + now.x)
+                    continue;
+                int x = i % size.x;
+                int y = i / size.y;
+                xy.x = x;
+                xy.y = y;
+                find = true;
+                break;
+            }
+            if (!find)
+            {
+                for (int i = 0; i < r.y * size.x + r.x; i++)
+                {
+                    if (road[i] > 0 || i == now.y * size.x + now.x)
+                        continue;
+                    int x = i % size.x;
+                    int y = i / size.y;
+                    xy.x = x;
+                    xy.y = y;
+                    break;
+                }
+            }
+
+            targetP[index] = xy + 0.5f;
+        }
+        else
+        {
+            np += 0.1f * normalize(float2(link.x, link.y) + 0.5f - np);
+            /*int2 next = (int2)f44.c3.xz;
+            if (math.any(now != next))
+            {
+                --road[now.y * FUIFighting3.size + now.x];
+                ++road[next.y * FUIFighting3.size + next.x];
+            }*/
+            ps[index] = np;
+        }
+    }
+}

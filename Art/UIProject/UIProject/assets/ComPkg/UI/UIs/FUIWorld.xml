@@ -2,5 +2,9 @@
 <component size="1344,750">
   <displayList>
     <text id="n0_uy8j" name="_hex" xy="7,10" size="606,42" fontSize="30" color="#ffffff" autoSize="none" text="999，999"/>
+    <component id="n1_9q59" name="_logging" src="qgu27" fileName="Common/btn/btn.xml" xy="1140,8">
+      <relation target="" sidePair="right-right,top-top"/>
+      <Button title="砍伐"/>
+    </component>
   </displayList>
 </component>

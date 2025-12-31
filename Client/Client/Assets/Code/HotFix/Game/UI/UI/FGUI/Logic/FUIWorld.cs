@@ -7,9 +7,19 @@ using Unity.Mathematics;
 
 partial class FUIWorld
 {
+    WorldScene world = Client.Scene.Current.As<WorldScene>();
+    SGameObject player;
     protected override void OnEnter()
     {
-        this.GetParam<SObject>(0).AddComponent<ViewHexComponent>().ui = this;
+        player = this.GetParam<SGameObject>(0);
+        player.AddComponent<ViewHexComponent>().ui = this;
+        this._logging.onClick.Add(on_logging);
+    }
+
+    void on_logging()
+    {
+        int2 xy = Hex.GetGridxy(player.Transform.position);
+        world.Logging(xy);
     }
 
     [InSystem]
@@ -22,8 +32,8 @@ partial class FUIWorld
     [ChangeSystem]
     static void Change(TransformComponent t, ViewHexComponent view)
     {
-        int2 xy = Hex.PositionToHex(t.position);
-        int2 center = PlayerComponent.getCenterGrid(xy);
+        int2 xy = Hex.GetGridxy(t.position);
+        int2 center = Hex.GetCenterGrid(xy);
         view.ui._hex.text = $"Hex({xy.x},{xy.y}) CenterGrid({center.x},{center.y})";
     }
     class ViewHexComponent : SComponent

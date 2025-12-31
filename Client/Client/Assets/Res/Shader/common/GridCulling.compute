@@ -1,0 +1,61 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Culling
+
+#include "noise.hlsl"
+#include "hex.hlsl"
+#include "Define.hlsl"
+
+RWStructuredBuffer<uint> grid_args;
+RWStructuredBuffer<float2> grid_datas;
+
+RWStructuredBuffer<uint> tree_args;
+RWStructuredBuffer<float2> tree_datas;
+
+int maxBatchInstance;
+int2 playerPos_xy;
+
+[numthreads(1,1,1)]
+void Culling(uint3 id : SV_DispatchThreadID)
+{
+    int2 orig_xy = GetCenterGrid(playerPos_xy) - (Hex_QuadSize + Hex_QuadHalfSize);
+    
+    grid_args[1] = 0;
+    for (int i = 0; i < Define_Tree_TypeCount * Define_Tree_StyleCount; i++)
+        tree_args[i * Define_Args_Size + 1] = 0;
+
+    for (int j = -Define_View_Size; j <= Define_View_Size; j++)
+    {
+        for (int i = -Define_View_Size; i <= Define_View_Size; i++)
+        {
+            int2 gxy = playerPos_xy + int2(i, j);
+            int2 g_local_xy = gxy - orig_xy;
+            int2 g_quad_xy = g_local_xy / Hex_QuadSize;
+            int2 g_grid_xy = g_local_xy % Hex_QuadSize;
+            float2 pos = grid_datas[grid_args[1]++] = Hex_GetPositon(gxy).xz;
+
+            float height = noise_snoise((pos + 0) * 0.02f);
+            int groupIndex = ((Hex_GridCount - 1) / 32 + 1) * (3 * g_quad_xy.y + g_quad_xy.x);
+            int visibleIndex = g_grid_xy.y * Hex_QuadSize.x + g_grid_xy.x;
+            bool visible = (tree_args[Define_Args_Size * Define_Tree_TypeCount * Define_Tree_StyleCount + groupIndex + visibleIndex / 32] & (1 << (visibleIndex % 32))) == 0;
+            const float step = 0;
+            if (visible && height > step && random_uint2Touint(gxy) % 100 < 80)
+            {
+                float rv = pow(height, 0.5);
+                uint type = (uint)floor(remap_floatTofloat(step, 1, 0, Define_Tree_TypeCount - 0.01, rv));
+                uint random_style = random_uint2Touint(gxy ^ 64315);
+                int index = (type % Define_Tree_TypeCount) * Define_Tree_StyleCount + random_style % Define_Tree_StyleCount;
+                //小树多，大树少
+                int treeNum = type == 0 ? (random_style % 2 + 2) : 1;
+                int endIndex = tree_args[index * Define_Args_Size + 1] += treeNum;
+                
+                //50xPI
+                float angle = random_uintTofloat(gxy.x ^ random_style) * Define_2PI * 100;
+                float dv = random_uintTofloat(gxy.y ^ random_style);
+                float distance = (type == 0 ? remap_floatTofloat(0, 1, 0.7, 1, dv) : dv) * (hex_HexWidth / 2 - 0.3);
+                
+                for (int idx = 0; idx < treeNum; idx++)
+                    tree_datas[index * maxBatchInstance + endIndex - treeNum + idx] = pos + rotate(float2(1, 0), angle + idx * Define_2PI / treeNum) * distance;
+            }
+        }
+    }
+}

@@ -42,24 +42,18 @@ class PlayerComponent : SComponent
     [ChangeSystem]
     static void Change(TransformComponent transform, PlayerComponent player)
     {
-        int2 xy = Hex.PositionToHex(transform.position);
+        int2 xy = Hex.GetGridxy(transform.position);
         if (!xy.Equals(player.xy))
         {
             player.xy = xy;
-            var center = getCenterGrid(xy);
+            var center = Hex.GetCenterGrid(xy);
             if (!player.center.Equals(center))
             {
                 player.center = center;
-                player.scene.CreateRoundGrid(player.center);
+                player.scene.CreateRoundGrid(player.center, player.xy);
             }
+            player.scene.GridChange(player.xy);
         }
-    }
-    static public int2 getCenterGrid(int2 xy)
-    {
-        xy += Hex.HexQuad;
-        int2 dis = Hex.HexQuad * 2 + 1;
-        int2 n = xy / dis;
-        return new int2(xy.x < 0 ? n.x - 1 : n.x, xy.y < 0 ? n.y - 1 : n.y) * dis;
     }
 
 

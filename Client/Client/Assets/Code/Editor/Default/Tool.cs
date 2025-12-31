@@ -22,6 +22,9 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using UnityEngine.TextCore.Text;
+using static UnityEditor.Progress;
+using NPOI.SS.Formula.Functions;
 
 
 public class Tool
@@ -611,6 +614,249 @@ public class Tool
     }
 #endif
 
+
+    [MenuItem("Shit/生成ComputerShader代码")]
+    static void gen_computerCode()
+    {
+        StringBuilder code = new(10000);
+        code.AppendLine("using Game;");
+        code.AppendLine("using UnityEngine;");
+        code.AppendLine("using Unity.Mathematics;");
+        code.AppendLine();
+
+        string[] paths = Directory.GetFiles($"{Application.dataPath}/Res/Shader/", "*.compute", SearchOption.AllDirectories);
+        foreach (string path in paths)
+        {
+            var fi = new FileInfo(path);
+            string fileName = fi.Name.Split('.').FirstOrDefault();
+            code.AppendLine($"public partial class ComputeShader_{fileName}");
+            code.AppendLine($"{{");
+            code.AppendLine($"    public ComputeShader_{fileName}()");
+            code.AppendLine($"    {{");
+            code.AppendLine($"        this.Shader = SAsset.Load<ComputeShader>(\"shader_{fileName}\");");
+
+            var codes = File.ReadAllLines(path.ToFullPath()).ToList();
+            for (int i = 0; i < codes.Count; i++)
+            {
+                if (codes[i].StartsWith("//"))
+                    continue;
+                if (codes[i].StartsWith("#include"))
+                {
+                    var spath = $"{fi.Directory}/{codes[i].Split(new char[] { ' ', '"' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault()}";
+                    codes.AddRange(File.ReadAllLines(spath));
+                }
+            }
+            List<string> tmp = new();
+            for (int i = 0; i < codes.Count; i++)
+            {
+                if (codes[i].TrimStart(' ').StartsWith("//"))
+                    continue;
+                tmp.Add(codes[i]);
+            }
+            codes = tmp;
+
+            Dictionary<string, KernelParse> map = new();
+            HashSet<string> buffNames = new HashSet<string>();
+            HashSet<string> textureNames = new HashSet<string>();
+            for (int i = 0; i < codes.Count; i++)
+            {
+                var line = codes[i];
+                var ps = line.Split(new char[] { ' ', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                if (ps.Length > 0)
+                {
+                    if (ps[0].Contains("Buffer"))
+                        buffNames.Add(ps[1]);
+                    else if (ps[0].ToLower().Contains("texture"))
+                        textureNames.Add(ps[1]);
+                }
+            }
+            for (int i = 0; i < codes.Count; i++)
+            {
+                var line = codes[i];
+                var ps = line.Split(new char[] { ' ', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                if (line.StartsWith("#pragma kernel"))
+                {
+                    string kernel = ps[2];
+                    KernelParse kp = new();
+                    parseKernel(codes, i + 1, map[kernel] = new() { kernel = kernel }, buffNames, textureNames);
+                }
+            }
+
+            foreach (var key in map.Values)
+                code.AppendLine($"        {key.kernel}_kernel = Shader.FindKernel(\"{key.kernel}\");");
+            code.AppendLine($"    }}");
+            code.AppendLine();
+            code.AppendLine($"    public ComputeShader Shader {{ get; private set; }}");
+            code.AppendLine();
+
+            for (int i = 0; i < codes.Count; i++)
+            {
+                var line = codes[i];
+                if (line.StartsWith("void") || line.StartsWith("struct"))
+                {
+                    for (int j = i + 1; j < codes.Count; j++)
+                    {
+                        if (codes[j] == "}" || codes[j] == "};")
+                        {
+                            i = j + 1;
+                            break;
+                        }
+                    }
+                    continue;
+                }
+                var ps = line.Split(new char[] { ' ', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                bool isField = (line.StartsWith("int") && line.TrimEnd(' ').EndsWith(';'))
+                            || (line.StartsWith("float") && line.TrimEnd(' ').EndsWith(';'))
+                            || (line.StartsWith("bool") && line.TrimEnd(' ').EndsWith(';'));
+                if (isField)
+                {
+                    bool isArray = ps[0].Contains('2') || ps[0].Contains('3') || ps[0].Contains('4');
+                    code.AppendLine($"    {ps[0]} _{ps[1]};");
+                    code.AppendLine($"    public {ps[0]} {ps[1]}");
+                    code.AppendLine($"    {{");
+                    code.AppendLine($"        get => _{ps[1]};");
+                    code.AppendLine($"        set");
+                    code.AppendLine($"        {{");
+                    code.AppendLine($"            _{ps[1]} = value;");
+                    string apiName = null;
+                    if (ps[0].StartsWith("int")) apiName = "Int";
+                    if (ps[0].StartsWith("float")) apiName = "Float";
+                    if (ps[0].StartsWith("bool")) apiName = "Bool";
+                    if (isArray)
+                    {
+                        var s = ps[0].Replace("int", null).Replace("float", null).Replace("bool", null).Split('x');
+                        code.Append($"            Shader.Set{apiName}s(\"{ps[1]}\"");
+                        if (s.Length==1)
+                        {
+                            int len = int.Parse(s[0]);
+                            for (int k = 0; k < len; k++)
+                                code.Append($", value[{k}]");
+                        }
+                        else if (s.Length == 2)
+                        {
+                            int len1 = int.Parse(s[1]);
+                            int len2 = int.Parse(s[0]);
+                            for (int m = 0; m < len1; m++)
+                            {
+                                for (int n = 0; n < len2; n++)
+                                {
+                                    code.Append($", value[{m}][{n}]");
+                                }
+                            }
+                        }
+                        code.AppendLine(");");
+                    }
+                    else
+                        code.AppendLine($"            Shader.Set{apiName}(\"{ps[1]}\", value);");
+                    code.AppendLine($"        }}");
+                    code.AppendLine($"    }}");
+                    code.AppendLine();
+                }
+            }
+
+            foreach (var key in map.Values)
+            {
+                code.AppendLine($"    public int {key.kernel}_kernel {{ get; private set; }}");
+                foreach (var item in key.buffs)
+                {
+                    code.AppendLine();
+                    code.AppendLine($"    GraphicsBuffer _{key.kernel}_{item};");
+                    code.AppendLine($"    public GraphicsBuffer {key.kernel}_{item}");
+                    code.AppendLine($"    {{");
+                    code.AppendLine($"        get => _{key.kernel}_{item};");
+                    code.AppendLine($"        set");
+                    code.AppendLine($"        {{");
+                    code.AppendLine($"            if (_{key.kernel}_{item} != null && _{key.kernel}_{item}.IsValid())");
+                    code.AppendLine($"                _{key.kernel}_{item}.Dispose();");
+                    code.AppendLine($"            _{key.kernel}_{item} = value;");
+                    code.AppendLine($"            if (value != null && value.IsValid())");
+                    code.AppendLine($"                Shader.SetBuffer({key.kernel}_kernel, \"{item}\", value);");
+                    code.AppendLine($"        }}");
+                    code.AppendLine($"    }}");
+                    code.AppendLine();
+                }
+
+                foreach (var item in key.textures)
+                {
+                    code.AppendLine();
+                    code.AppendLine($"    Texture _{key.kernel}_{item};");
+                    code.AppendLine($"    public Texture {key.kernel}_{item}");
+                    code.AppendLine($"    {{");
+                    code.AppendLine($"        get => _{key.kernel}_{item};");
+                    code.AppendLine($"        set");
+                    code.AppendLine($"        {{");
+                    code.AppendLine($"            _{key.kernel}_{item} = value;");
+                    code.AppendLine($"            Shader.SetTexture({key.kernel}_kernel, \"{item}\", value);");
+                    code.AppendLine($"        }}");
+                    code.AppendLine($"    }}");
+                    code.AppendLine();
+                }
+                code.AppendLine($"    public void {key.kernel}_Dispatch(int threadx = {key.threadX}, int thready = {key.threadY}, int threadz = {key.threadZ}) => Shader.Dispatch({key.kernel}_kernel, threadx, thready, threadz);");
+                code.AppendLine();
+            }
+
+            code.AppendLine("    public void Dispose()");
+            code.AppendLine("    {");
+            foreach (var key in map.Values)
+            {
+                foreach (var item in key.buffs)
+                {
+                    code.AppendLine($"        if (_{key.kernel}_{item} != null && _{key.kernel}_{item}.IsValid())");
+                    code.AppendLine($"            _{key.kernel}_{item}.Dispose();");
+                }
+            }
+            code.AppendLine("    }");
+
+            code.AppendLine($"}}");
+        }
+
+        File.WriteAllText(Application.dataPath + $"/Code/Hotfix/_Gen/ComputerShaderCode.cs", code.ToString());
+        AssetDatabase.Refresh();
+    }
+    static void parseKernel(List<string> codes, int startIndex, KernelParse kp,HashSet<string> buffNames, HashSet<string> textureNames)
+    {
+        for (int i = startIndex; i < codes.Count; i++)
+        {
+            var line = codes[i];
+            if (line.StartsWith($"void {kp.kernel}"))
+            {
+                var numthreads = codes[i - 1].Split(new char[] { ',', ' ', '(', ')', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                kp.threadX = int.Parse(numthreads[1]);
+                kp.threadY = int.Parse(numthreads[2]);
+                kp.threadZ = int.Parse(numthreads[3]);
+
+                string combine = "";
+                for (int j = i+2; j < codes.Count; j++)
+                {
+                    if (codes[j].StartsWith("}"))
+                        break;
+                    combine += codes[j];
+                }
+
+                //里面有字段访问就算  注释的代码也算 简单计算
+                foreach (var bn in buffNames)
+                {
+                    if (combine.Contains(bn))
+                        kp.buffs.Add(bn);
+                }
+                foreach (var bn in textureNames)
+                {
+                    if (combine.Contains(bn))
+                        kp.textures.Add(bn);
+                }
+                return;
+            }
+        }
+    }
+    class KernelParse
+    {
+        public string kernel;
+        public int threadX;
+        public int threadY;
+        public int threadZ;
+        public HashSet<string> buffs = new();
+        public HashSet<string> textures = new();
+    }
 
     static void calBat(string path, bool throwEx = false)
     {

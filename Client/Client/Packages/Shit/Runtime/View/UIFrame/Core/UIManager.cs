@@ -41,11 +41,13 @@ namespace Game
             FGUIRoot_3d.size = GRoot.inst.size;
             FGUIRoot_3d.AddRelation(GRoot.inst, RelationType.Size);
             FGUIRoot_3d.fairyBatching = true;
+            FGUIRoot_3d.gameObjectName = nameof(FGUIRoot_3d);
 
             this.FGUIRoot = new GComponent();
             GRoot.inst.AddChild(FGUIRoot);
             FGUIRoot.size = GRoot.inst.size;
             FGUIRoot.AddRelation(GRoot.inst, RelationType.Size);
+            FGUIRoot.gameObjectName = nameof(FGUIRoot);
 #endif
 
             Client.World.Root.AddChild(this);

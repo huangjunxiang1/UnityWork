@@ -10,7 +10,6 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 partial class FUIFighting4
 {
@@ -22,20 +21,20 @@ partial class FUIFighting4
 
     Material mat;
     Mesh mesh;
-    ComputeShader cs;
-    ComputeBuffer roadCb = new ComputeBuffer(size * size, sizeof(int) * 2);
-    ComputeBuffer pCb = new ComputeBuffer(playerCount, sizeof(float) * 2);
-    ComputeBuffer mark = new ComputeBuffer(size * size * playerCount, sizeof(int));
-    ComputeBuffer mvs = new ComputeBuffer(playerCount, sizeof(int));
-    ComputeBuffer temp = new ComputeBuffer(size * size * playerCount, 4 * 4);
-    ComputeBuffer targetP = new ComputeBuffer(playerCount, sizeof(int) * 2);
+    ComputeShader_PathFinding finding;
+    GraphicsBuffer roadCb = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size * size, sizeof(int) * 2);
+    GraphicsBuffer pCb = new GraphicsBuffer(GraphicsBuffer.Target.Structured, playerCount, sizeof(float) * 2);
+    GraphicsBuffer mark = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size * size * playerCount, sizeof(int));
+    GraphicsBuffer mvs = new GraphicsBuffer(GraphicsBuffer.Target.Structured, playerCount, sizeof(int));
+    GraphicsBuffer temp = new GraphicsBuffer(GraphicsBuffer.Target.Structured, size * size * playerCount, 4 * 4);
+    GraphicsBuffer targetP = new GraphicsBuffer(GraphicsBuffer.Target.Structured, playerCount, sizeof(int) * 2);
     protected override async STask OnTask()
     {
         mat = await SAsset.LoadAsync<Material>(@"other_ECSLit2");
         var go = await SAsset.LoadGameObjectAsync(@"3D_Cube");
         mesh = go.GetComponent<MeshFilter>().mesh;
         SAsset.Release(go);
-        cs = await SAsset.LoadAsync<ComputeShader>(@"other_PathFinding");
+        finding = new();
 
         Entity one = await ECSHelper.LoadEntity(@"3D_Cube");
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -56,13 +55,8 @@ partial class FUIFighting4
     protected override void OnExit()
     {
         base.OnExit();
+        finding.Dispose();
         World.Timer.Remove(draw);
-        pCb.Dispose();
-        roadCb.Dispose();
-        mark.Dispose();
-        mvs.Dispose();
-        temp.Dispose();
-        targetP.Dispose();
 
         var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         if (block.IsCreated)
@@ -101,14 +95,12 @@ partial class FUIFighting4
 
         mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
 
-        kernel = cs.FindKernel("CSMain");
-
-        cs.SetInts("size", size, size);
+        finding.size = size;
         roadCb.SetData(road);
-        cs.SetBuffer(kernel, "road", roadCb);
-        cs.SetBuffer(kernel, "mark", mark);
-        cs.SetBuffer(kernel, "mvs", mvs);
-        cs.SetBuffer(kernel, "temp", temp);
+        finding.CSMain_road = roadCb;
+        finding.CSMain_mark = mark;
+        finding.CSMain_mvs = mvs;
+        finding.CSMain_temp = temp;
 
         Bounds bs = new Bounds(Vector3.zero, Vector3.one * 100);
         rp = new RenderParams(mat);
@@ -156,7 +148,7 @@ partial class FUIFighting4
 
             pCb.SetData(ps);
             ps.Dispose();
-            cs.SetBuffer(kernel, "ps", pCb);
+            finding.CSMain_ps = pCb;
         }
 
         {
@@ -198,7 +190,7 @@ partial class FUIFighting4
 
             targetP.SetData(targets);
             targets.Dispose();
-            cs.SetBuffer(kernel, "targetP", targetP);
+            finding.CSMain_targetP = targetP;
         }
     }
 
@@ -206,7 +198,7 @@ partial class FUIFighting4
     RenderParams rp;
     void draw()
     {
-        cs.Dispatch(kernel, 8, 8, 1);
+        finding.CSMain_Dispatch();
 
         if (_showCube.selected)
             Graphics.RenderMeshPrimitives(rp, mesh, 0, playerCount);
