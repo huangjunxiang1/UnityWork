@@ -9,6 +9,7 @@ using UnityEngine;
 static class GPUConstDefine
 {
     public const int Define_Args_Size = 5;
+    public const float Define_World_Scale = 0.02f;
 
     public const int Tree_TypeCount = 3;
     public const int Tree_StyleCount = 2;

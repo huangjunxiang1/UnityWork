@@ -75,7 +75,7 @@ public class ftLightMeshInspector : UnityEditor.Editor
             TestPreviewRefreshProperty(ref cached, 0);
             return;
         }
-        TestPreviewRefreshProperty(ref cached, newVal.GetInstanceID());
+        TestPreviewRefreshProperty(ref cached, newVal.GetEntityId().GetHashCode());
     }
 
     void GetLinearLightParameters(Light light, out float lightR, out float lightG, out float lightB, out float lightInt)

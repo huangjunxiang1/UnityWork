@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fd290e772a538aa44bd176cf56c0ed9b
+timeCreated: 1490015969
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Prefabs/Fortification_Ladder.prefab
+  uploadId: 168752

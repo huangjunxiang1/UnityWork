@@ -31,17 +31,21 @@ void Culling(uint3 id : SV_DispatchThreadID)
             int2 g_local_xy = gxy - orig_xy;
             int2 g_quad_xy = g_local_xy / Hex_QuadSize;
             int2 g_grid_xy = g_local_xy % Hex_QuadSize;
+            
             float2 pos = grid_datas[grid_args[1]++] = Hex_GetPositon(gxy).xz;
-
-            float height = noise_snoise((pos + 0) * 0.02f);
+            
             int groupIndex = ((Hex_GridCount - 1) / 32 + 1) * (3 * g_quad_xy.y + g_quad_xy.x);
             int visibleIndex = g_grid_xy.y * Hex_QuadSize.x + g_grid_xy.x;
             bool visible = (tree_args[Define_Args_Size * Define_Tree_TypeCount * Define_Tree_StyleCount + groupIndex + visibleIndex / 32] & (1 << (visibleIndex % 32))) == 0;
+            if (!visible)
+                continue;
+            
+            float height = noise_snoise((pos + 0) * Define_World_Scale);
             const float step = 0;
-            if (visible && height > step && random_uint2Touint(gxy) % 100 < 80)
+            if (height > step && random_uint2Touint((uint2)gxy) % 100 < 80)
             {
                 float rv = pow(height, 0.5);
-                uint type = (uint)floor(remap_floatTofloat(step, 1, 0, Define_Tree_TypeCount - 0.01, rv));
+                uint type = (uint) floor(remap_floatTofloat(step, 1, 0, Define_Tree_TypeCount - 0.01, rv));
                 uint random_style = random_uint2Touint(gxy ^ 64315);
                 int index = (type % Define_Tree_TypeCount) * Define_Tree_StyleCount + random_style % Define_Tree_StyleCount;
                 //小树多，大树少

@@ -16,6 +16,8 @@ partial class FUIWorld
         this._logging.onClick.Add(on_logging);
     }
 
+    [Event] void EC_ResChange(EC_ResChange e) => this.OnView();
+
     void on_logging()
     {
         int2 xy = Hex.GetGridxy(player.Transform.position);
@@ -25,7 +27,7 @@ partial class FUIWorld
     [InSystem]
     static void In(PlayerComponent p)
     {
-        var ui= Client.UI.GetChild<FUIWorld>();
+        var ui = Client.UI.GetChild<FUIWorld>();
         if (ui != null)
             p.Entity.AddComponent<ViewHexComponent>().ui = ui;
     }
@@ -43,6 +45,8 @@ partial class FUIWorld
 
     protected override void OnView()
     {
-        
+        WorldData.Inst.Res.TryGetValue((int)ResID.Wood, out var v_wood);
+        WorldData.Inst.Res.TryGetValue((int)ResID.Stone, out var v_stone);
+        this._res.text = $"{"木头".ToLanx()}:{v_wood} {"石头".ToLanx()}:{v_stone}";
     }
 }

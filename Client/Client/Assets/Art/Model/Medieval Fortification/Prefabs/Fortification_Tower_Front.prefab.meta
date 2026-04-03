@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f76ef55d419ea054b98eea97dc676de8
+timeCreated: 1490016012
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Prefabs/Fortification_Tower_Front.prefab
+  uploadId: 168752

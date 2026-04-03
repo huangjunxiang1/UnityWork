@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Game;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -7,6 +8,11 @@ using System.Text;
 using Unity.Mathematics;
 using UnityEngine;
 
+enum ResID
+{
+    Wood,//木头
+    Stone,//石头
+}
 class WorldData
 {
     static string key;
@@ -20,6 +26,7 @@ class WorldData
     public float2 offset;
 
     public Dictionary<int2, WorldQuadData> quad = new();
+    public Dictionary<int, long> Res = new();
 
     public static WorldData GetOrCreate(string key)
     {
@@ -91,6 +98,12 @@ class WorldData
         bool ret = (value.tree_logging[index / 32] & mask) == 0;
         if (ret)
             value.tree_logging[index / 32] |= mask;
+        if (ret)
+        {
+            Res.TryGetValue((int)ResID.Wood, out var num);
+            Res[(int)ResID.Wood] = num + 1;
+            Client.World.Event.RunEvent(new EC_ResChange());
+        }
         return ret;
     }
     public void CopyVisibleToGraphicsBuffer(GraphicsBuffer buffer, int offset, int2 xy)

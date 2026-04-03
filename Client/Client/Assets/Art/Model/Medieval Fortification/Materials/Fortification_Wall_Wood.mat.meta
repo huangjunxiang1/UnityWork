@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f448f05b66c5dd546a351a56d7e54bbd
+timeCreated: 1489948663
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Materials/Fortification_Wall_Wood.mat
+  uploadId: 168752

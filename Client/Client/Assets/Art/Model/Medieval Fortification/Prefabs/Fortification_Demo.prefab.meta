@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 785a9490449c6894ca2821159f46fc6d
+timeCreated: 1490022202
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Prefabs/Fortification_Demo.prefab
+  uploadId: 168752

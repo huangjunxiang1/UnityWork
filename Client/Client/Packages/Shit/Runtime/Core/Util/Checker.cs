@@ -79,8 +79,8 @@ namespace Core
 
             if (method.IsGenericMethod)
                 Loger.Error($"事件函数不能是泛型函数  class:{method.ReflectedType.FullName} method:{method.Name}");
-            if (ps.Length > 2)
-                Loger.Error($"参数类型大于2 class:{method.ReflectedType.FullName} method:{method.Name}");
+            if (ps.Length > 2 || ps.Length == 0)
+                Loger.Error($"参数类型大于2或者等于0 class:{method.ReflectedType.FullName} method:{method.Name}");
             if (method.ReturnType != typeof(void) && method.ReturnType != typeof(STask))
                 Loger.Error($"事件函数的返回类型只能是void或者{nameof(STask)} class:{method.ReflectedType.FullName} method:{method.Name}");
             if (ps.Length == 2)

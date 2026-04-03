@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 758cd578d04fa6f4fbf22ee3420e04b1
+timeCreated: 1489948746
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Materials/Fortification_DoorR.mat
+  uploadId: 168752

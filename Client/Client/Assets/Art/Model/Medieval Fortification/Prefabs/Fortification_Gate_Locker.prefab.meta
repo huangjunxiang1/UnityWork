@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3a6d8edabbf6e7d47b385ca5a6e52cde
+timeCreated: 1490016039
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Prefabs/Fortification_Gate_Locker.prefab
+  uploadId: 168752

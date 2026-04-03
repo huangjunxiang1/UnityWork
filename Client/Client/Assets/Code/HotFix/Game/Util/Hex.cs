@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Unity.Mathematics;
 
-public static class Hex
+public static partial class Hex
 {
     public const float HexWidth = 1.5f;
     public static int2 QuadHalfSize = new int2(10, 10);
@@ -37,10 +37,6 @@ public static class Hex
     {
         xy += Hex.QuadHalfSize;
         xy %= Hex.QuadSize;
-        if (xy.x < 0)
-            xy.x += Hex.QuadSize.x;
-        if (xy.y < 0)
-            xy.y += Hex.QuadSize.y;
-        return xy;
+        return (xy + Hex.QuadSize) % Hex.QuadSize;
     }
 }

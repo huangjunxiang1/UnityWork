@@ -56,7 +56,7 @@ public class ftSkyLightInspector : UnityEditor.Editor
             TestPreviewRefreshProperty(ref cached, 0);
             return;
         }
-        TestPreviewRefreshProperty(ref cached, newVal.GetInstanceID());
+        TestPreviewRefreshProperty(ref cached, newVal.GetEntityId().GetHashCode());
     }
 
     static string ftSkyboxShaderName = "Bakery/Skybox";

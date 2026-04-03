@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3a19e926e7a92a84a96ae0946e5e08e4
+timeCreated: 1489944803
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Materials/Fortification_Tower_Front.mat
+  uploadId: 168752

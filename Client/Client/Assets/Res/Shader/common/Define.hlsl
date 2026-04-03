@@ -3,6 +3,7 @@
 #define Define_2PI 6.28318548
 
 #define Define_Args_Size 5
+#define Define_World_Scale 0.02
 
 #define Define_Tree_TypeCount 3
 #define Define_Tree_StyleCount 2

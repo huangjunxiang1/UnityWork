@@ -72,6 +72,8 @@ class WorldScene : Scene
     }
     public void Logging(int2 xy)
     {
+        if (!Hex.HasTree(xy))
+            return;
         if (!WorldData.Inst.Logging(xy))
             return;
         WorldData.Inst.CopyVisibleToGraphicsBuffer(tree_render.ArgsBuffer, GPUConstDefine.Define_Args_Size * tree_render.Batch, xy);

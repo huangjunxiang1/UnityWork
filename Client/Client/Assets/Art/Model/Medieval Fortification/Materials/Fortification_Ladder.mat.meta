@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5baa22f5badbc964daa9e698c5db6020
+timeCreated: 1489942270
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Materials/Fortification_Ladder.mat
+  uploadId: 168752

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: aee75a75196285547a4c8a9a90a596f4
+timeCreated: 1490015994
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Prefabs/Fortification_Tower_Corner.prefab
+  uploadId: 168752

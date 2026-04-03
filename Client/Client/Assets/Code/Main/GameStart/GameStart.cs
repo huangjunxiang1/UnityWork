@@ -25,7 +25,7 @@ public class GameStart : MonoBehaviour
 
         DontDestroyOnLoad(this.gameObject);
 
-        GameObject.FindFirstObjectByType<IngameDebugConsole.DebugLogManager>()?.gameObject.SetActive(Debug && !Application.isEditor);
+        GameObject.FindAnyObjectByType<IngameDebugConsole.DebugLogManager>()?.gameObject.SetActive(Debug && !Application.isEditor);
 
         new Loading().Enter();
     }

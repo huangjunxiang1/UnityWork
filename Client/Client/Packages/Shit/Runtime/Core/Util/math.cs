@@ -130,4 +130,51 @@ public static class maths
         float3 v = math.abs(a - b);
         return maths.max(v.x, v.y, v.z);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float2 rotate(float2 xy, float angle)
+    {
+        float s, c;
+        math.sincos(angle, out s, out c);
+        return math.mul(xy, math.float2x2(c, -s, s, c));
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint random_uint2Touint(uint2 state)
+    {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        return state.x ^ state.y;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint random_uintTouint(uint state)
+    {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        return state;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint2 random_uint2Touint2(uint2 state)
+    {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        return state;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float random_uint2Tofloat(uint2 state)
+    {
+        return math.asfloat(0x3f800000 | (random_uint2Touint(state) >> 9)) - 1.0f;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float random_uintTofloat(uint state)
+    {
+        return math.asfloat(0x3f800000 | (random_uintTouint(state) >> 9)) - 1.0f;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float2 random_uint2Tofloat2(uint2 state)
+    {
+        return math.asfloat(0x3f800000 | (random_uint2Touint2(state) >> 9)) - 1.0f;
+    }
 }

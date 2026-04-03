@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fa097118205061440924eba45d28c7e2
+timeCreated: 1489943485
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Materials/Fortification_Tower_Corner.mat
+  uploadId: 168752

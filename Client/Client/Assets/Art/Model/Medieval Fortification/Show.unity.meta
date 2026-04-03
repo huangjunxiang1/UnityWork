@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f44f4e25ef5b4f94e84282cd22e72906
+timeCreated: 1487444628
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Show.unity
+  uploadId: 168752

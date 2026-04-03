@@ -58,7 +58,7 @@ public class ftDirectLightInspector : UnityEditor.Editor
             TestPreviewRefreshProperty(ref cached, 0);
             return;
         }
-        TestPreviewRefreshProperty(ref cached, newVal.GetInstanceID());
+        TestPreviewRefreshProperty(ref cached, newVal.GetEntityId().GetHashCode());
     }
 
     static public string[] directContributionOptions = new string[] {"Direct And Indirect", "Indirect Only", "Shadowmask and Indirect", "Direct, Indirect, Shadowmask (custom lighting only)"};

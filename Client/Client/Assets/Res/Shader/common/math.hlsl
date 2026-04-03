@@ -1,4 +1,4 @@
-
+ï»¿
    // Modulo 289 without a division (only multiplications)
 static float mod289(float x)
 {
@@ -101,19 +101,19 @@ float2 asfloat2(uint2 xy)
     return float2(asfloat(xy.x), asfloat(xy.y));
 }
 
-// ±ê×¼ÏßĞÔÖØÓ³Éä
+// æ ‡å‡†çº¿æ€§é‡æ˜ å°„
 float remap_floatTofloat(float inMin, float inMax, float outMin, float outMax, float value)
 {
-    // ÏÈ¹éÒ»»¯µ½ [0, 1]
+    // å…ˆå½’ä¸€åŒ–åˆ° [0, 1]
     float normalized = (value - inMin) / (inMax - inMin);
-    // ÔÙÓ³Éäµ½Êä³ö·¶Î§
+    // å†æ˜ å°„åˆ°è¾“å‡ºèŒƒå›´
     return outMin + normalized * (outMax - outMin);
 }
 float2 remap_float2Tofloat2(float2 inMin, float2 inMax, float2 outMin, float2 outMax, float2 value)
 {
-    // ÏÈ¹éÒ»»¯µ½ [0, 1]
+    // å…ˆå½’ä¸€åŒ–åˆ° [0, 1]
     float2 normalized = (value - inMin) / (inMax - inMin);
-    // ÔÙÓ³Éäµ½Êä³ö·¶Î§
+    // å†æ˜ å°„åˆ°è¾“å‡ºèŒƒå›´
     return outMin + normalized * (outMax - outMin);
 }
 float2 rotate(float2 xy,float angle)
@@ -127,7 +127,7 @@ uint random_uint2Touint(uint2 state)
     state ^= state << 13;
     state ^= state >> 17;
     state ^= state << 5;
-    return asuint(state.x ^ state.y);
+    return state.x ^ state.y;
 }
 uint random_uintTouint(uint state)
 {
@@ -136,7 +136,7 @@ uint random_uintTouint(uint state)
     state ^= state << 5;
     return state;
 }
-uint random_uint2Touint2(uint2 state)
+uint2 random_uint2Touint2(uint2 state)
 {
     state ^= state << 13;
     state ^= state >> 17;

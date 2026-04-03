@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: beb3dd17488dfaf4ba81e61379a36ec0
+timeCreated: 1490015943
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Prefabs/Fortification_Gate.prefab
+  uploadId: 168752

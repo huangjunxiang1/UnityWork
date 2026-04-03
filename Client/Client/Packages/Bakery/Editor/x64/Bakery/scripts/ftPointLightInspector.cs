@@ -380,7 +380,7 @@ public class ftPointLightInspector : UnityEditor.Editor
             TestPreviewRefreshProperty(ref cached, 0);
             return;
         }
-        TestPreviewRefreshProperty(ref cached, newVal.GetInstanceID());
+        TestPreviewRefreshProperty(ref cached, newVal.GetEntityId().GetHashCode());
     }
 
     public override void OnInspectorGUI() {

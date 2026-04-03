@@ -32,5 +32,6 @@ int2 GetCenterGrid(int2 xy)
 static int2 GetQuadLocalxy(int2 xy)
 {
     xy += Hex_QuadHalfSize;
-    return xy % Hex_QuadSize;
+    xy %= Hex_QuadSize;
+    return (xy + Hex_QuadSize) % Hex_QuadSize;
 }

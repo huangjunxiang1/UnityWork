@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 422ab1409d15e8f49a8ea0120c0d36ed
+timeCreated: 1487594904
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 83555
+  packageName: Medieval Fortification
+  packageVersion: 1.0
+  assetPath: Assets/Medieval Fortification/Read me.txt
+  uploadId: 168752

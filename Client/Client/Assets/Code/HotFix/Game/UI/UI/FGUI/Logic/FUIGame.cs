@@ -1,16 +1,8 @@
 ﻿using Game;
 using main;
-using Spine;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -78,7 +70,7 @@ partial class FUIGame
         var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
         finding.AStar = astar;
 
-        GameObject.FindFirstObjectByType<PathFindingAStar>().View(true);
+        GameObject.FindAnyObjectByType<PathFindingAStar>().View(true);
     }
     int method = (int)PathFindingMethod.AStar;
     int round = (int)PathFindingRound.R4;
