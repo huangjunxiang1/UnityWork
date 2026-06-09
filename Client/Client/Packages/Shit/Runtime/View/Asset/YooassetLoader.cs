@@ -26,7 +26,6 @@ namespace Game
         public void SetDefaultPackage(YooAsset.ResourcePackage pkg)
         {
             Package = pkg;
-            YooAssets.SetDefaultPackage(pkg);
         }
         public override GameObject LoadGameObject(string url)
         {
@@ -44,7 +43,7 @@ namespace Game
             if (!urlMap.TryGetValue(url, out var item))
                 urlMap[url] = item = new Item { url = url, asset = Package.LoadAssetAsync<GameObject>(url) };
             var op = item.asset.InstantiateAsync();
-            await op.Task;
+            await op;
             objMap[op.Result] = item;
             item.num++;
             return op.Result;
@@ -64,7 +63,7 @@ namespace Game
         {
             if (!urlMap.TryGetValue(url, out var item))
                 urlMap[url] = item = new Item { url = url, asset = Package.LoadAssetAsync(url) };
-            await item.asset.Task;
+            await item.asset;
             objMap[item.asset.AssetObject] = item;
             item.num++;
             return item.asset.AssetObject;
@@ -78,7 +77,7 @@ namespace Game
         public override async STask<UnityEngine.SceneManagement.Scene> LoadSceneAsync(string url, LoadSceneMode mode)
         {
             var handle = Package.LoadSceneAsync(url, mode);
-            await handle.Task;
+            await handle;
             return handle.SceneObject;
         }
 
@@ -116,9 +115,9 @@ namespace Game
             }
         }
 
-        public override STask ReleaseAllUnuseObjects()
+        public override async STask ReleaseAllUnuseObjects()
         {
-            return Package.UnloadUnusedAssetsAsync().AsTask();
+            await Package.UnloadUnusedAssetsAsync();
         }
     }
 }

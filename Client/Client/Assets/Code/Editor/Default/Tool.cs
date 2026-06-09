@@ -983,6 +983,7 @@ public class Tool
         var arr = asm.MainModule.Types;
         for (int i = 0; i < arr.Count; i++)
             addTypes(arr[i]);
+        types.RemoveAll(t => t.FullName == nameof(LanguageUtil));
 
         Dictionary<string,string> ret = new(10000);
         for (int i = 0; i < types.Count; i++)

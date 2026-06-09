@@ -1,5 +1,5 @@
 {
-    "name": "YooAsset.EditorExtension",
+    "name": "YooAsset.Extension.Editor",
     "rootNamespace": "",
     "references": [
         "GUID:4d1926c9df5b052469a1c63448b7609a",

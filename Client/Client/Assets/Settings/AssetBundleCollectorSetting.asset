@@ -51,7 +51,7 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
-    - GroupName: 3D
+    - GroupName: model
       GroupDesc: 
       AssetTags: 
       ActiveRuleName: EnableGroup
@@ -94,7 +94,15 @@ MonoBehaviour:
       GroupDesc: 
       AssetTags: 
       ActiveRuleName: EnableGroup
-      Collectors: []
+      Collectors:
+      - CollectPath: Assets/Res/Other
+        CollectorGUID: 95a35e0c67caa404889bc3b40c1cd2cb
+        CollectorType: 0
+        AddressRuleName: AddressByGroupAndFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
     - GroupName: shader
       GroupDesc: 
       AssetTags: 

@@ -74,10 +74,6 @@ public class Loading
     {
         ui.Dispose();
         UIPackage.RemovePackage("Loader/Loader");
-        Pkg.raw.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
-        Pkg.raw.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
-        Pkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
-        Pkg.res.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
         Assembly assembly = null;
         if (Application.isEditor || GameStart.Inst.Runtime == CodeRuntime.Native)
         {

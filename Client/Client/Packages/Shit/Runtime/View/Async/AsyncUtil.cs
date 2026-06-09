@@ -130,24 +130,5 @@ namespace Game
             return task;
         }
 #endif
-#if Yooasset
-        public static async STask AsTask(this HandleBase op)
-        {
-            STask<Object> task = new();
-            if (op.IsDone)
-                task.TrySetResult();
-            else
-                await op.Task;
-        }
-        public static STask AsTask(this AsyncOperationBase op)
-        {
-            STask task = new();
-            if (op.IsDone)
-                task.TrySetResult();
-            else
-                op.Completed += e => task.TrySetResult();
-            return task;
-        }
-#endif
     }
 }

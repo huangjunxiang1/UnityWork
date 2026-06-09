@@ -15,7 +15,7 @@ class Ex
 {
     static void cull_res(string packageName, BuildTarget buildTarget)
     {
-        var dir = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}";
+        var dir = $"{BundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}";
         var ds = Directory.GetDirectories(dir).Select(t => new DirectoryInfo(t)).Where(t => t.Name.Contains('.')).ToList();
         ds.Sort((x, y) =>
         {
@@ -75,7 +75,7 @@ class Ex
     // 5. 回调使用 Task.Run 执行以避免阻塞 UI 线程，同时 Populate 方法会在主线程通过 EditorApplication.delayCall 更新 UI。
 
     [BuildPipelineAttribute(nameof(EBuildPipeline.RawFileBuildPipeline))]
-    internal class Raw : RawfileBuildpipelineViewer
+    internal class Raw : RawFileBuildPipelineViewer
     {
         protected override string GetDefaultPackageVersion() => getVer(this.BuildTarget, this.PackageName);
         public override void CreateView(VisualElement parent)
@@ -140,7 +140,7 @@ class Ex
 
     static string getVer(BuildTarget BuildTarget, string PackageName)
     {
-        var output = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{BuildTarget}/{PackageName}";
+        var output = $"{BundleBuilderHelper.GetDefaultBuildOutputRoot()}/{BuildTarget}/{PackageName}";
         var min = new Version("1.0.0");
         if (!Directory.Exists(output))
             return min.ToString();
@@ -664,7 +664,7 @@ class Ex
                 try
                 {
                     // 使用优先从 UI 获取的版本目录（优先使用传入的 versionField）
-                    string localRoot = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}/{versionField.value}";
+                    string localRoot = $"{BundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}/{versionField.value}";
                     if (string.IsNullOrEmpty(localRoot) || !Directory.Exists(localRoot))
                     {
                         EditorApplication.delayCall += () =>
@@ -923,7 +923,7 @@ class Ex
         try
         {
             // 使用优先从 UI 获取的版本目录（优先使用传入的 versionField）
-            string localRoot = $"{AssetBundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}/{versionField.value}";
+            string localRoot = $"{BundleBuilderHelper.GetDefaultBuildOutputRoot()}/{buildTarget}/{packageName}/{versionField.value}";
             List<string> allRelativePaths = new List<string>();
             var sizeMap = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
@@ -1058,13 +1058,6 @@ class Ex
 
                 try { onProgress?.Invoke(bytesRead); } catch { }
             }
-        }
-
-        // 获取响应以确保上传完成并捕获可能的服务器端错误
-        using (var response = (FtpWebResponse)request.GetResponse())
-        {
-            // response 可用于日志检查
-            // 不在此记录为错误（上传成功返回正常状态）
         }
     }
 }

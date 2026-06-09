@@ -26,9 +26,9 @@ public class UIPkg
         UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
         SSetting.ViewSetting.isTouchUI += UIHelper.IsOnTouchFUI;
 
-        if (Pkg.res.CheckLocationValid("UI_Items"))
+        if (Pkg.res.IsLocationValid("UI_Items"))
             uui_items = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_Items");
-        if (Pkg.res.CheckLocationValid("UI_UIAtlas"))
+        if (Pkg.res.IsLocationValid("UI_UIAtlas"))
             uui_res = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
     }
     static async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
