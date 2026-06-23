@@ -8,18 +8,17 @@ using System.Threading.Tasks;
 using UnityEngine;
 using YooAsset;
 
-public static class Pkg
+internal static class Pkg
 {
-    public static ResourcePackage res { get; private set; }
-    public static ResourcePackage raw { get; private set; }
+    static ResourcePackage raw;
 
     public static async void Load(EPlayMode mode, Loading loading)
     {
         YooAssets.Initialize();
         var loader = (YooassetLoader)SAsset.Loader;
-        res = YooAssets.CreatePackage("Res");
+        var res = YooAssets.CreatePackage("Res");
         raw = YooAssets.CreatePackage("Raw");
-        loader.SetDefaultPackage(Pkg.res);
+        loader.SetDefaultPackage(res);
 
         await initPackage(mode, loading, raw);
         await initPackage(mode, loading, res);
@@ -137,6 +136,8 @@ public static class Pkg
     }
     static string getSizeStr(long bytes)
     {
+        if (bytes > 1024 * 1024 * 1024)
+            return $"{bytes / (float)(1024 * 1024 * 1024):0.00#}GB";
         return $"{bytes / (float)(1024 * 1024):0.00#}MB";
     }
     static string getUrl(ResourcePackage pkg)
@@ -160,41 +161,12 @@ public static class Pkg
         return "unknown";
     }
 
-    public static byte[] LoadRaw(string location)
+    internal static byte[] LoadRaw(string location)
     {
         if (!Pkg.raw.IsLocationValid(location))
             return null;
         var handler = Pkg.raw.LoadAssetSync<RawFileObject>(location);
         var bs = handler.GetAssetObject<RawFileObject>().GetBytes();
-        handler.Dispose();
-        return bs;
-    }
-    public static string LoadRawText(string location)
-    {
-        if (!Pkg.raw.IsLocationValid(location))
-            return null;
-        var handler = Pkg.raw.LoadAssetSync<RawFileObject>(location);
-        var bs = handler.GetAssetObject<RawFileObject>().GetText();
-        handler.Dispose();
-        return bs;
-    }
-    public static async STask<byte[]> LoadRawAsync(string location)
-    {
-        if (!Pkg.raw.IsLocationValid(location))
-            return null;
-        var handler = Pkg.raw.LoadAssetAsync<RawFileObject>(location);
-        await handler;
-        var bs = handler.GetAssetObject<RawFileObject>().GetBytes();
-        handler.Dispose();
-        return bs;
-    }
-    public static async STask<string> LoadRawTextAsync(string location)
-    {
-        if (!Pkg.raw.IsLocationValid(location))
-            return null;
-        var handler = Pkg.raw.LoadAssetAsync<RawFileObject>(location);
-        await handler;
-        var bs = handler.GetAssetObject<RawFileObject>().GetText();
         handler.Dispose();
         return bs;
     }

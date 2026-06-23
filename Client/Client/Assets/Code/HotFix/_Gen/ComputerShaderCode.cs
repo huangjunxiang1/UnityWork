@@ -6,7 +6,7 @@ public partial class ComputeShader_PathFinding
 {
     public ComputeShader_PathFinding()
     {
-        this.Shader = SAsset.Load<ComputeShader>("shader_PathFinding");
+        this.Shader = SLoader.Res.Group_shader.Item_Shader.Load<ComputeShader>("PathFinding");
         CSMain_kernel = Shader.FindKernel("CSMain");
     }
 
@@ -136,7 +136,7 @@ public partial class ComputeShader_GridCulling
 {
     public ComputeShader_GridCulling()
     {
-        this.Shader = SAsset.Load<ComputeShader>("shader_GridCulling");
+        this.Shader = SLoader.Res.Group_shader.Item_Shader.Load<ComputeShader>("GridCulling");
         Culling_kernel = Shader.FindKernel("Culling");
     }
 

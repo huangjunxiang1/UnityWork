@@ -35,14 +35,14 @@ static partial class SettingL
     static bool isFirst = true;
     static void loadLocationText()
     {
-        DBuffer buff = new(new MemoryStream(Pkg.LoadRaw($"raw_Language_{SettingL.LanguageType}")));
+        DBuffer buff = new(new MemoryStream(SLoader.Raw.Group_raw.Item_raw.LoadRaw($"Language_{SettingL.LanguageType}")));
 
         if (buff.ReadHeaderInfo())
             LanguageUtil.Load((int)SettingL.LanguageType, buff, SSetting.CoreSetting.Debug);
 
         if (!isFirst || SettingL.LanguageType != SystemLanguage.Chinese)
         {
-            var txt = Pkg.LoadRawText($"raw_Language_UIText_{SettingL.LanguageType}");
+            var txt = SLoader.Raw.Group_raw.Item_raw.LoadText($"Language_UIText_{SettingL.LanguageType}");
             if (!string.IsNullOrEmpty(txt))
             {
                 FairyGUI.Utils.XML xml = new FairyGUI.Utils.XML(txt);

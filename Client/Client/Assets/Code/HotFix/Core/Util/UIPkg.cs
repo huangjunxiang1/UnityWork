@@ -21,15 +21,15 @@ public class UIPkg
     static async STask Init(EC_GameStart e)
     {
         FUIBinder.Binding();
-        UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
-        UIPkg.ResPkg = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
-        UIPkg.Items = UIPackage.AddPackage((await SAsset.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
+        UIPkg.ComPkg = UIPackage.AddPackage(SLoader.Raw.Group_raw.Item_raw.LoadRaw("ComPkg_fui"), "ComPkg", fguiLoader);
+        UIPkg.ResPkg = UIPackage.AddPackage((await SLoader.Res.Group_UI.Item_UI.LoadAsync<TextAsset>("ResPkg_fui")).bytes, "ResPkg", fguiLoader);
+        UIPkg.Items = UIPackage.AddPackage((await SLoader.Res.Group_UI.Item_UI.LoadAsync<TextAsset>("Items_fui")).bytes, "Items", fguiLoader);
         SSetting.ViewSetting.isTouchUI += UIHelper.IsOnTouchFUI;
 
-        if (Pkg.res.IsLocationValid("UI_Items"))
-            uui_items = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_Items");
-        if (Pkg.res.IsLocationValid("UI_UIAtlas"))
-            uui_res = SAsset.Load<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
+        if (SLoader.Res.Group_UI.Item_UI.IsLocationValid("Items"))
+            uui_items = await SLoader.Res.Group_UI.Item_UI.LoadAsync<UnityEngine.U2D.SpriteAtlas>("Items");
+        if (SLoader.Res.Group_UI.Item_UI.IsLocationValid("UIAtlas"))
+            uui_res = await SLoader.Res.Group_UI.Item_UI.LoadAsync<UnityEngine.U2D.SpriteAtlas>("UIAtlas");
     }
     static async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
     {
@@ -37,7 +37,7 @@ public class UIPkg
         {
             case PackageItemType.Sound:
             case PackageItemType.Atlas:
-                item.owner.SetItemAsset(item, await SAsset.LoadAsync<UnityEngine.Object>($"UI_{name}"), DestroyMethod.Custom);
+                item.owner.SetItemAsset(item, await SLoader.Res.Group_UI.Item_UI.LoadAsync<UnityEngine.Object>(name), DestroyMethod.Custom);
                 break;
             default:
                 Loger.Error("未定义加载->" + item.type);

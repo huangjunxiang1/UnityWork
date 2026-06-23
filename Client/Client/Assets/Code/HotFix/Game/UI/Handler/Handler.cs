@@ -31,15 +31,15 @@ static class Handler
         font.fontAsset = await SAsset.LoadAsync<TMPro.TMP_FontAsset>("UI_UIFont");
         FontManager.RegisterFont(font);*/
 
-        DBuffer buffM_ST = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM_ST)}")));
+        DBuffer buffM_ST = new(new MemoryStream(SLoader.Raw.Group_raw.Item_raw.LoadRaw(nameof(TabM_ST))));
         if (buffM_ST.ReadHeaderInfo())
             TabM_ST.Init(buffM_ST);
 
-        DBuffer buffM = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM)}")));
+        DBuffer buffM = new(new MemoryStream(SLoader.Raw.Group_raw.Item_raw.LoadRaw(nameof(TabM))));
         if (buffM.ReadHeaderInfo())
             TabM.Init(buffM, SSetting.CoreSetting.Debug);
 
-        DBuffer buffL = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabL)}")));
+        DBuffer buffL = new(new MemoryStream(SLoader.Raw.Group_raw.Item_raw.LoadRaw(nameof(TabL))));
         if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, SSetting.CoreSetting.Debug);
     }

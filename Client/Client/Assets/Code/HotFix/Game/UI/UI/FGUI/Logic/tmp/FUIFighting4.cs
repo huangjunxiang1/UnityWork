@@ -30,8 +30,8 @@ partial class FUIFighting4
     GraphicsBuffer targetP = new GraphicsBuffer(GraphicsBuffer.Target.Structured, playerCount, sizeof(int) * 2);
     protected override async STask OnTask()
     {
-        mat = await SAsset.LoadAsync<Material>(@"other_ECSLit2");
-        var go = await SAsset.LoadGameObjectAsync(@"3D_Cube");
+        mat = await SLoader.Res.Group_other.Item_Other.LoadAsync<Material>("ECSLit2");
+        var go = await SLoader.Res.Group_model.Item_3D.LoadGameObjectAsync("Cube");
         mesh = go.GetComponent<MeshFilter>().mesh;
         SAsset.Release(go);
         finding = new();

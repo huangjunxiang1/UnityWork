@@ -42,7 +42,7 @@ public class GLoader3DPropertyBinding : UIPropertyBinding<GLoader3D, string>
 
     protected override async void View(string v)
     {
-        var go = await SAsset.LoadGameObjectAsync(v, ReleaseMode.Destroy);
+        var go = await SLoader.Res.Group_model.Item_3D.LoadGameObjectAsync(v, ReleaseMode.Destroy);
         if (this.ui.wrapTarget)
             SAsset.Release(this.ui.wrapTarget);
         this.ui.SetWrapTarget(go, false, 0, 0);

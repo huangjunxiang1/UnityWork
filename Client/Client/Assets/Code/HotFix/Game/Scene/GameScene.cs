@@ -20,7 +20,7 @@ namespace Game
             BaseCamera.Current.Init(cm);
             BaseCamera.Current.EnableCamera();
 
-            var buffer = new DBuffer(Pkg.LoadRaw("raw_Game"));
+            var buffer = new DBuffer(SLoader.Raw.Group_raw.Item_raw.LoadRaw("Game"));
             Client.Data.Add(new AStarData(buffer));
 
             var s = Client.Data.Get<S2C_JoinRoom>();

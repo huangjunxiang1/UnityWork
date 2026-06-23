@@ -33,7 +33,7 @@ class WorldScene : Scene
         kv.Set((int)KType.MoveSpeed, 5);
         kv.Set((int)KType.RotateSpeed, 20);
 
-        var grid_render = new GPUInstanceRender(new List<GameObject>() { SAsset.LoadGameObject($"3D_hex") });
+        var grid_render = new GPUInstanceRender(new List<GameObject>() { SLoader.Res.Group_model.Item_3D.LoadGameObject("hex") });
         this.AddChild(grid_render);
         gridCulling = new();
         gridCulling.Culling_grid_args = grid_render.ArgsBuffer;
@@ -43,7 +43,7 @@ class WorldScene : Scene
         for (int i = 0; i < GPUConstDefine.Tree_TypeCount; i++)
         {
             for (int j = 0; j < GPUConstDefine.Tree_StyleCount; j++)
-                lst.Add(SAsset.LoadGameObject($"3D_Tree_{i + 1}_{j + 1}"));
+                lst.Add(SLoader.Res.Group_model.Item_3D.LoadGameObject($"Tree_{i + 1}_{j + 1}"));
         }
         tree_render = new GPUInstanceRender(lst);
         gridCulling.Culling_tree_args = tree_render.ArgsBuffer;
