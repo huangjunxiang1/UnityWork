@@ -26,7 +26,7 @@ class WorldScene : Scene
 
         SGameObject go = new() { ActorId = 1 };
         Client.Scene.Current.AddChild(go);
-        go.GameObject.SetGameObject("3D_chan");
+        go.GameObject.SetGameObject("model_chan");
         go.AddComponent<PlayerComponent>().scene = this;
         go.AddComponent<MoveComponent>();
         var kv = go.AddComponent<KVComponent>();

@@ -31,12 +31,12 @@ internal static class Pkg
         // 编辑器下的模拟模式
         if (mode == EPlayMode.EditorSimulateMode)
         {
-            var buildResult = EditorSimulateBuildInvoker.Build(package.PackageName, (int)EBundleType.VirtualAssetBundle);
+            var buildResult = EditorSimulateBuildInvoker.Build(package.PackageName, package == raw ? (int)EBundleType.VirtualRawBundle : (int)EBundleType.VirtualAssetBundle);
             var packageRoot = buildResult.PackageRootDirectory;
             var createParameters = new EditorSimulateModeOptions();
             createParameters.EditorFileSystemParameters = FileSystemParameters.CreateDefaultEditorFileSystemParameters(packageRoot);
-            createParameters.EditorFileSystemParameters.AddParameter(EFileSystemParameter.VirtualWebglMode, true);
-            createParameters.EditorFileSystemParameters.AddParameter(EFileSystemParameter.VirtualDownloadMode, true);
+            createParameters.EditorFileSystemParameters.AddParameter(EFileSystemParameter.VirtualWebglMode, false);
+            createParameters.EditorFileSystemParameters.AddParameter(EFileSystemParameter.VirtualDownloadMode, false);
             createParameters.EditorFileSystemParameters.AddParameter(EFileSystemParameter.VirtualDownloadSpeed, 1024 * 1000);
             createParameters.EditorFileSystemParameters.AddParameter(EFileSystemParameter.AsyncSimulateMinFrame, 5);
             createParameters.EditorFileSystemParameters.AddParameter(EFileSystemParameter.AsyncSimulateMaxFrame, 10);
@@ -178,7 +178,7 @@ internal static class Pkg
 
         public IReadOnlyList<string> GetRemoteUrls(string fileName)
         {
-            return new List<string> { url + fileName, fallBackUrl + fileName };
+            return new string[] { url + fileName, fallBackUrl + fileName };
         }
     }
 }

@@ -21,30 +21,27 @@ public class SAssetWarper
     public bool IsLocationValid(string name) => Pkg.IsLocationValid(string.Format(Format, name));
     public byte[] LoadRaw(string name)
     {
-        string url = string.Format(Format, name);
-        if (!IsLocationValid(url))
+        if (!IsLocationValid(name))
             return null;
-        var handler = Pkg.LoadAssetSync<RawFileObject>(url);
+        var handler = Pkg.LoadAssetSync<RawFileObject>(string.Format(Format, name));
         var ret = handler.GetAssetObject<RawFileObject>().GetBytes();
         handler.Dispose();
         return ret;
     }
     public string LoadText(string name)
     {
-        string url = string.Format(Format, name);
-        if (!IsLocationValid(url))
+        if (!IsLocationValid(name))
             return null;
-        var handler = Pkg.LoadAssetSync<RawFileObject>(url);
+        var handler = Pkg.LoadAssetSync<RawFileObject>(string.Format(Format, name));
         var ret = handler.GetAssetObject<RawFileObject>().GetText();
         handler.Dispose();
         return ret;
     }
     public async STask<byte[]> LoadRawAsync(string name)
     {
-        string url = string.Format(Format, name);
-        if (!IsLocationValid(url))
+        if (!IsLocationValid(name))
             return null;
-        var handler = Pkg.LoadAssetAsync<RawFileObject>(url);
+        var handler = Pkg.LoadAssetAsync<RawFileObject>(string.Format(Format, name));
         await handler;
         var bs = handler.GetAssetObject<RawFileObject>().GetBytes();
         handler.Dispose();
@@ -52,10 +49,9 @@ public class SAssetWarper
     }
     public async STask<string> LoadTextAsync(string name)
     {
-        string url = string.Format(Format, name);
-        if (!IsLocationValid(url))
+        if (!IsLocationValid(name))
             return null;
-        var handler = Pkg.LoadAssetAsync<RawFileObject>(url);
+        var handler = Pkg.LoadAssetAsync<RawFileObject>(string.Format(Format, name));
         await handler;
         var bs = handler.GetAssetObject<RawFileObject>().GetText();
         handler.Dispose();
