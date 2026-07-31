@@ -22,21 +22,11 @@ namespace Game
         Vector3 point;
         bool view;
         GraphicsBuffer buffer;
+        [NonSerialized]
         public AStarData astar;
         int[] cost;
         int[] tempSet = new int[1];
 
-#if UNITY_EDITOR
-        private void OnEnable()
-        {
-            this.View(view);
-        }
-        void gridChange(int2 xy)
-        {
-            int index = xy.y * astar.width + xy.x;
-            tempSet[0] = astar.data[index].data | (astar.data[index].Occupation << 8) | (astar.data[index].PathOccupation << 16);
-            buffer.SetData(tempSet, 0, index, 1);
-        }
         void change()
         {
             if (cost == null || cost.Length != astar.width * astar.height)
@@ -54,6 +44,17 @@ namespace Game
                 cost[i] |= b.PathOccupation << 16;
             }
             buffer.SetData(cost);
+        }
+#if UNITY_EDITOR
+        private void OnEnable()
+        {
+            this.View(view);
+        }
+        void gridChange(int2 xy)
+        {
+            int index = xy.y * astar.width + xy.x;
+            tempSet[0] = astar.data[index].data | (astar.data[index].Occupation << 8) | (astar.data[index].PathOccupation << 16);
+            buffer.SetData(tempSet, 0, index, 1);
         }
         private void OnValidate()
         {
@@ -144,7 +145,6 @@ namespace Game
                 astar.change += change;
             }
 #endif
-
             change();
 
             // 应用 Mesh

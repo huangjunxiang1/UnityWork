@@ -42,16 +42,16 @@ public class GLoader3DPropertyBinding : UIPropertyBinding<GLoader3D, string>
 
     protected override async void View(string v)
     {
-        var go = await SLoader.Res.Group_model.Item_3D.LoadGameObjectAsync(v, ReleaseMode.Destroy);
+        var go = await Client.Loader.LoadGameObjectAsync(v, ReleaseMode.Destroy);
         if (this.ui.wrapTarget)
-            SAsset.Release(this.ui.wrapTarget);
+            Client.Loader.Release(this.ui.wrapTarget);
         this.ui.SetWrapTarget(go, false, 0, 0);
     }
     public override void Dispose()
     {
         base.Dispose();
         if (this.ui.wrapTarget)
-            SAsset.Release(this.ui.wrapTarget);
+            Client.Loader.Release(this.ui.wrapTarget);
     }
 }
 public class GButtonPropertyBinding : UIPropertyBinding<GButton, bool>
@@ -118,7 +118,7 @@ public class RawImagePropertyBinding : UIPropertyBinding<RawImage, string>
 
     protected override void View(string v)
     {
-        _ = ui.SetTexture(v);
+        _ = Client.Loader.SetTexture(this.ui, v);
     }
 }
 public class TogglePropertyBinding : UIPropertyBinding<Toggle, bool>

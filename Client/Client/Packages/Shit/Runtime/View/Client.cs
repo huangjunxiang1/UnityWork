@@ -27,10 +27,12 @@ namespace Game
         public static Data Data { get; private set; }
         public static SceneManager Scene { get; private set; }
         public static UIManager UI { get; private set; }
+        public static SLoader Loader { get; private set; }
 
-        public static void Load(List<Type> types)
+        public static void Initialize(List<Type> types)
         {
             World = new(types, "Client");
+            Loader = new(null, null);
             SValueTask.DelayHandle -= delayHandle;
             SValueTask.DelayHandle += delayHandle;
 

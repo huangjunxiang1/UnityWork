@@ -7,22 +7,14 @@ using Unity.Mathematics;
 
 partial class FUIWorld
 {
-    WorldScene world = Client.Scene.Current.As<WorldScene>();
     SGameObject player;
     protected override void OnEnter()
     {
         player = this.GetParam<SGameObject>(0);
         player.AddComponent<ViewHexComponent>().ui = this;
-        this._logging.onClick.Add(on_logging);
     }
 
     [Event] void EC_ResChange(EC_ResChange e) => this.OnView();
-
-    void on_logging()
-    {
-        int2 xy = Hex.GetGridxy(player.Transform.position);
-        world.Logging(xy);
-    }
 
     [InSystem]
     static void In(PlayerComponent p)

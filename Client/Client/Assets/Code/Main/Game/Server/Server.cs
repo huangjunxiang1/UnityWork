@@ -15,11 +15,11 @@ namespace Game
     public static class Server
     {
         public static World World { get; private set; }
-        public static STask Load()
+        public static STask Initialize()
         {
-            return Load(Types.ReflectionAllTypes());
+            return Initialize(Types.ReflectionAllTypes());
         }
-        public static STask Load(List<Type> types)
+        public static STask Initialize(List<Type> types)
         {
 #if Server
             Run(types);

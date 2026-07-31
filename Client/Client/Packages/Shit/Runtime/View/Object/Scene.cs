@@ -13,13 +13,17 @@ namespace Game
         {
             root = new(this.GetType().Name);
             root.transform.parent = Client.transform;
+            Loader = new(this.GetType().Name, null);
+            this.SetPackage();
         }
 
         internal object[] _paramObjects;
 
         public GameObject root { get; private set; }
+        public SLoader Loader { get; private set; }
 
         public virtual void OnEnter() { }
+        protected virtual void SetPackage() { }
 
         public T GetParam<T>(int index)
         {
@@ -30,6 +34,7 @@ namespace Game
         public override void Dispose()
         {
             base.Dispose();
+            Loader.Dispose();
             GameObject.Destroy(root);
         }
     }
@@ -40,6 +45,7 @@ namespace Game
     public class OcTreeScene : Scene
     {
         OcTreeNode _root;
+
 
         public MinMaxAABB aabb => _root == null ? default : _root.aabb;
 

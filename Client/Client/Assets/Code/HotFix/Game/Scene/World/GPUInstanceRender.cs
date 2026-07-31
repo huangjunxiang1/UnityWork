@@ -16,22 +16,23 @@ static class GPUConstDefine
 }
 class GPUInstanceRender : SObject
 {
-    public GPUInstanceRender(IEnumerable<GameObject> target, int maxInstance = 2048)
+    public GPUInstanceRender(IEnumerable<GameObject> target, bool viewEnable = true, int maxInstance = 2048)
     {
         this.Batch = target.Count();
         this.MaxInstance = maxInstance;
-        //args+visible  +1 是多预留一个 以防maxInstance传参不是32的倍数
-        ArgsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, GPUConstDefine.Define_Args_Size * this.Batch + (maxInstance * this.Batch) / 32 + 1, sizeof(uint));
+        ArgsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, GPUConstDefine.Define_Args_Size * this.Batch, sizeof(uint));
+        if (viewEnable)
+            VisibleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (maxInstance * this.Batch) / 32 + 1, sizeof(uint));
 
-        this.targets.AddRange(target);
+        List<GameObject> targets = new(target);
         uint[] args = new uint[ArgsBuffer.count];
-        for (int i = 0; i < this.targets.Count; i++)
+        for (int i = 0; i < this.Batch; i++)
         {
-            this.targets[i].SetActive(false);
-            this.targets[i].transform.parent = Client.gameObject.transform;
+            targets[i].SetActive(false);
+            targets[i].transform.parent = Client.gameObject.transform;
 
-            var mesh = this.targets[i].GetComponent<MeshFilter>().sharedMesh;
-            var mat = this.targets[i].GetComponent<Renderer>().material;
+            var mesh = targets[i].GetComponent<MeshFilter>().sharedMesh;
+            var mat = targets[i].GetComponent<Renderer>().sharedMaterial;
             args[0 + i * GPUConstDefine.Define_Args_Size] = (uint)mesh.GetIndexCount(0);
             args[1 + i * GPUConstDefine.Define_Args_Size] = (uint)0;
             args[2 + i * GPUConstDefine.Define_Args_Size] = (uint)mesh.GetIndexStart(0);
@@ -42,12 +43,12 @@ class GPUInstanceRender : SObject
         ArgsBuffer.SetData(args);
     }
 
-    List<GameObject> targets = new();
     List<(Mesh,Material)> mms = new();
     Dictionary<string, GraphicsBuffer> bufferMap = new();
 
     public bool ViewEnable { get; set; } = true;
     public GraphicsBuffer ArgsBuffer { get; private set; }
+    public GraphicsBuffer VisibleBuffer { get; private set; }
     public int MaxInstance { get; private set; }
     public int Batch { get; private set; }
 
@@ -67,7 +68,7 @@ class GPUInstanceRender : SObject
         {
             buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, this.MaxInstance * Batch, sizeof(T));
             bufferMap[name] = buffer;
-            for (int i = 0; i < targets.Count; i++)
+            for (int i = 0; i < Batch; i++)
                 mms[i].Item2.SetBuffer(name, buffer);
         }
         return buffer;
@@ -76,14 +77,9 @@ class GPUInstanceRender : SObject
     {
         base.Dispose();
         ArgsBuffer.Dispose();
+        VisibleBuffer?.Dispose();
         foreach (var item in bufferMap.Values)
             item.Dispose();
         bufferMap.Clear();
-
-        for (int i = 0; i < targets.Count; i++)
-        {
-            targets[i].SetActive(true);
-            SAsset.Release(targets[i]);
-        }
     }
 }

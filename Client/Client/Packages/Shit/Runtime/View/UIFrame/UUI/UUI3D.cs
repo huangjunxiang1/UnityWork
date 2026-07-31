@@ -20,7 +20,7 @@ public abstract class UUI3D : UUIBase
 
         this.OnAwake();
         this._states = UIStatus.Loading;
-        this._ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
+        this._ui = (RectTransform)Client.Loader.LoadGameObject(url, ReleaseMode.Destroy).transform;
         this._ui.SetParent(Client.UI.UGUIRoot);
         this._ui.localScale = Vector3.one;
         this._ui.rotation = Quaternion.identity;
@@ -40,7 +40,7 @@ public abstract class UUI3D : UUIBase
 
         this.OnAwake();
         this._states = UIStatus.Loading;
-        GameObject ui = await SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
+        GameObject ui = await Client.Loader.LoadGameObjectAsync(url, ReleaseMode.Destroy);
         this._ui = (RectTransform)ui.transform;
         this._ui.SetParent(Client.UI.UGUIRoot);
         this._ui.localScale = Vector3.one;

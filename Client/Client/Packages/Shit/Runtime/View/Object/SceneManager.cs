@@ -30,9 +30,7 @@ namespace Game
             Client.UI.CloseUI();
             await world.Event.RunEventAsync(new EC_OutScene { });
 
-            SAsset.ReleasePoolsGameObjects();
-            await SAsset.ReleaseAllUnuseObjects();
-            await SAsset.LoadSceneAsync($"scene_{attr.name}");
+            await Client.Loader.LoadSceneAsync($"scene_{attr.name}");
             await SValueTask.Delay(100);
 
             Current._paramObjects = os;

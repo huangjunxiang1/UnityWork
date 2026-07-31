@@ -22,7 +22,7 @@ public abstract class UUI : UUIBase
 
         this.OnAwake();
         this._states = UIStatus.Loading;
-        this._ui = (RectTransform)SAsset.LoadGameObject(url, ReleaseMode.Destroy).transform;
+        this._ui = (RectTransform)Client.Loader.LoadGameObject(url, ReleaseMode.Destroy).transform;
         this._ui.gameObject.SetActive(false);
         this._canvas = this._ui.GetComponent<Canvas>();
         this.Binding();
@@ -47,7 +47,7 @@ public abstract class UUI : UUIBase
         this.OnAwake();
         this._states = UIStatus.Loading;
 
-        var load = SAsset.LoadGameObjectAsync(url, ReleaseMode.Destroy);
+        var load = Client.Loader.LoadGameObjectAsync(url, ReleaseMode.Destroy);
         load.AddEvent(() =>
         {
             this._ui = (RectTransform)load.GetResult().transform;

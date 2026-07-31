@@ -31,7 +31,7 @@ public static class ExFunc
                 for (int i = childCnt; i > 1; i--)
                 {
                     if (destroyMore)
-                        SAsset.Release(parent.GetChild(i - 1).gameObject, false);
+                        Client.Loader.Release(parent.GetChild(i - 1).gameObject, false);
                     else
                         parent.GetChild(i - 1).gameObject.SetActive(false);
                 }
@@ -57,7 +57,7 @@ public static class ExFunc
             for (int i = childCnt; i > count; i--)
             {
                 if (destroyMore)
-                    SAsset.Release(parent.GetChild(i - 1).gameObject, false);
+                    Client.Loader.Release(parent.GetChild(i - 1).gameObject, false);
                 else
                     parent.GetChild(i - 1).gameObject.SetActive(false);
             }

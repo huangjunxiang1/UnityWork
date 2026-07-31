@@ -46,6 +46,8 @@ public class Tool
             if (item.BaseType != null && item.BaseType.IsGenericType && item.BaseType.GetGenericTypeDefinition() == typeof(UIPropertyBinding<,>) && typeof(UIPropertyBinding<,>) != item)
                 typeMap[item.BaseType.GetGenericArguments()[0]] = item;
         }
+        code.AppendLine("using Game;");
+        code.AppendLine();
         appendUUICode(Application.dataPath + "/Res/UI/UUI/Prefab/", code, typeMap);
 
         File.WriteAllText(Application.dataPath + $"/Code/HotFix/_Gen/UUI.cs", code.ToString());
@@ -140,7 +142,7 @@ public class Tool
                     code.Append(getUICode.ToString());
                     code.AppendLine($"        this.Enter();");
                     code.AppendLine($"    }}");
-                    code.AppendLine($"    public U{go.name}(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(SLoader.Res.Group_model.Item_3D.LoadGameObject(\"{go.name}\", mode).transform) {{ }}");
+                    code.AppendLine($"    public U{go.name}(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Client.Loader.LoadGameObject(\"{go.name}\", mode).transform) {{ }}");
                     code.AppendLine($"    partial void Enter();");
                     code.AppendLine($"    public void Dispose()");
                     code.AppendLine($"    {{");
@@ -502,7 +504,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Main/", so, input,true);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Main/", so, input);
 
             so.AppendLine("}");
             so.Append(input);
@@ -524,7 +526,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Hotfix/", so, input,false);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Hotfix/", so, input);
 
             so.AppendLine("}");
             so.Append(input);
@@ -539,11 +541,11 @@ public class Tool
         if (tips)
             EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
-    static void appendConfigWithDirectory(string path, StringBuilder soCode, StringBuilder inputCode,bool isMain)
+    static void appendConfigWithDirectory(string path, StringBuilder soCode, StringBuilder inputCode)
     {
         foreach (var d in Directory.GetDirectories(path))
         {
-            appendConfigWithDirectory(d, soCode, inputCode, isMain);
+            appendConfigWithDirectory(d, soCode, inputCode);
         }
 
         foreach (var f in Directory.GetFiles(path))
@@ -554,34 +556,28 @@ public class Tool
             var o = AssetDatabase.LoadMainAssetAtPath(ff);
 #if ENABLE_INPUT_SYSTEM
             if (o is UnityEngine.InputSystem.InputActionAsset input)
-                appendInputSystemCode(input, inputCode, isMain);
+                appendInputSystemCode(input, inputCode);
             else
 #endif
             if (o is ScriptableObject so)
-                appendScriptObjectCode(so, soCode, isMain);
+                appendScriptObjectCode(so, soCode);
         }
     }
-    static void appendScriptObjectCode(ScriptableObject so, StringBuilder code, bool isMain)
+    static void appendScriptObjectCode(ScriptableObject so, StringBuilder code)
     {
         string type = so.GetType().FullName;
         code.AppendLine($"\tstatic {type} _{so.name};");
-        if (!isMain)
-            code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})SLoader.Res.Group_config.Item_res.Load<ScriptableObject>(\"{so.name}\");");
-        else
-            code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})SAsset.Load<ScriptableObject>(\"config_{so.name}\");");
+        code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})Client.Loader.Load<ScriptableObject>(\"config_{so.name}\");");
     }
 
 #if ENABLE_INPUT_SYSTEM
-    static void appendInputSystemCode(UnityEngine.InputSystem.InputActionAsset input, StringBuilder str, bool isMain)
+    static void appendInputSystemCode(UnityEngine.InputSystem.InputActionAsset input, StringBuilder str)
     {
         str.AppendLine($"public class {input.name}");
         str.AppendLine("{");
         str.AppendLine($"    public {input.name}()");
         str.AppendLine("    {");
-        if (!isMain)
-            str.AppendLine($"        this.Asset = SLoader.Res.Group_config.Item_res.Load<UnityEngine.InputSystem.InputActionAsset>(\"{input.name}\");");
-        else
-            str.AppendLine($"        this.Asset = SAsset.Load<UnityEngine.InputSystem.InputActionAsset>(\"config_{input.name}\");");
+        str.AppendLine($"        this.Asset = Client.Loader.Load<UnityEngine.InputSystem.InputActionAsset>(\"config_{input.name}\");");
         str.AppendLine("        this.Asset.Enable();");
 
         foreach (var item in input.actionMaps)
@@ -612,7 +608,7 @@ public class Tool
         str.AppendLine();
         str.AppendLine("    public void Dispose()");
         str.AppendLine("    {");
-        str.AppendLine("        SAsset.Release(Asset);");
+        str.AppendLine("        Client.Loader.Release(Asset);");
         foreach (var item in input.actionMaps)
         {
             str.AppendLine($"        this.{item.name}.Dispose();");
@@ -641,7 +637,7 @@ public class Tool
             code.AppendLine($"{{");
             code.AppendLine($"    public ComputeShader_{fileName}()");
             code.AppendLine($"    {{");
-            code.AppendLine($"        this.Shader = SLoader.Res.Group_shader.Item_Shader.Load<ComputeShader>(\"{fileName}\");");
+            code.AppendLine($"        this.Shader = Client.Loader.Load<ComputeShader>(\"shader_{fileName}\");");
 
             var codes = File.ReadAllLines(path.ToFullPath()).ToList();
             for (int i = 0; i < codes.Count; i++)
@@ -908,54 +904,6 @@ public class Tool
         calBat(Application.dataPath + "/../../../PB/pb_cs.bat");
     }
 
-    [MenuItem("Shit/生成SLoader", false)]
-    static void GenSLoader()
-    {
-        var pkgs = BundleCollectorSettingData.Setting.Packages;
-        StringBuilder str = new(10000);
-        str.AppendLine("using YooAsset;");
-        str.AppendLine();
-        str.AppendLine("static class SLoader");
-        str.AppendLine("{");
-        for (int i = 0; i < pkgs.Count; i++)
-            str.AppendLine($"    static {nameof(ResourcePackage)} _{pkgs[i].PackageName};");
-        str.AppendLine();
-
-        str.AppendLine("    static SLoader()");
-        str.AppendLine("    {");
-        for (int i = 0; i < pkgs.Count; i++)
-            str.AppendLine($"        YooAssets.TryGetPackage(\"{pkgs[i].PackageName}\", out _{pkgs[i].PackageName});");
-        str.AppendLine("    }");
-        str.AppendLine("");
-
-        for (int i = 0; i < pkgs.Count; i++)
-        {
-            str.AppendLine($"    public static class {pkgs[i].PackageName}");
-            str.AppendLine("    {");
-            for (int j = 0; j < pkgs[i].Groups.Count; j++)
-            {
-                str.AppendLine($"        public static class Group_{pkgs[i].Groups[j].GroupName}");
-                str.AppendLine("        {");
-                for (int k = 0; k < pkgs[i].Groups[j].Collectors.Count; k++)
-                {
-                    string format = "";
-                    if (pkgs[i].Groups[j].Collectors[k].AddressRuleName == nameof(AddressByFileName))
-                        format = $"{{0}}";
-                    else if (pkgs[i].Groups[j].Collectors[k].AddressRuleName == nameof(AddressByFolderAndFileName))
-                        format = $"{{0}}";
-                    else if (pkgs[i].Groups[j].Collectors[k].AddressRuleName == nameof(AddressByGroupAndFileName))
-                        format = $"{pkgs[i].Groups[j].GroupName}_{{0}}";
-                    str.AppendLine($"            public static {nameof(SAssetWarper)} Item_{new DirectoryInfo(pkgs[i].Groups[j].Collectors[k].CollectPath).Name} = new(_{pkgs[i].PackageName}, \"{format}\");");
-                }
-                str.AppendLine("        }");
-            }
-            str.AppendLine("    }");
-        }
-
-        str.AppendLine("}");
-        File.WriteAllText($"{Application.dataPath}/Code/HotFix/_Gen/SLoader.cs", str.ToString());
-        AssetDatabase.Refresh();
-    }
 
     [MenuItem("Shit/全部事项生成")]
     static void GenAll()
@@ -972,7 +920,7 @@ public class Tool
             CreateConfigCode();
             GenTabs();
             GenPB();
-            GenSLoader();
+            gen_computerCode();
         }
         catch (System.Exception)
         {
@@ -985,7 +933,7 @@ public class Tool
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
 
-
+#if ENABLE_IL2CPP
     [MenuItem("Tools/AOT_Copy")]
     static void copyAotDll()
     {
@@ -1015,6 +963,7 @@ public class Tool
         File.WriteAllBytes($"{dstDir}/code.bytes", bs);
         AssetDatabase.Refresh();
     }
+#endif
 
     [MenuItem("Tools/Gen_ToLanxString")]
     static void GenForLanString()

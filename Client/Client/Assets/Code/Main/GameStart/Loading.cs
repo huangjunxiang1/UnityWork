@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using UnityEngine.Networking;
 using YooAsset;
 
@@ -22,10 +23,12 @@ public class Loading
     {
         if (!Application.isEditor && GameStart.Inst.Runtime == CodeRuntime.Assembly)
         {
+#if HybridCLR
             foreach (var item in Resources.LoadAll<TextAsset>("AOT"))
-            {
                 HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly(item.bytes, HybridCLR.HomologousImageMode.SuperSet);
-            }
+#else
+
+#endif
         }
         package = UIPackage.AddPackage("Loader/Loader");
         ui = package.CreateObject("Loading").asCom;
@@ -38,7 +41,7 @@ public class Loading
         text = ui.GetChild("_Text").asTextField;
         this.ui.GetChild("_yes").onClick.Add(Application.Quit);
 
-        if (!Application.isEditor)
+        if (!Application.isEditor & (GameStart.Inst.playMode == EPlayMode.HostPlayMode || GameStart.Inst.playMode == EPlayMode.WebPlayMode))
         {
             using UnityWebRequest www = UnityWebRequest.Get($"{GameStart.Inst.resUrl.TrimEnd('/')}/main.json");
             await www.SendWebRequest().AsTask();
@@ -74,32 +77,6 @@ public class Loading
     {
         ui.Dispose();
         UIPackage.RemovePackage("Loader/Loader");
-        Assembly assembly = null;
-        if (Application.isEditor || GameStart.Inst.Runtime == CodeRuntime.Native)
-        {
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (asm.GetName().Name == "Game.HotFix")
-                {
-                    assembly = asm;
-                    break;
-                }
-            }
-            if (assembly == null)
-            {
-                Debug.LogError("not find Assembly Game.HotFix");
-                return;
-            }
-        }
-        else
-        {
-            var dll = Pkg.LoadRaw("raw_code");
-            assembly = Assembly.Load(dll);
-        }
-        assembly
-              .GetType("Program")
-              .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
-              .Invoke(null, null);
     }
     public void ShowError(string error)
     {

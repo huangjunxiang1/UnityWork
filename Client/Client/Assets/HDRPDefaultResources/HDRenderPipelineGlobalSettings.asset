@@ -197,7 +197,28 @@ MonoBehaviour:
       - rid: 765325034670522368
       - rid: 765325034670522369
     m_RuntimeSettings:
-      m_List: []
+      m_List:
+      - rid: 7965621242403750180
+      - rid: 7965621242403750183
+      - rid: 7965621242403750184
+      - rid: 7965621242403750186
+      - rid: 7965621242403750187
+      - rid: 7965621242403750190
+      - rid: 7965621242403750191
+      - rid: 7965621242403750192
+      - rid: 7965621242403750195
+      - rid: 7965621242403750196
+      - rid: 7965621242403750197
+      - rid: 7965621242403750198
+      - rid: 7965621242403750199
+      - rid: 7965621242403750200
+      - rid: 7965621242403750204
+      - rid: 7965621242403750205
+      - rid: 7965621242403750208
+      - rid: 7965621242403750210
+      - rid: 7965621242403750211
+      - rid: 7965621467466694656
+      - rid: 7965621467466694657
   renderingLayerNames:
   - Default
   lightLayerName0: 
@@ -241,6 +262,7 @@ MonoBehaviour:
         _skyBoxMesh: {fileID: 4300000, guid: 0529e6c5f6dea8c4a8c2835ed7de57cb, type: 2}
         _sixFaceSkyBoxMesh: {fileID: 4300000, guid: a80925ceebd011741b42509226cefc74, type: 2}
         _buildLightGridShader: {fileID: 7200000, guid: 16e47c1641bd0104e92b624601457bb0, type: 3}
+        _solidColorShader: {fileID: 4800000, guid: 3765a7ac691541038de4d587b94ae768, type: 3}
     - rid: 3545609646982299648
       type: {class: RayTracingRenderPipelineResources, ns: UnityEngine.Rendering.UnifiedRayTracing, asm: Unity.UnifiedRayTracing.Runtime}
       data:

@@ -10,7 +10,7 @@ public static class Program
         long tick = DateTime.Now.Ticks;
         List<Type> types = Types.ReflectionAllTypes();
         MessageParser.Parse(types);
-        Client.Load(types);
+        Client.Initialize(types);
 
         long tick2 = DateTime.Now.Ticks;
         UnityEngine.Debug.Log("框架初始化成功");

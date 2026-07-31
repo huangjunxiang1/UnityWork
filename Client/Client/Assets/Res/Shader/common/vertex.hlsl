@@ -10,6 +10,13 @@ void Vertex_Grid_float(int instanceid, float3 objPos, out float3 pos)
     pos = objPos + float3(dt.x, 0.0, dt.y);
 }
 
+StructuredBuffer<float2> wall_datas;
+void Vertex_Wall_float(int instanceid, float3 objPos, out float3 pos)
+{
+    float2 dt = wall_datas[offsetIndex + instanceid];
+    pos = objPos + float3(dt.x, 0.0, dt.y);
+}
+
 StructuredBuffer<float2> tree_datas;
 void Vertex_Tree_float(int instanceid, float3 objPos,float3 normal, out float3 pos,out float3 out_normal)
 {

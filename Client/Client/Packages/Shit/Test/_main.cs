@@ -17,7 +17,7 @@ static class _main
         List<Type> types = new();
         types.AddRange(typeof(World).Assembly.GetTypes());
         types.AddRange(typeof(_main).Assembly.GetTypes());
-        Client.Load(types);
+        Client.Initialize(types);
 
         TypeLstCheck.test();
         EcsSystem.test();

@@ -33,8 +33,8 @@ namespace Game
             UGUIRoot.position = Vector3.zero;
 
 #if FairyGUI
-            NTexture.CustomDestroyMethod += t => SAsset.Release(t);
-            NAudioClip.CustomDestroyMethod += t => SAsset.Release(t);
+            NTexture.CustomDestroyMethod += t => Client.Loader.Release(t);
+            NAudioClip.CustomDestroyMethod += t => Client.Loader.Release(t);
 
             this.FGUIRoot_3d = new GComponent();
             GRoot.inst.AddChild(FGUIRoot_3d);

@@ -5,14 +5,14 @@ using System;
 public static partial class SettingL
 {
 	static LockingCameraSetting _LockingCameraSetting;
-	public static LockingCameraSetting LockingCameraSetting => _LockingCameraSetting ??= (LockingCameraSetting)SLoader.Res.Group_config.Item_res.Load<ScriptableObject>("LockingCameraSetting");
+	public static LockingCameraSetting LockingCameraSetting => _LockingCameraSetting ??= (LockingCameraSetting)Client.Loader.Load<ScriptableObject>("config_LockingCameraSetting");
 }
 
 public class ESCInput
 {
     public ESCInput()
     {
-        this.Asset = SLoader.Res.Group_config.Item_res.Load<UnityEngine.InputSystem.InputActionAsset>("ESCInput");
+        this.Asset = Client.Loader.Load<UnityEngine.InputSystem.InputActionAsset>("config_ESCInput");
         this.Asset.Enable();
         this.esc = this.Asset.FindActionMap(new Guid(0x8ff01451, 0xc5bb, 0x4a85, 0x99, 0xc4, 0xaf, 0x6e, 0x94, 0x66, 0xa4, 0x1c));
         this.esconEsc = this.esc.FindAction(new Guid(0xe64c28ad, 0x9fe6, 0x408b, 0xbc, 0x8b, 0xcc, 0x42, 0xaf, 0x9a, 0x03, 0xa2));
@@ -25,7 +25,7 @@ public class ESCInput
 
     public void Dispose()
     {
-        SAsset.Release(Asset);
+        Client.Loader.Release(Asset);
         this.esc.Dispose();
     }
 }

@@ -3,27 +3,56 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using YooAsset;
 
-internal static class Pkg
+public static class Pkg
 {
-    static ResourcePackage raw;
+    public static ResourcePackage raw { get; private set; }
+    public static ResourcePackage res { get; private set; }
+
 
     public static async void Load(EPlayMode mode, Loading loading)
     {
         YooAssets.Initialize();
-        var loader = (YooassetLoader)SAsset.Loader;
-        var res = YooAssets.CreatePackage("Res");
         raw = YooAssets.CreatePackage("Raw");
-        loader.SetDefaultPackage(res);
+        SLoader.DefaultPackage = res = YooAssets.CreatePackage("Res");
 
         await initPackage(mode, loading, raw);
         await initPackage(mode, loading, res);
         loading.text.text = "success";
         loading.Dispose();
+
+        Assembly assembly = null;
+        if (Application.isEditor || GameStart.Inst.Runtime == CodeRuntime.Native)
+        {
+            foreach (var asm in CurrentAssemblies.GetLoadedAssemblies())
+            {
+                if (asm.GetName().Name == "Game.HotFix")
+                {
+                    assembly = asm;
+                    break;
+                }
+            }
+            if (assembly == null)
+            {
+                Debug.LogError("not find Assembly Game.HotFix");
+                return;
+            }
+        }
+        else
+        {
+            var dll = Pkg.LoadRaw("raw_code");
+            assembly = CurrentAssemblies.LoadFromBytes(dll);
+        }
+        assembly
+              .GetType("Program")
+              .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+              .Invoke(null, null);
     }
     async static STask initPackage(EPlayMode mode, Loading loading, ResourcePackage package)
     {
@@ -161,12 +190,21 @@ internal static class Pkg
         return "unknown";
     }
 
-    internal static byte[] LoadRaw(string location)
+    public static byte[] LoadRaw(string location)
     {
         if (!Pkg.raw.IsLocationValid(location))
             return null;
         var handler = Pkg.raw.LoadAssetSync<RawFileObject>(location);
         var bs = handler.GetAssetObject<RawFileObject>().GetBytes();
+        handler.Dispose();
+        return bs;
+    }
+    public static string LoadText(string location)
+    {
+        if (!Pkg.raw.IsLocationValid(location))
+            return null;
+        var handler = Pkg.raw.LoadAssetSync<RawFileObject>(location);
+        var bs = handler.GetAssetObject<RawFileObject>().GetText();
         handler.Dispose();
         return bs;
     }

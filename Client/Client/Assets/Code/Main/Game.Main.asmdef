@@ -42,6 +42,11 @@
             "name": "com.unity.burst",
             "expression": "1.0.0",
             "define": "Burst"
+        },
+        {
+            "name": "com.code-philosophy.hybridclr",
+            "expression": "1.0.0",
+            "define": "HybridCLR"
         }
     ],
     "noEngineReferences": false

@@ -149,6 +149,7 @@ public abstract class FUI : FUIBase
                 this._ui.height = this._ui.parent.height;
                 this._ui.xy = new(this._ui.parent.width - this._ui.width, 0);
                 this._ui.AddRelation(this._ui.parent, RelationType.Height);
+                this._ui.AddRelation(this._ui.parent, RelationType.Right_Right);
                 break;
             case AdaptStyle.Top:
                 this._ui.width = this._ui.parent.width;
@@ -159,6 +160,7 @@ public abstract class FUI : FUIBase
                 this._ui.width = this._ui.parent.width;
                 this._ui.xy = new(0, this._ui.parent.height - this._ui.height);
                 this._ui.AddRelation(this._ui.parent, RelationType.Width);
+                this._ui.AddRelation(this._ui.parent, RelationType.Bottom_Bottom);
                 break;
             default:
                 break;

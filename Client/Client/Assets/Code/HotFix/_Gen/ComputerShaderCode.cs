@@ -6,7 +6,7 @@ public partial class ComputeShader_PathFinding
 {
     public ComputeShader_PathFinding()
     {
-        this.Shader = SLoader.Res.Group_shader.Item_Shader.Load<ComputeShader>("PathFinding");
+        this.Shader = Client.Loader.Load<ComputeShader>("shader_PathFinding");
         CSMain_kernel = Shader.FindKernel("CSMain");
     }
 
@@ -136,7 +136,7 @@ public partial class ComputeShader_GridCulling
 {
     public ComputeShader_GridCulling()
     {
-        this.Shader = SLoader.Res.Group_shader.Item_Shader.Load<ComputeShader>("GridCulling");
+        this.Shader = Client.Loader.Load<ComputeShader>("shader_GridCulling");
         Culling_kernel = Shader.FindKernel("Culling");
     }
 
@@ -196,6 +196,51 @@ public partial class ComputeShader_GridCulling
     }
 
 
+    GraphicsBuffer _Culling_wall_args;
+    public GraphicsBuffer Culling_wall_args
+    {
+        get => _Culling_wall_args;
+        set
+        {
+            if (_Culling_wall_args != null && _Culling_wall_args.IsValid())
+                _Culling_wall_args.Dispose();
+            _Culling_wall_args = value;
+            if (value != null && value.IsValid())
+                Shader.SetBuffer(Culling_kernel, "wall_args", value);
+        }
+    }
+
+
+    GraphicsBuffer _Culling_wall_Visible;
+    public GraphicsBuffer Culling_wall_Visible
+    {
+        get => _Culling_wall_Visible;
+        set
+        {
+            if (_Culling_wall_Visible != null && _Culling_wall_Visible.IsValid())
+                _Culling_wall_Visible.Dispose();
+            _Culling_wall_Visible = value;
+            if (value != null && value.IsValid())
+                Shader.SetBuffer(Culling_kernel, "wall_Visible", value);
+        }
+    }
+
+
+    GraphicsBuffer _Culling_wall_datas;
+    public GraphicsBuffer Culling_wall_datas
+    {
+        get => _Culling_wall_datas;
+        set
+        {
+            if (_Culling_wall_datas != null && _Culling_wall_datas.IsValid())
+                _Culling_wall_datas.Dispose();
+            _Culling_wall_datas = value;
+            if (value != null && value.IsValid())
+                Shader.SetBuffer(Culling_kernel, "wall_datas", value);
+        }
+    }
+
+
     GraphicsBuffer _Culling_tree_args;
     public GraphicsBuffer Culling_tree_args
     {
@@ -207,6 +252,21 @@ public partial class ComputeShader_GridCulling
             _Culling_tree_args = value;
             if (value != null && value.IsValid())
                 Shader.SetBuffer(Culling_kernel, "tree_args", value);
+        }
+    }
+
+
+    GraphicsBuffer _Culling_tree_Visible;
+    public GraphicsBuffer Culling_tree_Visible
+    {
+        get => _Culling_tree_Visible;
+        set
+        {
+            if (_Culling_tree_Visible != null && _Culling_tree_Visible.IsValid())
+                _Culling_tree_Visible.Dispose();
+            _Culling_tree_Visible = value;
+            if (value != null && value.IsValid())
+                Shader.SetBuffer(Culling_kernel, "tree_Visible", value);
         }
     }
 
@@ -233,8 +293,16 @@ public partial class ComputeShader_GridCulling
             _Culling_grid_args.Dispose();
         if (_Culling_grid_datas != null && _Culling_grid_datas.IsValid())
             _Culling_grid_datas.Dispose();
+        if (_Culling_wall_args != null && _Culling_wall_args.IsValid())
+            _Culling_wall_args.Dispose();
+        if (_Culling_wall_Visible != null && _Culling_wall_Visible.IsValid())
+            _Culling_wall_Visible.Dispose();
+        if (_Culling_wall_datas != null && _Culling_wall_datas.IsValid())
+            _Culling_wall_datas.Dispose();
         if (_Culling_tree_args != null && _Culling_tree_args.IsValid())
             _Culling_tree_args.Dispose();
+        if (_Culling_tree_Visible != null && _Culling_tree_Visible.IsValid())
+            _Culling_tree_Visible.Dispose();
         if (_Culling_tree_datas != null && _Culling_tree_datas.IsValid())
             _Culling_tree_datas.Dispose();
     }

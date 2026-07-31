@@ -210,9 +210,9 @@ public abstract class UUIBase : UIBase
         if (this.ui)
         {
             if (this.uiStates == UIStatus.Success)
-                this.Hide(true, () => SAsset.Release(this.ui.gameObject));
+                this.Hide(true, () => Client.Loader.Release(this.ui.gameObject));
             else
-                SAsset.Release(this.ui.gameObject);
+                Client.Loader.Release(this.ui.gameObject);
         }
         base.Dispose();
     }

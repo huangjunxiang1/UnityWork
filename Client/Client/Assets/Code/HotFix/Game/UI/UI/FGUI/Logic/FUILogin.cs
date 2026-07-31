@@ -57,7 +57,7 @@ partial class FUILogin
     async void asServer()
     {
         if (Server.World != null) return;
-        await Server.Load();
+        await Server.Initialize();
         _asServer.enabled = Server.World == null;
     }
 }

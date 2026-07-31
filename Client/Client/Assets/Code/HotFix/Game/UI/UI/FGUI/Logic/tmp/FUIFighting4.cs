@@ -5,17 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Collections;
-using Unity.Entities;
+//using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
-using Unity.Transforms;
+//using Unity.Transforms;
 using UnityEngine;
 
 partial class FUIFighting4
 {
     public const int size = 100;
     public NativeArray<int> road;
-    NativeArray<Entity> block;
+    //NativeArray<Entity> block;
     const int blockCount = 3000;
     public const int playerCount = 2000;
 
@@ -30,27 +29,27 @@ partial class FUIFighting4
     GraphicsBuffer targetP = new GraphicsBuffer(GraphicsBuffer.Target.Structured, playerCount, sizeof(int) * 2);
     protected override async STask OnTask()
     {
-        mat = await SLoader.Res.Group_other.Item_Other.LoadAsync<Material>("ECSLit2");
-        var go = await SLoader.Res.Group_model.Item_3D.LoadGameObjectAsync("Cube");
-        mesh = go.GetComponent<MeshFilter>().mesh;
-        SAsset.Release(go);
-        finding = new();
+        //mat = await SLoader.Res.Group_other.Item_Other.LoadAsync<Material>("ECSLit2");
+        //var go = await SLoader.Res.Group_model.Item_3D.LoadGameObjectAsync("Cube");
+        //mesh = go.GetComponent<MeshFilter>().mesh;
+        //SAsset.Release(go);
+        //finding = new();
 
-        Entity one = await ECSHelper.LoadEntity(@"3D_Cube");
-        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
-        em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor() { Value = new float3(0, 0, 1) });
-        block = new NativeArray<Entity>(blockCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-        block[0] = one;
-        for (int i = 1; i < blockCount; i++)
-        {
-            Entity e = em.Instantiate(one);
-            block[i] = e;
-        }
+        //Entity one = await ECSHelper.LoadEntity(@"3D_Cube");
+        //var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+        //em.SetComponentData(one, new Unity.Transforms.LocalToWorld() { Value = float4x4.Translate(float3.zero) });
+        //em.AddComponentData(one, new HDRPMaterialPropertyEmissiveColor() { Value = new float3(0, 0, 1) });
+        //block = new NativeArray<Entity>(blockCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+        //block[0] = one;
+        //for (int i = 1; i < blockCount; i++)
+        //{
+        //    Entity e = em.Instantiate(one);
+        //    block[i] = e;
+        //}
 
-        _rangeRoad.onClick.Add(_click_rangeRoad);
-        _play.onClick.Add(click_play);
-        _btnBack.onClick.Add(_clickBack);
+        //_rangeRoad.onClick.Add(_click_rangeRoad);
+        //_play.onClick.Add(click_play);
+        //_btnBack.onClick.Add(_clickBack);
     }
     protected override void OnExit()
     {
@@ -58,12 +57,12 @@ partial class FUIFighting4
         finding.Dispose();
         World.Timer.Remove(draw);
 
-        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        if (block.IsCreated)
-        {
-            em.DestroyEntity(block);
-            block.Dispose();
-        }
+        //var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+        //if (block.IsCreated)
+        //{
+        //    em.DestroyEntity(block);
+        //    block.Dispose();
+        //}
     }
     async void _clickBack()
     {
@@ -76,13 +75,13 @@ partial class FUIFighting4
         for (int i = 0; i < size * size; i++)
             road[i] = 0;
         Unity.Mathematics.Random random = new((uint)DateTime.Now.Ticks);
-        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        for (int i = 0; i < block.Length; i++)
-        {
-            int2 xy = random.NextInt2(size);
-            road[xy.y * size + xy.x] = 1;
-            em.SetComponentData(block[i], new LocalToWorld() { Value = float4x4.Translate(new float3(xy.x, 0, xy.y) + 0.5f) });
-        }
+        //var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+        //for (int i = 0; i < block.Length; i++)
+        //{
+        //    int2 xy = random.NextInt2(size);
+        //    road[xy.y * size + xy.x] = 1;
+        //    em.SetComponentData(block[i], new LocalToWorld() { Value = float4x4.Translate(new float3(xy.x, 0, xy.y) + 0.5f) });
+        //}
     }
     void click_play()
     {

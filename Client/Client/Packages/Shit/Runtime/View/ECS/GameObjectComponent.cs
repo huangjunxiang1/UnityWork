@@ -109,7 +109,7 @@ namespace Game
                             res.transform.SetPositionAndRotation(this.gameObject.transform.position, this.gameObject.transform.rotation);
                         }
                         if (release)
-                            SAsset.Release(this.gameObject);
+                            Client.Scene.Current.Loader.Release(this.gameObject);
                         else
                             this.gameObject.transform.parent = Client.transform;
                     }
@@ -138,7 +138,7 @@ namespace Game
                     if (this.gameObject)
                     {
                         if (release)
-                            SAsset.Release(this.gameObject);
+                            Client.Scene.Current.Loader.Release(this.gameObject);
                         else
                             this.gameObject.transform.parent = Client.transform;
                     }
@@ -202,7 +202,7 @@ namespace Game
             _url = url;
             ++_resVersion;
             _isSelfSet = true;
-            SetGameObject(SAsset.LoadGameObject(_url, releaseMode));
+            SetGameObject(Client.Scene.Current.Loader.LoadGameObject(_url, releaseMode));
         }
         public async STask LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
         {
@@ -222,10 +222,10 @@ namespace Game
                 return;
             _url = url;
             int ver = ++_resVersion;
-            GameObject res = await SAsset.LoadGameObjectAsync(_url, releaseMode);
+            GameObject res = await Client.Scene.Current.Loader.LoadGameObjectAsync(_url, releaseMode);
             if (ver != _resVersion)
             {
-                SAsset.Release(res);
+                Client.Scene.Current.Loader.Release(res);
                 return;
             }
             _isSelfSet = true;
@@ -249,13 +249,13 @@ namespace Game
                         break;
                     case SGameObjectType.Resource:
                         if (t.gameObject)
-                            SAsset.Release(t.gameObject);
+                            Client.Scene.Current.Loader.Release(t.gameObject);
                         break;
                     case SGameObjectType.LogicRoot:
                         if (t.gameObject)
                         {
                             t.gameRoot.transform.localScale = Vector3.one;
-                            SAsset.Release(t.gameObject);
+                            Client.Scene.Current.Loader.Release(t.gameObject);
                         }
                         GameObject.Destroy(t.gameRoot);
                         break;
