@@ -1,5 +1,4 @@
 ﻿using Core;
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
@@ -17,15 +16,7 @@ public struct AStarFinderJob
     : Unity.Jobs.IJob
 #endif
 {
-    internal struct AGroup
-    {
-        public int preStep;
-        public int last;
-        public int next;
-
-        public int index;
-    }
-    internal struct AData
+    internal struct AData2
     {
         public int2 xy;
         public int link;
@@ -44,15 +35,15 @@ public struct AStarFinderJob
     public int2 size;
 
 #if Native
-    internal NativeList<AGroup> groups;
-    internal NativeList<AData> datas;
+    internal NativeList<int> groups;
+    internal NativeList<AData2> datas;
     internal NativeHashSet<int2> targets;
 #else
-    internal FastList<AGroup> groups;
-    internal FastList<AData> datas;
+    internal FastList<int> groups;
+    internal FastList<AData2> datas;
     internal HashSet<int2> targets;
 #endif
-    public int groupIndex;
+    public int minStep;
 
     public int2 to;
     public int power;
@@ -65,83 +56,64 @@ public struct AStarFinderJob
 #endif
     public void Execute()
     {
-        do
+        for (int i = CalWeight(0, minStep) - minStep; i < groups.Length;)
         {
-        next: ref var g = ref groups.ElementAt(groupIndex);
-            do
+            int index = groups[i];
+            if (index == -1)
             {
-                ref var n = ref datas.ElementAt(g.index);
+                i++;
+                continue;
+            }
 
-                if (round == PathFindingRound.R8)
+            var n = datas.ElementAt(index);
+            groups[i] = n.next;
+            if (round == PathFindingRound.R8)
+            {
+                //先循环斜向的
+                if (n.xy.x > 0 && n.xy.y > 0)
                 {
-                    //先循环斜向的
-                    if (n.xy.x > 0 && n.xy.y > 0)
-                    {
-                        if (_round(new int2(n.xy.x - 1, n.xy.y - 1), solve, out var moveNext))
-                            return;
-                        if (moveNext)
-                            goto next;
-                    }
-                    if (n.xy.x > 0 && n.xy.y < size.y - 1)
-                    {
-                        if (_round(new int2(n.xy.x - 1, n.xy.y + 1), solve, out var moveNext))
-                            return;
-                        if (moveNext)
-                            goto next;
-                    }
-                    if (n.xy.x < size.x - 1 && n.xy.y > 0)
-                    {
-                        if (_round(new int2(n.xy.x + 1, n.xy.y - 1), solve, out var moveNext))
-                            return;
-                        if (moveNext)
-                            goto next;
-                    }
-                    if (n.xy.x < size.x - 1 && n.xy.y < size.y - 1)
-                    {
-                        if (_round(new int2(n.xy.x + 1, n.xy.y + 1), solve, out var moveNext))
-                            return;
-                        if (moveNext)
-                            goto next;
-                    }
+                    if (_round(new int2(n.xy.x - 1, n.xy.y - 1), solve, index, ref i))
+                        return;
                 }
+                if (n.xy.x > 0 && n.xy.y < size.y - 1)
+                {
+                    if (_round(new int2(n.xy.x - 1, n.xy.y + 1), solve, index, ref i))
+                        return;
+                }
+                if (n.xy.x < size.x - 1 && n.xy.y > 0)
+                {
+                    if (_round(new int2(n.xy.x + 1, n.xy.y - 1), solve, index, ref i))
+                        return;
+                }
+                if (n.xy.x < size.x - 1 && n.xy.y < size.y - 1)
+                {
+                    if (_round(new int2(n.xy.x + 1, n.xy.y + 1), solve, index, ref i))
+                        return;
+                }
+            }
 
-                //再循环直线的
-                if (n.xy.x > 0)
-                {
-                    if (_round(new int2(n.xy.x - 1, n.xy.y), solve, out var moveNext))
-                        return;
-                    if (moveNext)
-                        goto next;
-                }
-                if (n.xy.y > 0)
-                {
-                    if (_round(new int2(n.xy.x, n.xy.y - 1), solve, out var moveNext))
-                        return;
-                    if (moveNext)
-                        goto next;
-                }
-                if (n.xy.x < size.x - 1)
-                {
-                    if (_round(new int2(n.xy.x + 1, n.xy.y), solve, out var moveNext))
-                        return;
-                    if (moveNext)
-                        goto next;
-                }
-                if (n.xy.y < size.y - 1)
-                {
-                    if (_round(new int2(n.xy.x, n.xy.y + 1), solve, out var moveNext))
-                        return;
-                    if (moveNext)
-                        goto next;
-                }
-
-                g.index = n.next;
-            } while (g.index != -1);
-
-            groupIndex = g.next;
-            while (groupIndex != -1 && groups[groupIndex].index == -1)
-                groupIndex = groups[groupIndex].next;
-        } while (groupIndex != -1);
+            //再循环直线的
+            if (n.xy.x > 0)
+            {
+                if (_round(new int2(n.xy.x - 1, n.xy.y), solve, index, ref i))
+                    return;
+            }
+            if (n.xy.y > 0)
+            {
+                if (_round(new int2(n.xy.x, n.xy.y - 1), solve, index, ref i))
+                    return;
+            }
+            if (n.xy.x < size.x - 1)
+            {
+                if (_round(new int2(n.xy.x + 1, n.xy.y), solve, index, ref i))
+                    return;
+            }
+            if (n.xy.y < size.y - 1)
+            {
+                if (_round(new int2(n.xy.x, n.xy.y + 1), solve, index, ref i))
+                    return;
+            }
+        }
     }
 
 
@@ -151,95 +123,46 @@ public struct AStarFinderJob
         int index = xy.y * size.x + xy.x;
         return (data[index].data & 1) == 1 && data[index].Occupation == 0;
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CalWeight(int step, int distance) => step + (distance << 1);
 
 #if Native && Burst
     [Unity.Burst.BurstCompile]
 #endif
-    bool _round(int2 xy, PathFindingSolve solve, out bool moveNext)
+    bool _round(int2 xy, PathFindingSolve solve,int nowIdx,ref int i)
     {
-        int i = xy.y * size.x + xy.x;
-        ref var g = ref groups.ElementAt(groupIndex);
-        ref var n = ref datas.ElementAt(g.index);
-        ref var grid = ref data.ElementAt(i);
+        var n = datas.ElementAt(nowIdx);
+        ref var grid = ref data.ElementAt(xy.y * size.x + xy.x);
         int cost = n.cost + (grid.data >> 1);
         bool move;
         if (solve == PathFindingSolve.Best)
             move = (grid.vs != vs || n.step + 1 < grid.step) && cost <= power && isEnable(xy);
         else
             move = grid.vs != vs && cost <= power && isEnable(xy);
-        moveNext = false;
         if (move)
         {
             grid.vs = vs;
             grid.step = n.step + 1;
 
             int pre = round == PathFindingRound.R4 ? maths.ManhattanDistance(xy, to) : maths.ManhattanShortDistance(xy, to);
-            //乘1.5倍   是为了让启发值略微偏大一点 避免过多的搜索
-            pre = n.step + (pre + (pre >> 1)) + 1;
+            pre = CalWeight(n.step + 1, pre);
 
-            int index = groupIndex;
-            if (groups[index].preStep < pre)
-            {
-                while (groups[index].next != -1 && groups[index].preStep < pre)
-                    index = groups[index].next;
-            }
-            else if (groups[index].preStep > pre)
-            {
-                while (groups[index].last != -1 && groups[index].preStep > pre)
-                    index = groups[index].last;
-            }
-            ref var t = ref groups.ElementAt(index);
-            if (t.preStep == pre)
-            {
-                datas.Add(new()
-                {
-                    xy = xy,
-                    link = g.index,
-                    cost = cost,
-                    next = t.index != -1 ? datas[t.index].next : -1,
-                    step = n.step + 1
-                });
-                if (t.index == -1)
-                    t.index = datas.Length - 1;
-                else
-                    datas.ElementAt(t.index).next = datas.Length - 1;
+            int len = groups.Length;
+            int group = pre - minStep;
+            i = math.min(i, group);
+            groups.Length = math.max(len, group + 1);
+            for (int j = len; j < groups.Length; j++)
+                groups[j] = -1;
 
-                if (moveNext = (pre < g.preStep))
-                    groupIndex = index;
-            }
-            else
+            datas.Add(new()
             {
-                groups.Length++;
-                ref var pp = ref groups.ElementAt(groups.Length - 1);
-                pp.preStep = pre;
-                datas.Add(new()
-                {
-                    xy = xy,
-                    link = g.index,
-                    cost = cost,
-                    next = -1,
-                    step = n.step + 1
-                });
-                pp.index = datas.Length - 1;
-                if (t.preStep > pre)
-                {
-                    pp.last = t.last;
-                    pp.next = index;
-                    if (pp.last != -1)
-                        groups.ElementAt(pp.last).next = groups.Length - 1;
-                    t.last = groups.Length - 1;
-                }
-                else
-                {
-                    pp.last = index;
-                    pp.next = t.next;
-                    if (pp.next != -1)
-                        groups.ElementAt(pp.next).last = groups.Length - 1;
-                    t.next = groups.Length - 1;
-                }
-                if (moveNext = (pre < g.preStep))
-                    groupIndex = groups.Length - 1;
-            }
+                xy = xy,
+                link = nowIdx,
+                cost = cost,
+                next = groups[group],
+                step = n.step + 1
+            });
+            groups[group] = datas.Length - 1;
 
             if (targets.Contains(xy))
                 return true;

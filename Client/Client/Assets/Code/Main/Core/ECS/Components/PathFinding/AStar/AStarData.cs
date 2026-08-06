@@ -11,7 +11,21 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 #endif
 
-
+public enum PathFindingMethod
+{
+    AStar,//A星算法
+    Breadth,//广度搜索
+}
+public enum PathFindingRound
+{
+    R4,//四方位
+    R8,//八方位
+}
+public enum PathFindingSolve
+{
+    Best,//最优解
+    Fast,//最快解
+}
 public struct AStarGrid
 {
     public int step;//步长
@@ -31,10 +45,9 @@ public class AStarData
             Loger.Error(new IndexOutOfRangeException());
             return;
         }
-        this.width = width;
-        this.height = height;
+        this.size = new(width, height);
         this.start = start;
-        this.size = size;
+        this.gridSize = size;
 
 #if Native
         if (width > 0 && height > 0)
@@ -57,16 +70,14 @@ public class AStarData
     public AStarData(DBuffer buffer)
     {
         this.start = buffer.Readfloat3();
-        this.size = buffer.Readfloat3();
-        int2 wh = buffer.Readint2();
-        this.width = wh.x;
-        this.height = wh.y;
+        this.gridSize = buffer.Readfloat3();
+        this.size = buffer.Readint2();
         buffer.Readint();
 
 #if Native
-        if (width > 0 && height > 0)
+        if (size.x > 0 && size.y > 0)
         {
-            int len = width * height;
+            int len = size.x * size.y;
             this.data = new UnsafeList<AStarGrid>(len, AllocatorManager.Persistent);
             for (int i = 0; i < len; i++)
             {
@@ -76,7 +87,7 @@ public class AStarData
             }
         }
 #else
-        this.data = new AStarGrid[width * height];
+        this.data = new AStarGrid[aSize.x * aSize.y];
         for (int i = 0; i < data.Length; i++)
             this.data[i].data = buffer.Readbyte();
 #endif
@@ -84,8 +95,7 @@ public class AStarData
 
     public static readonly AStarData Empty = new AStarData(0, 0, Array.Empty<byte>(), 0, 1);
 
-    public int width { get; private set; }
-    public int height { get; private set; }
+    public int2 size { get; private set; }
 #if Native
     public UnsafeList<AStarGrid> data;
 #else
@@ -93,7 +103,7 @@ public class AStarData
 #endif
 
     public float3 start { get; private set; }//起始坐标
-    public float3 size { get; private set; } = new float3(1, 0, 1);//块间隔
+    public float3 gridSize { get; private set; } = new float3(1, 0, 1);//块间隔
 
     internal byte vs;
     internal bool isFinding;
@@ -106,17 +116,17 @@ public class AStarData
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddOccupation(int2 xy)
     {
-        this.data.ElementAt(xy.y * width + xy.x).Occupation++;
+        this.data.ElementAt(xy.y * size.x + xy.x).Occupation++;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveOccupation(int2 xy)
     {
-        this.data.ElementAt(xy.y * width + xy.x).Occupation--;
+        this.data.ElementAt(xy.y * size.x + xy.x).Occupation--;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetPathOccupation(int2 xy, bool value, bool isPath = true)
     {
-        var grid = this.data[xy.y * width + xy.x];
+        var grid = this.data[xy.y * size.x + xy.x];
         if (isPath)
         {
             if (value)
@@ -131,7 +141,7 @@ public class AStarData
             else
                 grid.PathOccupation -= (1 << 4);
         }
-        this.data[xy.y * width + xy.x] = grid;
+        this.data[xy.y * size.x + xy.x] = grid;
     }
     public void GridChangeHandle(int2 xy)
     {
@@ -146,20 +156,20 @@ public class AStarData
 #endif
     }
 
-    public float3 GetPosition(int2 xy) => start + size * new float3(xy.x, 0, xy.y) + size / 2;
-    public int2 GetXY(float3 position) => ((int3)((position - start) / size)).xz;
+    public float3 GetPosition(int2 xy) => start + gridSize * new float3(xy.x, 0, xy.y) + gridSize / 2;
+    public int2 GetXY(float3 position) => ((int3)((position - start) / gridSize)).xz;
     public bool isEnable(int2 xy)
     {
-        int index = xy.y * width + xy.x;
+        int index = xy.y * size.x + xy.x;
         return (data[index].data & 1) == 1 && data[index].Occupation == 0;
     }
     public bool isEnableExceptSelfVolume(int2 xy, AStarVolume volume, int2 self)
     {
-        int index = xy.y * width + xy.x;
+        int index = xy.y * size.x + xy.x;
         return (data[index].data & 1) == 1 && (data[index].Occupation == 0 || (volume.isInScope(self, xy) && data[index].Occupation == 1));
     }
     public bool isEnable(int index) => (data[index].data & 1) == 1 && data[index].Occupation == 0;
-    public bool isInScope(int2 xy) => xy.x >= 0 && xy.y >= 0 && xy.x < width && xy.y < height;
+    public bool isInScope(int2 xy) => xy.x >= 0 && xy.y >= 0 && xy.x < size.x && xy.y < size.y;
     public bool FindTarget(Func<int2, bool> func, int2 origin, out int2 value, PathFindingRound r = PathFindingRound.R4)
     {
         value = origin;
@@ -175,9 +185,9 @@ public class AStarData
         ++vs;
         int currentIndex = 0;
         int index = 0;
-        array ??= new int2[this.width * this.height];
+        array ??= new int2[this.size.x * this.size.y];
         array[index++] = origin;
-        data.ElementAt(origin.y * width + origin.x).vs = vs;
+        data.ElementAt(origin.y * size.x + origin.x).vs = vs;
 
         bool ret = false;
         do
@@ -192,7 +202,7 @@ public class AStarData
                     break;
                 }
             }
-            if (v2.x < width - 1)
+            if (v2.x < size.x - 1)
             {
                 if (breadth(func, ref index, new int2(v2.x + 1, v2.y), out value))
                 {
@@ -208,7 +218,7 @@ public class AStarData
                     break;
                 }
             }
-            if (v2.y < height - 1)
+            if (v2.y < size.y - 1)
             {
                 if (breadth(func, ref index, new int2(v2.x, v2.y + 1), out value))
                 {
@@ -227,7 +237,7 @@ public class AStarData
                         break;
                     }
                 }
-                if (v2.x > 0 && v2.y < height - 1)
+                if (v2.x > 0 && v2.y < size.y - 1)
                 {
                     if (breadth(func, ref index, new int2(v2.x - 1, v2.y + 1), out value))
                     {
@@ -235,7 +245,7 @@ public class AStarData
                         break;
                     }
                 }
-                if (v2.x < width - 1 && v2.y > 0)
+                if (v2.x < size.x - 1 && v2.y > 0)
                 {
                     if (breadth(func, ref index, new int2(v2.x + 1, v2.y - 1), out value))
                     {
@@ -243,7 +253,7 @@ public class AStarData
                         break;
                     }
                 }
-                if (v2.x < width - 1 && v2.y < height - 1)
+                if (v2.x < size.x - 1 && v2.y < size.y - 1)
                 {
                     if (breadth(func, ref index, new int2(v2.x + 1, v2.y + 1), out value))
                     {
@@ -274,9 +284,9 @@ public class AStarData
     bool breadth(Func<int2, bool> func, ref int index, int2 xy, out int2 value)
     {
         value = xy;
-        if (data[xy.y * width + xy.x].vs == vs)
+        if (data[xy.y * size.x + xy.x].vs == vs)
             return false;
-        data.ElementAt(xy.y * width + xy.x).vs = vs;
+        data.ElementAt(xy.y * size.x + xy.x).vs = vs;
         if (!isEnable(xy))
             return false;
         bool isTarget = func(xy);

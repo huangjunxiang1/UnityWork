@@ -15,7 +15,7 @@ public class AStarVolume
     {
         public override void Add(AStarData astar, int2 xy)
         {
-            if (xy.x > -1 && xy.y > -1 && xy.x < astar.width && xy.y < astar.height)
+            if (xy.x > -1 && xy.y > -1 && xy.x < astar.size.x && xy.y < astar.size.y)
             {
                 astar.AddOccupation(xy);
                 astar.GridChangeHandle(xy);
@@ -23,7 +23,7 @@ public class AStarVolume
         }
         public override void Remove(AStarData astar, int2 xy)
         {
-            if (xy.x > -1 && xy.y > -1 && xy.x < astar.width && xy.y < astar.height)
+            if (xy.x > -1 && xy.y > -1 && xy.x < astar.size.x && xy.y < astar.size.y)
             {
                 astar.RemoveOccupation(xy);
                 astar.GridChangeHandle(xy);
@@ -50,8 +50,8 @@ public class RectVolume : AStarVolume
 
     public override void Add(AStarData astar, int2 xy)
     {
-        int mx = math.min(xy.x + halfEdge + 1, astar.width);
-        int my = math.min(xy.y + halfEdge + 1, astar.height);
+        int mx = math.min(xy.x + halfEdge + 1, astar.size.x);
+        int my = math.min(xy.y + halfEdge + 1, astar.size.y);
         for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
         {
             for (int y = math.max(0, xy.y - halfEdge); y < my; y++)
@@ -63,8 +63,8 @@ public class RectVolume : AStarVolume
     }
     public override void Remove(AStarData astar, int2 xy)
     {
-        int mx = math.min(xy.x + halfEdge + 1, astar.width);
-        int my = math.min(xy.y + halfEdge + 1, astar.height);
+        int mx = math.min(xy.x + halfEdge + 1, astar.size.x);
+        int my = math.min(xy.y + halfEdge + 1, astar.size.y);
         for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
         {
             for (int y = math.max(0, xy.y - halfEdge); y < my; y++)
@@ -93,8 +93,8 @@ public class RectVolume : AStarVolume
     }
     public override IEnumerable<int2> GetAllNearPoints(AStarData astar, int2 xy, int near)
     {
-        int mx = math.min(xy.x + halfEdge + 1, astar.width);
-        int my = math.min(xy.y + halfEdge + 1, astar.height);
+        int mx = math.min(xy.x + halfEdge + 1, astar.size.x);
+        int my = math.min(xy.y + halfEdge + 1, astar.size.y);
         for (int x = math.max(0, xy.x - halfEdge); x < mx; x++)
         {
             for (int y = math.max(0, xy.y - halfEdge); y < my; y++)

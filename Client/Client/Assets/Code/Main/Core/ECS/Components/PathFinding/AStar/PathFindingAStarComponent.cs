@@ -103,7 +103,7 @@ namespace Game
 
             try
             {
-                return Finder.Finding(this.Current, to, _astar, power, near, targetVolume, algorithm, round, solve);
+                return Finder.Finding(this.Current, to, power, near, targetVolume, algorithm, round, solve);
             }
             catch (Exception ex)
             {
@@ -344,7 +344,7 @@ namespace Game
                 Volume.Remove(_astar, old);
             if (_astar.isInScope(xy))
             {
-                if (_astar.data[xy.y * _astar.width + xy.x].Occupation < 255)
+                if (_astar.data[xy.y * _astar.size.x + xy.x].Occupation < 255)
                 {
                     Volume.Add(_astar, xy);
                     this.Current = xy;

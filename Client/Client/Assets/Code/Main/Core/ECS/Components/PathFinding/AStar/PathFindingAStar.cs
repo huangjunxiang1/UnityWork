@@ -18,8 +18,6 @@ namespace Game
 
         internal byte[] data;
         internal int2 dataSize;
-        GameObject quad;
-        Vector3 point;
         bool view;
         GraphicsBuffer buffer;
         [NonSerialized]
@@ -29,17 +27,17 @@ namespace Game
 
         void change()
         {
-            if (cost == null || cost.Length != astar.width * astar.height)
-                cost = new int[astar.width * astar.height];
-            if (buffer == null || buffer.count != astar.width * astar.height)
+            if (cost == null || cost.Length != astar.size.x * astar.size.y)
+                cost = new int[astar.size.x * astar.size.y];
+            if (buffer == null || buffer.count != astar.size.x * astar.size.y)
             {
                 buffer?.Dispose();
-                buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, astar.width * astar.height, 4);
+                buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, astar.size.x * astar.size.y, 4);
             }
             for (int i = 0; i < astar.data.Length; i++)
             {
                 var b = astar.data[i];
-                cost[i] = b.data;
+                cost[i] = data[i];
                 cost[i] |= b.Occupation << 8;
                 cost[i] |= b.PathOccupation << 16;
             }
@@ -52,27 +50,13 @@ namespace Game
         }
         void gridChange(int2 xy)
         {
-            int index = xy.y * astar.width + xy.x;
+            int index = xy.y * astar.size.x + xy.x;
             tempSet[0] = astar.data[index].data | (astar.data[index].Occupation << 8) | (astar.data[index].PathOccupation << 16);
             buffer.SetData(tempSet, 0, index, 1);
-        }
-        private void OnValidate()
-        {
-            this.View(view);
-        }
-        private void Update()
-        {
-            if (quad)
-            {
-                if (Vector3.Distance(this.point, this.transform.position) > 0.001f)
-                    this.point = quad.transform.position = this.transform.position;
-            }
         }
 #endif
         private void OnDisable()
         {
-            if (quad)
-                GameObject.DestroyImmediate(quad);
             if (buffer != null)
             {
                 buffer.Dispose();
@@ -92,19 +76,17 @@ namespace Game
             this.view = view;
             if (view && this.enabled && this.gameObject.activeSelf)
             {
-                if (!quad)
-                {
-                    quad = new GameObject("", typeof(MeshFilter), typeof(MeshRenderer));
-                    quad.hideFlags = HideFlags.HideAndDontSave;
-                }
+                if (!this.gameObject.GetComponent<MeshFilter>())
+                    this.gameObject.AddComponent<MeshFilter>();
+                if (!this.gameObject.GetComponent<MeshRenderer>())
+                    this.gameObject.AddComponent<MeshRenderer>();
                 Init();
-                this.point = quad.transform.position = this.transform.position;
             }
             else
             {
-                if (quad)
-                    GameObject.DestroyImmediate(quad);
-                quad = null;
+                var mesh = this.gameObject.GetComponent<MeshFilter>();
+                if (mesh && mesh.sharedMesh)
+                    GameObject.DestroyImmediate(mesh.sharedMesh);
             }
         }
         void Init()
@@ -118,15 +100,16 @@ namespace Game
 #endif
             if (Application.isPlaying)
                 astar = Client.Data?.Get<AStarData>(false);
+
             if (astar == null) return;
 
             Mesh mesh = new Mesh();
             Vector3[] verts = new Vector3[4]
             {
                (float3)0f,
-               new float3(astar.size.x * astar.width,0,0),
-               new float3(0,0,astar.size.z * astar.height),
-               new float3(astar.size.x * astar.width,0,astar.size.z * astar.height)
+               new float3(astar.gridSize.x * astar.size.x,0,0),
+               new float3(0,0,astar.gridSize.z * astar.size.y),
+               new float3(astar.gridSize.x * astar.size.x,0,astar.gridSize.z * astar.size.y)
             };
             mesh.vertices = verts;
             mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };
@@ -148,13 +131,14 @@ namespace Game
             change();
 
             // 应用 Mesh
-            quad.GetComponent<MeshFilter>().mesh = mesh;
-            var r = quad.GetComponent<MeshRenderer>();
+            this.GetComponent<MeshFilter>().sharedMesh = mesh;
             var mat = GameObject.Instantiate(Resources.Load<Material>("Shit/AStarView_Mat"));
-            mat.SetVector("_Size", new Vector4(astar.width, astar.height, 0, 0));
+            mat.SetVector("_Size", new Vector4(astar.size.x, astar.size.y, 0, 0));
             mat.SetBuffer("_Data", buffer);
-            r.sharedMaterial = mat;
-            var box = quad.AddComponent<BoxCollider>();
+            this.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            var box = this.gameObject.GetComponent<BoxCollider>();
+            if (!box)
+                box = this.gameObject.AddComponent<BoxCollider>();
             box.center = mesh.bounds.center;
             box.size = new Vector3(mesh.bounds.size.x * 2, 0.001f, mesh.bounds.size.z * 2);
         }

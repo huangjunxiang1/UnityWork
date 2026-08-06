@@ -1,6 +1,8 @@
 ﻿using Game;
+using System;
 using System.IO;
 using System.Linq;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -8,23 +10,16 @@ using UnityEngine;
 [CustomEditor(typeof(PathFindingAStar))]
 class PathFindingAStarDrawLine : Editor
 {
-    static GUIStyle gui = new();
-    static GUIStyle gui2 = new();
-
     static int selectedOption = 0;
     private string[] options = new string[] { "None", "Enable", "Disable", "Cost" };
-    float3 start;
-    float3 end;
+    static float3 start;
+    static float3 end;
     PathFindingAStar root;
     static bool viewAstar = true;
     static int cost = 1;
 
     private void OnEnable()
     {
-        gui.normal.textColor = Color.yellow;
-        gui.fontSize = 30;
-        gui2.normal.textColor = Color.blue;
-        gui2.fontSize = 20;
         root = (PathFindingAStar)this.target;
 
         if (root.data == null)
@@ -176,9 +171,10 @@ class PathFindingAStarDrawLine : Editor
             return;
         }
         var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        string path = $"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}/{currentScene.name}.bytes";
-        if (!Directory.Exists($"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}"))
-            Directory.CreateDirectory($"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}");
+        var dir = $"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}";
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+        string path = $"{dir}/{currentScene.name}.bytes";
         if (File.Exists(path))
         {
             var buffer = new DBuffer(File.ReadAllBytes(path));

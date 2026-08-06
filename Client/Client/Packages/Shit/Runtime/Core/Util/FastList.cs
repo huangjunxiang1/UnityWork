@@ -45,7 +45,7 @@ namespace Core
             }
             set
             {
-                if (array == null || array.Length != value)
+                if (array == null || array.Length < value)
                     Array.Resize(ref array, value);
             }
         }
