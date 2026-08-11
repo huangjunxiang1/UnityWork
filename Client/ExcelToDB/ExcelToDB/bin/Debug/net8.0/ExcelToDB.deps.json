@@ -9,7 +9,7 @@
       "ExcelToDB/1.0.0": {
         "dependencies": {
           "NPOI": "2.7.5",
-          "Unity.Mathematics": "0.0.0.0"
+          "UnityEngine.MathematicsModule": "0.0.0.0"
         },
         "runtime": {
           "ExcelToDB.dll": {}
@@ -155,9 +155,25 @@
           }
         }
       },
-      "Unity.Mathematics/0.0.0.0": {
+      "UnityEngine.MathematicsModule/0.0.0.0": {
         "runtime": {
-          "Unity.Mathematics.dll": {
+          "UnityEngine.MathematicsModule.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "UnityEngine.ScriptingModule/0.0.0.0": {
+        "runtime": {
+          "UnityEngine.ScriptingModule.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "Unity.Scripting/0.0.0.0": {
+        "runtime": {
+          "Unity.Scripting.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -262,7 +278,17 @@
       "path": "zstring/2.6.0",
       "hashPath": "zstring.2.6.0.nupkg.sha512"
     },
-    "Unity.Mathematics/0.0.0.0": {
+    "UnityEngine.MathematicsModule/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "UnityEngine.ScriptingModule/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Unity.Scripting/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

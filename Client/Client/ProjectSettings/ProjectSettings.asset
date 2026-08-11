@@ -782,7 +782,7 @@ PlayerSettings:
   scriptingBackend:
     Android: 0
     Server: 1
-    Standalone: 1
+    Standalone: 3
   il2cppCompilerConfiguration: {}
   il2cppCodeGeneration: {}
   il2cppLTOMode: {}

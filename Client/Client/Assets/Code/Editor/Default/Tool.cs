@@ -63,6 +63,12 @@ public class Tool
             appendUUICode(d, code, typeMap);
         }
 
+        var files = Directory.GetFiles(Application.dataPath + $"/Code/HotFix/Game/UI/UI/UGUI", "*.cs", SearchOption.AllDirectories).Select(t =>
+        {
+            var fi = new FileInfo(t);
+            return fi.Name.Replace(fi.Extension, "");
+        }).ToList();
+
         List<GameObject> uis = new List<GameObject>();
         var fis = Directory.GetFiles(path);
 
@@ -126,6 +132,36 @@ public class Tool
                 code.AppendLine(@"        base.Dispose();");
                 code.AppendLine(@"    }");
                 code.AppendLine(@"}");
+
+                if (!files.Contains(go.name))
+                {
+                    StringBuilder logic = new(1000);
+
+                    logic.AppendLine("using System.Collections;");
+                    logic.AppendLine("using System.Collections.Generic;");
+                    logic.AppendLine("using UnityEngine;");
+                    logic.AppendLine("using Game;");
+                    logic.AppendLine("using System.Threading.Tasks;");
+                    logic.AppendLine("using System;");
+                    logic.AppendLine();
+                    logic.AppendLine($"partial class {go.name}");
+                    logic.AppendLine("{");
+                    logic.AppendLine("    protected override void OnEnter()");
+                    logic.AppendLine("    {");
+                    logic.AppendLine();
+                    logic.AppendLine("    }");
+                    logic.AppendLine("    protected override void OnExit()");
+                    logic.AppendLine("    {");
+                    logic.AppendLine();
+                    logic.AppendLine("    }");
+                    logic.AppendLine("    protected override void OnView()");
+                    logic.AppendLine("    {");
+                    logic.AppendLine();
+                    logic.AppendLine("    }");
+                    logic.AppendLine("}");
+
+                    File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/UI/UI/UGUI/Logic/{go.name}.cs", logic.ToString());
+                }
             }
             else
             {
@@ -256,6 +292,13 @@ public class Tool
         FontManager.Clear();
         FairyGUI.UIConfig.defaultFont = "Impact";
         var pkg = UIPackage.AddPackage($"Assets/Res/Config/raw/ComPkg/ComPkg");
+
+        var files = Directory.GetFiles(Application.dataPath + $"/Code/HotFix/Game/UI/UI/FGUI", "*.cs", SearchOption.AllDirectories).Select(t =>
+        {
+            var fi = new FileInfo(t);
+            return fi.Name.Replace(fi.Extension, "");
+        }).ToList();
+
         StringBuilder code = new StringBuilder(100000);
         code.AppendLine("using FairyGUI;");
         code.AppendLine("using FairyGUI.Utils;");
@@ -317,6 +360,37 @@ public class Tool
                     code.Append(disposeCode.ToString());
                     code.AppendLine("    }");
                     code.AppendLine("}");
+
+                    if (!files.Contains(item.name))
+                    {
+                        StringBuilder logic = new(1000);
+
+                        logic.AppendLine("using System.Collections;");
+                        logic.AppendLine("using System.Collections.Generic;");
+                        logic.AppendLine("using UnityEngine;");
+                        logic.AppendLine("using Game;");
+                        logic.AppendLine("using FairyGUI;");
+                        logic.AppendLine("using System.Threading.Tasks;");
+                        logic.AppendLine("using System;");
+                        logic.AppendLine();
+                        logic.AppendLine($"partial class {item.name}");
+                        logic.AppendLine("{");
+                        logic.AppendLine("    protected override void OnEnter()");
+                        logic.AppendLine("    {");
+                        logic.AppendLine();
+                        logic.AppendLine("    }");
+                        logic.AppendLine("    protected override void OnExit()");
+                        logic.AppendLine("    {");
+                        logic.AppendLine();
+                        logic.AppendLine("    }");
+                        logic.AppendLine("    protected override void OnView()");
+                        logic.AppendLine("    {");
+                        logic.AppendLine();
+                        logic.AppendLine("    }");
+                        logic.AppendLine("}");
+
+                        File.WriteAllText(Application.dataPath + $"/Code/HotFix/Game/UI/UI/FGUI/Logic/{item.name}.cs", logic.ToString());
+                    }
                 }
                 else
                 {

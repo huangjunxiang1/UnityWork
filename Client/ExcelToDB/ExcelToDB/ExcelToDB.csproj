@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Define\ConstDefCore.cs" Link="excelToDB\ConstDefCore.cs" />
+    <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Util\SSetting.cs" Link="excelToDB\SSetting.cs" />
     <Compile Include="..\..\Client\Packages\Shit\Runtime\Game\Serialized\DBuffer.cs" Link="excelToDB\DBuffer.cs" />
   </ItemGroup>
 
@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Unity.Mathematics">
-      <HintPath>..\..\Client\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    <Reference Include="UnityEngine.MathematicsModule">
+      <HintPath>..\..\..\..\..\unity\6000.7.0a4\Editor\Data\Managed\UnityEngine\UnityEngine.MathematicsModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 

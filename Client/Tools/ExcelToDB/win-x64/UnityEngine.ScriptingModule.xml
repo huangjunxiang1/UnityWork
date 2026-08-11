@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc>
+  <members>
+    <assembly>
+      <name>UnityEngine.ScriptingModule</name>
+    </assembly>
+    <member name="T:UnityEngine.Scripting.PreserveAttribute">
+      <summary>
+        <para>PreserveAttribute prevents byte code stripping from removing a class, method, field, or property.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Burst.BurstAuthorizedExternalMethodAttribute">
+      <summary>
+        <para>The BurstAuthorizedExternalMethod attribute lets you mark a function as being authorized for Burst to call from within a static constructor.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Burst.BurstDiscardAttribute">
+      <summary>
+        <para>Use this attribute to exclude a method or property from being compiled to native code by the Burst compiler.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestrictionAttribute">
+      <summary>
+        <para>Enable the use of unsafe pointers in jobs.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Profiling.IgnoredByDeepProfilerAttribute">
+      <summary>
+        <para>IgnoredByDeepProfilerAttribute prevents Unity Profiler from capturing method calls.</para>
+      </summary>
+    </member>
+  </members>
+</doc>
