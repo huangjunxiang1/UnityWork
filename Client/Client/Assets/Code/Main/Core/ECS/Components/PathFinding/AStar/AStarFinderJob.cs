@@ -16,7 +16,7 @@ public struct AStarFinderJob
     : Unity.Jobs.IJob
 #endif
 {
-    internal struct AData2
+    internal struct AData
     {
         public int2 xy;
         public int link;
@@ -36,11 +36,11 @@ public struct AStarFinderJob
 
 #if Native
     internal NativeList<int> groups;
-    internal NativeList<AData2> datas;
+    internal NativeList<AData> datas;
     internal NativeHashSet<int2> targets;
 #else
     internal FastList<int> groups;
-    internal FastList<AData2> datas;
+    internal FastList<AData> datas;
     internal HashSet<int2> targets;
 #endif
     public int minStep;
@@ -50,6 +50,9 @@ public struct AStarFinderJob
     public PathFindingRound round;
     public byte vs;
     public PathFindingSolve solve;
+    public PathGridType gridType;
+    public PathGridHexParityType hexParityType;
+    public PathGridHexFacingType hexFacingType;
 
 #if Native && Burst
     [Unity.Burst.BurstCompile]
@@ -67,51 +70,108 @@ public struct AStarFinderJob
 
             var n = datas.ElementAt(index);
             groups[i] = n.next;
-            if (round == PathFindingRound.R8)
-            {
-                //先循环斜向的
-                if (n.xy.x > 0 && n.xy.y > 0)
-                {
-                    if (_round(new int2(n.xy.x - 1, n.xy.y - 1), solve, index, ref i))
-                        return;
-                }
-                if (n.xy.x > 0 && n.xy.y < size.y - 1)
-                {
-                    if (_round(new int2(n.xy.x - 1, n.xy.y + 1), solve, index, ref i))
-                        return;
-                }
-                if (n.xy.x < size.x - 1 && n.xy.y > 0)
-                {
-                    if (_round(new int2(n.xy.x + 1, n.xy.y - 1), solve, index, ref i))
-                        return;
-                }
-                if (n.xy.x < size.x - 1 && n.xy.y < size.y - 1)
-                {
-                    if (_round(new int2(n.xy.x + 1, n.xy.y + 1), solve, index, ref i))
-                        return;
-                }
-            }
 
-            //再循环直线的
-            if (n.xy.x > 0)
+            if (gridType == PathGridType.Rect)
             {
-                if (_round(new int2(n.xy.x - 1, n.xy.y), solve, index, ref i))
-                    return;
+                if (round == PathFindingRound.R8)
+                {
+                    //先循环斜向的
+                    if (n.xy.x > 0 && n.xy.y > 0)
+                    {
+                        if (_round(new int2(n.xy.x - 1, n.xy.y - 1), solve, index, ref i))
+                            return;
+                    }
+                    if (n.xy.x > 0 && n.xy.y < size.y - 1)
+                    {
+                        if (_round(new int2(n.xy.x - 1, n.xy.y + 1), solve, index, ref i))
+                            return;
+                    }
+                    if (n.xy.x < size.x - 1 && n.xy.y > 0)
+                    {
+                        if (_round(new int2(n.xy.x + 1, n.xy.y - 1), solve, index, ref i))
+                            return;
+                    }
+                    if (n.xy.x < size.x - 1 && n.xy.y < size.y - 1)
+                    {
+                        if (_round(new int2(n.xy.x + 1, n.xy.y + 1), solve, index, ref i))
+                            return;
+                    }
+                }
+
+                //再循环直线的
+                if (n.xy.x > 0)
+                {
+                    if (_round(new int2(n.xy.x - 1, n.xy.y), solve, index, ref i))
+                        return;
+                }
+                if (n.xy.y > 0)
+                {
+                    if (_round(new int2(n.xy.x, n.xy.y - 1), solve, index, ref i))
+                        return;
+                }
+                if (n.xy.x < size.x - 1)
+                {
+                    if (_round(new int2(n.xy.x + 1, n.xy.y), solve, index, ref i))
+                        return;
+                }
+                if (n.xy.y < size.y - 1)
+                {
+                    if (_round(new int2(n.xy.x, n.xy.y + 1), solve, index, ref i))
+                        return;
+                }
             }
-            if (n.xy.y > 0)
+            else
             {
-                if (_round(new int2(n.xy.x, n.xy.y - 1), solve, index, ref i))
-                    return;
-            }
-            if (n.xy.x < size.x - 1)
-            {
-                if (_round(new int2(n.xy.x + 1, n.xy.y), solve, index, ref i))
-                    return;
-            }
-            if (n.xy.y < size.y - 1)
-            {
-                if (_round(new int2(n.xy.x, n.xy.y + 1), solve, index, ref i))
-                    return;
+                if (hexFacingType == PathGridHexFacingType.Up)
+                {
+                    if (n.xy.x > 0)
+                    {
+                        if (_round(new int2(n.xy.x - 1, n.xy.y), solve, index, ref i))
+                            return;
+                    }
+                    if (n.xy.x < size.x - 1)
+                    {
+                        if (_round(new int2(n.xy.x + 1, n.xy.y), solve, index, ref i))
+                            return;
+                    }
+                    int mask = (n.xy.y & 1);
+                    int offset = (mask & (1 - (int)hexParityType)) + ((1 - mask) & (int)hexParityType);
+                    for (int x = 0; x < 2; x++)
+                    {
+                        for (int y = 0; y < 3; y += 2)
+                        {
+                            int2 xy = new int2(n.xy.x + x - offset, n.xy.y - 1 + y);
+                            if (xy.x >= 0 && xy.x < size.x && xy.y >= 0 && xy.y < size.y)
+                                if (_round(xy, solve, index, ref i))
+                                    return;
+                        }
+                    }
+                }
+                else
+                {
+                    if (n.xy.y > 0)
+                    {
+                        if (_round(new int2(n.xy.x, n.xy.y - 1), solve, index, ref i))
+                            return;
+                    }
+                    if (n.xy.y < size.y - 1)
+                    {
+                        if (_round(new int2(n.xy.x, n.xy.y + 1), solve, index, ref i))
+                            return;
+                    }
+                    int mask = (n.xy.x & 1);
+                    int offset = (mask & (1 - (int)hexParityType)) + ((1 - mask) & (int)hexParityType);
+                    for (int x = 0; x < 3; x += 2)
+                    {
+                        for (int y = 0; y < 2; y++)
+                        {
+                            int2 xy = new int2(n.xy.x - 1 + x, n.xy.y + y - offset);
+                            if (xy.x >= 0 && xy.x < size.x && xy.y >= 0 && xy.y < size.y)
+                                if (_round(xy, solve, index, ref i))
+                                    return;
+                        }
+                    }
+                }
             }
         }
     }
@@ -144,7 +204,11 @@ public struct AStarFinderJob
             grid.vs = vs;
             grid.step = n.step + 1;
 
-            int pre = round == PathFindingRound.R4 ? maths.ManhattanDistance(xy, to) : maths.ManhattanShortDistance(xy, to);
+            int pre;
+            if (gridType == PathGridType.Rect)
+                pre = round == PathFindingRound.R4 ? maths.ManhattanDistance(xy, to) : maths.ManhattanLongDistance(xy, to);
+            else
+                pre = maths.ManhattanShortDistance(xy, to);
             pre = CalWeight(n.step + 1, pre);
 
             int len = groups.Length;

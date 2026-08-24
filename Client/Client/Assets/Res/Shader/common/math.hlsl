@@ -1,5 +1,34 @@
-﻿
-   // Modulo 289 without a division (only multiplications)
+﻿#ifndef MATH_HLSL
+#define MATH_HLSL
+
+
+//math
+static float2 rotate(float2 xy, float angle)
+{
+    float s, c;
+    sincos(angle, s, c);
+    return mul(xy, float2x2(c, -s, s, c));
+}
+static float cross2d(float2 a, float2 b)
+{
+    return a.x * b.y - a.y * b.x;
+}
+float distancePAB(float2 P,float2 A, float2 B)
+{
+    float2 dir = B - A;
+    float2 toP = P - A;
+    
+    // 叉积的绝对值 = 平行四边形面积
+    float crossVal = abs(cross2d(dir, toP));
+    
+    // 除以底边长度，得到高（即垂直距离）
+    return crossVal / length(dir);
+}
+
+
+
+
+// Modulo 289 without a division (only multiplications)
 static float mod289(float x)
 {
     return x - floor(x * (1.0f / 289.0f)) * 289.0f;
@@ -74,8 +103,8 @@ static float4 grad4(float j, float4 ip)
     return p;
 }
 
-        // Hashed 2-D gradients with an extra rotation.
-        // (The constant 0.0243902439 is 1/41)
+// Hashed 2-D gradients with an extra rotation.
+// (The constant 0.0243902439 is 1/41)
 static float2 rgrad2(float2 p, float rot)
 {
             // For more isotropic gradients, math.sin/math.cos can be used instead.
@@ -83,11 +112,6 @@ static float2 rgrad2(float2 p, float rot)
     u = frac(u) * 6.28318530718f; // 2*pi
     return float2(cos(u), sin(u));
 }
-
-
-
-
-
 
 
 
@@ -115,12 +139,6 @@ float2 remap_float2Tofloat2(float2 inMin, float2 inMax, float2 outMin, float2 ou
     float2 normalized = (value - inMin) / (inMax - inMin);
     // 再映射到输出范围
     return outMin + normalized * (outMax - outMin);
-}
-float2 rotate(float2 xy,float angle)
-{
-    float s, c;
-    sincos(angle, s, c);
-    return mul(xy, float2x2(c, -s, s, c));
 }
 uint random_uint2Touint(uint2 state)
 {
@@ -155,3 +173,4 @@ float2 random_uint2Tofloat2(uint2 state)
 {
     return asfloat2(0x3f800000 | (random_uint2Touint2(state) >> 9)) - 1.0f;
 }
+#endif

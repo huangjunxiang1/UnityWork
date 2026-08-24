@@ -15,25 +15,26 @@ class PathFindingAStarDrawLine : Editor
     static float3 start;
     static float3 end;
     PathFindingAStar root;
-    static bool viewAstar = true;
     static int cost = 1;
 
     private void OnEnable()
     {
-        root = (PathFindingAStar)this.target;
+        SceneView.duringSceneGui += onScene;
 
-        if (root.data == null)
-            Load();
-        root.View(viewAstar);
+        root = (PathFindingAStar)this.target;
     }
-    private void OnSceneGUI()
+    private void OnDisable()
+    {
+        SceneView.duringSceneGui -= onScene;
+    }
+    private void onScene(SceneView sceneView)
     {
         if (root.data == null) return;
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         var currentEvent = UnityEngine.Event.current;
         if (currentEvent != null && selectedOption > 0)
         {
-            if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0)
+            if (currentEvent.control&& currentEvent.type == EventType.MouseDown && currentEvent.button == 0)
             {
                 Ray ray = HandleUtility.GUIPointToWorldRay(currentEvent.mousePosition);
                 if (Physics.Raycast(ray, out RaycastHit hit))
@@ -42,7 +43,7 @@ class PathFindingAStarDrawLine : Editor
                     currentEvent.Use();
                 }
             }
-            if (currentEvent.type == EventType.MouseUp && currentEvent.button == 0)
+            if (currentEvent.control && currentEvent.type == EventType.MouseUp && currentEvent.button == 0)
             {
                 Ray ray = HandleUtility.GUIPointToWorldRay(currentEvent.mousePosition);
                 if (Physics.Raycast(ray, out RaycastHit hit))
@@ -51,9 +52,18 @@ class PathFindingAStarDrawLine : Editor
 
                     float3 min = math.min(start, end);
                     float3 max = math.max(start, end);
-                    int2 min_i = math.clamp((int2)((min - (float3)root.transform.position) / root.size).xz, 0, root.aStarSize - 1);
-                    int2 max_i = math.clamp((int2)((max - (float3)root.transform.position) / root.size).xz, 0, root.aStarSize - 1);
-
+                    int2 min_i = 0; 
+                    int2 max_i = 0;
+                    if (root.gridType == PathGridType.Rect)
+                    {
+                        min_i = math.clamp((int2)((min - (float3)root.transform.position) / root.gridSize).xz, 0, root.aStarSize - 1);
+                        max_i = math.clamp((int2)((max - (float3)root.transform.position) / root.gridSize).xz, 0, root.aStarSize - 1);
+                    }
+                    else
+                    {
+                        min_i = math.clamp(Hex.GetGridxy((min - (float3)root.transform.position).xz, root.gridSize.x, root.hexParityType, root.hexFacingType), 0, root.aStarSize - 1);
+                        max_i = math.clamp(Hex.GetGridxy((max - (float3)root.transform.position).xz, root.gridSize.x, root.hexParityType, root.hexFacingType), 0, root.aStarSize - 1);
+                    }
                     if (min_i.x >= 0 && min_i.y >= 0 && max_i.x < root.aStarSize.x && max_i.y < root.aStarSize.y)
                     {
                         if (selectedOption == 1)
@@ -85,8 +95,7 @@ class PathFindingAStarDrawLine : Editor
                                     for (int j = min_i.y; j <= max_i.y; j++)
                                     {
                                         var v = root.data[j * root.aStarSize.x + i];
-                                        if ((v & 1) != 0)
-                                            root.data[j * root.aStarSize.x + i] = (byte)((cost << 1) | 1);
+                                        root.data[j * root.aStarSize.x + i] = (byte)((cost << 1) | (v & 1));
                                     }
                                 }
                             }
@@ -95,7 +104,7 @@ class PathFindingAStarDrawLine : Editor
                                 Debug.LogError("Cost max = 127");
                             }
                         }
-                        root.View(viewAstar);
+                        root.View(root.view);
                     }
                     currentEvent.Use();
                 }
@@ -112,10 +121,10 @@ class PathFindingAStarDrawLine : Editor
 
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.Space();
-        viewAstar = EditorGUILayout.Toggle("显示A星数据", viewAstar);
+        root.view = EditorGUILayout.Toggle("显示A星数据", root.view);
         EditorGUILayout.Space();
         if (EditorGUI.EndChangeCheck())
-            root.View(viewAstar);
+            root.View(root.view);
 
         if (GUILayout.Button("刷新显示"))
         {
@@ -133,12 +142,12 @@ class PathFindingAStarDrawLine : Editor
                 root.data = d2;
                 root.dataSize = root.aStarSize;
             }
-            root.View(viewAstar);
+            root.View(root.view);
         }
         if (GUILayout.Button("加载数据"))
         {
-            Load();
-            root.View(viewAstar);
+            root.Load();
+            root.View(root.view);
         }
         if (GUILayout.Button("保存数据"))
         {
@@ -148,8 +157,11 @@ class PathFindingAStarDrawLine : Editor
                 return;
             }
             DBuffer buffer = new(10000);
+            buffer.Write((int)root.gridType);
+            buffer.Write((int)root.hexParityType);
+            buffer.Write((int)root.hexFacingType);
             buffer.Write(root.transform.position);
-            buffer.Write(root.size);
+            buffer.Write(root.gridSize);
             buffer.Write(root.aStarSize);
             buffer.Write(root.data);
 
@@ -161,32 +173,21 @@ class PathFindingAStarDrawLine : Editor
             File.WriteAllBytes(path, buffer.ToBytes());
             AssetDatabase.Refresh();
         }
-    }
-
-    void Load()
-    {
-        if (string.IsNullOrEmpty(root.savePath))
+        if (GUILayout.Button("测试"))
         {
-            Debug.LogError("path is null");
-            return;
+            AStarFinder Finder = new();
+            Finder.Init(root.astar);
+            Finder.Finding(0, new int2(2, 3));
+            int2[] point_int = null;
+            int len = Finder.GetGrids(ref point_int);
+            if (len > 0)
+            {
+                for (int i = 0; i < len; i++)
+                    Finder.astar.SetPathOccupation(point_int[i], true, true);
+            }
+            for (int i = 0; i < Finder.job.datas.Length; i++)
+                Finder.astar.SetPathOccupation(Finder.job.datas[i].xy, true, false);
+            Finder.astar.ChangeHandle();
         }
-        var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        var dir = $"{Application.dataPath}/{root.savePath.Split("Assets").LastOrDefault()}";
-        if (!Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
-        string path = $"{dir}/{currentScene.name}.bytes";
-        if (File.Exists(path))
-        {
-            var buffer = new DBuffer(File.ReadAllBytes(path));
-            root.transform.position = buffer.Readfloat3();
-            root.size = buffer.Readfloat3();
-            root.aStarSize = math.max(buffer.Readint2(), 1);
-            root.data = buffer.Readbytes();
-            buffer.Seek(0);
-            root.astar = new(buffer);
-        }
-        else
-            root.data = new byte[root.aStarSize.x * root.aStarSize.y];
-        root.dataSize = root.aStarSize;
     }
 }

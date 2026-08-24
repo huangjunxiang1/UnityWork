@@ -9,6 +9,7 @@ using UnityEngine.InputSystem;
 [Scene("World")]
 class WorldScene : Scene
 {
+    public GameObject hex;
     ComputeShader_GridCulling gridCulling;
     GPUInstanceRender tree_render;
     GPUInstanceRender wall_render;
@@ -38,13 +39,9 @@ class WorldScene : Scene
         kv.Set((int)KType.MoveSpeed, 5);
         kv.Set((int)KType.RotateSpeed, 20);
 
-        var grid_render = new GPUInstanceRender(new List<GameObject>() { Client.Scene.Current.Loader.LoadGameObject("model_hex") }, viewEnable: false);
-        this.AddChild(grid_render);
-        gridCulling = new();
-        gridCulling.Culling_grid_args = grid_render.ArgsBuffer;
-        gridCulling.Culling_grid_datas = grid_render.GetOrCreateBuffer<float2>("grid_datas");
+        hex = this.Loader.LoadGameObject("model_hex");
 
-        wall_render = new GPUInstanceRender(new List<GameObject>() { Client.Scene.Current.Loader.LoadGameObject("model_hex2") }, viewEnable: true, maxInstance: ((Hex.GridCount - 1) / 32 + 1) * 32 * 9);
+        wall_render = new GPUInstanceRender(new List<GameObject>() { Client.Scene.Current.Loader.LoadGameObject("model_hex2") }, viewEnable: true, maxInstance: ((Hex.Hex_GridCount - 1) / 32 + 1) * 32 * 9);
         this.AddChild(wall_render);
         gridCulling = new();
         gridCulling.Culling_wall_args = wall_render.ArgsBuffer;
@@ -58,7 +55,7 @@ class WorldScene : Scene
                 lst.Add(Client.Scene.Current.Loader.LoadGameObject($"model_Tree_{i + 1}_{j + 1}"));
         }
         //单位格子最多3个树
-        tree_render = new GPUInstanceRender(lst, viewEnable: true, maxInstance: ((Hex.GridCount * 3 - 1) / 32 + 1) * 32 * 9);
+        tree_render = new GPUInstanceRender(lst, viewEnable: true, maxInstance: ((Hex.Hex_GridCount * 3 - 1) / 32 + 1) * 32 * 9);
         gridCulling.Culling_tree_args = tree_render.ArgsBuffer;
         gridCulling.Culling_tree_Visible = tree_render.VisibleBuffer;
         gridCulling.Culling_tree_datas = tree_render.GetOrCreateBuffer<float2>("tree_datas");
@@ -78,12 +75,12 @@ class WorldScene : Scene
     {
         if (Keyboard.current.kKey.wasPressedThisFrame)
         {
-            int2 xy = Hex.GetGridxy(player.Transform.position);
+            int2 xy = Hex.GetGridxy(player.Transform.position.xz);
             this.SetWall(xy, !Keyboard.current.leftAltKey.isPressed);
         }
         if (Keyboard.current.lKey.wasPressedThisFrame)
         {
-            int2 xy = Hex.GetGridxy(player.Transform.position);
+            int2 xy = Hex.GetGridxy(player.Transform.position.xz);
             this.Logging(xy);
         }
     }
@@ -98,6 +95,7 @@ class WorldScene : Scene
     {
         gridCulling.playerPos_xy = xy;
         gridCulling.Culling_Dispatch();
+        hex.transform.position = Hex.GetPositon(xy);
     }
     public void Logging(int2 xy)
     {

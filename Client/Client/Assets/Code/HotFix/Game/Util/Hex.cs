@@ -5,38 +5,45 @@ using Unity.Mathematics;
 
 public static partial class Hex
 {
-    public const float HexWidth = 1.5f;
-    public static int2 QuadHalfSize = new int2(10, 10);
-    public static int2 QuadSize => QuadHalfSize * 2 + 1;
-    public static int GridCount => QuadSize.x * QuadSize.y;
+    public static int2 Hex_QuadHalfSize = new int2(10, 10);
+    public static int2 Hex_QuadSize => Hex_QuadHalfSize * 2 + 1;
+    public static int Hex_GridCount => Hex_QuadSize.x * Hex_QuadSize.y;
 
-    static float sqrt_3 = math.sqrt(3);
+    static float Hex_sqrt_3 = math.sqrt(3);
 
-    public static int2 GetGridxy(float3 pos)
+    public static int2 GetGridxy(float2 pos, float hexWidth = Define.HexWidth, PathGridHexParityType parity = PathGridHexParityType.Even, PathGridHexFacingType facing = PathGridHexFacingType.Up)
     {
-        float yf = pos.z / (HexWidth * sqrt_3 / 2f);
-        int y = (int)math.round(yf);
+        pos = math.lerp(pos.xy, pos.yx, (int)facing);
 
-        int parity = y & 1;
-        float xf = (pos.x + parity * HexWidth / 2f) / HexWidth;
-        int x = (int)math.round(xf);
+        float halfWidth = hexWidth * 0.5f;
+        float2 quad = hexWidth * math.float2(1, Hex_sqrt_3);
+        float2 fv = math.floor(pos / quad);
+        float2 localxy = pos - fv * quad;
 
-        return new int2(x, y);
+        float2 r1xy = math.abs(localxy - halfWidth * math.float2(1, Hex_sqrt_3));
+        float threshold = -math.rcp(Hex_sqrt_3) * r1xy.x + hexWidth / Hex_sqrt_3;
+        float sv = math.step(threshold, r1xy.y);
+        float2 finalxy = fv * math.float2(1, 2) + math.float2((1 - sv) * (1 - (int)parity) + math.step(halfWidth, localxy.x) * sv, (1 - sv) + math.step(halfWidth * Hex_sqrt_3, localxy.y) * sv * 2);
+
+        finalxy = math.lerp(finalxy.xy, finalxy.yx, (int)facing);
+        return (int2)finalxy;
     }
-    public static float3 GetPositon(int2 xy)
+    public static float3 GetPositon(int2 xy, float hexWidth = Define.HexWidth, PathGridHexParityType parity = PathGridHexParityType.Even, PathGridHexFacingType facing = PathGridHexFacingType.Up)
     {
-        return new float3(xy.x * HexWidth - (xy.y & 1) * HexWidth / 2, 0, xy.y * HexWidth * sqrt_3 / 2);
+        xy = (int2)math.lerp(xy.xy, xy.yx, (int)facing);
+        float3 v3 = math.float3((xy.x + (xy.y & 1) * ((int)parity - 0.5f)) * hexWidth, 0, xy.y * hexWidth * 0.5f * Hex_sqrt_3);
+        v3.xz = math.lerp(v3.xz, v3.zx, (int)facing);
+        return v3;
     }
-    public static int2 GetCenterGrid(int2 xy)
+    public static int2 GetQuadCenterGrid(int2 xy)
     {
-        xy += Hex.QuadHalfSize;
-        int2 n = xy / Hex.QuadSize;
-        return new int2(xy.x < 0 ? n.x - 1 : n.x, xy.y < 0 ? n.y - 1 : n.y) * Hex.QuadSize;
+        int2 xy0 = (int2)math.floor((xy + Hex_QuadHalfSize) / Hex.Hex_QuadSize);
+        return xy0 * Hex.Hex_QuadSize + Hex.Hex_QuadHalfSize;
     }
     public static int2 GetQuadLocalxy(int2 xy)
     {
-        xy += Hex.QuadHalfSize;
-        xy %= Hex.QuadSize;
-        return (xy + Hex.QuadSize) % Hex.QuadSize;
+        xy += Hex.Hex_QuadHalfSize;
+        xy %= Hex.Hex_QuadSize;
+        return (xy + Hex.Hex_QuadSize) % Hex.Hex_QuadSize;
     }
 }

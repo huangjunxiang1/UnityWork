@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FairyGUI;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,13 +13,16 @@ namespace Game
     [ExecuteInEditMode]
     public class PathFindingAStar : MonoBehaviour
     {
-        public float3 size = new(1, 0, 1);
+        public PathGridType gridType = PathGridType.Rect;
+        public PathGridHexParityType hexParityType = PathGridHexParityType.Even;
+        public PathGridHexFacingType hexFacingType = PathGridHexFacingType.Up;
+        public float3 gridSize = new(1, 0, 1);
         public int2 aStarSize = new int2(10, 10);
         public string savePath = "Res/Config/raw/Map/AStarData/";
+        public bool view = true;
 
         internal byte[] data;
         internal int2 dataSize;
-        bool view;
         GraphicsBuffer buffer;
         [NonSerialized]
         public AStarData astar;
@@ -34,6 +38,7 @@ namespace Game
                 buffer?.Dispose();
                 buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, astar.size.x * astar.size.y, 4);
             }
+
             for (int i = 0; i < astar.data.Length; i++)
             {
                 var b = astar.data[i];
@@ -43,11 +48,49 @@ namespace Game
             }
             buffer.SetData(cost);
         }
-#if UNITY_EDITOR
+        public void Load()
+        {
+            if (string.IsNullOrEmpty(savePath))
+            {
+                Debug.LogError("path is null");
+                return;
+            }
+            var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            var dir = $"{Application.dataPath}/{savePath.Split("Assets").LastOrDefault()}";
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            string path = $"{dir}/{currentScene.name}.bytes";
+            if (File.Exists(path))
+            {
+                var buffer = new DBuffer(File.ReadAllBytes(path));
+                gridType = (PathGridType)buffer.Readint();
+                hexParityType = (PathGridHexParityType)buffer.Readint();
+                hexFacingType = (PathGridHexFacingType)buffer.Readint();
+                transform.position = buffer.Readfloat3();
+                gridSize = buffer.Readfloat3();
+                aStarSize = math.max(buffer.Readint2(), 1);
+                data = buffer.Readbytes();
+                buffer.Seek(0);
+                astar = new(buffer);
+            }
+            else
+            {
+                data = new byte[aStarSize.x * aStarSize.y];
+                astar = new(aStarSize.x, aStarSize.y, data, transform.position, gridSize);
+            }
+            dataSize = aStarSize;
+        }
         private void OnEnable()
+        {
+            Load();
+            this.View(view);
+        }
+        private void OnValidate()
         {
             this.View(view);
         }
+
+#if UNITY_EDITOR
         void gridChange(int2 xy)
         {
             int index = xy.y * astar.size.x + xy.x;
@@ -80,6 +123,12 @@ namespace Game
                     this.gameObject.AddComponent<MeshFilter>();
                 if (!this.gameObject.GetComponent<MeshRenderer>())
                     this.gameObject.AddComponent<MeshRenderer>();
+                if (!this.gameObject.GetComponent<BoxCollider>())
+                    this.gameObject.AddComponent<BoxCollider>();
+#if UNITY_EDITOR
+                if (!this.GetComponent<MeshRenderer>().sharedMaterial)
+                    this.GetComponent<MeshRenderer>().sharedMaterial = new Material((Material)UnityEditor.AssetDatabase.LoadMainAssetAtPath("Assets/Code/Main/Core/ECS/Components/PathFinding/AStar/res/AStarView_Mat.mat"));
+#endif
                 Init();
             }
             else
@@ -98,18 +147,30 @@ namespace Game
                 astar.change -= change;
             }
 #endif
-            if (Application.isPlaying)
+            if (Application.isPlaying && astar == null)
+            {
                 astar = Client.Data?.Get<AStarData>(false);
+                if (astar != null)
+                {
+                    this.gridType = astar.gridType;
+                    this.hexParityType = astar.hexParityType;
+                    this.hexFacingType = astar.hexFacingType;
+                    this.transform.position = astar.start;
+                    this.gridSize = astar.gridSize;
+                    this.aStarSize = astar.size;
+                }
+            }
 
             if (astar == null) return;
 
             Mesh mesh = new Mesh();
+            float3 size = gridType == PathGridType.Rect ? gridSize : gridSize * new float3((float2)1, 1.1f);
             Vector3[] verts = new Vector3[4]
             {
-               (float3)0f,
-               new float3(astar.gridSize.x * astar.size.x,0,0),
-               new float3(0,0,astar.gridSize.z * astar.size.y),
-               new float3(astar.gridSize.x * astar.size.x,0,astar.gridSize.z * astar.size.y)
+               size*new float3(-2,0,-2),
+               size*new float3(astar.size.x + 2,0,-2),
+               size*new float3(-2,0,astar.size.y + 2),
+               size*new float3(astar.size.x + 2,0,astar.size.y + 2)
             };
             mesh.vertices = verts;
             mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };
@@ -132,13 +193,23 @@ namespace Game
 
             // 应用 Mesh
             this.GetComponent<MeshFilter>().sharedMesh = mesh;
-            var mat = GameObject.Instantiate(Resources.Load<Material>("Shit/AStarView_Mat"));
-            mat.SetVector("_Size", new Vector4(astar.size.x, astar.size.y, 0, 0));
-            mat.SetBuffer("_Data", buffer);
-            this.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            var mat = this.GetComponent<MeshRenderer>().sharedMaterial;
+            if (mat)
+            {
+                mat.SetVector("_StartPos", new float4(astar.start.xz, 0, 0));
+                mat.SetVector("_GridSize", new float4(gridSize.xz, 0, 0));
+                mat.SetVector("_Size", new float4(astar.size.xy, 0, 0));
+                mat.SetBuffer("_Data", buffer);
+                if (this.gridType == PathGridType.Rect)
+                    mat.EnableKeyword("GridType_Rect");
+                else
+                {
+                    mat.DisableKeyword("GridType_Rect");
+                    mat.SetFloat("_hexParityType", (int)hexParityType);
+                    mat.SetFloat("_hexFacingType", (int)hexFacingType);
+                }
+            }
             var box = this.gameObject.GetComponent<BoxCollider>();
-            if (!box)
-                box = this.gameObject.AddComponent<BoxCollider>();
             box.center = mesh.bounds.center;
             box.size = new Vector3(mesh.bounds.size.x * 2, 0.001f, mesh.bounds.size.z * 2);
         }

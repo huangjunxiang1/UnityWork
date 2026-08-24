@@ -26,8 +26,8 @@ partial class FUIWorld
     [ChangeSystem]
     static void Change(TransformComponent t, ViewHexComponent view)
     {
-        int2 xy = Hex.GetGridxy(t.position);
-        int2 center = Hex.GetCenterGrid(xy);
+        int2 xy = Hex.GetGridxy(t.position.xz);
+        int2 center = Hex.GetQuadCenterGrid(xy);
         view.ui._hex.text = $"Hex({xy.x},{xy.y}) CenterGrid({center.x},{center.y})";
     }
     class ViewHexComponent : SComponent

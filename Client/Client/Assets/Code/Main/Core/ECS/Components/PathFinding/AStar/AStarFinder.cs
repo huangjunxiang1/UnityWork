@@ -80,7 +80,10 @@ public class AStarFinder
             ret = astar.FindTarget(xy => job.targets.Contains(xy), from, out var target, round);
         else
         {
-            job.minStep = round == PathFindingRound.R4 ? maths.ManhattanDistance(from, to) : maths.ManhattanShortDistance(from, to);
+            if (astar.gridType == PathGridType.Rect)
+                job.minStep = round == PathFindingRound.R4 ? maths.ManhattanDistance(from, to) : maths.ManhattanLongDistance(from, to);
+            else
+                job.minStep = maths.ManhattanShortDistance(from, to);
             job.datas.Add(new()
             {
                 xy = from,
@@ -102,6 +105,9 @@ public class AStarFinder
             job.round = round;
             job.vs = astar.vs;
             job.solve = solve;
+            job.gridType = astar.gridType;
+            job.hexParityType = astar.hexParityType;
+            job.hexFacingType = astar.hexFacingType;
 
 #if Native
             Unity.Jobs.IJobExtensions.Schedule(job).Complete();

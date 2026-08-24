@@ -9,6 +9,7 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.Build.Profile;
 using UnityEngine;
+using UnityEngine.UI;
 
 static class Other
 {
@@ -67,7 +68,7 @@ static class Other
     static void gen_mesh()
     {
         Mesh mesh = new Mesh();
-        float distance = Hex.HexWidth / 2;
+        float distance = Define.HexWidth / 2;
         float sqrt = math.sqrt(3);
         mesh.vertices = new Vector3[6]
         {
@@ -247,4 +248,5 @@ static class Other
         AssetDatabase.CreateAsset(mesh, "Assets/Res/3D/World/grid/hex2.mesh");
         AssetDatabase.Refresh();
     }
+
 }

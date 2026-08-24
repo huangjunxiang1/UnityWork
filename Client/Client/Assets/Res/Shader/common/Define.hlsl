@@ -8,3 +8,5 @@
 #define Define_Tree_TypeCount 3
 #define Define_Tree_StyleCount 2
 #define Define_View_Size 20
+
+#define HexWidth 1.5

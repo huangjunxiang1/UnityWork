@@ -196,29 +196,9 @@ MonoBehaviour:
       - rid: 3545609646982299648
       - rid: 765325034670522368
       - rid: 765325034670522369
+      - rid: 5212922549486223360
     m_RuntimeSettings:
-      m_List:
-      - rid: 7965621242403750180
-      - rid: 7965621242403750183
-      - rid: 7965621242403750184
-      - rid: 7965621242403750186
-      - rid: 7965621242403750187
-      - rid: 7965621242403750190
-      - rid: 7965621242403750191
-      - rid: 7965621242403750192
-      - rid: 7965621242403750195
-      - rid: 7965621242403750196
-      - rid: 7965621242403750197
-      - rid: 7965621242403750198
-      - rid: 7965621242403750199
-      - rid: 7965621242403750200
-      - rid: 7965621242403750204
-      - rid: 7965621242403750205
-      - rid: 7965621242403750208
-      - rid: 7965621242403750210
-      - rid: 7965621242403750211
-      - rid: 7965621467466694656
-      - rid: 7965621467466694657
+      m_List: []
   renderingLayerNames:
   - Default
   lightLayerName0: 
@@ -276,6 +256,23 @@ MonoBehaviour:
         m_BuildHlbvh: {fileID: 7200000, guid: 2d70cd6be91bd7843a39a54b51c15b13, type: 3}
         m_RestructureBvh: {fileID: 7200000, guid: 56641cb88dcb31a4398a4997ef7a7a8c, type: 3}
         m_Scatter: {fileID: 7200000, guid: a2eaeefdac4637a44b734e85b7be9186, type: 3}
+    - rid: 5212922549486223360
+      type: {class: SurfaceCacheRenderPipelineResourceSet, ns: UnityEngine.Rendering, asm: Unity.SurfaceCache.Runtime}
+      data:
+        m_Version: 4
+        m_TemporalFilteringShader: {fileID: 7200000, guid: c23523f04780d754f927b9daf4f975b9, type: 3}
+        m_SpatialFilteringShader: {fileID: 7200000, guid: 63e59de460463bb4c9d64bc58051d12c, type: 3}
+        m_ScrollingShader: {fileID: 7200000, guid: 47bbc3edf61978b498603cc2a1b87eea, type: 3}
+        m_GlobalProbeShader: {fileID: 7200000, guid: 4dccb71ac6af46018e56b6ccc3974c80, type: 3}
+        m_DefragShader: {fileID: 7200000, guid: a183a2d0b1da4904fb3bd71c6111ebb1, type: 3}
+        m_EvictionShader: {fileID: 7200000, guid: c9f2aeed6ef396f4d9134e4da1edfe19, type: 3}
+        m_PatchAllocationShader: {fileID: 7200000, guid: b271ec1ddd8048458fa529e8e7cfe960, type: 3}
+        m_PunctualLightSamplingComputeShader: {fileID: -6772857160820960102, guid: f32463968f29423cad25aee15a14b9f1, type: 3}
+        m_PunctualLightSamplingRayTracingShader: {fileID: -5126288278712620388, guid: f32463968f29423cad25aee15a14b9f1, type: 3}
+        m_EmissiveTriangleAdditionComputeShader: {fileID: 7200000, guid: 2e583cebf11e4785b8a5b0d8f7b20ab6, type: 3}
+        m_EmissiveTriangleRemovalComputeShader: {fileID: 7200000, guid: 3d386645a85b4e758a7b7eb1bf87fa24, type: 3}
+        m_EstimationComputeShader: {fileID: -6772857160820960102, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}
+        m_EstimationRayTracingShader: {fileID: -5126288278712620388, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}
     - rid: 5239101761358659584
       type: {class: RenderingDebuggerRuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:

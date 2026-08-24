@@ -88,11 +88,11 @@ class WorldData
     }
     public bool Logging(int2 xy)
     {
-        int2 center = Hex.GetCenterGrid(xy);
+        int2 center = Hex.GetQuadCenterGrid(xy);
         if (!quad.TryGetValue(center, out var value))
             quad[center] = value = new();
         int2 qxy = Hex.GetQuadLocalxy(xy);
-        int index = qxy.y * Hex.QuadSize.x + qxy.x;
+        int index = qxy.y * Hex.Hex_QuadSize.x + qxy.x;
 
         uint mask = ((uint)1) << (index % 32);
         bool ret = (value.tree_logging[index / 32] & mask) == 0;
@@ -108,11 +108,11 @@ class WorldData
     }
     public bool SetWall(int2 xy, bool visible)
     {
-        int2 center = Hex.GetCenterGrid(xy);
+        int2 center = Hex.GetQuadCenterGrid(xy);
         if (!quad.TryGetValue(center, out var value))
             quad[center] = value = new();
         int2 qxy = Hex.GetQuadLocalxy(xy);
-        int index = qxy.y * Hex.QuadSize.x + qxy.x;
+        int index = qxy.y * Hex.Hex_QuadSize.x + qxy.x;
 
         uint mask = ((uint)1) << (index % 32);
         bool ret = (value.wall_logging[index / 32] & mask) != 0;
@@ -123,14 +123,14 @@ class WorldData
     }
     public void CopyTreeVisibleToGraphicsBuffer(GraphicsBuffer buffer, int2 xy)
     {
-        int2 center = Hex.GetCenterGrid(xy);
-        int len = (Hex.GridCount - 1) / 32 + 1;
+        int2 center = Hex.GetQuadCenterGrid(xy);
+        int len = (Hex.Hex_GridCount - 1) / 32 + 1;
         uint[] visible = ArrayPool<uint>.Shared.Rent(len * 9);
         for (int j = -1; j < 2; j++)
         {
             for (int i = -1; i < 2; i++)
             {
-                int2 cc = center + new int2(i, j) * Hex.QuadSize;
+                int2 cc = center + new int2(i, j) * Hex.Hex_QuadSize;
                 int2 quadxy = new(i + 1, j + 1);
                 int index = (quadxy.y * 3 + quadxy.x) * len;
                 if (quad.TryGetValue(cc, out var value))
@@ -148,14 +148,14 @@ class WorldData
     }
     public void CopyWallVisibleToGraphicsBuffer(GraphicsBuffer buffer,int2 xy)
     {
-        int2 center = Hex.GetCenterGrid(xy);
-        int len = (Hex.GridCount - 1) / 32 + 1;
+        int2 center = Hex.GetQuadCenterGrid(xy);
+        int len = (Hex.Hex_GridCount - 1) / 32 + 1;
         uint[] visible = ArrayPool<uint>.Shared.Rent(len * 9);
         for (int j = -1; j < 2; j++)
         {
             for (int i = -1; i < 2; i++)
             {
-                int2 cc = center + new int2(i, j) * Hex.QuadSize;
+                int2 cc = center + new int2(i, j) * Hex.Hex_QuadSize;
                 int2 quadxy = new(i + 1, j + 1);
                 int index = (quadxy.y * 3 + quadxy.x) * len;
                 if (quad.TryGetValue(cc, out var value))
@@ -174,8 +174,8 @@ class WorldData
 }
 class WorldQuadData
 {
-    public uint[] tree_logging = new uint[(Hex.GridCount - 1) / 32 + 1];
-    public uint[] wall_logging = new uint[(Hex.GridCount - 1) / 32 + 1];
+    public uint[] tree_logging = new uint[(Hex.Hex_GridCount - 1) / 32 + 1];
+    public uint[] wall_logging = new uint[(Hex.Hex_GridCount - 1) / 32 + 1];
     public Dictionary<int2, WorldGridData> grids = new();
 }
 class WorldGridData

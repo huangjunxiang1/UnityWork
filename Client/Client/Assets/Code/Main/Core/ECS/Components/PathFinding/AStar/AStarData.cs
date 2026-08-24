@@ -5,6 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Mathematics;
+using UnityEngine;
+
 
 #if Native
 using Unity.Collections;
@@ -26,6 +28,25 @@ public enum PathFindingSolve
     Best,//最优解
     Fast,//最快解
 }
+public enum PathGridType
+{
+    Rect,//矩形
+    Hex,//六边形
+}
+public enum PathGridHexParityType
+{
+    [InspectorName("偶数行低位")]
+    Even,//偶数行左偏
+    [InspectorName("奇数行低位")]
+    Odd,//奇数行左偏
+}
+public enum PathGridHexFacingType
+{
+    [InspectorName("尖角上下")]
+    Up,//尖角上下
+    [InspectorName("尖角左右")]
+    Right,//尖角左右
+}
 public struct AStarGrid
 {
     public int step;//步长
@@ -38,7 +59,10 @@ public struct AStarGrid
 
 public class AStarData
 {
-    public AStarData(int width, int height, byte[] data, float3 start, float3 size)
+    public AStarData(int width, int height, byte[] data, float3 start, float3 size, 
+        PathGridType gridType = PathGridType.Rect,
+        PathGridHexParityType hexParityType = PathGridHexParityType.Even,
+        PathGridHexFacingType hexFacingType = PathGridHexFacingType.Up)
     {
         if (data.Length < width * height)
         {
@@ -48,6 +72,9 @@ public class AStarData
         this.size = new(width, height);
         this.start = start;
         this.gridSize = size;
+        this.gridType = gridType;
+        this.hexParityType = hexParityType;
+        this.hexFacingType = hexFacingType;
 
 #if Native
         if (width > 0 && height > 0)
@@ -69,6 +96,9 @@ public class AStarData
     }
     public AStarData(DBuffer buffer)
     {
+        this.gridType = (PathGridType)buffer.Readint();
+        this.hexParityType = (PathGridHexParityType)buffer.Readint();
+        this.hexFacingType = (PathGridHexFacingType)buffer.Readint();
         this.start = buffer.Readfloat3();
         this.gridSize = buffer.Readfloat3();
         this.size = buffer.Readint2();
@@ -87,7 +117,7 @@ public class AStarData
             }
         }
 #else
-        this.data = new AStarGrid[aSize.x * aSize.y];
+        this.data = new AStarGrid[size.x * size.y];
         for (int i = 0; i < data.Length; i++)
             this.data[i].data = buffer.Readbyte();
 #endif
@@ -102,6 +132,9 @@ public class AStarData
     public AStarGrid[] data { get; private set; }
 #endif
 
+    public PathGridType gridType { get; private set; } = PathGridType.Rect;
+    public PathGridHexParityType hexParityType { get; private set; } = PathGridHexParityType.Even;
+    public PathGridHexFacingType hexFacingType { get; private set; } = PathGridHexFacingType.Right;
     public float3 start { get; private set; }//起始坐标
     public float3 gridSize { get; private set; } = new float3(1, 0, 1);//块间隔
 

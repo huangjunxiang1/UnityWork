@@ -79,6 +79,8 @@ public static class maths
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float4 min(float4 a, float4 b, float4 c, float4 d) => math.min(math.min(a, b), math.min(c, d));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float cross2d(float2 a, float2 b) => a.x * b.y - a.y * b.x;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ManhattanDistance(int2 a, int2 b)
@@ -91,6 +93,18 @@ public static class maths
     {
         int3 v = math.abs(a - b);
         return v.x + v.y + v.z;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ManhattanLongDistance(int2 a, int2 b)
+    {
+        int2 v = math.abs(a - b);
+        return math.max(v.x, v.y);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ManhattanLongDistance(int3 a, int3 b)
+    {
+        int3 v = math.abs(a - b);
+        return maths.max(v.x, v.y, v.z);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ManhattanShortDistance(int2 a, int2 b)

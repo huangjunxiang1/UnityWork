@@ -42,11 +42,11 @@ class PlayerComponent : SComponent
     [ChangeSystem]
     static void Change(TransformComponent transform, PlayerComponent player)
     {
-        int2 xy = Hex.GetGridxy(transform.position);
+        int2 xy = Hex.GetGridxy(transform.position.xz);
         if (!xy.Equals(player.xy))
         {
             player.xy = xy;
-            var center = Hex.GetCenterGrid(xy);
+            var center = Hex.GetQuadCenterGrid(xy);
             if (!player.center.Equals(center))
             {
                 player.center = center;

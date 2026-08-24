@@ -166,36 +166,6 @@ public partial class ComputeShader_GridCulling
 
     public int Culling_kernel { get; private set; }
 
-    GraphicsBuffer _Culling_grid_args;
-    public GraphicsBuffer Culling_grid_args
-    {
-        get => _Culling_grid_args;
-        set
-        {
-            if (_Culling_grid_args != null && _Culling_grid_args.IsValid())
-                _Culling_grid_args.Dispose();
-            _Culling_grid_args = value;
-            if (value != null && value.IsValid())
-                Shader.SetBuffer(Culling_kernel, "grid_args", value);
-        }
-    }
-
-
-    GraphicsBuffer _Culling_grid_datas;
-    public GraphicsBuffer Culling_grid_datas
-    {
-        get => _Culling_grid_datas;
-        set
-        {
-            if (_Culling_grid_datas != null && _Culling_grid_datas.IsValid())
-                _Culling_grid_datas.Dispose();
-            _Culling_grid_datas = value;
-            if (value != null && value.IsValid())
-                Shader.SetBuffer(Culling_kernel, "grid_datas", value);
-        }
-    }
-
-
     GraphicsBuffer _Culling_wall_args;
     public GraphicsBuffer Culling_wall_args
     {
@@ -289,10 +259,6 @@ public partial class ComputeShader_GridCulling
 
     public void Dispose()
     {
-        if (_Culling_grid_args != null && _Culling_grid_args.IsValid())
-            _Culling_grid_args.Dispose();
-        if (_Culling_grid_datas != null && _Culling_grid_datas.IsValid())
-            _Culling_grid_datas.Dispose();
         if (_Culling_wall_args != null && _Culling_wall_args.IsValid())
             _Culling_wall_args.Dispose();
         if (_Culling_wall_Visible != null && _Culling_wall_Visible.IsValid())
