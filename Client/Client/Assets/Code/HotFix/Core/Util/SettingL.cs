@@ -17,7 +17,7 @@ static partial class SettingL
         }
     }
 
-    static SystemLanguage _languageType = SystemLanguage.Unknown;
+    static SystemLanguage _languageType = SystemLanguage.Chinese;
     public static SystemLanguage LanguageType
     {
         get => _languageType;

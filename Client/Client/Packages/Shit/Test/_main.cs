@@ -21,8 +21,7 @@ static class _main
 
         TypeLstCheck.test();
         EcsSystem.test();
-        EventTest2.test();
-        EventTest.test();
+        EventTest.Test();
         STaskTest.test();
     }
 }

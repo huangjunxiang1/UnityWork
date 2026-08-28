@@ -47,6 +47,7 @@ namespace Core
                 MethodParseData m = methods[i];
                 if (m.attribute is EventAttribute ea)
                 {
+                    if (m.field != null && !m.field.IsStatic) continue;
                     if (m.method != null && !m.method.IsStatic) continue;
                     EventKey k = new(m.mainKey, 0, 0, ea.Type);
                     if (!_evtMap.TryGetValue(k, out var queue))
@@ -115,6 +116,7 @@ namespace Core
             EvtData e = new();
             e.action = callBack;
             e.sortOrder = sortOrder;
+            e.isParamDefine = true;
             queue.Add(e);
         }
         public void RigisteEvent(Delegate callBack, long actorId = 0, int sortOrder = 0)
@@ -129,6 +131,7 @@ namespace Core
             e.action = callBack;
             e.sortOrder = sortOrder;
             e.isTask = gs[^1] == typeof(STask);
+            e.isParamDefine = true;
             e.setHandler = gs.Length >= 2 && gs[1] == typeof(EventHandler);
             queue.Add(e);
         }
@@ -326,11 +329,6 @@ namespace Core
                 else return STask.Completed;
             }
         }
-        public void RunEventNoGCAndFaster<T>(T data, int type = 0)
-        {
-            if (!_evtMap.TryGetValue(new EventKey(data.GetType(), 0, 0, type), out var queue)) return;
-            queue.RunNoGCAndFaster(data);
-        }
 
         public void Clear()
         {
@@ -367,8 +365,8 @@ namespace Core
             {
                 this.Attribute = (EventAttribute)m.attribute;
                 this.isTask = m.method?.ReturnType == typeof(STask);
-                this.isProperty = m.property != null;
                 this.isField = m.field != null;
+                this.isParamDefine = this.Attribute.EventType == null;
                 this.method = m.method;
                 this.field = m.field;
                 this.sortOrder = this.Attribute.SortOrder;
@@ -381,16 +379,30 @@ namespace Core
                     {
                         if (this.setHandler)
                         {
-                            var ts = ArrayCache.Get<Type>(2);
-                            ts[0] = m.mainKey;
-                            ts[1] = typeof(EventHandler);
-                            this.action = this.method.CreateDelegate(typeof(Action<,>).MakeGenericType(ts), target);
+                            if (this.isParamDefine)
+                            {
+                                var ts = ArrayCache.Get<Type>(2);
+                                ts[0] = m.mainKey;
+                                ts[1] = typeof(EventHandler);
+                                this.action = this.method.CreateDelegate(typeof(Action<,>).MakeGenericType(ts), target);
+                            }
+                            else
+                            {
+                                var ts = ArrayCache.Get<Type>(1);
+                                ts[1] = typeof(EventHandler);
+                                this.action = this.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts), target);
+                            }
                         }
                         else
                         {
-                            var ts = ArrayCache.Get<Type>(1);
-                            ts[0] = m.mainKey;
-                            this.action = this.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts), target);
+                            if (this.isParamDefine)
+                            {
+                                var ts = ArrayCache.Get<Type>(1);
+                                ts[0] = m.mainKey;
+                                this.action = this.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts), target);
+                            }
+                            else
+                                this.action = this.method.CreateDelegate(typeof(Action), target);
                         }
                     }
                 }
@@ -398,18 +410,37 @@ namespace Core
                 {
                     if (this.setHandler)
                     {
-                        var ts = ArrayCache.Get<Type>(3);
-                        ts[0] = m.mainKey;
-                        ts[1] = typeof(EventHandler);
-                        ts[2] = typeof(STask);
-                        this.action = this.method.CreateDelegate(typeof(Func<,,>).MakeGenericType(ts), target);
+                        if (this.isParamDefine)
+                        {
+                            var ts = ArrayCache.Get<Type>(3);
+                            ts[0] = m.mainKey;
+                            ts[1] = typeof(EventHandler);
+                            ts[2] = typeof(STask);
+                            this.action = this.method.CreateDelegate(typeof(Func<,,>).MakeGenericType(ts), target);
+                        }
+                        else
+                        {
+                            var ts = ArrayCache.Get<Type>(2);
+                            ts[0] = typeof(EventHandler);
+                            ts[1] = typeof(STask);
+                            this.action = this.method.CreateDelegate(typeof(Func<,>).MakeGenericType(ts), target);
+                        }
                     }
                     else
                     {
-                        var ts = ArrayCache.Get<Type>(2);
-                        ts[0] = m.mainKey;
-                        ts[1] = typeof(STask);
-                        this.action = this.method.CreateDelegate(typeof(Func<,>).MakeGenericType(ts), target);
+                        if (this.isParamDefine)
+                        {
+                            var ts = ArrayCache.Get<Type>(2);
+                            ts[0] = m.mainKey;
+                            ts[1] = typeof(STask);
+                            this.action = this.method.CreateDelegate(typeof(Func<,>).MakeGenericType(ts), target);
+                        }
+                        else
+                        {
+                            var ts = ArrayCache.Get<Type>(1);
+                            ts[0] = typeof(STask);
+                            this.action = this.method.CreateDelegate(typeof(Func<>).MakeGenericType(ts), target);
+                        }
                     }
                 }
             }
@@ -418,8 +449,8 @@ namespace Core
             public bool disposed;
 
             public bool isTask;
-            public bool isProperty;
             public bool isField;
+            public bool isParamDefine;
             public MethodInfo method;
             public FieldInfo field;
             public int sortOrder;
@@ -529,12 +560,6 @@ namespace Core
                     ObjectPool.Return(ts);
                 }
             }
-            public void RunNoGCAndFaster<T>(T data)
-            {
-                int cnt = evts.Count;
-                for (int i = 0; i < cnt; ++i)
-                    invokeNoGCAndFaster(evts[i], data);
-            }
 
             STask invoke<T>(EvtData e, T data, EventHandler eh)
             {
@@ -545,21 +570,46 @@ namespace Core
                     if (!e.setHandler)
                     {
                         if (e.isTask)
-                            task = ((Func<T, STask>)e.action).Invoke(data);
+                        {
+                            if (e.isParamDefine)
+                                task = ((Func<T, STask>)e.action).Invoke(data);
+                            else
+                                task = ((Func<STask>)e.action).Invoke();
+                        }
                         else
                         {
                             if (e.isField)
                                 e.field.SetValue(e.target, data);
                             else
-                                ((Action<T>)e.action).Invoke(data);
+                            {
+                                if (e.isParamDefine)
+                                {
+                                    if (e.Attribute.Parallel)
+                                        ThreadPool.QueueUserWorkItem((Action<T>)e.action, data, false);
+                                    else
+                                        ((Action<T>)e.action).Invoke(data);
+                                }
+                                else
+                                    ((Action)e.action).Invoke();
+                            }
                         }
                     }
                     else
                     {
                         if (e.isTask)
-                            task = ((Func<T, EventHandler, STask>)e.action).Invoke(data, eh);
+                        {
+                            if(e.isParamDefine)
+                                task = ((Func<T, EventHandler, STask>)e.action).Invoke(data, eh);
+                            else
+                                task = ((Func<EventHandler, STask>)e.action).Invoke(eh);
+                        }
                         else
-                            ((Action<T, EventHandler>)e.action).Invoke(data, eh);
+                        {
+                            if(e.isParamDefine)
+                                ((Action<T, EventHandler>)e.action).Invoke(data, eh);
+                            else
+                                ((Action<EventHandler>)e.action).Invoke(eh);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -579,25 +629,44 @@ namespace Core
                     {
                         if (e.method != null)
                         {
-                            var ps = ArrayCache.Get<object>(1);
-                            ps[0] = data;
-                            task = e.method.Invoke(e.target, ps) as STask;
+                            if (e.isParamDefine)
+                            {
+                                var ps = ArrayCache.Get<object>(1);
+                                ps[0] = data;
+                                task = e.method.Invoke(e.target, ps) as STask;
+                            }
+                            else
+                                task = e.method.Invoke(e.target, Array.Empty<object>()) as STask;
                         }
                         else if (e.isField)
                             e.field.SetValue(e.target, data);
                         else
                         {
-                            var ps = ArrayCache.Get<object>(1);
-                            ps[0] = data;
-                            task = e.action.DynamicInvoke(ps) as STask;
+                            if (e.isParamDefine)
+                            {
+                                var ps = ArrayCache.Get<object>(1);
+                                ps[0] = data;
+                                task = e.action.DynamicInvoke(ps) as STask;
+                            }
+                            else
+                                task = e.action.DynamicInvoke(Array.Empty<object>()) as STask;
                         }
                     }
                     else
                     {
-                        var ps = ArrayCache.Get<object>(2);
-                        ps[0] = data;
-                        ps[1] = eh;
-                        task = e.method.Invoke(e.target, ps) as STask;
+                        if (e.isParamDefine)
+                        {
+                            var ps = ArrayCache.Get<object>(2);
+                            ps[0] = data;
+                            ps[1] = eh;
+                            task = e.method.Invoke(e.target, ps) as STask;
+                        }
+                        else
+                        {
+                            var ps = ArrayCache.Get<object>(1);
+                            ps[0] = eh;
+                            task = e.method.Invoke(e.target, ps) as STask;
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -606,21 +675,6 @@ namespace Core
                 }
                 e.target?.AcceptedEvent();
                 return task;
-            }
-            void invokeNoGCAndFaster<T>(EvtData e, T data)
-            {
-                if (e.disposed || (e.target != null && (e.target.Disposed || !e.target.EventEnable))) return;
-                try
-                {
-                    if (e.Attribute.Parallel)
-                        ThreadPool.QueueUserWorkItem((Action<T>)e.action, data, false);
-                    else
-                        ((Action<T>)e.action).Invoke(data);
-                }
-                catch (Exception ex)
-                {
-                    Loger.Error("Event Execute Error :" + ex.ToString());
-                }
             }
         }
     }

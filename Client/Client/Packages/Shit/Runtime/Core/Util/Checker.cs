@@ -70,28 +70,111 @@ namespace Core
                         }
                     }
                 }
+
+                // ===== 检查字段（新增） =====
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                foreach (var field in fields)
+                {
+                    if (field.GetCustomAttributes<EventAttribute>(false).Any())
+                        CheckFieldOrProperty(field);
+                }
+
+                // ===== 检查属性（新增） =====
+                var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                foreach (var prop in props)
+                {
+                    if (prop.GetCustomAttributes<EventAttribute>(false).Any())
+                        CheckFieldOrProperty(prop);
+                }
             }
         }
         [Conditional(SSetting.CoreSetting.DebugEnableString)]
         public static void Check(MethodInfo method)
         {
-            var ps = method.GetParameters();
+            var origin = method.GetParameters();
+            var ps = origin;
+            if (origin.LastOrDefault()?.ParameterType == typeof(EventHandler))
+                ps = origin[1..];
 
             if (method.IsGenericMethod)
                 Loger.Error($"事件函数不能是泛型函数  class:{method.ReflectedType.FullName} method:{method.Name}");
-            if (ps.Length > 2 || ps.Length == 0)
-                Loger.Error($"参数类型大于2或者等于0 class:{method.ReflectedType.FullName} method:{method.Name}");
             if (method.ReturnType != typeof(void) && method.ReturnType != typeof(STask))
                 Loger.Error($"事件函数的返回类型只能是void或者{nameof(STask)} class:{method.ReflectedType.FullName} method:{method.Name}");
-            if (ps.Length == 2)
+
+            var ea = method.GetCustomAttributes<EventAttribute>(false).ToArray();
+            for (int i = 0; i < ea.Length; i++)
             {
-                if (ps[1].ParameterType != typeof(EventHandler))
-                    Loger.Error($"无法解析的参数类型 class:{method.ReflectedType.FullName} method:{method.Name}");
-            }
-            if (ps.Length == 1)
-            {
-                if (ps[0].ParameterType.IsPrimitive)
+                if (ea[i].EventType != null && ea[i].EventType.IsPrimitive)
                     Loger.Error($"不要使用系统值类型作为事件参数类型  class:{method.ReflectedType.FullName} method:{method.Name}");
+            }
+            if (ps.Length > 0 && ps[0].ParameterType.IsPrimitive)
+                Loger.Error($"不要使用系统值类型作为事件参数类型  class:{method.ReflectedType.FullName} method:{method.Name}");
+            if (ea.FirstOrDefault(t => t.Parallel) != null)
+            {
+                if (origin.Length != 1 || origin[0].ParameterType == typeof(EventHandler))
+                    Loger.Error($"多线程事件只能一个参数  class:{method.ReflectedType.FullName} method:{method.Name}");
+            }
+
+            //动态注册的函数
+            if (ea.Length == 0)
+            {
+                if (ps.Length == 1 && ps[0].ParameterType != typeof(EventHandler))
+                    return;
+                if (ps.Length == 2 && ps[0].ParameterType != typeof(EventHandler) && ps[1].ParameterType == typeof(EventHandler))
+                    return;
+            }
+            else
+            {
+                if (ps.Length == 0 && ea.FirstOrDefault(t => t.EventType == null) == null)
+                    return;
+                if (ps.Length == 1 && ea.Length == 1 && ea[0].EventType == null)
+                    return;
+            }
+
+            Loger.Error($"事件定义错误 class:{method.ReflectedType.FullName} method:{method.Name}");
+        }
+        // ===== 新增：字段/属性检查 =====
+        [Conditional(SSetting.CoreSetting.DebugEnableString)]
+        private static void CheckFieldOrProperty(MemberInfo member)
+        {
+            Type memberType = null;
+            bool isProperty = member is PropertyInfo;
+
+            if (isProperty)
+            {
+                var prop = (PropertyInfo)member;
+                if (!prop.CanWrite)
+                    Loger.Error($"事件属性必须可写 class:{member.ReflectedType.FullName} member:{member.Name}");
+                memberType = prop.PropertyType;
+            }
+            else
+            {
+                var field = (FieldInfo)member;
+                memberType = field.FieldType;
+            }
+
+            // 类型必须为 class（非值类型）
+            if (memberType.IsValueType)
+                Loger.Error($"事件字段/属性不能是值类型 class:{member.ReflectedType.FullName} member:{member.Name}");
+
+            // 不能是开放泛型
+            if (memberType.ContainsGenericParameters)
+                Loger.Error($"事件字段/属性不能是开放泛型类型 class:{member.ReflectedType.FullName} member:{member.Name}");
+
+            // 检查特性配置
+            var attrs = member.GetCustomAttributes<EventAttribute>(false).ToArray();
+            foreach (var attr in attrs)
+            {
+                // 字段/属性不允许指定 EventType（类型由成员自身推断）
+                if (attr.EventType != null)
+                    Loger.Error($"字段/属性不需要指定 EventType class:{member.ReflectedType.FullName} member:{member.Name}");
+
+                // 字段/属性不支持并行
+                if (attr.Parallel)
+                    Loger.Error($"字段/属性不支持 Parallel class:{member.ReflectedType.FullName} member:{member.Name}");
+
+                // Queue 和 Type 可以存在（但不强制检查），但若用户误用可酌情警告
+                // 这里只针对明确冲突的项报错
             }
         }
     }

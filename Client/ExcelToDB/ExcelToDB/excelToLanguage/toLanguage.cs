@@ -30,7 +30,7 @@ internal static class toLanguage
                     if (row == null) continue;
                     var k = row.GetCell(0)?.ToString();
                     if (string.IsNullOrEmpty(k)) continue;
-                    int cell = fi.Name == "#genFromCode.xlsx" ? 2 : 1;
+                    int cell = 1;
                     for (; cell < row.LastCellNum; cell++)
                     {
                         var lan = sheet.GetRow(1)?.GetCell(cell)?.ToString();

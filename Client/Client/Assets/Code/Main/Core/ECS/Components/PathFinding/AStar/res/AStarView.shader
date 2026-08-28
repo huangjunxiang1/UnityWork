@@ -70,9 +70,7 @@ Shader "Editor/AStar"
                 float _Power;
                 StructuredBuffer<int> _Data;
                 
-                static float xOffset[4] = {0,10.0/40,21.0/40,31.0/40};
-                static float yOffset[3] = {0,13.0/37,26.0/37};
-                static float sqrt_3 = sqrt(3.0);
+                static const float sqrt_3 = sqrt(3.0);
                 static const float b1_halfwidth=0.05;
                 static const float b2_halfwidth=0.15;
 

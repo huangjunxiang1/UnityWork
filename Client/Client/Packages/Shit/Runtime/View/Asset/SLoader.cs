@@ -48,8 +48,11 @@ namespace Game
             package ??= DefaultPackage;
             _name = name;
             this.package = package;
-            _loaderRoot = new GameObject(name);
-            _loaderRoot.transform.parent = _poolRoot.transform;
+            if (Application.isPlaying)
+            {
+                _loaderRoot = new GameObject(name);
+                _loaderRoot.transform.parent = _poolRoot.transform;
+            }
         }
 
         static GameObject _poolRoot;

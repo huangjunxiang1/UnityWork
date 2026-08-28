@@ -56,7 +56,7 @@ static class Handler
                 if (e.ReadValueAsButton())
                 {
                     showExit = true;
-                    Box.Op_YesOrNo("退出游戏", "是否退出游戏?", "确定", "取消", () =>
+                    Box.Op_YesOrNo("退出游戏".ToLanx(), "是否退出游戏?".ToLanx(), "确定".ToLanx(), "取消".ToLanx(), () =>
                     {
                         UnityEngine.Application.Quit();
                         showExit = false;
@@ -73,7 +73,6 @@ static class Handler
         try { Server.Close(); } catch (System.Exception ex) { throw ex; }
         try { Client.Close(); } catch (System.Exception ex) { throw ex; }
         TabM_ST.Tab.Data.Dispose();
-        Game.ShareData.Dispose();
     }
     [Event]
     static void EC_AcceptedMessage(EC_AcceptedMessage e)

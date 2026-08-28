@@ -74,8 +74,8 @@ namespace Game
             }
         }
 
-        public float3[] point_float = new float3[10];
-        public int2[] point_int = new int2[10];
+        public FastList<float3> point_float = new();
+        public FastList<int2> point_int = new();
 
         AStarData _astar;
         AStarVolume _volume = AStarVolume.Empty;
@@ -199,13 +199,14 @@ namespace Game
             {
                 if (this.Finding(to, power, near, targetVolume, algorithm, round, solve))
                 {
-                    int len = this.GetFindingPoints(ref point_float);
-                    if (len > 0)
+                    point_float.Clear();
+                    this.GetFindingPoints(point_float);
+                    if (point_float.Count > 0)
                     {
                         if ((finalPointMask & 2) == 0)
-                            return await move.MoveToAsync(point_float, 0, len - 1, style);
+                            return await move.MoveToAsync(point_float, 0, point_float.Count - 1, style);
                         else
-                            return await move.MoveToAsync(point_float, finalQuaternion, 0, len - 1, style);
+                            return await move.MoveToAsync(point_float, finalQuaternion, 0, point_float.Count - 1, style);
                     }
                 }
             }
@@ -215,15 +216,16 @@ namespace Game
                 {
                     if (this.Finding(to, power, near, targetVolume, algorithm, round, solve))
                     {
-                        int len = this.GetFindingPoints(ref point_float);
-                        for (int i = 0; i < len; i++)
+                        point_float.Clear();
+                        this.GetFindingPoints(point_float);
+                        for (int i = 0; i < point_float.Count; i++)
                         {
                             var p = point_float[i];
                             int2 xy = _astar.GetXY(p);
                             if (_astar.isEnableExceptSelfVolume(xy, Volume, Current))
                             {
                                 this.SetPoint(xy, false);
-                                if (i < len - 1 || (finalPointMask & 2) == 0)
+                                if (i < point_float.Count - 1 || (finalPointMask & 2) == 0)
                                     await move.MoveToAsync(p);
                                 else
                                     await move.MoveToAsync(p, finalQuaternion);
@@ -261,30 +263,10 @@ namespace Game
             this.Entity.GetComponent<MoveToComponent>()?.Stop();
         }
 
-        public float3[] GetFindingPoints()
-        {
-            if (!Finder.findResult) return Array.Empty<float3>();
-            var t = Finder.job.datas[Finder.job.datas.Length - 1];
-            int len = t.step + 1;
-            var ret = new float3[len];
-            while (true)
-            {
-                ret[t.step] = _astar.GetPosition(t.xy);
-                if (t.link == -1)
-                    break;
-                t = Finder.job.datas[t.link];
-            }
-            var c = this.Entity.GetComponent<TransformComponent>();
-            if (c != null)
-                ret[0] = c.position;
-            if ((this.finalPointMask & 1) != 0)
-                ret[len - 1] = this.finalPoint;
-            return ret;
-        }
-        public void GetFindingPoints(List<float3> ret)
+        public void GetFindingPoints(FastList<float3> ret)
         {
             if (!Finder.findResult) return;
-            var t = Finder.job.datas[Finder.job.datas.Length - 1];
+            var t = Finder.job.nodes[Finder.job.nodes.Length - 1];
             int len = t.step + 1;
             int index = ret.Count;
             while (true)
@@ -292,7 +274,7 @@ namespace Game
                 ret.Add(_astar.GetPosition(t.xy));
                 if (t.link == -1)
                     break;
-                t = Finder.job.datas[t.link];
+                t = Finder.job.nodes[t.link];
             }
             ret.Reverse(index, ret.Count - index);
             var c = this.Entity.GetComponent<TransformComponent>();
@@ -300,27 +282,6 @@ namespace Game
                 ret[0] = c.position;
             if ((this.finalPointMask & 1) != 0)
                 ret[len - 1] = this.finalPoint;
-        }
-        public int GetFindingPoints(ref float3[] ret)
-        {
-            if (!Finder.findResult) return 0;
-            var t = Finder.job.datas[Finder.job.datas.Length - 1];
-            int len = t.step + 1;
-            if (ret == null || ret.Length < len)
-                Array.Resize(ref ret, len);
-            while (true)
-            {
-                ret[t.step] = _astar.GetPosition(t.xy);
-                if (t.link == -1)
-                    break;
-                t = Finder.job.datas[t.link];
-            }
-            var c = this.Entity.GetComponent<TransformComponent>();
-            if (c != null)
-                ret[0] = c.position;
-            if ((this.finalPointMask & 1) != 0)
-                ret[len - 1] = this.finalPoint;
-            return len;
         }
 
         public void SetPoint(float3 point, bool setPosition = true)
@@ -371,14 +332,15 @@ namespace Game
         void _viewGrid(bool show)
         {
             if (!Finder.findResult) return;
-            int len = Finder.GetGrids(ref this.point_int);
-            if (len > 0)
+            this.point_int.Clear();
+            Finder.GetGrids(this.point_int);
+            if (this.point_int.Count > 0)
             {
-                for (int i = 0; i < len; i++)
+                for (int i = 0; i < this.point_int.Count; i++)
                     _astar.SetPathOccupation(this.point_int[i], show, true);
             }
-            for (int i = 0; i < Finder.job.datas.Length; i++)
-                _astar.SetPathOccupation(Finder.job.datas[i].xy, show, false);
+            for (int i = 0; i < Finder.job.nodes.Length; i++)
+                _astar.SetPathOccupation(Finder.job.nodes[i].xy, show, false);
             _astar.ChangeHandle();
         }
 

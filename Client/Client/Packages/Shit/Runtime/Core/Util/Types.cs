@@ -169,7 +169,7 @@ class MethodParseData
     {
         this.parameters = method.GetParameters();
         this.method = method;
-        this.mainKey = this.parameters.FirstOrDefault()?.ParameterType;
+        this.mainKey = (attribute as EventAttribute)?.EventType ?? this.parameters.FirstOrDefault()?.ParameterType;
         this.attribute = attribute;
     }
     public MethodParseData(PropertyInfo property, Attribute attribute)

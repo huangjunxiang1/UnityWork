@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.CompilerServices;
@@ -7,7 +8,7 @@ using Unity.Mathematics;
 public class AStarFinder
 {
     public AStarData astar { get; private set; }
-    public bool findResult => job.datas.Length != 0;
+    public bool findResult => job.nodes.Length != 0;
 
     public AStarFinderJob job;
 
@@ -18,8 +19,8 @@ public class AStarFinder
 #if Native
         if (!job.groups.IsCreated)
             job.groups = new(10, Unity.Collections.Allocator.Persistent);
-        if (!job.datas.IsCreated)
-            job.datas = new(100, Unity.Collections.Allocator.Persistent);
+        if (!job.nodes.IsCreated)
+            job.nodes = new(100, Unity.Collections.Allocator.Persistent);
         if (!job.targets.IsCreated)
             job.targets = new(10, Unity.Collections.Allocator.Persistent);
 #else
@@ -58,7 +59,7 @@ public class AStarFinder
         }
         targetVolume ??= AStarVolume.Empty;
         job.groups.Clear();
-        job.datas.Clear();
+        job.nodes.Clear();
 
         job.targets.Clear();
         foreach (var item in targetVolume.GetAllNearPoints(this.astar, to, near))
@@ -84,7 +85,7 @@ public class AStarFinder
                 job.minStep = round == PathFindingRound.R4 ? maths.ManhattanDistance(from, to) : maths.ManhattanLongDistance(from, to);
             else
                 job.minStep = maths.ManhattanShortDistance(from, to);
-            job.datas.Add(new()
+            job.nodes.Add(new()
             {
                 xy = from,
                 link = -1,
@@ -115,64 +116,34 @@ public class AStarFinder
             job.Execute();
 #endif
 
-            ret = job.targets.Contains(job.datas[job.datas.Length - 1].xy);
+            ret = job.targets.Contains(job.nodes[job.nodes.Length - 1].xy);
             if (!ret)
-                job.datas.Clear();
+                job.nodes.Clear();
         }
         astar.isFinding = false;
 
         return ret;
     }
 
-    public int2[] GetGrids()
-    {
-        if (!findResult) return Array.Empty<int2>();
-        var t = job.datas[job.datas.Length - 1];
-        var array = new int2[t.step + 1];
-        while (true)
-        {
-            array[t.step] = t.xy;
-            if (t.link == -1)
-                break;
-            t = job.datas[t.link];
-        }
-        return array;
-    }
-    public void GetGrids(List<int2> ret)
+    public void GetGrids(FastList<int2> ret)
     {
         if (!findResult) return;
-        var t = job.datas[job.datas.Length - 1];
+        var t = job.nodes[job.nodes.Length - 1];
         int index = ret.Count;
         while (true)
         {
             ret.Add(t.xy);
             if (t.link == -1)
                 break;
-            t = job.datas[t.link];
+            t = job.nodes[t.link];
         }
         ret.Reverse(index, ret.Count - index);
-    }
-    public int GetGrids(ref int2[] ret)
-    {
-        if (!findResult) return 0;
-        var t = job.datas[job.datas.Length - 1];
-        if (ret == null || ret.Length < t.step + 1)
-            ret = new int2[t.step + 1];
-        int len = t.step + 1;
-        while (true)
-        {
-            ret[t.step] = t.xy;
-            if (t.link == -1)
-                break;
-            t = job.datas[t.link];
-        }
-        return len;
     }
 
     public void Dispose()
     {
         job.groups.Dispose();
-        job.datas.Dispose();
+        job.nodes.Dispose();
 #if Native
         job.targets.Dispose();
 #endif

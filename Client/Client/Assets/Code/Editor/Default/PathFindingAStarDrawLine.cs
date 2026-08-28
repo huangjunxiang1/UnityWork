@@ -1,4 +1,5 @@
-﻿using Game;
+﻿using Core;
+using Game;
 using System;
 using System.IO;
 using System.Linq;
@@ -178,15 +179,15 @@ class PathFindingAStarDrawLine : Editor
             AStarFinder Finder = new();
             Finder.Init(root.astar);
             Finder.Finding(0, new int2(2, 3));
-            int2[] point_int = null;
-            int len = Finder.GetGrids(ref point_int);
-            if (len > 0)
+            FastList<int2> point_int = new();
+            Finder.GetGrids(point_int);
+            if (point_int.Count > 0)
             {
-                for (int i = 0; i < len; i++)
+                for (int i = 0; i < point_int.Count; i++)
                     Finder.astar.SetPathOccupation(point_int[i], true, true);
             }
-            for (int i = 0; i < Finder.job.datas.Length; i++)
-                Finder.astar.SetPathOccupation(Finder.job.datas[i].xy, true, false);
+            for (int i = 0; i < Finder.job.nodes.Length; i++)
+                Finder.astar.SetPathOccupation(Finder.job.nodes[i].xy, true, false);
             Finder.astar.ChangeHandle();
         }
     }

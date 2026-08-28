@@ -36,11 +36,11 @@ public struct AStarFinderJob
 
 #if Native
     internal NativeList<int> groups;
-    internal NativeList<AData> datas;
+    internal NativeList<AData> nodes;
     internal NativeHashSet<int2> targets;
 #else
     internal FastList<int> groups;
-    internal FastList<AData> datas;
+    internal FastList<AData> nodes;
     internal HashSet<int2> targets;
 #endif
     public int minStep;
@@ -68,7 +68,7 @@ public struct AStarFinderJob
                 continue;
             }
 
-            var n = datas.ElementAt(index);
+            var n = nodes.ElementAt(index);
             groups[i] = n.next;
 
             if (gridType == PathGridType.Rect)
@@ -176,13 +176,6 @@ public struct AStarFinderJob
         }
     }
 
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    bool isEnable(int2 xy)
-    {
-        int index = xy.y * size.x + xy.x;
-        return (data[index].data & 1) == 1 && data[index].Occupation == 0;
-    }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CalWeight(int step, int distance) => step + (distance << 1);
 
@@ -191,25 +184,25 @@ public struct AStarFinderJob
 #endif
     bool _round(int2 xy, PathFindingSolve solve,int nowIdx,ref int i)
     {
-        var n = datas.ElementAt(nowIdx);
+        ref var node = ref nodes.ElementAt(nowIdx);
         ref var grid = ref data.ElementAt(xy.y * size.x + xy.x);
-        int cost = n.cost + (grid.data >> 1);
+        int cost = node.cost + (grid.data >> 1);
         bool move;
         if (solve == PathFindingSolve.Best)
-            move = (grid.vs != vs || n.step + 1 < grid.step) && cost <= power && isEnable(xy);
+            move = (grid.vs != vs || node.step + 1 < grid.step) && cost <= power && (grid.data & 1) == 1 && grid.Occupation == 0;
         else
-            move = grid.vs != vs && cost <= power && isEnable(xy);
+            move = grid.vs != vs && cost <= power && (grid.data & 1) == 1 && grid.Occupation == 0;
         if (move)
         {
             grid.vs = vs;
-            grid.step = n.step + 1;
+            grid.step = node.step + 1;
 
             int pre;
             if (gridType == PathGridType.Rect)
                 pre = round == PathFindingRound.R4 ? maths.ManhattanDistance(xy, to) : maths.ManhattanLongDistance(xy, to);
             else
                 pre = maths.ManhattanShortDistance(xy, to);
-            pre = CalWeight(n.step + 1, pre);
+            pre = CalWeight(node.step + 1, pre);
 
             int len = groups.Length;
             int group = pre - minStep;
@@ -218,15 +211,15 @@ public struct AStarFinderJob
             for (int j = len; j < groups.Length; j++)
                 groups[j] = -1;
 
-            datas.Add(new()
+            nodes.Add(new()
             {
                 xy = xy,
                 link = nowIdx,
                 cost = cost,
                 next = groups[group],
-                step = n.step + 1
+                step = node.step + 1
             });
-            groups[group] = datas.Length - 1;
+            groups[group] = nodes.Length - 1;
 
             if (targets.Contains(xy))
                 return true;

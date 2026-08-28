@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <Reference Include="UnityEngine.MathematicsModule">
-      <HintPath>..\..\..\..\..\unity\6000.7.0a4\Editor\Data\Managed\UnityEngine\UnityEngine.MathematicsModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\unity\6000.7.0a5\Editor\Data\Managed\UnityEngine\UnityEngine.MathematicsModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
