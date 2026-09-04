@@ -1,0 +1,540 @@
+﻿using Renci.SshNet;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEditor;
+using UnityEditor.Compilation;
+using UnityEngine;
+using YooAsset;
+using YooAsset.Editor;
+
+static class Builder_raw
+{
+    [RPCAttribute("Builder_raw", 1)]
+    static void GitPull(RPCArgs args) => Builder_Tools.GitPull();
+
+    [RPCAttribute("Builder_raw", 3)]
+    static void Build_Bundle(RPCArgs args) => Builder_Tools.Build_Bundle_raw(args.GetValueOrDefault("PackageName"));
+
+    [RPCAttribute("Builder_raw", 4)]
+    static string Up_Bundles(RPCArgs args) => Builder_Tools.Up_Bundles(args);
+}
+static class Builder_res
+{
+    [RPCAttribute("Builder_res", 1)]
+    static void GitPull(RPCArgs args) => Builder_Tools.GitPull();
+
+    [RPCAttribute("Builder_res", 3)]
+    static void Build_Bundle(RPCArgs args) => Builder_Tools.Build_Bundle_res(args.GetValueOrDefault("PackageName"));
+
+    [RPCAttribute("Builder_res", 4)]
+    static string Up_Bundles(RPCArgs args) => Builder_Tools.Up_Bundles(args);
+}
+static class Builder_Tools
+{
+
+    // ============================================================
+    // Git Pull（自动检测仓库和分支）
+    // ============================================================
+    public static void GitPull()
+    {
+        // 从当前 Unity 项目目录向上查找 .git 目录
+        string currentDir = Application.dataPath;
+        string repoPath = null;
+        while (!string.IsNullOrEmpty(currentDir))
+        {
+            if (Directory.Exists(Path.Combine(currentDir, ".git")))
+            {
+                repoPath = currentDir;
+                break;
+            }
+            currentDir = Directory.GetParent(currentDir)?.FullName;
+        }
+
+        if (string.IsNullOrEmpty(repoPath))
+            throw new Exception("未找到 Git 仓库（无法找到 .git 目录）");
+
+        // 获取当前分支名
+        string branch = GetCurrentGitBranch(repoPath);
+        if (string.IsNullOrEmpty(branch))
+            throw new Exception("无法获取当前分支名");
+
+        // 执行 git pull
+        ProcessStartInfo psi = new ProcessStartInfo("git", $"pull origin {branch}")
+        {
+            WorkingDirectory = repoPath,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        using (var p = Process.Start(psi))
+        {
+            string output = p.StandardOutput.ReadToEnd();
+            string error = p.StandardError.ReadToEnd();
+            p.WaitForExit();
+            if (p.ExitCode != 0)
+                throw new Exception($"Git pull 失败: {error}");
+            UnityEngine.Debug.Log($"Git pull 成功: {output}");
+        }
+    }
+
+    private static string GetCurrentGitBranch(string repoPath)
+    {
+        try
+        {
+            ProcessStartInfo psi = new ProcessStartInfo("git", "rev-parse --abbrev-ref HEAD")
+            {
+                WorkingDirectory = repoPath,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using (var p = Process.Start(psi))
+            {
+                string branch = p.StandardOutput.ReadToEnd().Trim();
+                p.WaitForExit();
+                if (p.ExitCode == 0 && !string.IsNullOrEmpty(branch))
+                    return branch;
+            }
+            return null;
+        }
+        catch { return null; }
+    }
+
+    // ============================================================
+    // 构建资源包
+    // ============================================================
+    public static string Build_Bundle_raw(string PackageName)
+    {
+        var PipelineName = BundleBuilderSetting.GetPackageBuildPipeline(PackageName);
+        
+        var fileNameStyle = BundleBuilderSetting.GetPackageFileNameStyle(PackageName, PipelineName);
+        var bundledCopyOption = BundleBuilderSetting.GetPackageBundledCopyOption(PackageName, PipelineName);
+        var bundledCopyParams = BundleBuilderSetting.GetPackageBundledCopyParams(PackageName, PipelineName);
+        var clearBuildCache = BundleBuilderSetting.GetPackageClearBuildCache(PackageName, PipelineName);
+        var useAssetDependencyDB = BundleBuilderSetting.GetPackageUseAssetDependencyDB(PackageName, PipelineName);
+
+        RawFileBuildParameters buildParameters = new RawFileBuildParameters();
+        buildParameters.BuildOutputRoot = BundleBuilderHelper.GetDefaultBuildOutputRoot();
+        buildParameters.BundledFileRoot = BundleBuilderHelper.GetStreamingAssetsRoot();
+        buildParameters.BuildPipeline = PipelineName.ToString();
+        buildParameters.BuildBundleType = (int)EBundleType.RawBundle;
+        buildParameters.BuildTarget = EditorUserBuildSettings.activeBuildTarget;
+        buildParameters.PackageName = PackageName;
+        buildParameters.PackageVersion = GetBuildPackageVersion(PackageName);
+        buildParameters.VerifyBuildingResult = true;
+        buildParameters.FileNameStyle = fileNameStyle;
+        buildParameters.BundledCopyOption = bundledCopyOption;
+        buildParameters.BundledCopyParams = bundledCopyParams;
+        buildParameters.ClearBuildCacheFiles = clearBuildCache;
+        buildParameters.UseAssetDependencyDB = useAssetDependencyDB;
+        buildParameters.BundleEncryptor = CreateBundleEncryptorInstance(PackageName);
+        buildParameters.ManifestEncryptor = CreateManifestEncryptorInstance(PackageName);
+        buildParameters.ManifestDecryptor = CreateManifestDecryptorInstance(PackageName);
+
+        RawFileBuildPipeline pipeline = new RawFileBuildPipeline();
+        var buildResult = pipeline.Run(buildParameters, true);
+
+        cull_res(buildParameters.PackageName);
+        return buildParameters.PackageVersion;
+    }
+    public static string Build_Bundle_res(string PackageName)
+    { 
+        string[] guids = AssetDatabase.FindAssets("t:TMP_FontAsset");
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var asset = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(path);
+            if (asset.atlasPopulationMode != TMPro.AtlasPopulationMode.Static)
+                asset.ClearFontAssetData(true);
+        }
+        AssetDatabase.Refresh();
+        var PipelineName = BundleBuilderSetting.GetPackageBuildPipeline(PackageName);
+
+        var fileNameStyle = BundleBuilderSetting.GetPackageFileNameStyle(PackageName, PipelineName);
+        var bundledCopyOption = BundleBuilderSetting.GetPackageBundledCopyOption(PackageName, PipelineName);
+        var bundledCopyParams = BundleBuilderSetting.GetPackageBundledCopyParams(PackageName, PipelineName);
+        var compressOption = BundleBuilderSetting.GetPackageCompressOption(PackageName, PipelineName);
+        var clearBuildCache = BundleBuilderSetting.GetPackageClearBuildCache(PackageName, PipelineName);
+        var useAssetDependencyDB = BundleBuilderSetting.GetPackageUseAssetDependencyDB(PackageName, PipelineName);
+
+        ScriptableBuildParameters buildParameters = new ScriptableBuildParameters();
+        buildParameters.BuildOutputRoot = BundleBuilderHelper.GetDefaultBuildOutputRoot();
+        buildParameters.BundledFileRoot = BundleBuilderHelper.GetStreamingAssetsRoot();
+        buildParameters.BuildPipeline = PipelineName.ToString();
+        buildParameters.BuildBundleType = (int)EBundleType.AssetBundle;
+        buildParameters.BuildTarget = EditorUserBuildSettings.activeBuildTarget;
+        buildParameters.PackageName = PackageName;
+        buildParameters.PackageVersion = GetBuildPackageVersion(PackageName);
+        buildParameters.EnableSharePackRule = true;
+        buildParameters.VerifyBuildingResult = true;
+        buildParameters.FileNameStyle = fileNameStyle;
+        buildParameters.BundledCopyOption = bundledCopyOption;
+        buildParameters.BundledCopyParams = bundledCopyParams;
+        buildParameters.CompressOption = compressOption;
+        buildParameters.ClearBuildCacheFiles = clearBuildCache;
+        buildParameters.UseAssetDependencyDB = useAssetDependencyDB;
+        buildParameters.BundleEncryptor = CreateBundleEncryptorInstance(PackageName);
+        buildParameters.ManifestEncryptor = CreateManifestEncryptorInstance(PackageName);
+        buildParameters.ManifestDecryptor = CreateManifestDecryptorInstance(PackageName);
+        buildParameters.BuiltinShadersBundleName = GetBuiltinShaderBundleName(PackageName);
+
+        ScriptableBuildPipeline pipeline = new ScriptableBuildPipeline();
+        var buildResult = pipeline.Run(buildParameters, true);
+
+        cull_res(buildParameters.PackageName);
+        return buildParameters.PackageVersion;
+    }
+    static IBundleEncryptor CreateBundleEncryptorInstance(string PackageName)
+    {
+        var className = BundleBuilderSetting.GetPackageBundleEncryptorClassName(PackageName, BundleBuilderSetting.GetPackageBuildPipeline(PackageName));
+        var classTypes = EditorAssemblyUtility.GetAssignableTypes(typeof(IBundleEncryptor));
+        var classType = classTypes.Find(x => x.FullName.Equals(className));
+        if (classType != null)
+            return (IBundleEncryptor)Activator.CreateInstance(classType);
+
+        UnityEngine.Debug.LogWarning($"Bundle encryptor class type not found: '{className}'.");
+        return null;
+    }
+    static IManifestEncryptor CreateManifestEncryptorInstance(string PackageName)
+    {
+        var className = BundleBuilderSetting.GetPackageManifestEncryptorClassName(PackageName, BundleBuilderSetting.GetPackageBuildPipeline(PackageName));
+        var classTypes = EditorAssemblyUtility.GetAssignableTypes(typeof(IManifestEncryptor));
+        var classType = classTypes.Find(x => x.FullName.Equals(className));
+        if (classType != null)
+            return (IManifestEncryptor)Activator.CreateInstance(classType);
+
+        UnityEngine.Debug.LogWarning($"Manifest encryptor class type not found: '{className}'.");
+        return null;
+    }
+    static IManifestDecryptor CreateManifestDecryptorInstance(string PackageName)
+    {
+        var className = BundleBuilderSetting.GetPackageManifestDecryptorClassName(PackageName, BundleBuilderSetting.GetPackageBuildPipeline(PackageName));
+        var classTypes = EditorAssemblyUtility.GetAssignableTypes(typeof(IManifestDecryptor));
+        var classType = classTypes.Find(x => x.FullName.Equals(className));
+        if (classType != null)
+            return (IManifestDecryptor)Activator.CreateInstance(classType);
+
+        UnityEngine.Debug.LogWarning($"Manifest decryptor class type not found: '{className}'.");
+        return null;
+    }
+    static string GetBuiltinShaderBundleName(string PackageName)
+    {
+        var uniqueBundleName = BundleCollectorSettingData.Setting.UniqueBundleName;
+        var packRuleResult = DefaultBundlePackRule.CreateShadersPackRuleResult();
+        return packRuleResult.GetBundleName(PackageName, uniqueBundleName);
+    }
+
+    // ============================================================
+    // 上传资源包
+    // ============================================================
+    public static string Up_Bundles(RPCArgs args)
+    {
+        string outputRoot = BundleBuilderHelper.GetDefaultBuildOutputRoot();
+        BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
+        string packageDir = Path.Combine(outputRoot, target.ToString(), args.GetValueOrDefault("PackageName"));
+
+        if (!Directory.Exists(packageDir))
+        {
+            UnityEngine.Debug.LogError($"Up_Bundles: 包目录不存在: {packageDir}");
+            return $"Up_Bundles: 包目录不存在: {packageDir}";
+        }
+
+        var versionDirs = Directory.GetDirectories(packageDir)
+            .Select(d => new { Path = d, Name = Path.GetFileName(d) })
+            .Where(x => Version.TryParse(x.Name, out _))
+            .OrderByDescending(x => new Version(x.Name))
+            .ToList();
+
+        if (versionDirs.Count == 0)
+        {
+            UnityEngine.Debug.LogError($"Up_Bundles: 未找到版本目录 in {packageDir}");
+            return $"Up_Bundles: 未找到版本目录 in {packageDir}";
+        }
+
+        var first = versionDirs.First();
+        string latestVersionDir = first.Path;
+        string version = Path.GetFileName(latestVersionDir);
+        UnityEngine.Debug.Log($"Up_Bundles: 最新版本 {version}，路径 {latestVersionDir}");
+
+        var files = Directory.GetFiles(latestVersionDir, "*.*", SearchOption.AllDirectories).ToList();
+        if (files.Count == 0)
+        {
+            UnityEngine.Debug.LogError($"Up_Bundles: 在 {latestVersionDir} 中未找到任何文件");
+            return $"Up_Bundles: 在 {latestVersionDir} 中未找到任何文件";
+        }
+
+        string username = args.GetValueOrDefault("user");
+        string password = args.GetValueOrDefault("pass");
+        var uploadMethod = args.GetValueOrDefault("upmethod");
+        string url = args.GetValueOrDefault("url");
+        if (uploadMethod == "ftp")
+        {
+            UnityEngine.Debug.Log($"Up_Bundles: FTP 上传到 {url}");
+            return $"{UploadViaFTP(url, username, password, files)} vs={new Version(first.Name)}";
+        }
+        else if (uploadMethod == "ssh")
+        {
+            UnityEngine.Debug.Log($"Up_Bundles: SSH 上传到 {url}");
+            return $"{UploadViaSSH(url, username, password, args.GetValueOrDefault("sshKey"), files, args.GetValueOrDefault("path"))} vs={new Version(first.Name)}";
+        }
+        return "不支持非ftp或ssh上传";
+    }
+
+    // ============================================================
+    // FTP 上传
+    // ============================================================
+    private static string UploadViaFTP(string url, string username, string password,List<string> files)
+    {
+        if (string.IsNullOrEmpty(url))
+            throw new ArgumentException("URL 不能为空", nameof(url));
+        if (files == null || files.Count == 0)
+        {
+            UnityEngine.Debug.Log("FTP 文件列表为空，无需上传");
+            return "FTP 文件列表为空，无需上传";
+        }
+
+        // 确保 url 以 '/' 结尾，方便拼接文件名
+        string baseUrl = url.TrimEnd('/') + "/";
+
+        // 尝试创建目标目录（如果不存在）
+        try
+        {
+            FtpWebRequest mkdirReq = (FtpWebRequest)WebRequest.Create(baseUrl);
+            mkdirReq.Method = WebRequestMethods.Ftp.MakeDirectory;
+            mkdirReq.Credentials = new NetworkCredential(username, password);
+            mkdirReq.UsePassive = true;
+            using (FtpWebResponse resp = (FtpWebResponse)mkdirReq.GetResponse()) { }
+            UnityEngine.Debug.Log($"FTP 目录已创建: {baseUrl}");
+        }
+        catch (WebException ex)
+        {
+            // 如果目录已存在（状态码 550）则忽略，否则抛出
+            if (ex.Response is FtpWebResponse resp)
+            {
+                if (resp.StatusCode != FtpStatusCode.ActionNotTakenFileUnavailable)
+                    throw;
+            }
+            else
+            {
+                throw; // 非 FTP 响应，重新抛出
+            }
+        }
+
+        // 上传每个文件
+        foreach (string localFile in files)
+        {
+            if (!File.Exists(localFile))
+            {
+                UnityEngine.Debug.LogWarning($"文件不存在，跳过: {localFile}");
+                continue;
+            }
+
+            string fileName = Path.GetFileName(localFile);
+            string ftpUrl = baseUrl + fileName;
+
+            FtpWebRequest req = (FtpWebRequest)WebRequest.Create(ftpUrl);
+            req.Method = WebRequestMethods.Ftp.UploadFile;
+            req.Credentials = new NetworkCredential(username, password);
+            req.UsePassive = true;
+            req.UseBinary = true;
+
+            byte[] data = File.ReadAllBytes(localFile);
+            req.ContentLength = data.Length;
+
+            using (Stream s = req.GetRequestStream())
+                s.Write(data, 0, data.Length);
+
+            using (FtpWebResponse resp = (FtpWebResponse)req.GetResponse())
+            {
+                UnityEngine.Debug.Log($"FTP 上传成功: {fileName}");
+            }
+        }
+
+        UnityEngine.Debug.Log($"FTP 上传完成，共 {files.Count} 个文件");
+        return $"FTP 上传完成，共 {files.Count} 个文件";
+    }
+
+    // ============================================================
+    // SSH 上传（暂未实现）
+    // ============================================================
+    private static string UploadViaSSH(string url, string username, string password, string privateKeyPath, List<string> files,string path)
+    {
+        if (string.IsNullOrEmpty(url))
+            throw new ArgumentException("URL 不能为空", nameof(url));
+        if (string.IsNullOrEmpty(username))
+            throw new ArgumentException("用户名不能为空", nameof(username));
+        if (files == null || files.Count == 0)
+        {
+            UnityEngine.Debug.Log("文件列表为空，无需上传");
+            return "文件列表为空，无需上传";
+        }
+
+        // 解析主机和端口（格式: "host" 或 "host:port"）
+        string host = url;
+        int port = 22;
+        int colonIndex = url.IndexOf(':');
+        if (colonIndex > 0 && int.TryParse(url.Substring(colonIndex + 1), out int parsedPort))
+        {
+            host = url.Substring(0, colonIndex);
+            port = parsedPort;
+        }
+
+        // 构建连接信息
+        ConnectionInfo connectionInfo;
+        if (!string.IsNullOrEmpty(privateKeyPath) && File.Exists(privateKeyPath))
+        {
+            var privateKeyFile = new PrivateKeyFile(privateKeyPath);
+            var authMethod = new PrivateKeyAuthenticationMethod(username, privateKeyFile);
+            connectionInfo = new ConnectionInfo(host, port, username, authMethod);
+            UnityEngine.Debug.Log($"使用私钥认证: {privateKeyPath}");
+        }
+        else if (!string.IsNullOrEmpty(password))
+        {
+            var authMethod = new PasswordAuthenticationMethod(username, password);
+            connectionInfo = new ConnectionInfo(host, port, username, authMethod);
+            UnityEngine.Debug.Log("使用密码认证");
+        }
+        else
+        {
+            throw new ArgumentException("必须提供密码或有效的私钥路径");
+        }
+
+        using (var client = new SftpClient(connectionInfo))
+        {
+            try
+            {
+                client.Connect(); 
+                UnityEngine.Debug.Log($"已连接到 {host}:{port}");
+
+                void CreateRemoteDirectory(SftpClient client, string path)
+                {
+                    if (string.IsNullOrEmpty(path)) return;
+                    path = path.Replace('\\', '/');
+                    // 分割路径
+                    string[] parts = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                    string currentPath = "/";
+                    foreach (string part in parts)
+                    {
+                        currentPath = string.IsNullOrEmpty(currentPath) ? "/" + part : currentPath + "/" + part;
+                        if (!client.Exists(currentPath))
+                        {
+                            client.CreateDirectory(currentPath);
+                            UnityEngine.Debug.Log($"创建远程目录: {currentPath}");
+                        }
+                    }
+                }
+                // 如果指定了远程目录，则切换（若目录不存在则创建）
+                if (!string.IsNullOrEmpty(path))
+                {
+                    CreateRemoteDirectory(client, path);
+                    client.ChangeDirectory(path);
+                    UnityEngine.Debug.Log($"切换到远程目录: {path}");
+                }
+
+                foreach (string filePath in files)
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        UnityEngine.Debug.LogWarning($"文件不存在，跳过: {filePath}");
+                        continue;
+                    }
+
+                    string fileName = Path.GetFileName(filePath);
+                    using (var fileStream = File.OpenRead(filePath))
+                    {
+                        client.UploadFile(fileStream, fileName);
+                    }
+                    UnityEngine.Debug.Log($"上传成功: {filePath} -> {fileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogError($"SSH 上传失败: {ex.Message}");
+                throw; // 或根据需要处理
+            }
+            finally
+            {
+                if (client.IsConnected)
+                    client.Disconnect();
+            }
+        }
+        return $"ssh上传完成  count={files.Count}";
+    }
+
+    // ============================================================
+    // 获取版本号
+    // ============================================================
+    private static string GetBuildPackageVersion(string packageName)
+    {
+        string dir = $"{BundleBuilderHelper.GetDefaultBuildOutputRoot()}/{EditorUserBuildSettings.activeBuildTarget}/{packageName}";
+
+        if (Directory.Exists(dir))
+        {
+            var ds = Directory.GetDirectories(dir);
+            Version version = new Version(0, 0, 0);
+            foreach (var d in ds)
+            {
+                if (Version.TryParse(d,out var v))
+                {
+                    if (v > version)
+                        version = v;
+                }
+            }
+            return $"{version.Major}.{version.Minor}.{version.Build + 1}";
+        }
+        else
+            return "1.0.0";
+    }
+
+    // ============================================================
+    // 清理旧版本
+    // ============================================================
+    static void cull_res(string packageName)
+    {
+        string dir = $"{BundleBuilderHelper.GetDefaultBuildOutputRoot()}/{EditorUserBuildSettings.activeBuildTarget}/{packageName}";
+        if (!Directory.Exists(dir)) return;
+
+        var ds = Directory.GetDirectories(dir)
+            .Select(t => new DirectoryInfo(t))
+            .Where(t => Version.TryParse(t.Name, out _))
+            .ToList();
+
+        if (ds.Count == 0) return;
+
+        ds.Sort((x, y) =>
+        {
+            Version v1 = new Version(x.Name);
+            Version v2 = new Version(y.Name);
+            return v1.CompareTo(v2);
+        });
+
+        var src = ds.LastOrDefault();
+        if (src == null) return;
+
+        HashSet<string> oldFiles = new HashSet<string>();
+        for (int i = 0; i < ds.Count - 1; i++)
+        {
+            foreach (var item in ds[i].GetFiles())
+                oldFiles.Add(item.Name);
+        }
+
+        foreach (var item in src.GetFiles())
+        {
+            if (item.Name.EndsWith(".version"))
+                continue;
+            if (item.Name.EndsWith(".json") || item.Name.EndsWith(".xml") || item.Name.EndsWith(".report"))
+                item.Delete();
+            else if (oldFiles.Contains(item.Name))
+                item.Delete();
+        }
+    }
+}

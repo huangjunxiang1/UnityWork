@@ -13,7 +13,8 @@
         "GUID:e34a5702dd353724aa315fb8011f08c3",
         "GUID:4d1926c9df5b052469a1c63448b7609a",
         "GUID:a381c639117e5a745a08a1479448330b",
-        "GUID:e0cd26848372d4e5c891c569017e11f1"
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [
         "Editor"
@@ -25,7 +26,8 @@
         "Mono.Cecil.dll",
         "NPOI.Core.dll",
         "NPOI.OOXML.dll",
-        "NPOI.OpenXml4Net.dll"
+        "NPOI.OpenXml4Net.dll",
+        "Renci.SshNet.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
@@ -39,6 +41,11 @@
             "name": "com.unity.ugui",
             "expression": "",
             "define": "UGUI"
+        },
+        {
+            "name": "com.tuyoogame.yooasset",
+            "expression": "3.0.0",
+            "define": "YooAsset_3_0_0"
         }
     ],
     "noEngineReferences": false
