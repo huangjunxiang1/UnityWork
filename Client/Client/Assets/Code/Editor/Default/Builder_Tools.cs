@@ -10,46 +10,68 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using YooAsset;
 using YooAsset.Editor;
 
 static class Builder_raw
 {
+    [RPCQuery("Builder_raw")]
+    static Dictionary<string, string> query(RPCArgs args) => Builder_Tools.query(args);
+
     [RPCAttribute("Builder_raw", 1)]
-    static void GitPull(RPCArgs args) => Builder_Tools.GitPull();
+    static Task GitOrSvnPull(RPCArgs args) => Builder_Tools.GitOrSvnPull();
 
     [RPCAttribute("Builder_raw", 3)]
-    static void Build_Bundle(RPCArgs args) => Builder_Tools.Build_Bundle_raw(args.GetValueOrDefault("PackageName"));
+    static void Build_Bundle(RPCArgs args) => Builder_Tools.Build_Bundle_raw(args);
 
     [RPCAttribute("Builder_raw", 4)]
-    static string Up_Bundles(RPCArgs args) => Builder_Tools.Up_Bundles(args);
+    static IAsyncEnumerable<string> Up_Bundles(RPCArgs args) => Builder_Tools.Up_Bundles(args);
 }
 static class Builder_res
 {
+    [RPCQuery("Builder_res")]
+    static Dictionary<string, string> query(RPCArgs args) => Builder_Tools.query(args);
+
     [RPCAttribute("Builder_res", 1)]
-    static void GitPull(RPCArgs args) => Builder_Tools.GitPull();
+    static Task GitOrSvnPull(RPCArgs args) => Builder_Tools.GitOrSvnPull();
 
     [RPCAttribute("Builder_res", 3)]
-    static void Build_Bundle(RPCArgs args) => Builder_Tools.Build_Bundle_res(args.GetValueOrDefault("PackageName"));
+    static void Build_Bundle(RPCArgs args) => Builder_Tools.Build_Bundle_res(args);
 
     [RPCAttribute("Builder_res", 4)]
-    static string Up_Bundles(RPCArgs args) => Builder_Tools.Up_Bundles(args);
+    static IAsyncEnumerable<string> Up_Bundles(RPCArgs args) => Builder_Tools.Up_Bundles(args);
 }
 static class Builder_Tools
 {
+    public static Dictionary<string, string> query(RPCArgs args)
+    {
+        var rst = new Dictionary<string, string>();
+        if (Builder_Tools.GetBuildPackageVersion(args.GetValueOrDefault("PackageName"), out var vs))
+            rst.Add("vs", vs);
+        return rst;
+    }
+
 
     // ============================================================
     // Git Pull（自动检测仓库和分支）
     // ============================================================
-    public static void GitPull()
+    public static async Task GitOrSvnPull()
     {
-        // 从当前 Unity 项目目录向上查找 .git 目录
+        // 从当前 Unity 项目目录向上查找 .git .svn 目录
         string currentDir = Application.dataPath;
         string repoPath = null;
+        bool isGit = false;
         while (!string.IsNullOrEmpty(currentDir))
         {
             if (Directory.Exists(Path.Combine(currentDir, ".git")))
+            {
+                repoPath = currentDir;
+                isGit = true;
+                break;
+            }
+            if (Directory.Exists(Path.Combine(currentDir, ".svn")))
             {
                 repoPath = currentDir;
                 break;
@@ -58,62 +80,86 @@ static class Builder_Tools
         }
 
         if (string.IsNullOrEmpty(repoPath))
-            throw new Exception("未找到 Git 仓库（无法找到 .git 目录）");
+            throw new Exception("未找到 git仓库或svn根 目录");
 
-        // 获取当前分支名
-        string branch = GetCurrentGitBranch(repoPath);
-        if (string.IsNullOrEmpty(branch))
-            throw new Exception("无法获取当前分支名");
-
-        // 执行 git pull
-        ProcessStartInfo psi = new ProcessStartInfo("git", $"pull origin {branch}")
+        if (isGit)
         {
-            WorkingDirectory = repoPath,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        using (var p = Process.Start(psi))
-        {
-            string output = p.StandardOutput.ReadToEnd();
-            string error = p.StandardError.ReadToEnd();
-            p.WaitForExit();
-            if (p.ExitCode != 0)
-                throw new Exception($"Git pull 失败: {error}");
-            UnityEngine.Debug.Log($"Git pull 成功: {output}");
-        }
-    }
-
-    private static string GetCurrentGitBranch(string repoPath)
-    {
-        try
-        {
-            ProcessStartInfo psi = new ProcessStartInfo("git", "rev-parse --abbrev-ref HEAD")
+            // 执行 git pull
+            ProcessStartInfo psi;
+            if (Application.platform == RuntimePlatform.WindowsEditor)
             {
-                WorkingDirectory = repoPath,
+                psi = new ProcessStartInfo("git", $"pull")
+                {
+                    WorkingDirectory = repoPath,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+            }
+            else if (Application.platform == RuntimePlatform.OSXEditor)
+            {
+                // 执行 git pull，并临时指定 credential.helper（确保生效）
+                psi = new ProcessStartInfo("git", "-c credential.helper=osxkeychain pull")
+                {
+                    WorkingDirectory = repoPath,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+            }
+            else
+                throw new NotSupportedException();
+
+            using (var p = Process.Start(psi))
+            {
+                string output = p.StandardOutput.ReadToEnd();
+                string error = p.StandardError.ReadToEnd();
+                p.WaitForExit();
+                if (p.ExitCode != 0)
+                    throw new Exception($"git pull 失败: {error}");
+                UnityEngine.Debug.Log($"git pull 成功: {output}");
+            }
+        }
+        else
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "svn.exe",
+                Arguments = $"update \"{repoPath}\"",
+                UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                StandardOutputEncoding = System.Text.Encoding.UTF8
             };
             using (var p = Process.Start(psi))
             {
-                string branch = p.StandardOutput.ReadToEnd().Trim();
+                string output = p.StandardOutput.ReadToEnd();
+                string error = p.StandardError.ReadToEnd();
                 p.WaitForExit();
-                if (p.ExitCode == 0 && !string.IsNullOrEmpty(branch))
-                    return branch;
+
+                if (p.ExitCode != 0)
+                    throw new Exception($"svn update 失败: {error}");
+                UnityEngine.Debug.Log($"svn update 成功: {output}");
             }
-            return null;
         }
-        catch { return null; }
+     
+        AssetDatabase.Refresh();
+        CompilationPipeline.RequestScriptCompilation();
+        //等待程序集重载
+        while (true)
+            await Task.Delay(1);
     }
 
     // ============================================================
     // 构建资源包
     // ============================================================
-    public static string Build_Bundle_raw(string PackageName)
+    public static string Build_Bundle_raw(RPCArgs args)
     {
+        var PackageName = args.GetValueOrDefault("PackageName");
+        var vs = args.GetValueOrDefault("vs");
         var PipelineName = BundleBuilderSetting.GetPackageBuildPipeline(PackageName);
         
         var fileNameStyle = BundleBuilderSetting.GetPackageFileNameStyle(PackageName, PipelineName);
@@ -129,7 +175,8 @@ static class Builder_Tools
         buildParameters.BuildBundleType = (int)EBundleType.RawBundle;
         buildParameters.BuildTarget = EditorUserBuildSettings.activeBuildTarget;
         buildParameters.PackageName = PackageName;
-        buildParameters.PackageVersion = GetBuildPackageVersion(PackageName);
+        GetBuildPackageVersion(PackageName,out var vsStr);
+        buildParameters.PackageVersion = string.IsNullOrEmpty(vs) ? vsStr : vs;
         buildParameters.VerifyBuildingResult = true;
         buildParameters.FileNameStyle = fileNameStyle;
         buildParameters.BundledCopyOption = bundledCopyOption;
@@ -142,11 +189,13 @@ static class Builder_Tools
 
         RawFileBuildPipeline pipeline = new RawFileBuildPipeline();
         var buildResult = pipeline.Run(buildParameters, true);
+        if (!buildResult.Success)
+            throw new Exception($"构建失败 [{buildResult.ErrorInfo}]");
 
         cull_res(buildParameters.PackageName);
         return buildParameters.PackageVersion;
     }
-    public static string Build_Bundle_res(string PackageName)
+    public static string Build_Bundle_res(RPCArgs args)
     { 
         string[] guids = AssetDatabase.FindAssets("t:TMP_FontAsset");
         foreach (string guid in guids)
@@ -157,6 +206,8 @@ static class Builder_Tools
                 asset.ClearFontAssetData(true);
         }
         AssetDatabase.Refresh();
+        var PackageName = args.GetValueOrDefault("PackageName");
+        var vs = args.GetValueOrDefault("vs");
         var PipelineName = BundleBuilderSetting.GetPackageBuildPipeline(PackageName);
 
         var fileNameStyle = BundleBuilderSetting.GetPackageFileNameStyle(PackageName, PipelineName);
@@ -173,7 +224,8 @@ static class Builder_Tools
         buildParameters.BuildBundleType = (int)EBundleType.AssetBundle;
         buildParameters.BuildTarget = EditorUserBuildSettings.activeBuildTarget;
         buildParameters.PackageName = PackageName;
-        buildParameters.PackageVersion = GetBuildPackageVersion(PackageName);
+        GetBuildPackageVersion(PackageName, out var vsStr);
+        buildParameters.PackageVersion = string.IsNullOrEmpty(vs) ? vsStr : vs;
         buildParameters.EnableSharePackRule = true;
         buildParameters.VerifyBuildingResult = true;
         buildParameters.FileNameStyle = fileNameStyle;
@@ -189,6 +241,8 @@ static class Builder_Tools
 
         ScriptableBuildPipeline pipeline = new ScriptableBuildPipeline();
         var buildResult = pipeline.Run(buildParameters, true);
+        if (!buildResult.Success)
+            throw new Exception($"构建失败 [{buildResult.ErrorInfo}]");
 
         cull_res(buildParameters.PackageName);
         return buildParameters.PackageVersion;
@@ -236,7 +290,7 @@ static class Builder_Tools
     // ============================================================
     // 上传资源包
     // ============================================================
-    public static string Up_Bundles(RPCArgs args)
+    public static async IAsyncEnumerable<string> Up_Bundles(RPCArgs args)
     {
         string outputRoot = BundleBuilderHelper.GetDefaultBuildOutputRoot();
         BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
@@ -245,7 +299,7 @@ static class Builder_Tools
         if (!Directory.Exists(packageDir))
         {
             UnityEngine.Debug.LogError($"Up_Bundles: 包目录不存在: {packageDir}");
-            return $"Up_Bundles: 包目录不存在: {packageDir}";
+            yield return $"Up_Bundles: 包目录不存在: {packageDir}";
         }
 
         var versionDirs = Directory.GetDirectories(packageDir)
@@ -257,7 +311,7 @@ static class Builder_Tools
         if (versionDirs.Count == 0)
         {
             UnityEngine.Debug.LogError($"Up_Bundles: 未找到版本目录 in {packageDir}");
-            return $"Up_Bundles: 未找到版本目录 in {packageDir}";
+            yield return $"Up_Bundles: 未找到版本目录 in {packageDir}";
         }
 
         var first = versionDirs.First();
@@ -269,7 +323,7 @@ static class Builder_Tools
         if (files.Count == 0)
         {
             UnityEngine.Debug.LogError($"Up_Bundles: 在 {latestVersionDir} 中未找到任何文件");
-            return $"Up_Bundles: 在 {latestVersionDir} 中未找到任何文件";
+            yield return $"Up_Bundles: 在 {latestVersionDir} 中未找到任何文件";
         }
 
         string username = args.GetValueOrDefault("user");
@@ -279,27 +333,32 @@ static class Builder_Tools
         if (uploadMethod == "ftp")
         {
             UnityEngine.Debug.Log($"Up_Bundles: FTP 上传到 {url}");
-            return $"{UploadViaFTP(url, username, password, files)} vs={new Version(first.Name)}";
+            await foreach (var item in UploadViaFTP(url, username, password, files))
+                yield return item;
+            yield return $"版本={version}";
         }
         else if (uploadMethod == "ssh")
         {
             UnityEngine.Debug.Log($"Up_Bundles: SSH 上传到 {url}");
-            return $"{UploadViaSSH(url, username, password, args.GetValueOrDefault("sshKey"), files, args.GetValueOrDefault("path"))} vs={new Version(first.Name)}";
+            await foreach (var item in UploadViaSSH(url, username, password, args.GetValueOrDefault("sshKey"), files, args.GetValueOrDefault("path")))
+                yield return item;
+            yield return $"版本={version}";
         }
-        return "不支持非ftp或ssh上传";
+        else
+            yield return "不支持非ftp或ssh上传";
     }
 
     // ============================================================
     // FTP 上传
     // ============================================================
-    private static string UploadViaFTP(string url, string username, string password,List<string> files)
+    private static async IAsyncEnumerable<string> UploadViaFTP(string url, string username, string password, List<string> files)
     {
         if (string.IsNullOrEmpty(url))
             throw new ArgumentException("URL 不能为空", nameof(url));
         if (files == null || files.Count == 0)
         {
             UnityEngine.Debug.Log("FTP 文件列表为空，无需上传");
-            return "FTP 文件列表为空，无需上传";
+            yield return "FTP 文件列表为空，无需上传";
         }
 
         // 确保 url 以 '/' 结尾，方便拼接文件名
@@ -330,8 +389,9 @@ static class Builder_Tools
         }
 
         // 上传每个文件
-        foreach (string localFile in files)
+        for (int i = 0; i < files.Count; i++)
         {
+            var localFile = files[i];
             if (!File.Exists(localFile))
             {
                 UnityEngine.Debug.LogWarning($"文件不存在，跳过: {localFile}");
@@ -351,22 +411,20 @@ static class Builder_Tools
             req.ContentLength = data.Length;
 
             using (Stream s = req.GetRequestStream())
-                s.Write(data, 0, data.Length);
+                await s.WriteAsync(data, 0, data.Length);
 
             using (FtpWebResponse resp = (FtpWebResponse)req.GetResponse())
             {
-                UnityEngine.Debug.Log($"FTP 上传成功: {fileName}");
-            }
-        }
 
-        UnityEngine.Debug.Log($"FTP 上传完成，共 {files.Count} 个文件");
-        return $"FTP 上传完成，共 {files.Count} 个文件";
+            }
+            yield return $"上传成功={i + 1}/{files.Count} ->{fileName}";
+        }
     }
 
     // ============================================================
     // SSH 上传（暂未实现）
     // ============================================================
-    private static string UploadViaSSH(string url, string username, string password, string privateKeyPath, List<string> files,string path)
+    private static async IAsyncEnumerable<string> UploadViaSSH(string url, string username, string password, string privateKeyPath, List<string> files, string path)
     {
         if (string.IsNullOrEmpty(url))
             throw new ArgumentException("URL 不能为空", nameof(url));
@@ -375,7 +433,7 @@ static class Builder_Tools
         if (files == null || files.Count == 0)
         {
             UnityEngine.Debug.Log("文件列表为空，无需上传");
-            return "文件列表为空，无需上传";
+            yield return "文件列表为空，无需上传";
         }
 
         // 解析主机和端口（格式: "host" 或 "host:port"）
@@ -410,89 +468,84 @@ static class Builder_Tools
 
         using (var client = new SftpClient(connectionInfo))
         {
-            try
-            {
-                client.Connect(); 
-                UnityEngine.Debug.Log($"已连接到 {host}:{port}");
+            client.Connect();
+            UnityEngine.Debug.Log($"已连接到 {host}:{port}");
 
-                void CreateRemoteDirectory(SftpClient client, string path)
+            void CreateRemoteDirectory(SftpClient client, string path)
+            {
+                if (string.IsNullOrEmpty(path)) return;
+                path = path.Replace('\\', '/');
+                // 分割路径
+                string[] parts = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                string currentPath = "/";
+                foreach (string part in parts)
                 {
-                    if (string.IsNullOrEmpty(path)) return;
-                    path = path.Replace('\\', '/');
-                    // 分割路径
-                    string[] parts = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                    string currentPath = "/";
-                    foreach (string part in parts)
+                    currentPath = string.IsNullOrEmpty(currentPath) ? "/" + part : currentPath + "/" + part;
+                    if (!client.Exists(currentPath))
                     {
-                        currentPath = string.IsNullOrEmpty(currentPath) ? "/" + part : currentPath + "/" + part;
-                        if (!client.Exists(currentPath))
-                        {
-                            client.CreateDirectory(currentPath);
-                            UnityEngine.Debug.Log($"创建远程目录: {currentPath}");
-                        }
+                        client.CreateDirectory(currentPath);
+                        UnityEngine.Debug.Log($"创建远程目录: {currentPath}");
                     }
                 }
-                // 如果指定了远程目录，则切换（若目录不存在则创建）
-                if (!string.IsNullOrEmpty(path))
-                {
-                    CreateRemoteDirectory(client, path);
-                    client.ChangeDirectory(path);
-                    UnityEngine.Debug.Log($"切换到远程目录: {path}");
-                }
-
-                foreach (string filePath in files)
-                {
-                    if (!File.Exists(filePath))
-                    {
-                        UnityEngine.Debug.LogWarning($"文件不存在，跳过: {filePath}");
-                        continue;
-                    }
-
-                    string fileName = Path.GetFileName(filePath);
-                    using (var fileStream = File.OpenRead(filePath))
-                    {
-                        client.UploadFile(fileStream, fileName);
-                    }
-                    UnityEngine.Debug.Log($"上传成功: {filePath} -> {fileName}");
-                }
             }
-            catch (Exception ex)
+            // 如果指定了远程目录，则切换（若目录不存在则创建）
+            if (!string.IsNullOrEmpty(path))
             {
-                UnityEngine.Debug.LogError($"SSH 上传失败: {ex.Message}");
-                throw; // 或根据需要处理
+                CreateRemoteDirectory(client, path);
+                client.ChangeDirectory(path);
+                UnityEngine.Debug.Log($"切换到远程目录: {path}");
             }
-            finally
+
+            for (int i = 0; i < files.Count; i++)
             {
-                if (client.IsConnected)
-                    client.Disconnect();
+                string filePath = files[i];
+                if (!File.Exists(filePath))
+                    continue;
+
+                string fileName = Path.GetFileName(filePath);
+                using (var fileStream = File.OpenRead(filePath))
+                    await client.UploadFileAsync(fileStream, fileName);
+                yield return $"上传成功={i + 1}/{files.Count} ->{fileName}";
             }
+
+            if (client.IsConnected)
+                client.Disconnect();
         }
-        return $"ssh上传完成  count={files.Count}";
     }
 
     // ============================================================
     // 获取版本号
     // ============================================================
-    private static string GetBuildPackageVersion(string packageName)
+    static bool GetBuildPackageVersion(string packageName, out string vs)
     {
         string dir = $"{BundleBuilderHelper.GetDefaultBuildOutputRoot()}/{EditorUserBuildSettings.activeBuildTarget}/{packageName}";
 
         if (Directory.Exists(dir))
         {
-            var ds = Directory.GetDirectories(dir);
-            Version version = new Version(0, 0, 0);
-            foreach (var d in ds)
+            var ds = Directory.GetDirectories(dir)
+            .Select(t => new DirectoryInfo(t))
+            .Where(t => Version.TryParse(t.Name, out _))
+            .ToList();
+            ds.Sort((x, y) =>
             {
-                if (Version.TryParse(d,out var v))
-                {
-                    if (v > version)
-                        version = v;
-                }
+                Version v1 = new Version(x.Name);
+                Version v2 = new Version(y.Name);
+                return v1.CompareTo(v2);
+            });
+
+            if (!Version.TryParse(ds.LastOrDefault().Name, out var ret))
+            {
+                vs = "1.0.0";
+                return false;
             }
-            return $"{version.Major}.{version.Minor}.{version.Build + 1}";
+            vs = $"{ret.Major}.{ret.Minor}.{ret.Build + 1}";
+            return true;
         }
         else
-            return "1.0.0";
+        {
+            vs = "1.0.0";
+            return false;
+        }
     }
 
     // ============================================================
