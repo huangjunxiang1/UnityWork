@@ -11,8 +11,7 @@ static class _main
     [Test]
     public static void test()
     {
-        var tsc = ThreadSynchronizationContext.GetOrCreate(System.Environment.CurrentManagedThreadId);
-        ThreadSynchronizationContext.SetMainThread(tsc);
+        ThreadSynchronizationContext.GetOrCreate(System.Environment.CurrentManagedThreadId);
 
         List<Type> types = new();
         types.AddRange(typeof(World).Assembly.GetTypes());

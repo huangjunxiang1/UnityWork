@@ -8,7 +8,7 @@ namespace Core
         public World(List<Type> types,string name)
         {
             this.Name = string.IsNullOrEmpty(name) ? "Unknown" : name;
-            Thread = ThreadSynchronizationContext.GetOrCreate(Environment.CurrentManagedThreadId);
+            ThreadSync = ThreadSynchronizationContext.GetOrCreate(Environment.CurrentManagedThreadId);
 
             Checker.Check(types);
 
@@ -24,7 +24,7 @@ namespace Core
             this.Root.World = this;
         }
         public string Name { get; }
-        public ThreadSynchronizationContext Thread { get; private set; }
+        public ThreadSynchronizationContext ThreadSync { get; private set; }
         public EventSystem Event { get; private set; } 
         public STimer Timer { get; private set; } = new();
         public ObjectManager ObjectManager { get; private set; } = new();
@@ -39,7 +39,7 @@ namespace Core
         public void BeforeUpdate(float time)
         {
             this.DeltaTime = time;
-            Thread.Update();
+            ThreadSync.Update();
             System.beforeUpdate();
         }
         public void Update()
@@ -57,7 +57,7 @@ namespace Core
         {
             Worlds.Remove(this);
             Close?.Invoke();
-            Thread.Post(s => Root.Dispose());
+            ThreadSync.Post(s => Root.Dispose());
         }
         public override string ToString() => this.Name;
     }

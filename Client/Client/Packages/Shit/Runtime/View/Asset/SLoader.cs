@@ -50,13 +50,12 @@ namespace Game
             this.package = package;
             if (Application.isPlaying)
             {
-                _loaderRoot = new GameObject(name);
+                _loaderRoot = new GameObject(_name);
                 _loaderRoot.transform.parent = _poolRoot.transform;
             }
         }
 
         static GameObject _poolRoot;
-        static Dictionary<string, SLoader> _loaderMap = new();
 
         string _name;
         HashSet<AssetHandle> _handles = new();
@@ -75,11 +74,8 @@ namespace Game
         }
         public void Dispose()
         {
-            if (!_loaderMap.TryGetValue(_name, out var loader))
-                return;
-            _loaderMap.Remove(_name);
             isDisposed = true;
-            foreach (var item in loader._handles)
+            foreach (var item in this._handles)
                 item.Dispose();
             GameObject.Destroy(_loaderRoot);
         }
@@ -190,7 +186,7 @@ namespace Game
         Dictionary<object, string> objToUrl = new();
         public async STask SetTexture(RawImage img, string url)
         {
-            objToUrl.TryGetValue(img,out var old);
+            objToUrl.TryGetValue(img, out var old);
             if (old == url)
                 return;
             if (string.IsNullOrEmpty(url))
@@ -214,6 +210,8 @@ namespace Game
                 Release(tex);
                 return;
             }
+            if (old != null && img.texture)
+                Release(img.texture);
             img.texture = tex;
         }
 #if FairyGUI

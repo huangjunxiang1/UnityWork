@@ -32,7 +32,7 @@ namespace Game
         public static void Initialize(List<Type> types)
         {
             World = new(types, "Client");
-            Loader = new(null, null);
+            Loader = new(World.Name, null);
             SValueTask.DelayHandle -= delayHandle;
             SValueTask.DelayHandle += delayHandle;
 

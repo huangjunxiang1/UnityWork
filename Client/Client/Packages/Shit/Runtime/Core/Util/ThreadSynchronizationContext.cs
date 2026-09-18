@@ -9,19 +9,16 @@ namespace Core
         public readonly int threadId;
 
         // 线程同步队列,发送接收socket回调都放到该队列,由poll线程统一执行
-        private readonly ConcurrentQueue<(SendOrPostCallback, object)> queue = new();
+        private readonly ConcurrentQueue<(SendOrPostCallback action, object status)> queue = new();
 
         static ConcurrentDictionary<int, ThreadSynchronizationContext> map = new();
-
-        public static ThreadSynchronizationContext MainThread { get; private set; }
 
         public static ThreadSynchronizationContext GetOrCreate(int threadID)
         {
             if (!map.TryGetValue(threadID, out var v))
-                v = map[threadID] = new(threadID);
+                v = map[threadID] = new ThreadSynchronizationContext(threadID);
             return v;
         }
-        public static void SetMainThread(ThreadSynchronizationContext tsc) => MainThread = tsc;
         public ThreadSynchronizationContext(int threadId)
         {
             this.threadId = threadId;
@@ -33,7 +30,7 @@ namespace Core
             {
                 try
                 {
-                    a.Item1(a.Item2);
+                    a.action(a.status);
                 }
                 catch (Exception e)
                 {

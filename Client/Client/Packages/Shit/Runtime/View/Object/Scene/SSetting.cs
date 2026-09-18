@@ -7,7 +7,7 @@ public static partial class SSetting
 {
     public static partial class ViewSetting
     {
-        public static int OcTree_MaxTreesPerNode = 32;
-        public static int OcTree_MaxOcTreeDepth = 16;
+        public static int Tree_MaxTreePerNode = 32;
+        public static int Tree_MaxTreeDepth = 16;
     }
 }

@@ -33,6 +33,8 @@ namespace Game
             this.Session = Util.RandomInt();
         }
 
+        bool _working = false;
+
         protected ConcurrentQueue<IMessage> sendQueues = new();
 
         protected byte[] _sBuffer = new byte[ushort.MaxValue];
@@ -55,10 +57,20 @@ namespace Game
         }
         public virtual void Work(bool mulThread = true)
         {
+            if (_working)
+                return;
+            _working = true;
+
             if (mulThread)
-                new Thread(_work) { IsBackground = true }.Start();
+            {
+                Task.Run(ReceiveBuffer);
+                Task.Run(SendBuffer);
+            }
             else
-                _work();
+            {
+                ReceiveBuffer();
+                SendBuffer();
+            }
         }
 
         protected abstract void ReceiveBuffer();
@@ -67,19 +79,16 @@ namespace Game
         {
             //除了解析出错 其他都是非正常出错
             if (error != NetError.ParseError)
+            {
+                _working = false;
                 this.DisConnect();
+            }
             Loger.Error($"网络错误 error={ex} \n stack={Loger.GetStackTrace()}");
             onError.Invoke(error);
         }
         protected void ReceiveMessage(IMessage message)
         {
             this.onMessage.Invoke(message);
-        }
-
-        void _work()
-        {
-            ReceiveBuffer();
-            SendBuffer();
         }
     }
 }

@@ -35,11 +35,11 @@ namespace Game
 
         void _onError(NetError code)
         {
-            this.World.Thread.Post(s => this.World.Event.RunEvent(new EC_NetError { code = (int)code }));
+            this.World.ThreadSync.Post(s => this.World.Event.RunEvent(new EC_NetError { code = (int)code }));
         }
         void _onResponse(IMessage message)
         {
-            this.World.Thread.Post(s =>
+            this.World.ThreadSync.Post(s =>
             {
 #if !Server
                 Client.Data.Add(s);
@@ -78,7 +78,7 @@ namespace Game
         }
         void _onDisconnect()
         {
-            this.World.Thread.Post(s =>
+            this.World.ThreadSync.Post(s =>
             {
                 var v = new EC_Disconnect { rpc = this.ActorId };
                 if (this.ActorId != 0)
@@ -161,7 +161,7 @@ namespace Game
             s.onError -= _onError;
             s.onDisconnect -= _onDisconnect;
             Session = null;
-            this.World.Thread.Post(t => s.DisConnect());
+            this.World.ThreadSync.Post(t => s.DisConnect());
         }
 
         [OutSystem]

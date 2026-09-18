@@ -10,9 +10,7 @@ public static partial class Util
 {
     static Util()
     {
-        int tick = (int)DateTime.Now.Ticks;
-        int pid = Process.GetCurrentProcess().Id;
-        int seed = (tick >> 17) ^ (pid << 15);
+        int seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
         random = new Random(seed);
     }
     static Random random;
@@ -43,6 +41,6 @@ public static partial class Util
     public static int RandomInt() => random.Next();
     public static int RandomInt(int min, int max) => random.Next(min, max);
     public static float RandomFloat(float min, float max) => min + (max - min) * RandomFloat01();
-    public static float RandomFloat01() => RandomInt(0, int.MaxValue) / (float)int.MaxValue;
+    public static float RandomFloat01() => (float)random.NextDouble();
     public static long RandomLong() => (((long)random.Next()) << 32) | (random.Next() & 0xffffffff);
 }

@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 /// </summary>
 public class STaskLocker : IDispose
 {
-    static ConcurrentDictionary<object, STaskLocker> locks = new();
-    static ConcurrentDictionary<long, STaskLocker> locks2 = new();
+    static ConcurrentDictionary<object, STaskLocker> lockObj = new();
+    static ConcurrentDictionary<long, STaskLocker> lockLong = new();
 
     object key;
     long key2;
@@ -40,23 +40,30 @@ public class STaskLocker : IDispose
     }
     public static async STask<STaskLocker> Lock(object key, int timeout = 5000)
     {
-        if (!locks.TryGetValue(key, out var locker) || locker.Disposed)
+        STask task;
+        STaskLocker locker;
+
+        lock (lockObj)
         {
-            locks[key] = locker = new STaskLocker() { key = key };
-            if (timeout > 0)
-                locker.timeout(timeout);
-            return locker;
+            if (!lockObj.TryGetValue(key, out locker) || locker.Disposed)
+            {
+                lockObj[key] = locker = new STaskLocker() { key = key };
+                if (timeout > 0)
+                    locker.timeout(timeout);
+                return locker;
+            }
+            else
+            {
+                task = locker.next = new STask();
+                locker = new STaskLocker() { key = key };
+                lockObj[key] = locker;
+            }
         }
-        else
-        {
-            STask task = locker.next = new STask();
-            locker = new STaskLocker() { key = key };
-            locks[key] = locker;
-            await task;
-            if (timeout > 0)
-                locker.timeout(timeout);
-            return locker;
-        }
+
+        await task;
+        if (timeout > 0 && !locker.Disposed)
+            locker.timeout(timeout);
+        return locker;
     }
     public static async STask<STaskLocker> Lock(long key, int timeout = 5000)
     {
@@ -65,50 +72,39 @@ public class STaskLocker : IDispose
             Loger.Error("key cannot is 0");
             return null;
         }
-        if (!locks2.TryGetValue(key, out var locker) || locker.Disposed)
+        STask task;
+        STaskLocker locker;
+
+        lock (lockLong)
         {
-            locks2[key] = locker = new STaskLocker() { key2 = key };
-            if (timeout > 0)
-                locker.timeout(timeout);
-            return locker;
+            if (!lockLong.TryGetValue(key, out locker) || locker.Disposed)
+            {
+                lockLong[key] = locker = new STaskLocker() { key2 = key };
+                if (timeout > 0)
+                    locker.timeout(timeout);
+                return locker;
+            }
+            else
+            {
+                task = locker.next = new STask();
+                locker = new STaskLocker() { key2 = key };
+                lockLong[key] = locker;
+            }
         }
-        else
-        {
-            STask task = locker.next = new STask();
-            locker = new STaskLocker() { key2 = key };
-            locks2[key] = locker;
-            await task;
-            if (timeout > 0)
-                locker.timeout(timeout);
-            return locker;
-        }
-    }
-    public static void UnLock(object key)
-    {
-        if (!locks.TryGetValue(key, out var locker))
-        {
-            Loger.Error($"没有对应的锁 key={key}");
-            return;
-        }
-        locker.Dispose();
-    }
-    public static void UnLock(long key)
-    {
-        if (!locks2.TryGetValue(key, out var locker))
-        {
-            Loger.Error($"没有对应的锁 key={key}");
-            return;
-        }
-        locker.Dispose();
+
+        await task;
+        if (timeout > 0 && !locker.Disposed)
+            locker.timeout(timeout);
+        return locker;
     }
 
     public void Dispose()
     {
         Disposed = true;
-        if (key != null && locks.TryGetValue(key, out var v) && v == this)
-            locks.TryRemove(key, out _);
-        if (key2 != 0 && locks2.TryGetValue(key2, out var v2) && v2 == this)
-            locks2.TryRemove(key2, out _);
+        if (key != null && lockObj.TryGetValue(key, out var v) && v == this)
+            lockObj.TryRemove(key, out _);
+        if (key2 != 0 && lockLong.TryGetValue(key2, out var v2) && v2 == this)
+            lockLong.TryRemove(key2, out _);
         next?.TrySetResult();
     }
 

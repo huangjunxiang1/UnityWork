@@ -12,22 +12,17 @@ internal static class ArrayCache
 
     class Cache<T>
     {
-        static ConcurrentDictionary<int, T[][]> safeDic = new();
+        [ThreadStatic]
+        static T[][] array;
         internal static T[] Get(int index)
         {
-            int id = Environment.CurrentManagedThreadId;
-            if (!safeDic.TryGetValue(id, out var arr))
+            if (array == null)
             {
-                safeDic[id] = arr = new T[Max][]
-                {
-                    new T[1],
-                    new T[2],
-                    new T[3],
-                    new T[4],
-                    new T[5],
-                };
+                array = new T[Max][];
+                for (int i = 0; i < Max; i++)
+                    array[i] = new T[i + 1];
             }
-            return arr[index];
+            return array[index];
         }
     }
 

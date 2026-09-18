@@ -130,7 +130,7 @@ namespace Core
             EvtData e = new();
             e.action = callBack;
             e.sortOrder = sortOrder;
-            e.isTask = gs[^1] == typeof(STask);
+            e.isTask = callBack.Method.ReturnType == typeof(STask);
             e.isParamDefine = true;
             e.setHandler = gs.Length >= 2 && gs[1] == typeof(EventHandler);
             queue.Add(e);
@@ -389,7 +389,7 @@ namespace Core
                             else
                             {
                                 var ts = ArrayCache.Get<Type>(1);
-                                ts[1] = typeof(EventHandler);
+                                ts[0] = typeof(EventHandler);
                                 this.action = this.method.CreateDelegate(typeof(Action<>).MakeGenericType(ts), target);
                             }
                         }
@@ -528,7 +528,7 @@ namespace Core
                 ++counter;
                 int cnt = evts.Count;
                 EventHandler eh = new();
-                for (int i = 0; i < cnt; ++i)
+                for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
                     EvtData e = evts[i];
                     STask task = invoke(e, data, eh);
@@ -542,7 +542,7 @@ namespace Core
                 List<STask> ts = ObjectPool.Get<List<STask>>();
                 int cnt = evts.Count;
                 EventHandler eh = new();
-                for (int i = 0; i < cnt; ++i)
+                for (int i = 0; i < cnt && !eh.isBreak; ++i)
                 {
                     EvtData e = evts[i];
                     STask task = invoke(e, data, eh);

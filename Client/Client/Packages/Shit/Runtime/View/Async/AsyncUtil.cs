@@ -119,16 +119,5 @@ namespace Game
             return task;
         }
 #endif
-#if Addressables
-        public static STask<T> AsTask<T>(this UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<T> op)
-        {
-            STask<T> task = new();
-            if (op.IsDone)
-                task.TrySetResult(op.Result);
-            else
-                op.Completed += e => task.TrySetResult(e.Result);
-            return task;
-        }
-#endif
     }
 }

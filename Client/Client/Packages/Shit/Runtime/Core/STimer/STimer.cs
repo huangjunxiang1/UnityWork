@@ -88,9 +88,8 @@ namespace Core
                 ti.target = null;
                 ti.action = null;
                 atMap.Remove(call);
-                if (ti.wheel > this.wheel)
+                if (ti.wheel > this.wheel && timers.TryGetValue(ti.wheel, out var u))
                 {
-                    var u = timers[ti.wheel];
                     timers.Remove(ti.wheel);
                     var q = ObjectPool.Get<Queue<TimerItem>>();
                     while (u.TryDequeue(out var t))
@@ -139,9 +138,8 @@ namespace Core
                 ti.disposed = true;
                 ti.action = null;
                 utc_atMap.Remove(call);
-                if (ti.wheel > this.utc_wheel)
+                if (ti.wheel > this.utc_wheel && utc_timers.TryGetValue(ti.wheel, out var u))
                 {
-                    var u = utc_timers[ti.wheel];
                     utc_timers.Remove(ti.wheel);
                     var q = ObjectPool.Get<Queue<utcTimerItem>>();
                     while (u.TryDequeue(out var t))

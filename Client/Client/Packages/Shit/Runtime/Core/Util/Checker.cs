@@ -93,8 +93,8 @@ namespace Core
         {
             var origin = method.GetParameters();
             var ps = origin;
-            if (origin.LastOrDefault()?.ParameterType == typeof(EventHandler))
-                ps = origin[1..];
+            if (origin.Length > 1 && origin.LastOrDefault()?.ParameterType == typeof(EventHandler))
+                ps = origin[..1];
 
             if (method.IsGenericMethod)
                 Loger.Error($"事件函数不能是泛型函数  class:{method.ReflectedType.FullName} method:{method.Name}");
@@ -120,14 +120,12 @@ namespace Core
             {
                 if (ps.Length == 1 && ps[0].ParameterType != typeof(EventHandler))
                     return;
-                if (ps.Length == 2 && ps[0].ParameterType != typeof(EventHandler) && ps[1].ParameterType == typeof(EventHandler))
-                    return;
             }
             else
             {
                 if (ps.Length == 0 && ea.FirstOrDefault(t => t.EventType == null) == null)
                     return;
-                if (ps.Length == 1 && ea.Length == 1 && ea[0].EventType == null)
+                if (ps.Length == 1 && ps[0].ParameterType != typeof(EventHandler) && ea.Length == 1 && ea[0].EventType == null)
                     return;
             }
 

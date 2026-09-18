@@ -142,7 +142,10 @@ internal static class EventTest
         Game.Client.World.Root.AddChild(new ManualHandlerClass());
 
         // 委托注册（默认 Type=0）
-        Game.Client.World.Event.RigisteEvent<MyEvent>(EventTestClass.DelegateTarget, 0, 40);
+        Action<MyEvent> act = EventTestClass.DelegateTarget;
+        Delegate act1 = (Action<MyEvent>)EventTestClass.DelegateTarget;
+        Game.Client.World.Event.RigisteEvent<MyEvent>(act, 0, 40);
+        Game.Client.World.Event.RigisteEvent(act1, 70, 41);
 
         // 用于 ActorId/gid 测试的对象
         var obj1 = new EventTestClass { ActorId = 1001 };
@@ -180,6 +183,10 @@ internal static class EventTest
 
         // 7. 额外触发 Type=0 默认事件（用于验证委托和静态方法）
         Game.Client.World.Event.RunEvent(new MyEvent { Id = 600 });
+        Game.Client.World.Event.RunEvent(new MyEvent { Id = 700 }, actorId: 70);
+
+        Game.Client.World.Event.RemoveEvent(act);
+        Game.Client.World.Event.RemoveEvent(act1);
 
         // ===== 验证 =====
         Verify(testObj, obj1, obj2);
@@ -213,6 +220,8 @@ internal static class EventTest
         // ---------- 验证委托注册（在 Type=0 事件中调用） ----------
         if (!log.Any(x => x == "DelegateTarget Id=600"))
             throw new Exception("委托注册未在 Type=0 事件中被调用");
+        if (!log.Any(x => x == "DelegateTarget Id=700"))
+            throw new Exception("委托注册未在 Type=70 事件中被调用");
 
         // ---------- 字段/属性赋值验证 (Type=1,2,3,4) ----------
         if (EventTestClass.StaticField_Type1 == null || EventTestClass.StaticField_Type1.Id != 100)

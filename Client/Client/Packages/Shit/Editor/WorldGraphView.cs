@@ -61,7 +61,7 @@ namespace Shit.Editor
 
         void reload()
         {
-            ThreadSynchronizationContext.MainThread?.Post(s =>
+            Client.World?.ThreadSync?.Post(s =>
             {
                 ConstructUI();
                 LoadWorldRootAndBuild();

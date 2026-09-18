@@ -51,7 +51,7 @@ namespace Core
                     this._Handles[i].EnableCounter += value ? -1 : 1;
                 if (World != null)
                 {
-                    if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
+                    if (Thread.CurrentThread.ManagedThreadId != this.World.ThreadSync.threadId)
                     {
                         Loger.Error($"canot {nameof(Enable)} in other thread");
                         return;
@@ -71,7 +71,7 @@ namespace Core
         public virtual void SetChange()
         {
             if (this.Disposed || !_enable || World == null) return;
-            if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
+            if (Thread.CurrentThread.ManagedThreadId != this.World.ThreadSync.threadId)
             {
                 Loger.Error($"canot {nameof(SetChange)} in other thread");
                 return;
@@ -90,7 +90,7 @@ namespace Core
                 Loger.Error("重复Dispose->" + this);
                 return;
             }
-            if (Thread.CurrentThread.ManagedThreadId != this.World.Thread.threadId)
+            if (Thread.CurrentThread.ManagedThreadId != this.World.ThreadSync.threadId)
             {
                 Loger.Error($"canot {nameof(Dispose)} in other thread");
                 return;
