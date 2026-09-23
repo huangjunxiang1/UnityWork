@@ -1,5 +1,4 @@
 ﻿using Core;
-using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,13 +13,13 @@ internal class TypeLstCheck
         o1 v_o2 = new();
         o1 v_o3 = new() { Group = 2 };
 
-        Client.World.Root.AddChild(v_o1);
-        Client.World.Root.AddChild(v_o2);
-        Client.World.Root.AddChild(v_o3);
+        Game.World.AddChild(v_o1);
+        Game.World.AddChild(v_o2);
+        Game.World.AddChild(v_o3);
 
         o2 v2_o1 = new() { isCrucialRoot = true };
         {
-            Client.World.Root.AddChild(v2_o1);
+            Game.World.AddChild(v2_o1);
             v2_o1.AddChild(v_o1);
             v2_o1.AddChild(v_o2);
             v2_o1.AddChild(v_o3);

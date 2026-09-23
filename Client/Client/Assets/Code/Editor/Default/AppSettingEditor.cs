@@ -4,8 +4,6 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.Build;
-using Game;
-using System.IO;
 
 [CustomEditor(typeof(GameStart))]
 public class AppSettingEditor : Editor

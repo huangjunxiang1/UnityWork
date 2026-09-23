@@ -2,7 +2,6 @@
 
 #if FairyGUI
 using FairyGUI;
-using Game;
 using Unity.Mathematics;
 
 public enum AdaptStyle
@@ -42,7 +41,7 @@ public abstract class FUI : FUIBase
     public sealed override STask onTask => _task;
     public GObject Close { get; private set; }
 
-    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed)
+    public sealed override async STask LoadConfig(UIConfig config, STask completed)
     {
         await base.LoadConfig(config, completed);
 
@@ -68,7 +67,7 @@ public abstract class FUI : FUIBase
         if (this.Disposed) return;
         _success();
     }
-    public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed)
+    public sealed override async STask LoadConfigAsync(UIConfig config, STask completed)
     {
         await base.LoadConfigAsync(config, completed);
 
@@ -189,8 +188,8 @@ public abstract class FUI : FUIBase
 
     void setConfig()
     {
-        this._ui.sortingOrder = this.uiConfig.SortOrder + Game.UIConfig.SortOrderRange;
-        Client.UI.FGUIRoot.AddChild(this._ui);
+        this._ui.sortingOrder = this.uiConfig.SortOrder + UIConfig.SortOrderRange;
+        Game.UI.FGUIRoot.AddChild(this._ui);
         this.AutoAdapt();
         this._ui.fairyBatching = true;
     }

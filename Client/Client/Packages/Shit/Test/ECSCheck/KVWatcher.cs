@@ -1,5 +1,4 @@
 ﻿using Core;
-using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,25 +11,25 @@ internal class KVWatcherTest
     {
         a = 0;
         SObject o = new();
-        Client.World.Root.AddChild(o);
+        Game.World.AddChild(o);
 
-        o.World.Update();
+        Game.Update();
         if (a != 0) throw new Exception();
 
         var kv = o.AddComponent<KVComponent>();
-        o.World.Update();
+        Game.Update();
         if (a != 0) throw new Exception();
 
         kv.Set(1, 5);
-        o.World.Update();
+        Game.Update();
         if (a != 1) throw new Exception();
         kv.Set(1, 5);
-        o.World.Update();
+        Game.Update();
         if (a != 1) throw new Exception();
 
         o.AddComponent<c1>();
         kv.Set(1, 6);
-        o.World.Update();
+        Game.Update();
         if (a != 3) throw new Exception();
 
         kv.Clear();
@@ -81,7 +80,7 @@ internal class KVWatcherTest
         }
 
         o.Dispose();
-        o.World.Update();
+        Game.Update();
     }
 
     static int a = 0;

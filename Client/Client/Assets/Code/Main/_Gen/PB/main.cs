@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game;
 using Unity.Mathematics;
 
 namespace main
@@ -417,7 +416,7 @@ namespace main
     public partial class UnitInfo2
     {
         public long id;
-        public game.S2C_SyncTransform t = new();
+        public demo.S2C_SyncTransform t = new();
         public Dictionary<int, long> attribute = new();
     }
     [Message(1919449112)]

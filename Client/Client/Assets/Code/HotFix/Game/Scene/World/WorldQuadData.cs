@@ -1,6 +1,4 @@
-﻿using Game;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
@@ -102,7 +100,7 @@ class WorldData
         {
             Res.TryGetValue((int)ResID.Wood, out var num);
             Res[(int)ResID.Wood] = num + 1;
-            Client.World.Event.RunEvent(new EC_ResChange());
+            Game.Event.RunEvent(new EC_ResChange());
         }
         return ret;
     }
@@ -118,7 +116,9 @@ class WorldData
         bool ret = (value.wall_logging[index / 32] & mask) != 0;
         if (ret == visible)
             return false;
-        value.wall_logging[index / 32] |= mask;
+        uint v = value.wall_logging[index / 32];
+        v = (v & ~mask) | (visible ? mask : 0);
+        value.wall_logging[index / 32] = v;
         return true;
     }
     public void CopyTreeVisibleToGraphicsBuffer(GraphicsBuffer buffer, int2 xy)

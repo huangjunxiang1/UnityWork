@@ -4,25 +4,20 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-namespace Game
+internal class OnBeforeUpdate : MonoBehaviour
 {
-    internal class OnBeforeUpdate : MonoBehaviour
+    void Update()
     {
-        public Core.World world;
-       
-        void Update()
+        Profiler.BeginSample($"{nameof(World)}.BeforeUpdate");
+        try
         {
-            Profiler.BeginSample($"{nameof(World)}.{nameof(World.BeforeUpdate)}");
-            try
-            {
-                world.BeforeUpdate(Time.deltaTime);
-            }
-            catch (Exception ex)
-            {
-                Loger.Error($"{nameof(World.BeforeUpdate)} error " + ex);
-            }
-            Profiler.EndSample();
-
+            Game.BeforeUpdate(Time.deltaTime);
         }
+        catch (Exception ex)
+        {
+            Loger.Error($"BeforeUpdate error " + ex);
+        }
+        Profiler.EndSample();
+
     }
 }

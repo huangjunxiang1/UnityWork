@@ -6,89 +6,86 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Game
+public enum NetStates
 {
-    public enum NetStates
+    None,
+    Connect,
+}
+public enum ServerType
+{
+    TCP,
+    UDP
+}
+public enum NetError
+{
+    UnKnown,
+    ReadError,
+    ParseError,
+    DataError,
+}
+public abstract class SBaseNet
+{
+    public SBaseNet(IPEndPoint ip)
     {
-        None,
-        Connect,
+        this.IP = ip;
+        this.Session = Util.RandomInt();
     }
-    public enum ServerType
+
+    bool _working = false;
+
+    protected ConcurrentQueue<IMessage> sendQueues = new();
+
+    protected byte[] _sBuffer = new byte[ushort.MaxValue];
+    protected byte[] _rBuffer = new byte[ushort.MaxValue];
+    protected static byte[] _ping = new byte[8] { 6, 0, 21, 0, 0, 0, 232, 3 };
+
+    public IPEndPoint IP { get; set; }
+    public int Session { get; }
+    public NetStates states { get; protected set; }
+    public abstract ServerType serverType { get; }
+    public Action<NetError> onError;
+    public Action<IMessage> onMessage;
+    public Action onDisconnect;
+
+    public abstract Task<bool> Connect();
+    public abstract void DisConnect();
+    public void Send(IMessage message)
     {
-        TCP,
-        UDP
+        sendQueues.Enqueue(message);
     }
-    public enum NetError
+    public virtual void Work(bool mulThread = true)
     {
-        UnKnown,
-        ReadError,
-        ParseError,
-        DataError,
+        if (_working)
+            return;
+        _working = true;
+
+        if (mulThread)
+        {
+            Task.Run(ReceiveBuffer);
+            Task.Run(SendBuffer);
+        }
+        else
+        {
+            ReceiveBuffer();
+            SendBuffer();
+        }
     }
-    public abstract class SBaseNet
+
+    protected abstract void ReceiveBuffer();
+    protected abstract void SendBuffer();
+    protected void Error(NetError error, Exception ex)
     {
-        public SBaseNet(IPEndPoint ip)
+        //除了解析出错 其他都是非正常出错
+        if (error != NetError.ParseError)
         {
-            this.IP = ip;
-            this.Session = Util.RandomInt();
+            _working = false;
+            this.DisConnect();
         }
-
-        bool _working = false;
-
-        protected ConcurrentQueue<IMessage> sendQueues = new();
-
-        protected byte[] _sBuffer = new byte[ushort.MaxValue];
-        protected byte[] _rBuffer = new byte[ushort.MaxValue];
-        protected static byte[] _ping = new byte[8] { 6, 0, 21, 0, 0, 0, 232, 3 };
-
-        public IPEndPoint IP { get; set; }
-        public int Session { get; }
-        public NetStates states { get; protected set; }
-        public abstract ServerType serverType { get; }
-        public Action<NetError> onError;
-        public Action<IMessage> onMessage;
-        public Action onDisconnect;
-
-        public abstract Task<bool> Connect();
-        public abstract void DisConnect();
-        public void Send(IMessage message)
-        {
-            sendQueues.Enqueue(message);
-        }
-        public virtual void Work(bool mulThread = true)
-        {
-            if (_working)
-                return;
-            _working = true;
-
-            if (mulThread)
-            {
-                Task.Run(ReceiveBuffer);
-                Task.Run(SendBuffer);
-            }
-            else
-            {
-                ReceiveBuffer();
-                SendBuffer();
-            }
-        }
-
-        protected abstract void ReceiveBuffer();
-        protected abstract void SendBuffer();
-        protected void Error(NetError error, Exception ex)
-        {
-            //除了解析出错 其他都是非正常出错
-            if (error != NetError.ParseError)
-            {
-                _working = false;
-                this.DisConnect();
-            }
-            Loger.Error($"网络错误 error={ex} \n stack={Loger.GetStackTrace()}");
-            onError.Invoke(error);
-        }
-        protected void ReceiveMessage(IMessage message)
-        {
-            this.onMessage.Invoke(message);
-        }
+        Loger.Error($"网络错误 error={ex} \n stack={Loger.GetStackTrace()}");
+        onError.Invoke(error);
+    }
+    protected void ReceiveMessage(IMessage message)
+    {
+        this.onMessage.Invoke(message);
     }
 }

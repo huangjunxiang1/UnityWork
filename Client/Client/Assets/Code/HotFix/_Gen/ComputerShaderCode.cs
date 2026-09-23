@@ -1,4 +1,3 @@
-using Game;
 using UnityEngine;
 using Unity.Mathematics;
 
@@ -6,7 +5,7 @@ public partial class ComputeShader_PathFinding
 {
     public ComputeShader_PathFinding()
     {
-        this.Shader = Client.Loader.Load<ComputeShader>("shader_PathFinding");
+        this.Shader = Game.Loader.Load<ComputeShader>("shader_PathFinding");
         CSMain_kernel = Shader.FindKernel("CSMain");
     }
 
@@ -136,7 +135,7 @@ public partial class ComputeShader_GridCulling
 {
     public ComputeShader_GridCulling()
     {
-        this.Shader = Client.Loader.Load<ComputeShader>("shader_GridCulling");
+        this.Shader = Game.Loader.Load<ComputeShader>("shader_GridCulling");
         Culling_kernel = Shader.FindKernel("Culling");
     }
 

@@ -1,5 +1,4 @@
 ﻿using Core;
-using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +12,7 @@ internal class Out
         v = 0;
 
         var o = new o1();
-        Client.World.Root.AddChild(o);
+        Game.World.AddChild(o);
 
         if (v != 0)
             throw new Exception();
@@ -22,7 +21,7 @@ internal class Out
             throw new Exception();
 
         o = new();
-        Client.World.Root.AddChild(o);
+        Game.World.AddChild(o);
 
         var c = o.AddComponent<c_1>();
         c.Dispose();

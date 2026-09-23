@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Game;
 using FairyGUI;
 using Event;
 using UnityEngine;
@@ -22,14 +21,14 @@ public class UIPkg
     {
         FUIBinder.Binding();
         UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
-        UIPkg.ResPkg = UIPackage.AddPackage((await Client.Loader.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
-        UIPkg.Items = UIPackage.AddPackage((await Client.Loader.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
+        UIPkg.ResPkg = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
+        UIPkg.Items = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
         SSetting.ViewSetting.isTouchUI += UIHelper.IsOnTouchFUI;
 
-        if (Client.Loader.package.IsLocationValid("UI_Items"))
-            uui_items = await Client.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>("UI_Items");
-        if (Client.Loader.package.IsLocationValid("UI_UIAtlas"))
-            uui_res = await Client.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
+        if (Game.Loader.package.IsLocationValid("UI_Items"))
+            uui_items = await Game.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>("UI_Items");
+        if (Game.Loader.package.IsLocationValid("UI_UIAtlas"))
+            uui_res = await Game.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
     }
     static async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
     {
@@ -37,7 +36,7 @@ public class UIPkg
         {
             case PackageItemType.Sound:
             case PackageItemType.Atlas:
-                item.owner.SetItemAsset(item, await Client.Loader.LoadAsync<UnityEngine.Object>(name), DestroyMethod.Custom);
+                item.owner.SetItemAsset(item, await Game.Loader.LoadAsync<UnityEngine.Object>(name), DestroyMethod.Custom);
                 break;
             default:
                 Loger.Error("未定义加载->" + item.type);

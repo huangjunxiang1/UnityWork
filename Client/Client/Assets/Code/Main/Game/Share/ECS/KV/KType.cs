@@ -5,11 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game
+public enum KType
 {
-    public enum KType
-    {
-        MoveSpeed = 1,
-        RotateSpeed = 2,
-    }
+    MoveSpeed = 1,
+    RotateSpeed = 2,
 }

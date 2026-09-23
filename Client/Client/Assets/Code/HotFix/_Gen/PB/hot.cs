@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game;
 using Unity.Mathematics;
 
 namespace hot

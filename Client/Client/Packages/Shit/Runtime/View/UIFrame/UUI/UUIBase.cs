@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using Game;
-using Core;
 
 #if UGUI
 public abstract class UUIBase : UIBase
@@ -56,7 +54,7 @@ public abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     SSetting.ViewSetting.EnableUIInput(false);
-                    World.Timer.Add(ani["close"].length + 0.1f, 1, () =>
+                    Game.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         SSetting.ViewSetting.EnableUIInput(true);
@@ -73,7 +71,7 @@ public abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     SSetting.ViewSetting.EnableUIInput(false);
-                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    Game.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         SSetting.ViewSetting.EnableUIInput(true);
@@ -108,7 +106,7 @@ public abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     SSetting.ViewSetting.EnableUIInput(false);
-                    World.Timer.Add(ani["close"].length + 0.1f, 1, () =>
+                    Game.Timer.Add(ani["close"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         SSetting.ViewSetting.EnableUIInput(true);
@@ -124,7 +122,7 @@ public abstract class UUIBase : UIBase
                     isHiding = true;
                     hideTask = new();
                     SSetting.ViewSetting.EnableUIInput(false);
-                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    Game.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isHiding = false;
                         SSetting.ViewSetting.EnableUIInput(true);
@@ -161,7 +159,7 @@ public abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     SSetting.ViewSetting.EnableUIInput(false);
-                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    Game.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         isShowing = false;
                         SSetting.ViewSetting.EnableUIInput(true);
@@ -193,7 +191,7 @@ public abstract class UUIBase : UIBase
                     isShowing = true;
                     showTask = new();
                     SSetting.ViewSetting.EnableUIInput(false);
-                    World.Timer.Add(ani["open"].length + 0.1f, 1, () =>
+                    Game.Timer.Add(ani["open"].length + 0.1f, 1, () =>
                     {
                         SSetting.ViewSetting.EnableUIInput(true);
                         showTask.TrySetResult();
@@ -210,9 +208,9 @@ public abstract class UUIBase : UIBase
         if (this.ui)
         {
             if (this.uiStates == UIStatus.Success)
-                this.Hide(true, () => Client.Loader.Release(this.ui.gameObject));
+                this.Hide(true, () => Game.Loader.Release(this.ui.gameObject));
             else
-                Client.Loader.Release(this.ui.gameObject);
+                Game.Loader.Release(this.ui.gameObject);
         }
         base.Dispose();
     }

@@ -1,6 +1,9 @@
 
 #include "math.hlsl"
 
+#ifndef HEX
+#define HEX
+
 static const int2 Hex_QuadHalfSize = int2(10, 10);
 static const int2 Hex_QuadSize = Hex_QuadHalfSize * 2 + 1;
 static const int Hex_GridCount = Hex_QuadSize.x * Hex_QuadSize.y;
@@ -23,22 +26,24 @@ int2 Hex_GetGridxy(float2 pos, float hexWidth, float parity, float facing)
     finalxy = lerp(finalxy.xy, finalxy.yx, facing);
     return (int2) finalxy;
 }
-float3 Hex_GetPositon(int2 xy, float hexWidth, float parity, float facing)
+float3 Hex_GetPositon(int2 xy, float hexWidth, float parity, int facing)
 {
-    xy = lerp(xy.xy, xy.yx, facing);
+    xy = facing == 0 ? xy : xy.yx;
     float3 v3 = float3((xy.x + (xy.y & 1) * (parity - 0.5)) * hexWidth, 0, xy.y * hexWidth * 0.5 * Hex_sqrt_3);
     v3.xz = lerp(v3.xz, v3.zx, facing);
     return v3;
 }
 
-int2 GetQuadCenterGrid(int2 xy)
+int2 Hex_GetQuadCenterGrid(int2 xy)
 {
-    int2 xy0 = (int2) floor((xy + Hex_QuadHalfSize) / Hex_QuadSize);
-    return xy0 * Hex_QuadSize + Hex_QuadHalfSize;
+    xy += Hex_QuadHalfSize;
+    return xy - (xy % Hex_QuadSize + Hex_QuadSize) % Hex_QuadSize;
 }
-static int2 GetQuadLocalxy(int2 xy)
+int2 Hex_GetQuadLocalxy(int2 xy)
 {
     xy += Hex_QuadHalfSize;
     xy %= Hex_QuadSize;
     return (xy + Hex_QuadSize) % Hex_QuadSize;
 }
+
+#endif

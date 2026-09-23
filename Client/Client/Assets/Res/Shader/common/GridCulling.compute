@@ -19,12 +19,12 @@ int2 playerPos_xy;
 [numthreads(1,1,1)]
 void Culling(uint3 id : SV_DispatchThreadID)
 {
-    int2 orig_xy = GetQuadCenterGrid(playerPos_xy) - (Hex_QuadSize + Hex_QuadHalfSize);
+    int2 orig_xy = Hex_GetQuadCenterGrid(playerPos_xy) - (Hex_QuadSize + Hex_QuadHalfSize);
     
     wall_args[1] = 0;
     for (int i = 0; i < Define_Tree_TypeCount * Define_Tree_StyleCount; i++)
         tree_args[i * Define_Args_Size + 1] = 0;
-
+    
     for (int j = -Define_View_Size; j <= Define_View_Size; j++)
     {
         for (int i = -Define_View_Size; i <= Define_View_Size; i++)
@@ -37,9 +37,9 @@ void Culling(uint3 id : SV_DispatchThreadID)
             float2 pos = Hex_GetPositon(gxy, HexWidth,0,0).xz;
             
             //树
-            int groupIndex = ((Hex_GridCount - 1) / 32 + 1) * (3 * g_quad_xy.y + g_quad_xy.x);
+            int groupOffset = ((Hex_GridCount - 1) / 32 + 1) * (3 * g_quad_xy.y + g_quad_xy.x);
             int visibleIndex = g_grid_xy.y * Hex_QuadSize.x + g_grid_xy.x;
-            bool visible = (tree_Visible[groupIndex + visibleIndex / 32] & (1 << (visibleIndex % 32))) == 0;
+            bool visible = (tree_Visible[groupOffset + (visibleIndex / 32)] & (1 << (visibleIndex % 32))) == 0;
             if (visible)
             {
                 float height = noise_snoise((pos + 0) * Define_World_Scale);
@@ -47,28 +47,32 @@ void Culling(uint3 id : SV_DispatchThreadID)
                 if (height > step && random_uint2Touint((uint2) gxy) % 100 < 80)
                 {
                     float rv = pow(height, 0.5);
-                    uint type = (uint) floor(remap_floatTofloat(step, 1, 0, Define_Tree_TypeCount - 0.01, rv));
+                    uint type = (uint) floor(remap(step, 1, 0, Define_Tree_TypeCount - 0.01, rv) + 1e-5f);
                     uint random_style = random_uint2Touint(gxy ^ 64315);
                     int index = (type % Define_Tree_TypeCount) * Define_Tree_StyleCount + random_style % Define_Tree_StyleCount;
                     //小树多，大树少
                     int treeNum = type == 0 ? (random_style % 2 + 2) : 1;
-                    int endIndex = tree_args[index * Define_Args_Size + 1] += treeNum;
-                
+
+                    int startIndex;
+                    InterlockedAdd(tree_args[index * Define_Args_Size + 1], treeNum, startIndex);
+              
                     //50xPI
-                    float angle = random_uintTofloat(gxy.x ^ random_style) * Define_2PI * 100;
-                    float dv = random_uintTofloat(gxy.y ^ random_style);
-                    float distance = (type == 0 ? remap_floatTofloat(0, 1, 0.7, 1, dv) : dv) * (HexWidth / 2 - 0.3);
-                
+                    float angle = randomFloat(gxy.x ^ random_style) * Define_2PI * 100;
+                    float dv = randomFloat(gxy.y ^ random_style);
+                    float distance = (type == 0 ? remap(0, 1, 0.7, 1, dv) : dv) * (HexWidth / 2 - 0.3);
+              
                     for (int idx = 0; idx < treeNum; idx++)
-                        tree_datas[index * maxBatchInstance + endIndex - treeNum + idx] = pos + rotate(float2(1, 0), angle + idx * Define_2PI / treeNum) * distance;
+                        tree_datas[index * maxBatchInstance + startIndex + idx] = pos + rotate(float2(1, 0), angle + idx * Define_2PI / treeNum) * distance;
                 }
             }
             
             //墙
-            visible = (wall_Visible[groupIndex +visibleIndex / 32] & (1 << (visibleIndex % 32))) != 0;
+            visible = (wall_Visible[groupOffset + (visibleIndex / 32)] & (1 << (visibleIndex % 32))) != 0;
             if(visible)
             {
-                wall_datas[wall_args[1]++] = pos;
+                uint slot;
+                InterlockedAdd(wall_args[1],1,slot);
+                wall_datas[slot] = pos;
             }
         }
     }

@@ -175,7 +175,7 @@ message UnitInfo{
 }
 message UnitInfo2{
 	int64 id=1;
-	game.S2C_SyncTransform t=2;
+	demo.S2C_SyncTransform t=2;
 	map<int32,int64> attribute=3;
 }
 message UnitAttribute{

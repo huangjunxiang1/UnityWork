@@ -120,20 +120,15 @@ static float2 rgrad2(float2 p, float rot)
 
 ///custom
 
-float2 asfloat2(uint2 xy)
-{
-    return float2(asfloat(xy.x), asfloat(xy.y));
-}
-
 // 标准线性重映射
-float remap_floatTofloat(float inMin, float inMax, float outMin, float outMax, float value)
+float remap(float inMin, float inMax, float outMin, float outMax, float value)
 {
     // 先归一化到 [0, 1]
     float normalized = (value - inMin) / (inMax - inMin);
     // 再映射到输出范围
     return outMin + normalized * (outMax - outMin);
 }
-float2 remap_float2Tofloat2(float2 inMin, float2 inMax, float2 outMin, float2 outMax, float2 value)
+float2 remap(float2 inMin, float2 inMax, float2 outMin, float2 outMax, float2 value)
 {
     // 先归一化到 [0, 1]
     float2 normalized = (value - inMin) / (inMax - inMin);
@@ -147,14 +142,14 @@ uint random_uint2Touint(uint2 state)
     state ^= state << 5;
     return state.x ^ state.y;
 }
-uint random_uintTouint(uint state)
+uint random(uint state)
 {
     state ^= state << 13;
     state ^= state >> 17;
     state ^= state << 5;
     return state;
 }
-uint2 random_uint2Touint2(uint2 state)
+uint2 random(uint2 state)
 {
     state ^= state << 13;
     state ^= state >> 17;
@@ -165,12 +160,12 @@ float random_uint2Tofloat(uint2 state)
 {
     return asfloat(0x3f800000 | (random_uint2Touint(state) >> 9)) - 1.0f;
 }
-float random_uintTofloat(uint state)
+float randomFloat(uint state)
 {
-    return asfloat(0x3f800000 | (random_uintTouint(state) >> 9)) - 1.0f;
+    return asfloat(0x3f800000 | (random(state) >> 9)) - 1.0f;
 }
-float2 random_uint2Tofloat2(uint2 state)
+float2 randomFloat(uint2 state)
 {
-    return asfloat2(0x3f800000 | (random_uint2Touint2(state) >> 9)) - 1.0f;
+    return asfloat(0x3f800000 | (random(state) >> 9)) - 1.0f;
 }
 #endif

@@ -8,13 +8,9 @@ public static class PrintField
 {
     static JsonSerializerSettings settings = new JsonSerializerSettings
     {
-#if !Server
         Formatting = Formatting.Indented,
-#else
-        Formatting = Formatting.None,
-#endif
         ReferenceLoopHandling = ReferenceLoopHandling.Ignore, // 处理循环引用
-        Converters = Game.UnityMathematicsJsonConverter.Converters,
+        Converters = UnityMathematicsJsonConverter.Converters,
     };
     [Conditional(SSetting.CoreSetting.DebugEnableString)]
     public static void Print(string format, object o)

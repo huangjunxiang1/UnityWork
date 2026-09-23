@@ -30,7 +30,7 @@ namespace Core
             ObjectPool.Return(types);
         }
 
-        World _world;
+        internal bool _Initialized = false;
         bool _eventEnable = true;
         bool _timerRigisterd = false;
         Eventer _onDispose;
@@ -49,45 +49,32 @@ namespace Core
         internal static Action objChange;
 #endif
 
-        public sealed override World World
+        internal void Initialize()
         {
-            get => _world;
-            internal set
-            {
-                if (this.Disposed) return;
-                if (_world != null)
-                {
-                    Loger.Error("canot change the world");
-                    return;
-                }
-                if (value == null)
-                {
-                    Loger.Error("canot set null world");
-                    return;
-                }
-                _world = value;
-                value.ObjectManager.Add(this);
-                value.Event.RigisteEvent(this);
-                _timerRigisterd = value.Timer.RigisterTimer(this);
+            if (_Initialized)
+                return;
+            _Initialized = true;
+            Game.ObjectManager.Add(this);
+            Game.Event.RigisteEvent(this);
+            _timerRigisterd = Game.Timer.RigisterTimer(this);
 
-                if (!this.Disposed)
+            if (!this.Disposed)
+            {
+                var cs = _components;
+                _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
+                foreach (var c in cs)
                 {
-                    var cs = _components;
-                    _components = ObjectPool.Get<Dictionary<Type, SComponent>>();
-                    foreach (var c in cs)
-                    {
-                        if (c.Value.Disposed) continue;
-                        _components[c.Key] = c.Value;
-                        RigisterComponent(c.Value, c.Key);
-                    }
-                    cs.Clear();
-                    ObjectPool.Return(cs);
+                    if (c.Value.Disposed) continue;
+                    _components[c.Key] = c.Value;
+                    RigisterComponent(c.Value, c.Key);
                 }
-#if UNITY_EDITOR
-                if (objChange != null)
-                    _world.Timer.Add(0, 1, objChange);
-#endif
+                cs.Clear();
+                ObjectPool.Return(cs);
             }
+#if UNITY_EDITOR
+            if (objChange != null)
+                Game.Timer.Add(0, 1, objChange);
+#endif
         }
 
         [HideInInspector]
@@ -420,7 +407,7 @@ namespace Core
             c.Entity = this;
             _components[c.GetType()] = c;
 
-            if (_world != null)
+            if (_Initialized)
                 RigisterComponent(c, c.GetType());
             
             return c;
@@ -428,12 +415,12 @@ namespace Core
         void RigisterComponent(SComponent c, Type type)
         {
             if (c is not SObject)
-                World.Event.RigisteEvent(c);
+                Game.Event.RigisteEvent(c);
 
-            World.System.RigisterHandler(type, c);
+            Game.System.RigisterHandler(type, c);
             if (c.Disposed) return;
             if (c.Enable)
-                World.System.In(type, c);
+                Game.System.In(type, c);
             c.SetChangeFlag();
         }
         internal bool RemoveComponentInternal(Type type)
@@ -464,10 +451,10 @@ namespace Core
                 Loger.Error("重复Dispose->" + this);
                 return;
             }
-            World.ObjectManager.Remove(this);
-            World.Event.RemoveEvent(this);
+            Game.ObjectManager.Remove(this);
+            Game.Event.RemoveEvent(this);
             if (this._timerRigisterd)
-                World.Timer.RemoveTimer(this);
+                Game.Timer.RemoveTimer(this);
 
             if (this.Parent != null)
                 this.Parent.Remove(this);
@@ -477,7 +464,7 @@ namespace Core
                 item.Value.Disposed = true;
 
             foreach (var item in _components)
-                World.System.Out(item.Key, this);
+                Game.System.Out(item.Key, this);
 
             this.dispose(true);
 
@@ -486,10 +473,10 @@ namespace Core
 
             foreach (var item in tmp)
             {
-                World.System.UnRigisterHandler(item.Key, item.Value);
+                Game.System.UnRigisterHandler(item.Key, item.Value);
                 if (item.Value is not SObject)
                 {
-                    World.Event.RemoveEvent(item.Value);
+                    Game.Event.RemoveEvent(item.Value);
                     item.Value.dispose(true);
                 }
             }
@@ -499,7 +486,7 @@ namespace Core
             _onDispose?.Call();
 #if UNITY_EDITOR
             if (objChange != null)
-                _world.Timer.Add(0, 1, objChange);
+                Game.Timer.Add(0, 1, objChange);
 #endif
         }
 

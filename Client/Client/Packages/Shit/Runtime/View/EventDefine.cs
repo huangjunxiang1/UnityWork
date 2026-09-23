@@ -1,8 +1,4 @@
-﻿using Core;
-using Game;
-using UnityEngine;
-using UnityEngine.EventSystems;
-
+﻿
 namespace Event
 {
     public class EC_GameStart { }

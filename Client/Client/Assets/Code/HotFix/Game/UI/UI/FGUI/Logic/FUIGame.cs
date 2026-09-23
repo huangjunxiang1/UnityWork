@@ -1,5 +1,4 @@
-﻿using Game;
-using main;
+﻿using main;
 using System.Diagnostics;
 using Unity.Collections;
 //using Unity.Entities;
@@ -18,7 +17,7 @@ partial class FUIGame
         this.Close.onClick.Add(onClose);
         this._genMap.onClick.Add(on_genMap);
 
-        var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+        var finding = Game.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
 
         input.CMEditorMouseClick.started += OnMouseClick;
         input.CMEditorMouseClick.performed += OnMouseClick;
@@ -39,9 +38,9 @@ partial class FUIGame
     }
     async void onClose()
     {
-        NetComponent.Inst.Send(new C2S_PlayerQuit());
-        NetComponent.Inst.Dispose();
-        await Client.Scene.InScene<LoginScene>();
+        Game.Socket.Send(new C2S_PlayerQuit());
+        Game.Socket.Dispose();
+        await Game.Scene.InScene<LoginScene>();
     }
 
     int len = 100;
@@ -64,9 +63,9 @@ partial class FUIGame
             bytes[i * len + 20] = 0;
         }
         var astar = new AStarData(len, len, bytes, 0, 1);
-        Client.Data.Add(astar);
+        Game.Data.Add(astar);
 
-        var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+        var finding = Game.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
         finding.AStar = astar;
 
         GameObject.FindAnyObjectByType<PathFindingAStar>().View(true);
@@ -100,7 +99,7 @@ partial class FUIGame
                     if (Physics.Raycast(ray, out var hit, 1000, 1 << LayerMask.NameToLayer("ground")))
                     {
                         var p = hit.point;
-                        var finding = Client.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+                        var finding = Game.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
                         finding.ShowGrid = false;
 
                         var stop = Stopwatch.StartNew();

@@ -8,37 +8,33 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-namespace Game
+internal class OnUpdate : MonoBehaviour
 {
-    internal class OnUpdate : MonoBehaviour
+    void Update()
     {
-        public Core.World world;
-        void Update()
+        Profiler.BeginSample($"{nameof(World)}.Update");
+        try
         {
-            Profiler.BeginSample($"{nameof(World)}.{nameof(World.Update)}");
-            try
-            {
-                world.Update();
-            }
-            catch (Exception ex)
-            {
-                Loger.Error($"{nameof(World.Update)} error " + ex);
-            }
-            Profiler.EndSample();
+            Game.Update();
         }
-        void LateUpdate()
+        catch (Exception ex)
         {
-            Profiler.BeginSample($"{nameof(World)}.{nameof(World.LateUpdate)}");
-            try
-            {
-                world.LateUpdate();
-            }
-            catch (Exception ex)
-            {
-                Loger.Error($"{nameof(World.LateUpdate)} error " + ex);
-            }
-            Profiler.EndSample();
+            Loger.Error($"Update error " + ex);
         }
-        void OnApplicationQuit() => world?.Event?.RunEvent(new EC_QuitGame());
+        Profiler.EndSample();
     }
+    void LateUpdate()
+    {
+        Profiler.BeginSample($"{nameof(World)}.LateUpdate");
+        try
+        {
+            Game.LateUpdate();
+        }
+        catch (Exception ex)
+        {
+            Loger.Error($"LateUpdate error " + ex);
+        }
+        Profiler.EndSample();
+    }
+    void OnApplicationQuit() => Game.Event?.RunEvent(new EC_QuitGame());
 }

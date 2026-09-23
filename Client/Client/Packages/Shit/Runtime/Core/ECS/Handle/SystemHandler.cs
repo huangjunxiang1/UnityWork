@@ -14,7 +14,7 @@ using Core;
 //    public override ComponentFilter Filter(SObject o, bool addToQueue = false)
 //    {
 //?        if (!o.TryGetComponent<[T]>(out var [c])) return null;+\r?
-//        var v = new ComponentFilter<?[T]+, ?>() { system = this, world = o.World, ?[t] = [c]+, ? };
+//        var v = new ComponentFilter<?[T]+, ?>() { system = this, ?[t] = [c]+, ? };
 //?        if (![c].Enable) v.EnableCounter %= 1;+\r?
 //        if (addToQueue) cfq.Enqueue(v);
 //        return v;

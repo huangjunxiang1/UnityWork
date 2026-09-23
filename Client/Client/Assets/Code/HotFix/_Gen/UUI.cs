@@ -1,4 +1,3 @@
-using Game;
 
 partial class U_TestButton
 {
@@ -19,7 +18,7 @@ partial class U_TestButton
         this._Text_TMPText = new((UnityEngine.UI.Text)c.GetComponent(typeof(UnityEngine.UI.Text)));
         this.Enter();
     }
-    public U_TestButton(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Client.Loader.LoadGameObject("_TestButton", mode).transform) { }
+    public U_TestButton(ReleaseMode mode = ReleaseMode.Destroy) : this(Game.Loader.LoadGameObject("_TestButton", mode).transform) { }
     partial void Enter();
     public void Dispose()
     {
@@ -43,7 +42,7 @@ partial class U_TestButton2
         this._Text_TMPText = new((UnityEngine.UI.Text)c.GetComponent(typeof(UnityEngine.UI.Text)));
         this.Enter();
     }
-    public U_TestButton2(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Client.Loader.LoadGameObject("_TestButton2", mode).transform) { }
+    public U_TestButton2(ReleaseMode mode = ReleaseMode.Destroy) : this(Game.Loader.LoadGameObject("_TestButton2", mode).transform) { }
     partial void Enter();
     public void Dispose()
     {

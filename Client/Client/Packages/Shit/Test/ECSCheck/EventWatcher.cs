@@ -1,5 +1,4 @@
 ﻿using Core;
-using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,58 +11,58 @@ internal class EventWatcher
     {
         SObject o = new() { ActorId = 5 };
         SObject o2 = new() { ActorId = 6 };
-        Client.World.Root.AddChild(o);
-        Client.World.Root.AddChild(o2);
+        Game.World.AddChild(o);
+        Game.World.AddChild(o2);
         Evt e = new();
 
         o.AddComponent<c1>();
         o2.AddComponent<c1>();
 
-        Client.World.Event.RunEvent(e, actorId: 5);
+        Game.Event.RunEvent(e, actorId: 5);
         if (e.v != 2) throw new Exception();
 
-        Client.World.Event.RunEvent(e, actorId: 4);
+        Game.Event.RunEvent(e, actorId: 4);
         if (e.v != 2) throw new Exception();
 
         o.AddComponent<c2>();
         o2.AddComponent<c1>();
 
-        Client.World.Event.RunEvent(e, actorId: 5);
+        Game.Event.RunEvent(e, actorId: 5);
         if (e.v != 6) throw new Exception();
-        Client.World.Event.RunEvent(e, actorId: 4);
+        Game.Event.RunEvent(e, actorId: 4);
         if (e.v != 6) throw new Exception();
 
-        Client.World.Event.RunEvent(e);
+        Game.Event.RunEvent(e);
         if (e.v != 12) throw new Exception();
 
-        Client.World.Event.RunEvent(e, gid: o.gid);
+        Game.Event.RunEvent(e, gid: o.gid);
         if (e.v != 16) throw new Exception();
 
-        Client.World.Event.RunEvent(e, gid: o2.gid);
+        Game.Event.RunEvent(e, gid: o2.gid);
         if (e.v != 18) throw new Exception();
 
-        Client.World.Event.RunEvent(e, gid: 4);
+        Game.Event.RunEvent(e, gid: 4);
         if (e.v != 18) throw new Exception();
-        Client.World.Event.RunEvent(e, gid: 5);
+        Game.Event.RunEvent(e, gid: 5);
         if (e.v != 18) throw new Exception();
 
-        Client.World.Event.RunEvent(e, gid: o.gid, type: 1);
-        Client.World.Event.RunEvent(e, gid: o.gid, type: 2);
+        Game.Event.RunEvent(e, gid: o.gid, type: 1);
+        Game.Event.RunEvent(e, gid: o.gid, type: 2);
         if (e.v != 26) throw new Exception();
-        Client.World.Event.RunEvent(e, actorId: 5, type: 1);
-        Client.World.Event.RunEvent(e, actorId: 5, type: 2);
+        Game.Event.RunEvent(e, actorId: 5, type: 1);
+        Game.Event.RunEvent(e, actorId: 5, type: 2);
         if (e.v != 34) throw new Exception();
 
         o.GetComponent<c2>().Enable = false;
-        Client.World.Event.RunEvent(e, gid: o.gid);
+        Game.Event.RunEvent(e, gid: o.gid);
         if (e.v != 36) throw new Exception();
 
         o.GetComponent<c2>().Enable = true;
-        Client.World.Event.RunEvent(e);
+        Game.Event.RunEvent(e);
         if (e.v != 42) throw new Exception();
 
         o.GetComponent<c2>().Dispose();
-        Client.World.Event.RunEvent(e);
+        Game.Event.RunEvent(e);
         if (e.v != 46) throw new Exception();
     }
 

@@ -1,24 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Game;
 using FairyGUI;
 using System;
 using Event;
 using Core;
 
-[Game.UIConfig(50,HideIfOpenOtherUI = false)]
+[UIConfig(50,HideIfOpenOtherUI = false)]
 partial class FUILoading
 {
     [Event(-100, Queue = true)]
     static void EC_OutScene(EC_OutScene e)
     {
-        Client.UI.Open<FUILoading>();
+        Game.UI.Open<FUILoading>();
     }
     [Event(100, Queue = true)]
     static async STask EC_InScene(EC_InScene e)
     {
-        var ui = Client.UI.GetChild<FUILoading>();
+        var ui = Game.UI.GetChild<FUILoading>();
         if (ui != null)
         {
             ui.cur = ui.max;
@@ -48,7 +47,7 @@ partial class FUILoading
             _loadingBar.value = cur;
             if (cur >= 1)
             {
-                World.Timer.Add(1, 1, this.Dispose);
+                Game.Timer.Add(1, 1, this.Dispose);
             }
         }
     }

@@ -1,5 +1,4 @@
 ﻿using Core;
-using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,37 +13,37 @@ internal class UpdateCheck
         update_value2 = 0;
 
         var o = new SObject();
-        Client.World.Root.AddChild(o);
+        Game.World.AddChild(o);
 
         o.AddComponent<update_c1>();
-        Client.World.Update();
+        Game.Update();
         if (update_value != 1) throw new System.Exception();
         if (update_value2 != 0) throw new System.Exception();
-        Client.World.BeforeUpdate(0);
+        Game.BeforeUpdate(0);
         if (update_value != 1) throw new System.Exception();
         if (update_value2 != 1) throw new System.Exception();
-        Client.World.LateUpdate();
+        Game.LateUpdate();
         if (update_value != 1) throw new System.Exception();
         if (update_value2 != 2) throw new System.Exception();
 
         o.AddComponent<update_c2>();
-        Client.World.Update();
+        Game.Update();
         if (update_value != 4) throw new System.Exception();
 
         o.GetComponent<update_c1>().Enable = false;
-        Client.World.Update();
+        Game.Update();
         if (update_value != 5) throw new System.Exception();
 
         o.GetComponent<update_c1>().Enable = true;
-        Client.World.Update();
+        Game.Update();
         if (update_value != 8) throw new System.Exception();
 
         o.RemoveComponent<update_c2>();
-        Client.World.Update();
+        Game.Update();
         if (update_value != 9) throw new System.Exception();
 
         o.Dispose();
-        Client.World.Update();
+        Game.Update();
         if (update_value != 9) throw new System.Exception();
     }
 

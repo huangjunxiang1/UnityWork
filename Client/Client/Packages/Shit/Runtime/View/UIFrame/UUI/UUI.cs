@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using Game;
 
 #if UGUI
 public abstract class UUI : UUIBase
@@ -22,7 +21,7 @@ public abstract class UUI : UUIBase
 
         this.OnAwake();
         this._states = UIStatus.Loading;
-        this._ui = (RectTransform)Client.Loader.LoadGameObject(url, ReleaseMode.Destroy).transform;
+        this._ui = (RectTransform)Game.Loader.LoadGameObject(this.url, ReleaseMode.Destroy).transform;
         this._ui.gameObject.SetActive(false);
         this._canvas = this._ui.GetComponent<Canvas>();
         this.Binding();
@@ -47,7 +46,7 @@ public abstract class UUI : UUIBase
         this.OnAwake();
         this._states = UIStatus.Loading;
 
-        var load = Client.Loader.LoadGameObjectAsync(url, ReleaseMode.Destroy);
+        var load = Game.Loader.LoadGameObjectAsync(this.url, ReleaseMode.Destroy);
         load.AddEvent(() =>
         {
             this._ui = (RectTransform)load.GetResult().transform;
@@ -74,15 +73,15 @@ public abstract class UUI : UUIBase
 
     void setConfig()
     {
-        this._ui.SetParent(Client.UI.UGUIRoot);
+        this._ui.SetParent(Game.UI.UGUIRoot);
         this._ui.localScale = Vector3.one;
         this._ui.rotation = Quaternion.identity;
-        this._ui.sizeDelta = Client.UI.UGUIRoot.sizeDelta;
+        this._ui.sizeDelta = Game.UI.UGUIRoot.sizeDelta;
         this._ui.anchorMin = default;
         this._ui.anchorMax = Vector2.one;
         this._ui.anchoredPosition = default;
 
-        this._canvas.sortingOrder = this.uiConfig.SortOrder + Game.UIConfig.SortOrderRange;
+        this._canvas.sortingOrder = this.uiConfig.SortOrder + UIConfig.SortOrderRange;
     }
     void _success()
     {

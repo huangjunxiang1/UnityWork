@@ -1,6 +1,4 @@
-﻿using Core;
-using Event;
-using Game;
+﻿using Event;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,13 +37,13 @@ partial class UUILogin
     {
         if (v == 0)
         {
-            await Client.UI.OpenAsync<FUILogin>();
+            await Game.UI.OpenAsync<FUILogin>();
             this.Dispose();
         }
     }
     void login()
     {
-        World.Event.RunEvent(new EC_InScene() {  });
+        Game.Event.RunEvent(new EC_InScene() {  });
         //ugui 只做个展示  实际使用fgui
     }
 }

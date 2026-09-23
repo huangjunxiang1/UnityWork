@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Core;
 using Event;
-using Game;
 
 public abstract class UIBase : STree
 {

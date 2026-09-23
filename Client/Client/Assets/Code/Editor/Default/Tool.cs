@@ -46,7 +46,6 @@ public class Tool
             if (item.BaseType != null && item.BaseType.IsGenericType && item.BaseType.GetGenericTypeDefinition() == typeof(UIPropertyBinding<,>) && typeof(UIPropertyBinding<,>) != item)
                 typeMap[item.BaseType.GetGenericArguments()[0]] = item;
         }
-        code.AppendLine("using Game;");
         code.AppendLine();
         appendUUICode(Application.dataPath + "/Res/UI/UUI/Prefab/", code, typeMap);
 
@@ -140,7 +139,6 @@ public class Tool
                     logic.AppendLine("using System.Collections;");
                     logic.AppendLine("using System.Collections.Generic;");
                     logic.AppendLine("using UnityEngine;");
-                    logic.AppendLine("using Game;");
                     logic.AppendLine("using System.Threading.Tasks;");
                     logic.AppendLine("using System;");
                     logic.AppendLine();
@@ -178,7 +176,7 @@ public class Tool
                     code.Append(getUICode.ToString());
                     code.AppendLine($"        this.Enter();");
                     code.AppendLine($"    }}");
-                    code.AppendLine($"    public U{go.name}(Game.ReleaseMode mode = Game.ReleaseMode.Destroy) : this(Client.Loader.LoadGameObject(\"{go.name}\", mode).transform) {{ }}");
+                    code.AppendLine($"    public U{go.name}(ReleaseMode mode = ReleaseMode.Destroy) : this(Game.Loader.LoadGameObject(\"{go.name}\", mode).transform) {{ }}");
                     code.AppendLine($"    partial void Enter();");
                     code.AppendLine($"    public void Dispose()");
                     code.AppendLine($"    {{");
@@ -368,7 +366,6 @@ public class Tool
                         logic.AppendLine("using System.Collections;");
                         logic.AppendLine("using System.Collections.Generic;");
                         logic.AppendLine("using UnityEngine;");
-                        logic.AppendLine("using Game;");
                         logic.AppendLine("using FairyGUI;");
                         logic.AppendLine("using System.Threading.Tasks;");
                         logic.AppendLine("using System;");
@@ -569,7 +566,6 @@ public class Tool
         {
             StringBuilder so = new StringBuilder();
             so.AppendLine("using UnityEngine;");
-            so.AppendLine("using Game;");
             so.AppendLine("using System;");
             so.AppendLine("");
             so.AppendLine("public static partial class SettingM");
@@ -591,7 +587,6 @@ public class Tool
         {
             StringBuilder so = new StringBuilder();
             so.AppendLine("using UnityEngine;");
-            so.AppendLine("using Game;");
             so.AppendLine("using System;");
             so.AppendLine("");
             so.AppendLine("public static partial class SettingL");
@@ -641,7 +636,7 @@ public class Tool
     {
         string type = so.GetType().FullName;
         code.AppendLine($"\tstatic {type} _{so.name};");
-        code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})Client.Loader.Load<ScriptableObject>(\"config_{so.name}\");");
+        code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})Game.Loader.Load<ScriptableObject>(\"config_{so.name}\");");
     }
 
 #if ENABLE_INPUT_SYSTEM
@@ -651,7 +646,7 @@ public class Tool
         str.AppendLine("{");
         str.AppendLine($"    public {input.name}()");
         str.AppendLine("    {");
-        str.AppendLine($"        this.Asset = Client.Loader.Load<UnityEngine.InputSystem.InputActionAsset>(\"config_{input.name}\");");
+        str.AppendLine($"        this.Asset = Game.Loader.Load<UnityEngine.InputSystem.InputActionAsset>(\"config_{input.name}\");");
         str.AppendLine("        this.Asset.Enable();");
 
         foreach (var item in input.actionMaps)
@@ -682,7 +677,7 @@ public class Tool
         str.AppendLine();
         str.AppendLine("    public void Dispose()");
         str.AppendLine("    {");
-        str.AppendLine("        Client.Loader.Release(Asset);");
+        str.AppendLine("        Game.Loader.Release(Asset);");
         foreach (var item in input.actionMaps)
         {
             str.AppendLine($"        this.{item.name}.Dispose();");
@@ -697,7 +692,6 @@ public class Tool
     static void gen_computerCode()
     {
         StringBuilder code = new(10000);
-        code.AppendLine("using Game;");
         code.AppendLine("using UnityEngine;");
         code.AppendLine("using Unity.Mathematics;");
         code.AppendLine();
@@ -711,7 +705,7 @@ public class Tool
             code.AppendLine($"{{");
             code.AppendLine($"    public ComputeShader_{fileName}()");
             code.AppendLine($"    {{");
-            code.AppendLine($"        this.Shader = Client.Loader.Load<ComputeShader>(\"shader_{fileName}\");");
+            code.AppendLine($"        this.Shader = Game.Loader.Load<ComputeShader>(\"shader_{fileName}\");");
 
             var codes = File.ReadAllLines(path.ToFullPath()).ToList();
             for (int i = 0; i < codes.Count; i++)

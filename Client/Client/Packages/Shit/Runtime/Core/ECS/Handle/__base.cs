@@ -31,7 +31,6 @@ internal abstract class ComponentFilter
     internal SystemType type = SystemType.None;
 
     internal KVComponent kv;
-    internal World world;
 
     public void Invoke() => system.Invoke(this);
     public void KvInvoke(int k) => ((__KVWatcher)system)._invoke_kvWatcher(k, this);

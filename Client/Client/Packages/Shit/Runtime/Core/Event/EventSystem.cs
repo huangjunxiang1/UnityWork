@@ -29,9 +29,7 @@ namespace Core
             public override int GetHashCode() => keyType.GetHashCode() ^ actorid.GetHashCode() ^ gid.GetHashCode() ^ type;
             public override string ToString() => $"key={keyType} actorid={actorid} gid={gid} type={type}";
         }
-        internal EventSystem(World world) => this.world = world;
-
-        World world;
+       
         readonly Dictionary<EventKey, EvtQueue> _evtMap = new(97);
         Queue<EvtQueue> removed = ObjectPool.Get<Queue<EvtQueue>>();
 
@@ -237,7 +235,7 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            world.System.EventWatcher(data, actorId, gid);
+            Game.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), actorId, 0, type), out var queue))
@@ -260,7 +258,7 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            world.System.EventWatcher(data, actorId, gid);
+            Game.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
                 if (_evtMap.TryGetValue(new EventKey(typeof(T), actorId, 0, type), out var queue))
@@ -286,7 +284,7 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            world.System.EventWatcher(data, actorId, gid);
+            Game.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), actorId, 0, type), out var queue))
@@ -309,7 +307,7 @@ namespace Core
             if (actorId != 0 && gid != 0)
                 Loger.Error($"actorId 和 gid  不可同时为有效值");
 #endif
-            world.System.EventWatcher(data, actorId, gid);
+            Game.System.EventWatcher(data, actorId, gid);
             if (actorId != 0)
             {
                 if (_evtMap.TryGetValue(new EventKey(data.GetType(), actorId, 0, type), out var queue))

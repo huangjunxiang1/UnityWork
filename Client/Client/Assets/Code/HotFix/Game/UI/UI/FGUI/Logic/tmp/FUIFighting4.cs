@@ -1,5 +1,4 @@
-﻿using Game;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,7 +54,7 @@ partial class FUIFighting4
     {
         base.OnExit();
         finding.Dispose();
-        World.Timer.Remove(draw);
+        Game.Timer.Remove(draw);
 
         //var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
         //if (block.IsCreated)
@@ -66,7 +65,7 @@ partial class FUIFighting4
     }
     async void _clickBack()
     {
-        await Client.Scene.InScene<LoginScene>();
+        await Game.Scene.InScene<LoginScene>();
     }
     void _click_rangeRoad()
     {
@@ -90,7 +89,7 @@ partial class FUIFighting4
             Box.Tips("未初始化障碍");
             return;
         }
-        World.Timer.Add(0, -1, draw);
+        Game.Timer.Add(0, -1, draw);
 
         mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
 

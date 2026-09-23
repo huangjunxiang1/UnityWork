@@ -7,7 +7,6 @@ using UnityEngine;
  
 #if FairyGUI
 using FairyGUI;
-using Game;
 
 public abstract class FUI3D : FUIBase
 {
@@ -35,14 +34,14 @@ public abstract class FUI3D : FUIBase
     public GameObject goRoot { get; private set; }
     public UIPanel Panel { get; private set; }
 
-    public sealed override async STask LoadConfig(Game.UIConfig config, STask completed)
+    public sealed override async STask LoadConfig(UIConfig config, STask completed)
     {
         await base.LoadConfig(config, completed);
 
         this.OnAwake();
         this._states = UIStatus.Loading;
-        this.goRoot = Client.Scene.Current.Loader.LoadGameObject(url, ReleaseMode.Destroy);
-        this.goRoot.transform.SetParent(Client.transform);
+        this.goRoot = Game.Scene.Current.Loader.LoadGameObject(this.url, ReleaseMode.Destroy);
+        this.goRoot.transform.SetParent(Game.World.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
@@ -53,15 +52,15 @@ public abstract class FUI3D : FUIBase
         this.goRoot.SetActive(this.isShow);
         this.OnEnter();
     }
-    public sealed override async STask LoadConfigAsync(Game.UIConfig config, STask completed)
+    public sealed override async STask LoadConfigAsync(UIConfig config, STask completed)
     {
         await base.LoadConfigAsync(config, completed);
 
         this.OnAwake();
         this._states = UIStatus.Loading;
-        this.goRoot = await Client.Scene.Current.Loader.LoadGameObjectAsync(url, ReleaseMode.Destroy);
+        this.goRoot = await Game.Scene.Current.Loader.LoadGameObjectAsync(this.url, ReleaseMode.Destroy);
         if (this.Disposed) return;
-        this.goRoot.transform.SetParent(Client.transform);
+        this.goRoot.transform.SetParent(Game.World.transform);
         this.Panel = this.goRoot.GetComponentInChildren<UIPanel>();
 
         this.Binding();
@@ -77,9 +76,9 @@ public abstract class FUI3D : FUIBase
         if (this.goRoot)
         {
             if (this.uiStates == UIStatus.Success)
-                this.Hide(true, () => Client.Scene.Current.Loader.Release(this.goRoot));
+                this.Hide(true, () => Game.Scene.Current.Loader.Release(this.goRoot));
             else
-                Client.Scene.Current.Loader.Release(this.goRoot);
+                Game.Scene.Current.Loader.Release(this.goRoot);
         }
         base.Dispose();
     }

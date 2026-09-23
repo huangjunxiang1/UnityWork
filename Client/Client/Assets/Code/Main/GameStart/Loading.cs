@@ -1,5 +1,4 @@
 ﻿using FairyGUI;
-using Game;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

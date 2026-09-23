@@ -1,15 +1,4 @@
-﻿using Core;
-using Event;
-using FairyGUI;
-using Game;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Mathematics;
-using UnityEngine;
+﻿using UnityEngine;
 
 static partial class SettingL
 {

@@ -4,10 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game
+public enum KSource
 {
-    public enum KSource
-    {
-        Base = 1,
-    }
+    Base = 1,
 }

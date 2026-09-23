@@ -1,5 +1,4 @@
 ﻿using Core;
-using Game;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -55,13 +54,13 @@ namespace Shit.Editor
             reload();
             SObject.objChange -= reload;
             SObject.objChange += reload;
-            World.Close -= reload;
-            World.Close += reload;
+            Game.onClose -= reload;
+            Game.onClose += reload;
         }
 
         void reload()
         {
-            Client.World?.ThreadSync?.Post(s =>
+            Game.ThreadSync?.Post(s =>
             {
                 ConstructUI();
                 LoadWorldRootAndBuild();
@@ -71,7 +70,7 @@ namespace Shit.Editor
         private void OnDisable()
         {
             SObject.objChange -= reload;
-            World.Close -= reload;
+            Game.onClose -= reload;
             if (_graphView != null)
             {
                 rootVisualElement.Remove(_graphView);
@@ -100,8 +99,8 @@ namespace Shit.Editor
         private void LoadWorldRootAndBuild()
         {
             _rootAsset = new();
-            _rootAsset.AddRange(World.Worlds.Select(t => t.Root));
-            _rootAsset.Add(Client.Data);
+            _rootAsset.Add(Game.World);
+            _rootAsset.Add(Game.Data);
 
             _graphView.ClearGraph();
 
@@ -568,7 +567,7 @@ namespace Shit.Editor
                 IDictionary entries = null;
                 if (userData is SObject s)
                     entries = s._components;
-                else if (userData is Data d)
+                else if (userData is DataManager d)
                     entries = d._dataMap;
 
                 if (entries == null || entries.Count == 0)

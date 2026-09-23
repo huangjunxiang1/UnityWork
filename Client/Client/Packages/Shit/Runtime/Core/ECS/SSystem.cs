@@ -19,9 +19,6 @@ namespace Core
     }
     internal class SSystem
     {
-        public SSystem(World world) => this.world = world;
-        World world;
-
         internal Dictionary<Type, __SystemHandle> _BeforeUpdateSystem = new();
         internal Dictionary<Type, __SystemHandle> _UpdateSystem = new();
         internal Dictionary<Type, __SystemHandle> _LateUpdateSystem = new();
@@ -470,7 +467,7 @@ namespace Core
                 return;
             if (ActorId != 0)
             {
-                if (!world.ObjectManager.TryGetByActorId(ActorId, out var lst))
+                if (!Game.ObjectManager.TryGetByActorId(ActorId, out var lst))
                     return;
                 int len = lst.Count;
                 for (int i = 0; i < len; i++)
@@ -482,7 +479,7 @@ namespace Core
             }
             else if (gid != 0)
             {
-                if (!world.ObjectManager.TryGetByGid(gid, out var obj))
+                if (!Game.ObjectManager.TryGetByGid(gid, out var obj))
                     return;
                 for (int j = 0; j < handlers.Count; j++)
                     if (!obj.Disposed)

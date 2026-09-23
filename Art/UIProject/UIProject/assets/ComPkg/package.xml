@@ -23,7 +23,6 @@
     <component id="be98p" name="FUIGame.xml" path="/UI/UIs/" exported="true"/>
     <component id="pivyr" name="lable.xml" path="/Common/labble/"/>
     <component id="pivys" name="input.xml" path="/Common/labble/"/>
-    <component id="pivyt" name="FUIRooms.xml" path="/UI/UIs/" exported="true"/>
     <component id="k8hcu" name="Connecting.xml" path="/UI/Box/" exported="true"/>
     <component id="uy8jv" name="FUIWorld.xml" path="/UI/UIs/" exported="true"/>
   </resources>

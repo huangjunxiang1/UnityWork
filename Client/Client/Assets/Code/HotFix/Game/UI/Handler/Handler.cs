@@ -1,7 +1,6 @@
 ﻿using Core;
 using Event;
 using FairyGUI;
-using Game;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,8 +69,7 @@ static class Handler
     [Event]
     static void EC_QuitGame(EC_QuitGame e)
     {
-        try { Server.Close(); } catch (System.Exception ex) { throw ex; }
-        try { Client.Close(); } catch (System.Exception ex) { throw ex; }
+        try { Game.Close(); } catch (System.Exception ex) { throw ex; }
         TabM_ST.Tab.Data.Dispose();
     }
     [Event]

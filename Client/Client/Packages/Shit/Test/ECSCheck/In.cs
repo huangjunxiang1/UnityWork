@@ -1,5 +1,4 @@
 ﻿using Core;
-using Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ internal static class In
             v = 0;
 
             var o = new o1();
-            Client.World.Root.AddChild(o);
+            Game.World.AddChild(o);
 
             if (v != 2)
                 throw new System.Exception();
@@ -46,10 +45,10 @@ internal static class In
             var o = new o1();
 
             o.AddComponent<c_1>();
-            Client.World.Update();
+            Game.Update();
             if (v != 7)
                 throw new System.Exception();
-            Client.World.Root.AddChild(o);
+            Game.World.AddChild(o);
             if (v != 10)
                 throw new System.Exception();
             o.Dispose();

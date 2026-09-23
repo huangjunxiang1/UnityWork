@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using Game;
 
 public static class ExFunc
 {
@@ -31,7 +30,7 @@ public static class ExFunc
                 for (int i = childCnt; i > 1; i--)
                 {
                     if (destroyMore)
-                        Client.Loader.Release(parent.GetChild(i - 1).gameObject, false);
+                        Game.Loader.Release(parent.GetChild(i - 1).gameObject, false);
                     else
                         parent.GetChild(i - 1).gameObject.SetActive(false);
                 }
@@ -57,7 +56,7 @@ public static class ExFunc
             for (int i = childCnt; i > count; i--)
             {
                 if (destroyMore)
-                    Client.Loader.Release(parent.GetChild(i - 1).gameObject, false);
+                    Game.Loader.Release(parent.GetChild(i - 1).gameObject, false);
                 else
                     parent.GetChild(i - 1).gameObject.SetActive(false);
             }

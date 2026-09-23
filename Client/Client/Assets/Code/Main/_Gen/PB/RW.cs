@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using Game;
 using Unity.Mathematics;
 
-namespace game
+namespace demo
 {
     public partial class C2S_SyncTransform : PB.PBMessage
     {

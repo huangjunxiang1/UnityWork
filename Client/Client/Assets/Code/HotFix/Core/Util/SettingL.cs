@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Event;
-using Game;
 using UnityEngine;
 
 static partial class SettingL
@@ -51,6 +50,6 @@ static partial class SettingL
         }
         isFirst = false;
 
-        Client.World.Event.RunEvent(new EC_LanguageChange());
+        Game.Event.RunEvent(new EC_LanguageChange());
     }
 }

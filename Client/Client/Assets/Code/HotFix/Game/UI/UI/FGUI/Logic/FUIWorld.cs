@@ -1,5 +1,4 @@
-﻿using Game;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Core;
@@ -19,7 +18,7 @@ partial class FUIWorld
     [InSystem]
     static void In(PlayerComponent p)
     {
-        var ui = Client.UI.GetChild<FUIWorld>();
+        var ui = Game.UI.GetChild<FUIWorld>();
         if (ui != null)
             p.Entity.AddComponent<ViewHexComponent>().ui = ui;
     }

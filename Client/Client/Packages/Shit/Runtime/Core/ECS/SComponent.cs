@@ -15,15 +15,6 @@ namespace Core
         public virtual SObject Entity { get; internal set; }
         public bool Disposed { get; internal set; }
 
-        public virtual World World
-        {
-            get => this.Entity.World;
-            internal set
-            {
-                Loger.Error($"{nameof(SComponent)} can not set {nameof(World)}");
-            }
-        }
-
         /// <summary>
         /// 服务器生成的ID
         /// </summary>
@@ -49,20 +40,18 @@ namespace Core
                 _enable = value;
                 for (int i = 0; i < this._Handles.Count; i++)
                     this._Handles[i].EnableCounter += value ? -1 : 1;
-                if (World != null)
+
+                if (Environment.CurrentManagedThreadId != Game.ThreadSync.threadId)
                 {
-                    if (Thread.CurrentThread.ManagedThreadId != this.World.ThreadSync.threadId)
-                    {
-                        Loger.Error($"canot {nameof(Enable)} in other thread");
-                        return;
-                    }
-                    if (this.Enable)
-                        this.SetChangeFlag();
-                    if (!enable && this.Enable)
-                        World.System.In(this.GetType(), this);
-                    if (enable && !this.Enable)
-                        World.System.Out(this.GetType(), this);
+                    Loger.Error($"canot {nameof(Enable)} in other thread");
+                    return;
                 }
+                if (this.Enable)
+                    this.SetChangeFlag();
+                if (!enable && this.Enable)
+                    Game.System.In(this.GetType(), this);
+                if (enable && !this.Enable)
+                    Game.System.Out(this.GetType(), this);
             }
         }
 
@@ -70,18 +59,18 @@ namespace Core
 
         public virtual void SetChange()
         {
-            if (this.Disposed || !_enable || World == null) return;
-            if (Thread.CurrentThread.ManagedThreadId != this.World.ThreadSync.threadId)
+            if (this.Disposed || !_enable || !this.Entity._Initialized) return;
+            if (Environment.CurrentManagedThreadId != Game.ThreadSync.threadId)
             {
                 Loger.Error($"canot {nameof(SetChange)} in other thread");
                 return;
             }
-            this.World.System.Change(this, true);
+            Game.System.Change(this, true);
         }
         public virtual void SetChangeFlag()
         {
-            if (this.Disposed || !_enable || World == null) return;
-            this.World.System.Change(this, false);
+            if (this.Disposed || !_enable || !this.Entity._Initialized) return;
+            Game.System.Change(this, false);
         }
         public virtual void Dispose()
         {
@@ -90,16 +79,16 @@ namespace Core
                 Loger.Error("重复Dispose->" + this);
                 return;
             }
-            if (Thread.CurrentThread.ManagedThreadId != this.World.ThreadSync.threadId)
+            if (Environment.CurrentManagedThreadId != Game.ThreadSync.threadId)
             {
                 Loger.Error($"canot {nameof(Dispose)} in other thread");
                 return;
             }
 
-            World.System.UnRigisterHandler(this.GetType(), this);
-            World.Event.RemoveEvent(this);
+            Game.System.UnRigisterHandler(this.GetType(), this);
+            Game.Event.RemoveEvent(this);
             this.Disposed = true;//
-            World.System.Out(this.GetType(), this);
+            Game.System.Out(this.GetType(), this);
             this.dispose(false);
         }
         public override string ToString() => $"this={base.ToString()} from={(Entity == null ? "Null" : Entity.ToString())}";
@@ -111,7 +100,7 @@ namespace Core
             for (int i = 0; i < _Handles.Count; i++)
             {
                 _Handles[i].Disposed = true;
-                if (!isDestroyEntity) _Handles[i]._handle_waitRemove(this.World.System.waitRemove);
+                if (!isDestroyEntity) _Handles[i]._handle_waitRemove(Game.System.waitRemove);
             }
 
             _Handles.Clear();

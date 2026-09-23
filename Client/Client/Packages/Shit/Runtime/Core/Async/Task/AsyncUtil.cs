@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 [DebuggerNonUserCode]
-public static class AsyncUtil
+public static partial class AsyncUtil
 {
     public static STask AsTask(this Eventer eventer)
     {

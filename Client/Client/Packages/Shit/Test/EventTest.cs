@@ -137,56 +137,56 @@ internal static class EventTest
         testObj.InstanceProperty_Type4 = null;
 
         // ===== 注册阶段 =====
-        Game.Client.World.Root.AddChild(testObj);
-        Game.Client.World.Root.AddChild(new DerivedEventClass());
-        Game.Client.World.Root.AddChild(new ManualHandlerClass());
+        Game.World.AddChild(testObj);
+        Game.World.AddChild(new DerivedEventClass());
+        Game.World.AddChild(new ManualHandlerClass());
 
         // 委托注册（默认 Type=0）
         Action<MyEvent> act = EventTestClass.DelegateTarget;
         Delegate act1 = (Action<MyEvent>)EventTestClass.DelegateTarget;
-        Game.Client.World.Event.RigisteEvent<MyEvent>(act, 0, 40);
-        Game.Client.World.Event.RigisteEvent(act1, 70, 41);
+        Game.Event.RigisteEvent<MyEvent>(act, 0, 40);
+        Game.Event.RigisteEvent(act1, 70, 41);
 
         // 用于 ActorId/gid 测试的对象
         var obj1 = new EventTestClass { ActorId = 1001 };
         var obj2 = new EventTestClass { ActorId = 2002 };
-        Game.Client.World.Root.AddChild(obj1);
-        Game.Client.World.Root.AddChild(obj2);
+        Game.World.AddChild(obj1);
+        Game.World.AddChild(obj2);
 
         // ===== 触发事件 =====
         // 1. 触发字段/属性对应的 Type (1,2,3,4)
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 100 }, type: 1);
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 100 }, type: 2);
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 100 }, type: 3);
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 100 }, type: 4);
+        Game.Event.RunEvent(new MyEvent { Id = 100 }, type: 1);
+        Game.Event.RunEvent(new MyEvent { Id = 100 }, type: 2);
+        Game.Event.RunEvent(new MyEvent { Id = 100 }, type: 3);
+        Game.Event.RunEvent(new MyEvent { Id = 100 }, type: 4);
 
         // 2. Type=10 测试（基础排序、并行、队列）
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 100 }, type: 10);
-        Game.Client.World.Event.RunEvent(new EventA());   // 触发静态多事件（无Type，默认0）
-        Game.Client.World.Event.RunEvent(new EventB());
-        Game.Client.World.Event.RunEvent("hello");        // 触发静态字符串
-        Game.Client.World.Event.RunEvent(new EC_Event { Data = "manual" }, type: 20); // EC_Event，Type=20
+        Game.Event.RunEvent(new MyEvent { Id = 100 }, type: 10);
+        Game.Event.RunEvent(new EventA());   // 触发静态多事件（无Type，默认0）
+        Game.Event.RunEvent(new EventB());
+        Game.Event.RunEvent("hello");        // 触发静态字符串
+        Game.Event.RunEvent(new EC_Event { Data = "manual" }, type: 20); // EC_Event，Type=20
 
         // 3. Type=30 中断测试
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 200 }, type: 30);
+        Game.Event.RunEvent(new MyEvent { Id = 200 }, type: 30);
 
         // 4. Type=40 ActorId/gid 过滤
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 300 }, actorId: 1001, type: 40);
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 301 }, gid: obj1.gid, type: 40);
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 302 }, type: 40);
+        Game.Event.RunEvent(new MyEvent { Id = 300 }, actorId: 1001, type: 40);
+        Game.Event.RunEvent(new MyEvent { Id = 301 }, gid: obj1.gid, type: 40);
+        Game.Event.RunEvent(new MyEvent { Id = 302 }, type: 40);
 
         // 5. Type=50 组合测试（有参方法的各种属性排列）
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 400 }, type: 50);
+        Game.Event.RunEvent(new MyEvent { Id = 400 }, type: 50);
 
         // 6. Type=60 无参方法组合测试（无 Parallel）
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 500 }, type: 60);
+        Game.Event.RunEvent(new MyEvent { Id = 500 }, type: 60);
 
         // 7. 额外触发 Type=0 默认事件（用于验证委托和静态方法）
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 600 });
-        Game.Client.World.Event.RunEvent(new MyEvent { Id = 700 }, actorId: 70);
+        Game.Event.RunEvent(new MyEvent { Id = 600 });
+        Game.Event.RunEvent(new MyEvent { Id = 700 }, actorId: 70);
 
-        Game.Client.World.Event.RemoveEvent(act);
-        Game.Client.World.Event.RemoveEvent(act1);
+        Game.Event.RemoveEvent(act);
+        Game.Event.RemoveEvent(act1);
 
         // ===== 验证 =====
         Verify(testObj, obj1, obj2);

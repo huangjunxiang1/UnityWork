@@ -1,6 +1,5 @@
 ﻿using Core;
 using Event;
-using Game;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -16,7 +15,7 @@ static class _main
         List<Type> types = new();
         types.AddRange(typeof(World).Assembly.GetTypes());
         types.AddRange(typeof(_main).Assembly.GetTypes());
-        Client.Initialize(types);
+        Game.Initialize(types);
 
         TypeLstCheck.test();
         EcsSystem.test();

@@ -13,7 +13,7 @@ internal partial class SystemHandler<T> : __SystemHandle where T : SComponent
     public override ComponentFilter Filter(SObject o, bool addToQueue = false)
     {
         if (!o.TryGetComponent<T>(out var c)) return null;
-        var v = new ComponentFilter<T>() { system = this, world = o.World, t = c };
+        var v = new ComponentFilter<T>() { system = this, t = c };
         if (!c.Enable) v.EnableCounter += 1;
         if (addToQueue) cfq.Enqueue(v);
         return v;
@@ -61,7 +61,7 @@ internal partial class SystemHandler<T, T2> : __SystemHandle where T : SComponen
     {
         if (!o.TryGetComponent<T>(out var c)) return null;
         if (!o.TryGetComponent<T2>(out var c2)) return null;
-        var v = new ComponentFilter<T, T2>() { system = this, world = o.World, t = c, t2 = c2 };
+        var v = new ComponentFilter<T, T2>() { system = this, t = c, t2 = c2 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (addToQueue) cfq.Enqueue(v);
@@ -111,7 +111,7 @@ internal partial class SystemHandler<T, T2, T3> : __SystemHandle where T : SComp
         if (!o.TryGetComponent<T>(out var c)) return null;
         if (!o.TryGetComponent<T2>(out var c2)) return null;
         if (!o.TryGetComponent<T3>(out var c3)) return null;
-        var v = new ComponentFilter<T, T2, T3>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3 };
+        var v = new ComponentFilter<T, T2, T3>() { system = this, t = c, t2 = c2, t3 = c3 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;
@@ -163,7 +163,7 @@ internal partial class SystemHandler<T, T2, T3, T4> : __SystemHandle where T : S
         if (!o.TryGetComponent<T2>(out var c2)) return null;
         if (!o.TryGetComponent<T3>(out var c3)) return null;
         if (!o.TryGetComponent<T4>(out var c4)) return null;
-        var v = new ComponentFilter<T, T2, T3, T4>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3, t4 = c4 };
+        var v = new ComponentFilter<T, T2, T3, T4>() { system = this, t = c, t2 = c2, t3 = c3, t4 = c4 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;
@@ -217,7 +217,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5> : __SystemHandle where T
         if (!o.TryGetComponent<T3>(out var c3)) return null;
         if (!o.TryGetComponent<T4>(out var c4)) return null;
         if (!o.TryGetComponent<T5>(out var c5)) return null;
-        var v = new ComponentFilter<T, T2, T3, T4, T5>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5 };
+        var v = new ComponentFilter<T, T2, T3, T4, T5>() { system = this, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;
@@ -273,7 +273,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6> : __SystemHandle whe
         if (!o.TryGetComponent<T4>(out var c4)) return null;
         if (!o.TryGetComponent<T5>(out var c5)) return null;
         if (!o.TryGetComponent<T6>(out var c6)) return null;
-        var v = new ComponentFilter<T, T2, T3, T4, T5, T6>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6 };
+        var v = new ComponentFilter<T, T2, T3, T4, T5, T6>() { system = this, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;
@@ -331,7 +331,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7> : __SystemHandle
         if (!o.TryGetComponent<T5>(out var c5)) return null;
         if (!o.TryGetComponent<T6>(out var c6)) return null;
         if (!o.TryGetComponent<T7>(out var c7)) return null;
-        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7 };
+        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7>() { system = this, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;
@@ -391,7 +391,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7, T8> : __SystemHa
         if (!o.TryGetComponent<T6>(out var c6)) return null;
         if (!o.TryGetComponent<T7>(out var c7)) return null;
         if (!o.TryGetComponent<T8>(out var c8)) return null;
-        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7, T8>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7, t8 = c8 };
+        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7, T8>() { system = this, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7, t8 = c8 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;
@@ -453,7 +453,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7, T8, T9> : __Syst
         if (!o.TryGetComponent<T7>(out var c7)) return null;
         if (!o.TryGetComponent<T8>(out var c8)) return null;
         if (!o.TryGetComponent<T9>(out var c9)) return null;
-        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7, T8, T9>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7, t8 = c8, t9 = c9 };
+        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7, T8, T9>() { system = this, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7, t8 = c8, t9 = c9 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;
@@ -517,7 +517,7 @@ internal partial class SystemHandler<T, T2, T3, T4, T5, T6, T7, T8, T9, T10> : _
         if (!o.TryGetComponent<T8>(out var c8)) return null;
         if (!o.TryGetComponent<T9>(out var c9)) return null;
         if (!o.TryGetComponent<T10>(out var c10)) return null;
-        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>() { system = this, world = o.World, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7, t8 = c8, t9 = c9, t10 = c10 };
+        var v = new ComponentFilter<T, T2, T3, T4, T5, T6, T7, T8, T9, T10>() { system = this, t = c, t2 = c2, t3 = c3, t4 = c4, t5 = c5, t6 = c6, t7 = c7, t8 = c8, t9 = c9, t10 = c10 };
         if (!c.Enable) v.EnableCounter += 1;
         if (!c2.Enable) v.EnableCounter += 1;
         if (!c3.Enable) v.EnableCounter += 1;

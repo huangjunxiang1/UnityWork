@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component size="1334,750" designImage="ui://zvziziwikx1d0">
-  <controller name="_c1" pages="0,,1," selected="1"/>
   <displayList>
     <graph id="n13_pivy" name="n13" xy="0,0" size="1334,750" type="rect" lineSize="0" fillColor="#ff666666">
       <relation target="" sidePair="width-width,height-height"/>
@@ -15,25 +14,7 @@
       <Label prompt="请输入密码"/>
     </component>
     <group id="n8_xbva" name="n8" xy="538,232" size="257,286" advanced="true">
-      <gearDisplay controller="_c1" pages="0"/>
       <relation target="" sidePair="center-center,middle-middle"/>
-    </group>
-    <component id="n14_pivy" name="_btnEnter" src="qgu27" fileName="Common/btn/btn.xml" xy="538,344" size="257,62" group="n15_pivy">
-      <Button title="进入游戏"/>
-    </component>
-    <group id="n15_pivy" name="n15" xy="538,344" size="257,62" advanced="true">
-      <gearDisplay controller="_c1" pages="1"/>
-      <relation target="" sidePair="center-center,middle-middle"/>
-    </group>
-    <component id="n16_pivy" name="_asServer" src="qgu27" fileName="Common/btn/btn.xml" xy="93,180" group="n18_pivy">
-      <Button title="作为服务器"/>
-    </component>
-    <component id="n17_pivy" name="_serverIP" src="pivys" fileName="Common/labble/input.xml" xy="93,72" size="200,50" group="n18_pivy">
-      <Label title="127.0.0.1:9527" prompt="请输入服务器ip"/>
-    </component>
-    <group id="n18_pivy" name="n18" xy="93,72" size="200,158" advanced="true">
-      <gearDisplay controller="_c1" pages="0"/>
-      <relation target="" sidePair="left-left,top-top"/>
     </group>
   </displayList>
 </component>

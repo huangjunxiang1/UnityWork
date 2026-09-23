@@ -18,7 +18,6 @@ internal class CodeGen
         StringBuilder rw = new StringBuilder(10000);
 
         rw.AppendLine("using System.Collections.Generic;");
-        rw.AppendLine("using Game;");
         rw.AppendLine("using Unity.Mathematics;");
         for (int i = 0; i < ret.pbs.Count; i++)
         {
@@ -34,7 +33,6 @@ internal class CodeGen
 
             df.Clear();
             df.AppendLine("using System.Collections.Generic;");
-            df.AppendLine("using Game;");
             df.AppendLine("using Unity.Mathematics;");
             for (int j = 0; j < pb.refrences.Count; j++)
                 df.AppendLine($"using {pb.refrences[i]};");

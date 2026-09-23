@@ -30,15 +30,15 @@ public static partial class Hex
     }
     public static float3 GetPositon(int2 xy, float hexWidth = Define.HexWidth, PathGridHexParityType parity = PathGridHexParityType.Even, PathGridHexFacingType facing = PathGridHexFacingType.Up)
     {
-        xy = (int2)math.lerp(xy.xy, xy.yx, (int)facing);
+        xy = facing == PathGridHexFacingType.Up ? xy : xy.yx;
         float3 v3 = math.float3((xy.x + (xy.y & 1) * ((int)parity - 0.5f)) * hexWidth, 0, xy.y * hexWidth * 0.5f * Hex_sqrt_3);
         v3.xz = math.lerp(v3.xz, v3.zx, (int)facing);
         return v3;
     }
     public static int2 GetQuadCenterGrid(int2 xy)
     {
-        int2 xy0 = (int2)math.floor((xy + Hex_QuadHalfSize) / Hex.Hex_QuadSize);
-        return xy0 * Hex.Hex_QuadSize + Hex.Hex_QuadHalfSize;
+        xy += Hex_QuadHalfSize;
+        return xy - (xy % Hex_QuadSize + Hex_QuadSize) % Hex_QuadSize;
     }
     public static int2 GetQuadLocalxy(int2 xy)
     {

@@ -1,10 +1,5 @@
-﻿using UnityEngine;
-
-namespace Game
+﻿public enum CodeRuntime
 {
-    public enum CodeRuntime
-    {
-        Native,
-        Assembly,
-    }
+    Native,
+    Assembly,
 }

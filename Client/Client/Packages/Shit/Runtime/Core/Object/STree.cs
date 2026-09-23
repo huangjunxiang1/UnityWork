@@ -36,13 +36,18 @@ namespace Core
         /// <param name="child"></param>
         public override void AddChild(SObject child)
         {
-            if (this.World == null)
-            {
-                Loger.Error($"{this} Not Add To Any World");
-                return;
-            }
             if (child.Parent == this)
                 return;
+            if (child.Disposed)
+            {
+                Loger.Error($"Child Already be Disposed this={this} child={child}");
+                return;
+            }
+            if (this.Disposed)
+            {
+                Loger.Error($"This Already be Disposed this={this} child={child}");
+                return;
+            }
 
 #if DebugEnable
             SObject o = this;
@@ -76,7 +81,7 @@ namespace Core
             _children.Add(child);
 
             child.Parent = this;
-            child.World ??= this.World;
+            child.Initialize();
             child.View = this.View;
         }
         public override int GetChildIndex(SObject child) => _children.IndexOf(child);

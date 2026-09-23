@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Game;
 using System.Threading;
 using Core;
 using System;

@@ -190,10 +190,6 @@ partial class FUILogin : FUI
     public GButton _btnLogin { get; private set; }
     public GLabel _acc { get; private set; }
     public GLabel _pw { get; private set; }
-    public GButton _btnEnter { get; private set; }
-    public GButton _asServer { get; private set; }
-    public GLabel _serverIP { get; private set; }
-    public Controller _c1 { get; private set; }
 
     protected sealed override void Binding()
     {
@@ -201,31 +197,6 @@ partial class FUILogin : FUI
         _btnLogin = (GButton)ui.GetChildAt(1);
         _acc = (GLabel)ui.GetChildAt(2);
         _pw = (GLabel)ui.GetChildAt(3);
-        _btnEnter = (GButton)ui.GetChildAt(5);
-        _asServer = (GButton)ui.GetChildAt(7);
-        _serverIP = (GLabel)ui.GetChildAt(8);
-        _c1 = ui.GetControllerAt(0);
-    }
-    public override void Dispose()
-    {
-        base.Dispose();
-    }
-}
-partial class FUIRooms : FUI
-{
-    public sealed override string url => "ui://zvziziwipivyt";
-    public GButton _ref { get; private set; }
-    public GList _rooms { get; private set; }
-    public GLabel _roomName { get; private set; }
-    public GButton _create { get; private set; }
-
-    protected sealed override void Binding()
-    {
-        GComponent ui = this.ui;
-        _ref = (GButton)ui.GetChildAt(1);
-        _rooms = (GList)ui.GetChildAt(2);
-        _roomName = (GLabel)ui.GetChildAt(3);
-        _create = (GButton)ui.GetChildAt(4);
     }
     public override void Dispose()
     {

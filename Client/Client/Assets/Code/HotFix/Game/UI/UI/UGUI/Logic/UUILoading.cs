@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using DG.Tweening;
 using Event;
-using Game;
 using Core;
 
 [UIConfig(50, HideIfOpenOtherUI = false)]
@@ -15,12 +14,12 @@ partial class UUILoading
     //[Event(-100, Queue = true)]
     static void EC_OutScene(EC_OutScene e)
     {
-        Client.UI.Open<UUILoading>();
+        Game.UI.Open<UUILoading>();
     }
     [Event(100, Queue = true)]
     static async STask EC_InScene(EC_InScene e)
     {
-        var ui = Client.UI.GetChild<UUILoading>();
+        var ui = Game.UI.GetChild<UUILoading>();
         if (ui != null)
         {
             ui.cur = ui.max;
@@ -48,7 +47,7 @@ partial class UUILoading
             //_fillImage.fillAmount = cur;
             if (cur >= 1)
             {
-                World.Timer.Add(2, 1, () =>
+                Game.Timer.Add(2, 1, () =>
                 {
                     this.Dispose();
                 });
