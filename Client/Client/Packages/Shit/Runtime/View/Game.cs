@@ -2,7 +2,9 @@
 using Event;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public sealed class World : STree
@@ -48,20 +50,18 @@ public sealed class Game : SCore<Game>
     public static World World { get; private set; }
     public static SocketManager Socket { get; private set; }
     public static DataManager Data { get; private set; }
-    public static SceneManager Scene { get; private set; }
+    public static Scene Scene { get; private set; }
     public static UIManager UI { get; private set; }
     public static SLoader Loader { get; private set; }
 
     public static void Initialize(List<Type> types)
     {
-        Initializes(types);
+        InitializeCore(types);
         World = new();
         World.Initialize();
         Socket = new();
         Data = new();
-        Scene = new SceneManager();
-        if (Application.isPlaying)
-            World.AddChild(UI = new());
+        World.AddChild(UI = new());
         Loader = new("Game", null);
 
         Event.RunEvent(new EC_ClientLanucher());
@@ -69,9 +69,30 @@ public sealed class Game : SCore<Game>
     public static void Close()
     {
         if (World == null) return;
-        UnInitializes();
+        UnInitialize();
         var w = World;
         World = null;
         w.Dispose();
+    }
+
+    public static async STask InScene<T>(params object[] os) where T : Scene, new()
+    {
+        var attr = typeof(T).GetCustomAttributes(typeof(SceneAttribute), true).FirstOrDefault() as SceneAttribute ?? throw new Exception($"Scene {typeof(T).FullName} need SceneAttribute");
+        if (string.IsNullOrEmpty(attr.name))
+            throw new Exception($"Scene {typeof(T).FullName} SceneAttribute name is null or empty");
+
+        var old = Scene;
+        Scene = new T() { _paramObjects = os };
+        Game.World.AddChild(Scene);
+        old?.Dispose();
+        Game.UI.CloseUI();
+        await Game.Event.RunEventAsync(new EC_OutScene { });
+
+        await Game.Loader.LoadSceneAsync($"scene_{attr.name}");
+        await Task.Delay(100);
+
+        Scene.OnEnter();
+
+        await Game.Event.RunEventAsync(new EC_InScene { });
     }
 }

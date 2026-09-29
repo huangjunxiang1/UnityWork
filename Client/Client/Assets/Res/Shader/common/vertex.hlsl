@@ -18,16 +18,25 @@ void Vertex_Grid_float(float3 worldPos,float stepv, out float sv)
     sv = 1-step(stepv, m / (HexWidth / 2));
 }
 
+#if INSTANCE_ON
 StructuredBuffer<float2> wall_datas;
+#endif
 void Vertex_Wall_float(int instanceid, float3 objPos, out float3 pos)
 {
+#if INSTANCE_ON
     float2 dt = wall_datas[offsetIndex + instanceid];
     pos = objPos + float3(dt.x, 0.0, dt.y);
+#else
+    pos = objPos;
+#endif
 }
 
+#if INSTANCE_ON
 StructuredBuffer<float2> tree_datas;
+#endif
 void Vertex_Tree_float(int instanceid, float3 objPos,float3 normal, out float3 pos,out float3 out_normal)
 {
+#if INSTANCE_ON
     float2 dt = tree_datas[offsetIndex + instanceid];
     objPos *= 0.12;
     float angle = random_uint2Tofloat(asuint(dt)) * Define_2PI;
@@ -35,4 +44,8 @@ void Vertex_Tree_float(int instanceid, float3 objPos,float3 normal, out float3 p
     float2 n = rotate(normal.xz, angle);
     out_normal = float3(n.x, normal.y,n.y);
     pos = objPos + float3(dt.x, 0.0, dt.y);
+#else
+    pos = objPos;
+    out_normal = normal;
+#endif
 }

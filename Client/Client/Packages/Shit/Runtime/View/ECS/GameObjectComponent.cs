@@ -12,7 +12,7 @@ public enum SGameObjectType
     Resource,//资源类型
     LogicRoot,//根节点是空节点 下面挂资源
 }
-public class GameObjectComponent : ViewComponent
+public class GameObjectComponent : SComponent
 {
     public GameObjectComponent() : this(SGameObjectType.LogicRoot) { }
     public GameObjectComponent(SGameObjectType style = SGameObjectType.LogicRoot)
@@ -64,12 +64,6 @@ public class GameObjectComponent : ViewComponent
     /// </summary>
     public GameObject gameObject { get; private set; }
 
-    protected override void View(bool view)
-    {
-        if (this.gameObjectType == SGameObjectType.Static) return;
-        this.gameRoot?.SetActive(view);
-    }
-
     /// <summary>
     /// 设置加载的资源模型
     /// </summary>
@@ -107,7 +101,7 @@ public class GameObjectComponent : ViewComponent
                         res.transform.SetPositionAndRotation(this.gameObject.transform.position, this.gameObject.transform.rotation);
                     }
                     if (release)
-                        Game.Scene.Current.Loader.Release(this.gameObject);
+                        Game.Scene.Loader.Release(this.gameObject);
                     else
                         this.gameObject.transform.parent = Game.World.transform;
                 }
@@ -136,7 +130,7 @@ public class GameObjectComponent : ViewComponent
                 if (this.gameObject)
                 {
                     if (release)
-                        Game.Scene.Current.Loader.Release(this.gameObject);
+                        Game.Scene.Loader.Release(this.gameObject);
                     else
                         this.gameObject.transform.parent = Game.World.transform;
                 }
@@ -162,7 +156,7 @@ public class GameObjectComponent : ViewComponent
         {
             if (this.gameObject)
             {
-                var info = this.gameObject.GetComponent<SObjectInfo>() ?? this.gameObject.AddComponent<SObjectInfo>();
+                var info = this.gameObject.GetOrAddComponent<SObjectInfo>();
                 info.gid = this.gid;
             }
         }
@@ -170,7 +164,7 @@ public class GameObjectComponent : ViewComponent
         {
             if (this.gameRoot)
             {
-                var info = this.gameRoot.GetComponent<SObjectInfo>() ?? this.gameRoot.AddComponent<SObjectInfo>();
+                var info = this.gameRoot.GetOrAddComponent<SObjectInfo>();
                 info.gid = this.gid;
             }
         }
@@ -200,7 +194,7 @@ public class GameObjectComponent : ViewComponent
         _url = url;
         ++_resVersion;
         _isSelfSet = true;
-        SetGameObject(Game.Scene.Current.Loader.LoadGameObject(_url, releaseMode));
+        SetGameObject(Game.Scene.Loader.LoadGameObject(_url, releaseMode));
     }
     public async STask LoadGameObjectAsync(string url, ReleaseMode releaseMode = ReleaseMode.PutToPool)
     {
@@ -220,10 +214,10 @@ public class GameObjectComponent : ViewComponent
             return;
         _url = url;
         int ver = ++_resVersion;
-        GameObject res = await Game.Scene.Current.Loader.LoadGameObjectAsync(_url, releaseMode);
+        GameObject res = await Game.Scene.Loader.LoadGameObjectAsync(_url, releaseMode);
         if (ver != _resVersion)
         {
-            Game.Scene.Current.Loader.Release(res);
+            Game.Scene.Loader.Release(res);
             return;
         }
         _isSelfSet = true;
@@ -247,13 +241,13 @@ public class GameObjectComponent : ViewComponent
                     break;
                 case SGameObjectType.Resource:
                     if (t.gameObject)
-                        Game.Scene.Current.Loader.Release(t.gameObject);
+                        Game.Scene.Loader.Release(t.gameObject);
                     break;
                 case SGameObjectType.LogicRoot:
                     if (t.gameObject)
                     {
                         t.gameRoot.transform.localScale = Vector3.one;
-                        Game.Scene.Current.Loader.Release(t.gameObject);
+                        Game.Scene.Loader.Release(t.gameObject);
                     }
                     GameObject.Destroy(t.gameRoot);
                     break;

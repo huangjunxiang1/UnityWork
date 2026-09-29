@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using DG.Tweening;
 using Event;
-using Core;
 
 [UIConfig(50, HideIfOpenOtherUI = false)]
 partial class UUILoading
@@ -24,7 +22,7 @@ partial class UUILoading
         {
             ui.cur = ui.max;
             //ui._fillImage.fi = 1;
-            await SValueTask.Delay(1000);
+            await Task.Delay(1000);
             ui.Dispose();
         }
     }

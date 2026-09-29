@@ -64,7 +64,7 @@ namespace Shit.Editor
             {
                 ConstructUI();
                 LoadWorldRootAndBuild();
-            });
+            }, null);
         }
 
         private void OnDisable()

@@ -27,6 +27,8 @@ public class DataManager
     {
         if (o == null) return;
         _dataMap[o.GetType()] = o;
+        if (this == Game.Data)
+            Game.Scene?.Data.Add(o);
     }
     public void Remove<T>() where T : class
     {

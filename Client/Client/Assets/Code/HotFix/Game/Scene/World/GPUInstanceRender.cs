@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEngine;
 
 static class GPUConstDefine
@@ -39,6 +38,7 @@ class GPUInstanceRender : SObject
             arg.baseVertexIndex = (uint)mesh.GetBaseVertex(0);
             args[i] = arg;
             this.mesh.Add(mesh);
+            mat.EnableKeyword("INSTANCE_ON");
             mat.SetInt("offsetIndex", maxInstance * i);
             this.RenderParams[i] = new(mat);
             this.RenderParams[i].worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);

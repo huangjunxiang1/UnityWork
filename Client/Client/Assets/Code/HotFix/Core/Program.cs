@@ -30,6 +30,6 @@ public static class Program
             UnityEngine.Debug.Log($"耗时:{(tick4 - tick3) / 10000}ms");
         }
 
-        await Game.Scene.InScene<LoginScene>();
+        await Game.InScene<LoginScene>();
     }
 }

@@ -10,8 +10,6 @@ static class _main
     [Test]
     public static void test()
     {
-        ThreadSynchronizationContext.GetOrCreate(System.Environment.CurrentManagedThreadId);
-
         List<Type> types = new();
         types.AddRange(typeof(World).Assembly.GetTypes());
         types.AddRange(typeof(_main).Assembly.GetTypes());

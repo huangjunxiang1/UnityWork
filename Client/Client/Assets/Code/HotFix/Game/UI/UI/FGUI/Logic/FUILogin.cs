@@ -23,6 +23,6 @@ partial class FUILogin
 
     async void login()
     {
-        await Game.Scene.InScene<WorldScene>();
+        await Game.InScene<WorldScene>();
     }
 }

@@ -113,7 +113,7 @@ public partial class ComputeShader_PathFinding
         }
     }
 
-    public void CSMain_Dispatch(int threadx = 8, int thready = 8, int threadz = 1) => Shader.Dispatch(CSMain_kernel, threadx, thready, threadz);
+    public void CSMain_Dispatch(int threadx = 1, int thready = 1, int threadz = 1) => Shader.Dispatch(CSMain_kernel, threadx, thready, threadz);
 
     public void Dispose()
     {

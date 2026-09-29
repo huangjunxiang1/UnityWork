@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Core
 {
     public class SCore<T> where T : SCore<T>
     {
-        public static ThreadSynchronizationContext ThreadSync { get; private set; }
+        public static SynchronizationContext ThreadSync { get; private set; }
         public static EventSystem Event { get; private set; }
         public static STimer Timer { get; private set; } = new();
         public static ObjectManager ObjectManager { get; private set; } = new();
@@ -14,14 +15,11 @@ namespace Core
         internal static SSystem System;
         internal static Action onClose;
 
-        protected static void Initializes(List<Type> types)
+        protected static void InitializeCore(List<Type> types)
         {
             Checker.Check(types);
 
-            SValueTask.DelayHandle -= delayHandle;
-            SValueTask.DelayHandle += delayHandle;
-
-            ThreadSync = ThreadSynchronizationContext.GetOrCreate(Environment.CurrentManagedThreadId);
+            ThreadSync = SynchronizationContext.Current;
             Event = new();
             System = new();
 
@@ -33,7 +31,6 @@ namespace Core
         public static void BeforeUpdate(float time)
         {
             DeltaTime = time;
-            ThreadSync.Update();
             System.beforeUpdate();
         }
         public static void Update()
@@ -47,13 +44,9 @@ namespace Core
             Event.LateUpdate();
             ObjectManager.LateUpdate();
         }
-        protected static void UnInitializes()
+        protected static void UnInitialize()
         {
-            SValueTask.DelayHandle -= delayHandle;
-        }
-        static void delayHandle(int ms, SValueTask task)
-        {
-            Timer.Add(ms / 1000f, 1, task.TrySetResult);
+           
         }
     }
 }

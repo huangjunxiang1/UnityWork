@@ -22,33 +22,34 @@ public class UIManager : Core.STree
 {
     public UIManager() : base()
     {
-        GameObject root = new("UIRoot", typeof(RectTransform));
-        root.layer = Layers.UI;
-        GameObject.DontDestroyOnLoad(root);
-        UGUIRoot = root.transform as RectTransform;
-        UGUIRoot.sizeDelta = new Vector2(Screen.width, Screen.height);
-        UGUIRoot.pivot = Vector2.zero;
-        UGUIRoot.position = Vector3.zero;
+        if (Application.isPlaying)
+        {
+            GameObject root = new("UIRoot", typeof(RectTransform));
+            root.layer = Layers.UI;
+            GameObject.DontDestroyOnLoad(root);
+            UGUIRoot = root.transform as RectTransform;
+            UGUIRoot.sizeDelta = new Vector2(Screen.width, Screen.height);
+            UGUIRoot.pivot = Vector2.zero;
+            UGUIRoot.position = Vector3.zero;
 
 #if FairyGUI
-        NTexture.CustomDestroyMethod += t => Game.Loader.Release(t);
-        NAudioClip.CustomDestroyMethod += t => Game.Loader.Release(t);
+            NTexture.CustomDestroyMethod += static t => Game.Loader.Release(t);
+            NAudioClip.CustomDestroyMethod += static t => Game.Loader.Release(t);
 
-        this.FGUIRoot_3d = new GComponent();
-        GRoot.inst.AddChild(FGUIRoot_3d);
-        FGUIRoot_3d.size = GRoot.inst.size;
-        FGUIRoot_3d.AddRelation(GRoot.inst, RelationType.Size);
-        FGUIRoot_3d.fairyBatching = true;
-        FGUIRoot_3d.gameObjectName = nameof(FGUIRoot_3d);
+            this.FGUIRoot_3d = new GComponent();
+            GRoot.inst.AddChild(FGUIRoot_3d);
+            FGUIRoot_3d.size = GRoot.inst.size;
+            FGUIRoot_3d.AddRelation(GRoot.inst, RelationType.Size);
+            FGUIRoot_3d.fairyBatching = true;
+            FGUIRoot_3d.gameObjectName = nameof(FGUIRoot_3d);
 
-        this.FGUIRoot = new GComponent();
-        GRoot.inst.AddChild(FGUIRoot);
-        FGUIRoot.size = GRoot.inst.size;
-        FGUIRoot.AddRelation(GRoot.inst, RelationType.Size);
-        FGUIRoot.gameObjectName = nameof(FGUIRoot);
+            this.FGUIRoot = new GComponent();
+            GRoot.inst.AddChild(FGUIRoot);
+            FGUIRoot.size = GRoot.inst.size;
+            FGUIRoot.AddRelation(GRoot.inst, RelationType.Size);
+            FGUIRoot.gameObjectName = nameof(FGUIRoot);
 #endif
-
-        Game.World.AddChild(this);
+        }
     }
 
     /// <summary>

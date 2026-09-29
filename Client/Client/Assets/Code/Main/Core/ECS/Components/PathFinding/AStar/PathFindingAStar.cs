@@ -8,6 +8,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 [ExecuteInEditMode]
+[RequireComponent(typeof(MeshFilter),typeof(MeshRenderer),typeof(BoxCollider))]
 public class PathFindingAStar : MonoBehaviour
 {
     public PathGridType gridType = PathGridType.Rect;
@@ -116,12 +117,6 @@ public class PathFindingAStar : MonoBehaviour
         this.view = view;
         if (view && this.enabled && this.gameObject.activeSelf)
         {
-            if (!this.gameObject.GetComponent<MeshFilter>())
-                this.gameObject.AddComponent<MeshFilter>();
-            if (!this.gameObject.GetComponent<MeshRenderer>())
-                this.gameObject.AddComponent<MeshRenderer>();
-            if (!this.gameObject.GetComponent<BoxCollider>())
-                this.gameObject.AddComponent<BoxCollider>();
 #if UNITY_EDITOR
             if (!this.GetComponent<MeshRenderer>().sharedMaterial)
                 this.GetComponent<MeshRenderer>().sharedMaterial = new Material((Material)UnityEditor.AssetDatabase.LoadMainAssetAtPath("Assets/Code/Main/Core/ECS/Components/PathFinding/AStar/res/AStarView_Mat.mat"));

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+
 
 #if FairyGUI
 using FairyGUI;
@@ -203,14 +205,14 @@ public abstract class FUI : FUIBase
     }
     async void _delay1Handle()
     {
-        await SValueTask.Delay(SSetting.ViewSetting.LoadingViewDelayBeginTimeMs);
+        await Task.Delay(SSetting.ViewSetting.LoadingViewDelayBeginTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         _loadingView = true;
         SSetting.ViewSetting.LoadingView(this, true);
     }
     async void _delay2Handle()
     {
-        await SValueTask.Delay(SSetting.ViewSetting.LoadingViewTimeOutTimeMs);
+        await Task.Delay(SSetting.ViewSetting.LoadingViewTimeOutTimeMs);
         if (this.Disposed || this._states == UIStatus.Success) return;
         SSetting.ViewSetting.LoadingView(this, false);
         this.Dispose();

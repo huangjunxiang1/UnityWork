@@ -7,7 +7,7 @@ using UnityEngine;
 
 public static partial class Util
 {
-    public static T AddOrGetComponent<T>(this GameObject target) where T : Component
+    public static T GetOrAddComponent<T>(this GameObject target) where T : Component
     {
         var c = target.GetComponent<T>();
         if (c) return c;

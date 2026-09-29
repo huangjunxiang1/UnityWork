@@ -37,8 +37,6 @@ class TaskItem<T> : TaskItem
 [AsyncMethodBuilder(typeof(SValueTaskBuilder))]
 public struct SValueTask : ICriticalNotifyCompletionV2, IDispose
 {
-    public static Action<int, SValueTask> DelayHandle;
-
     public static SValueTask Create()
     {
         SValueTask task = new();
@@ -111,14 +109,10 @@ public struct SValueTask : ICriticalNotifyCompletionV2, IDispose
             task.Current.last = this.taskItem;
     }
 
-    public static SValueTask Delay(int millisecondsDelay)
+    public static SValueTask SyncMainThread()
     {
-        var task = SValueTask.Create();
-#if DebugEnable
-        if (DelayHandle == null)
-            throw new Exception("muse be set DelayHandle before invoke Delay");
-#endif
-        DelayHandle.Invoke(millisecondsDelay, task);
+        SValueTask task = SValueTask.Create();
+        Game.ThreadSync.Post(static s => ((SValueTask)s).TrySetResult(), task);
         return task;
     }
 }

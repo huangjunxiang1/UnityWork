@@ -221,7 +221,9 @@
     "m_DeprecateSubgraph": false,
     "m_DeprecateSubgraphMessage": "",
     "m_GraphPrecision": 1,
-    "m_CustomPragmas": [],
+    "m_CustomPragmas": [
+        "shader_feature __ INSTANCE_ON"
+    ],
     "m_CustomDefines": [],
     "m_CustomIncludes": [],
     "m_PreviewMode": 2,

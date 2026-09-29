@@ -82,7 +82,6 @@ namespace Core
 
             child.Parent = this;
             child.Initialize();
-            child.View = this.View;
         }
         public override int GetChildIndex(SObject child) => _children.IndexOf(child);
 

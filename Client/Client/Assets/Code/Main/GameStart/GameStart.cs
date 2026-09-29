@@ -19,7 +19,6 @@ public class GameStart : MonoBehaviour
     void Start()
     {
         Inst = this;
-        ThreadSynchronizationContext.GetOrCreate(System.Environment.CurrentManagedThreadId);
 
         DontDestroyOnLoad(this.gameObject);
 

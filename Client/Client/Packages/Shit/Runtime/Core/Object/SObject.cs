@@ -196,47 +196,6 @@ namespace Core
         /// </summary>
         public Eventer onDispose => _onDispose ??= new Eventer(this);
 
-        /// <summary>
-        /// 显示组件 是否显示
-        /// </summary>
-        public bool View
-        {
-            get => _view;
-            set
-            {
-                if (_view == value) return;
-                _view = value;
-
-                List<SComponent> lst = ObjectPool.Get<List<SComponent>>();
-                foreach (var c in _components.Values)
-                {
-                    if (c is ViewComponent)
-                        lst.Add(c);
-                }
-                for (int i = 0; i < lst.Count; i++)
-                {
-                    if (!lst[i].Disposed)
-                        lst[i].SetChangeFlag();
-                }
-                lst.Clear();
-                ObjectPool.Return(lst);
-
-                if (this is STree tree)
-                {
-                    List<SObject> lstOs = ObjectPool.Get<List<SObject>>();
-                    lstOs.AddRange(tree.GetChildren());
-                    for (int i = 0; i < lstOs.Count; i++)
-                    {
-                        if (lstOs[i].Parent != this)
-                            continue;
-                        lstOs[i].View = _view;
-                    }
-                    lstOs.Clear();
-                    ObjectPool.Return(lstOs);
-                }
-            }
-        }
-
         public override void AcceptedEvent() { }
         public sealed override void SetChange() => base.SetChange();
         public sealed override void SetChangeFlag() => base.SetChangeFlag();

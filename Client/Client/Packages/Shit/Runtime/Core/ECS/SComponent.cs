@@ -41,11 +41,6 @@ namespace Core
                 for (int i = 0; i < this._Handles.Count; i++)
                     this._Handles[i].EnableCounter += value ? -1 : 1;
 
-                if (Environment.CurrentManagedThreadId != Game.ThreadSync.threadId)
-                {
-                    Loger.Error($"canot {nameof(Enable)} in other thread");
-                    return;
-                }
                 if (this.Enable)
                     this.SetChangeFlag();
                 if (!enable && this.Enable)
@@ -60,11 +55,7 @@ namespace Core
         public virtual void SetChange()
         {
             if (this.Disposed || !_enable || !this.Entity._Initialized) return;
-            if (Environment.CurrentManagedThreadId != Game.ThreadSync.threadId)
-            {
-                Loger.Error($"canot {nameof(SetChange)} in other thread");
-                return;
-            }
+           
             Game.System.Change(this, true);
         }
         public virtual void SetChangeFlag()
@@ -77,11 +68,6 @@ namespace Core
             if (this.Disposed)
             {
                 Loger.Error("重复Dispose->" + this);
-                return;
-            }
-            if (Environment.CurrentManagedThreadId != Game.ThreadSync.threadId)
-            {
-                Loger.Error($"canot {nameof(Dispose)} in other thread");
                 return;
             }
 

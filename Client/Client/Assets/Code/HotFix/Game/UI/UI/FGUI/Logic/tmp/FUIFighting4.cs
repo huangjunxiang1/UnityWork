@@ -65,7 +65,7 @@ partial class FUIFighting4
     }
     async void _clickBack()
     {
-        await Game.Scene.InScene<LoginScene>();
+        await Game.InScene<LoginScene>();
     }
     void _click_rangeRoad()
     {

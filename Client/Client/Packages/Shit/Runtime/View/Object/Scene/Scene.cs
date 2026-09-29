@@ -10,16 +10,15 @@ public class Scene : STree
         root = new(this.GetType().Name);
         root.transform.parent = Game.World.transform;
         Loader = new(this.GetType().Name, null);
-        this.SetPackage();
     }
 
     internal object[] _paramObjects;
 
     public GameObject root { get; private set; }
     public SLoader Loader { get; private set; }
+    public DataManager Data { get; } = new();
 
     public virtual void OnEnter() { }
-    protected virtual void SetPackage() { }
 
     public T GetParam<T>(int index)
     {

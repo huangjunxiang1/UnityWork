@@ -18,7 +18,7 @@ public class SocketManager
 
     void _onError(NetError code)
     {
-        Game.ThreadSync.Post(s => Game.Event.RunEvent(new EC_NetError { code = (int)code }));
+        Game.ThreadSync.Post(s => Game.Event.RunEvent(new EC_NetError { code = (int)code }), null);
     }
     void _onResponse(IMessage message)
     {
@@ -57,7 +57,7 @@ public class SocketManager
     }
     void _onDisconnect()
     {
-        Game.ThreadSync.Post(static s => Game.Event.RunEvent(new EC_Disconnect()));
+        Game.ThreadSync.Post(static s => Game.Event.RunEvent(new EC_Disconnect()), null);
     }
     public SBaseNet SetSession(SBaseNet session, bool disConnect = true)
     {
@@ -135,7 +135,7 @@ public class SocketManager
         s.onError -= _onError;
         s.onDisconnect -= _onDisconnect;
         Session = null;
-        Game.ThreadSync.Post(t => s.DisConnect());
+        Game.ThreadSync.Post(t => s.DisConnect(), null);
     }
     public void Dispose()
     {

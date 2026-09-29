@@ -1,6 +1,7 @@
 ﻿using Core;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Mathematics;
 
 public enum PathFindingColliderHandle
@@ -117,7 +118,7 @@ public class PathFindingAStarComponent : SComponent
 
         return false;
     }
-    public SValueTask<bool> Goto(int2 to,
+    public STask<bool> Goto(int2 to,
         int power = int.MaxValue,
         int near = 0,
         AStarVolume targetVolume = null,
@@ -131,7 +132,7 @@ public class PathFindingAStarComponent : SComponent
         return _Goto(to, power, near, targetVolume, algorithm, round, solve, colliderHandle, style);
     }
 
-    public SValueTask<bool> Goto(int2 to,
+    public STask<bool> Goto(int2 to,
         quaternion quaternion,
         int power = int.MaxValue,
         int near = 0,
@@ -147,7 +148,7 @@ public class PathFindingAStarComponent : SComponent
         return _Goto(to, power, near, targetVolume, algorithm, round, solve, colliderHandle, style);
     }
 
-    public SValueTask<bool> Goto(float3 point,
+    public STask<bool> Goto(float3 point,
         int power = int.MaxValue,
         int near = 0,
         AStarVolume targetVolume = null,
@@ -162,7 +163,7 @@ public class PathFindingAStarComponent : SComponent
         return _Goto(_astar.GetXY(point), power, near, targetVolume, algorithm, round, solve, colliderHandle, style);
     }
 
-    public SValueTask<bool> Goto(float3 point,
+    public STask<bool> Goto(float3 point,
         quaternion quaternion,
         int power = int.MaxValue,
         int near = 0,
@@ -179,7 +180,7 @@ public class PathFindingAStarComponent : SComponent
         return _Goto(_astar.GetXY(point), power, near, targetVolume, algorithm, round, solve, colliderHandle, style);
     }
 
-    async SValueTask<bool> _Goto(int2 to,
+    async STask<bool> _Goto(int2 to,
         int power = int.MaxValue,
         int near = 0,
         AStarVolume targetVolume = null,
@@ -248,7 +249,7 @@ public class PathFindingAStarComponent : SComponent
                     }
                     return true;
                 }
-            next: await SValueTask.Delay(100);
+            next: await Task.Delay(100);
             } while (vs == _callVersion);
         }
 

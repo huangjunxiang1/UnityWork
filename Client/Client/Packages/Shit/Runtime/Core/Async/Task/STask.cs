@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using System.Reflection;
+using System.Net.Sockets;
 
 [AsyncMethodBuilder(typeof(STaskBuilder))]
 public class STask : ICriticalNotifyCompletion, IDispose
@@ -193,6 +194,13 @@ public class STask : ICriticalNotifyCompletion, IDispose
     {
         await task;
         taskAwaiter.TrySetResult();
+    }
+
+    public static STask SyncMainThread()
+    {
+        STask task = new();
+        Game.ThreadSync.Post(static s => ((STask)s).TrySetResult(), task);
+        return task;
     }
 
     public static async STask All(IEnumerable<STask> itor, bool toArray = true)

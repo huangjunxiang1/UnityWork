@@ -30,7 +30,7 @@ class WorldScene : Scene
         };
 
         player = new() { ActorId = 1 };
-        Game.Scene.Current.AddChild(player);
+        Game.Scene.AddChild(player);
         player.GameObject.SetGameObject("model_chan");
         player.AddComponent<PlayerComponent>().scene = this;
         player.AddComponent<MoveComponent>();
@@ -40,7 +40,7 @@ class WorldScene : Scene
 
         hex = this.Loader.LoadGameObject("model_hex");
 
-        wall_render = new GPUInstanceRender(new List<GameObject>() { Game.Scene.Current.Loader.LoadGameObject("model_hex2") }, viewEnable: true, maxInstance: ((Hex.Hex_GridCount - 1) / 32 + 1) * 32 * 9);
+        wall_render = new GPUInstanceRender(new List<GameObject>() { Game.Scene.Loader.LoadGameObject("model_hex2") }, viewEnable: true, maxInstance: ((Hex.Hex_GridCount - 1) / 32 + 1) * 32 * 9);
         this.AddChild(wall_render);
         gridCulling = new();
         gridCulling.Culling_wall_args = wall_render.ArgsBuffer;
@@ -51,7 +51,7 @@ class WorldScene : Scene
         for (int i = 0; i < GPUConstDefine.Tree_TypeCount; i++)
         {
             for (int j = 0; j < GPUConstDefine.Tree_StyleCount; j++)
-                lst.Add(Game.Scene.Current.Loader.LoadGameObject($"model_Tree_{i + 1}_{j + 1}"));
+                lst.Add(Game.Scene.Loader.LoadGameObject($"model_Tree_{i + 1}_{j + 1}"));
         }
         //单位格子最多3个树
         tree_render = new GPUInstanceRender(lst, viewEnable: true, maxInstance: ((Hex.Hex_GridCount * 3 - 1) / 32 + 1) * 32 * 9);

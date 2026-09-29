@@ -551,15 +551,6 @@ public class Tool
     }
 #endif
 
-
-    [MenuItem("Shit/CopyTexture")]
-    static void CopyTexture()
-    {
-        FileHelper.SyncDirectories(Application.dataPath + "/../../../Art/UI/Texture", Application.dataPath + "/Res/Texture/", deleteFilter: s => !s.EndsWith(".meta"));
-        AssetDatabase.Refresh();
-        EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
-    }
-
     [MenuItem("Shit/生成Config代码", false, int.MaxValue - 100)]
     static void CreateConfigCode()
     {
@@ -892,10 +883,10 @@ public class Tool
             var line = codes[i];
             if (line.StartsWith($"void {kp.kernel}"))
             {
-                var numthreads = codes[i - 1].Split(new char[] { ',', ' ', '(', ')', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                kp.threadX = int.Parse(numthreads[1]);
-                kp.threadY = int.Parse(numthreads[2]);
-                kp.threadZ = int.Parse(numthreads[3]);
+                //var numthreads = codes[i - 1].Split(new char[] { ',', ' ', '(', ')', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                kp.threadX = 1;// int.Parse(numthreads[1]);
+                kp.threadY = 1;// int.Parse(numthreads[2]);
+                kp.threadZ = 1;// int.Parse(numthreads[3]);
 
                 string combine = "";
                 for (int j = i+2; j < codes.Count; j++)

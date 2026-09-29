@@ -17,7 +17,7 @@ partial class FUIGame
         this.Close.onClick.Add(onClose);
         this._genMap.onClick.Add(on_genMap);
 
-        var finding = Game.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+        var finding = Game.Scene.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
 
         input.CMEditorMouseClick.started += OnMouseClick;
         input.CMEditorMouseClick.performed += OnMouseClick;
@@ -40,7 +40,7 @@ partial class FUIGame
     {
         Game.Socket.Send(new C2S_PlayerQuit());
         Game.Socket.Dispose();
-        await Game.Scene.InScene<LoginScene>();
+        await Game.InScene<LoginScene>();
     }
 
     int len = 100;
@@ -65,7 +65,7 @@ partial class FUIGame
         var astar = new AStarData(len, len, bytes, 0, 1);
         Game.Data.Add(astar);
 
-        var finding = Game.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+        var finding = Game.Scene.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
         finding.AStar = astar;
 
         GameObject.FindAnyObjectByType<PathFindingAStar>().View(true);
@@ -99,7 +99,7 @@ partial class FUIGame
                     if (Physics.Raycast(ray, out var hit, 1000, 1 << LayerMask.NameToLayer("ground")))
                     {
                         var p = hit.point;
-                        var finding = Game.Scene.Current.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
+                        var finding = Game.Scene.GetChild<SGameObject>().GetComponent<PathFindingAStarComponent>();
                         finding.ShowGrid = false;
 
                         var stop = Stopwatch.StartNew();

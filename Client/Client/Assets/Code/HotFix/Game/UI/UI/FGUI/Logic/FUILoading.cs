@@ -1,10 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FairyGUI;
 using System;
 using Event;
-using Core;
+using System.Threading.Tasks;
 
 [UIConfig(50,HideIfOpenOtherUI = false)]
 partial class FUILoading
@@ -22,7 +21,7 @@ partial class FUILoading
         {
             ui.cur = ui.max;
             ui._loadingBar.value = 1;
-            await SValueTask.Delay(1000);
+            await Task.Delay(1000);
             ui.Dispose();
         }
     }
