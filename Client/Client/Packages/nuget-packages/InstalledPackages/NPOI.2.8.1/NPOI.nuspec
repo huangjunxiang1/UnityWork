@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>NPOI</id>
+    <version>2.8.1</version>
+    <title>NPOI</title>
+    <authors>Tony Qu,NPOI Contributors</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="file">OSMFEULA.txt</license>
+    <licenseUrl>https://aka.ms/deprecateLicenseUrl</licenseUrl>
+    <icon>logo/60_60.jpg</icon>
+    <readme>README.md</readme>
+    <projectUrl>http://nissl-lab.github.io/npoi/</projectUrl>
+    <description>.NET port of Apache POI</description>
+    <releaseNotes>https://github.com/nissl-lab/npoi/discussions/1864</releaseNotes>
+    <copyright>Nissl LLC</copyright>
+    <tags>xlsx xls Excel Word docx office ole</tags>
+    <repository type="git" url="https://github.com/nissl-lab/npoi" branch="refs/heads/master" commit="ab1aa0f7d9aaea06159eeb0311b7b74e752d819a" />
+    <dependencies>
+      <group targetFramework="net10.0">
+        <dependency id="BouncyCastle.Cryptography" version="2.6.2" exclude="Build,Analyzers" />
+        <dependency id="Enums.NET" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="ExtendedNumerics.BigDecimal" version="2025.1001.2.129" exclude="Build,Analyzers" />
+        <dependency id="MathNet.Numerics.Signed" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="SharpZipLib" version="1.4.2" exclude="Build,Analyzers" />
+        <dependency id="SkiaSharp" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="SkiaSharp.NativeAssets.Linux.NoDependencies" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Xml" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="ZString" version="2.6.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.7.2">
+        <dependency id="BouncyCastle.Cryptography" version="2.6.2" exclude="Build,Analyzers" />
+        <dependency id="Enums.NET" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="ExtendedNumerics.BigDecimal" version="2025.1001.2.129" exclude="Build,Analyzers" />
+        <dependency id="MathNet.Numerics.Signed" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="SharpZipLib" version="1.4.2" exclude="Build,Analyzers" />
+        <dependency id="SkiaSharp" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="SkiaSharp.NativeAssets.Linux.NoDependencies" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Xml" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Encoding.CodePages" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="ZString" version="2.6.0" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0">
+        <dependency id="BouncyCastle.Cryptography" version="2.6.2" exclude="Build,Analyzers" />
+        <dependency id="Enums.NET" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="ExtendedNumerics.BigDecimal" version="2025.1001.2.129" exclude="Build,Analyzers" />
+        <dependency id="MathNet.Numerics.Signed" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="SharpZipLib" version="1.4.2" exclude="Build,Analyzers" />
+        <dependency id="SkiaSharp" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="SkiaSharp.NativeAssets.Linux.NoDependencies" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Xml" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="ZString" version="2.6.0" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="BouncyCastle.Cryptography" version="2.6.2" exclude="Build,Analyzers" />
+        <dependency id="Enums.NET" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="ExtendedNumerics.BigDecimal" version="2025.1001.2.129" exclude="Build,Analyzers" />
+        <dependency id="MathNet.Numerics.Signed" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="SharpZipLib" version="1.4.2" exclude="Build,Analyzers" />
+        <dependency id="SkiaSharp" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="SkiaSharp.NativeAssets.Linux.NoDependencies" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Xml" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Encoding.CodePages" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="ZString" version="2.6.0" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="BouncyCastle.Cryptography" version="2.6.2" exclude="Build,Analyzers" />
+        <dependency id="Enums.NET" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="ExtendedNumerics.BigDecimal" version="2025.1001.2.129" exclude="Build,Analyzers" />
+        <dependency id="MathNet.Numerics.Signed" version="5.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="SharpZipLib" version="1.4.2" exclude="Build,Analyzers" />
+        <dependency id="SkiaSharp" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="SkiaSharp.NativeAssets.Linux.NoDependencies" version="3.119.4" exclude="Runtime,Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Xml" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Encoding.CodePages" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="ZString" version="2.6.0" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

@@ -22,11 +22,9 @@ public class Loading
     {
         if (!Application.isEditor && GameStart.Inst.Runtime == CodeRuntime.Assembly)
         {
-#if HybridCLR
+#if !ENABLE_CORECLR
             foreach (var item in Resources.LoadAll<TextAsset>("AOT"))
                 HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly(item.bytes, HybridCLR.HomologousImageMode.SuperSet);
-#else
-
 #endif
         }
         package = UIPackage.AddPackage("Loader/Loader");

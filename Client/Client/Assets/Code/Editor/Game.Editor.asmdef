@@ -2,19 +2,20 @@
     "name": "Game.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:d8f23ede77696194da3ecb38376f20bd",
-        "GUID:255dae1ca9ec68b4aaca0c0ce3bdc6d9",
-        "GUID:75469ad4d38634e559750d17036d5f7c",
-        "GUID:8c8f9d96103e94a7da84b012fd7e9f13",
-        "GUID:fcc4a53673614ea4098f56bfd1ea2c75",
-        "GUID:7ef9c974359be7b44bcafceb3f5e282c",
-        "GUID:2373f786d14518f44b0f475db77ba4de",
-        "GUID:d8b63aba1907145bea998dd612889d6b",
-        "GUID:e34a5702dd353724aa315fb8011f08c3",
-        "GUID:4d1926c9df5b052469a1c63448b7609a",
-        "GUID:a381c639117e5a745a08a1479448330b",
-        "GUID:e0cd26848372d4e5c891c569017e11f1",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "Shit.Runtime",
+        "Shit.Editor",
+        "Unity.InputSystem",
+        "FairyGUI",
+        "Game.Main",
+        "Game.HotFix",
+        "HybridCLR.Editor",
+        "Unity.Mathematics",
+        "YooAsset",
+        "YooAsset.Editor",
+        "Game.Test",
+        "Unity.Collections",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"
@@ -41,11 +42,6 @@
             "name": "com.unity.ugui",
             "expression": "",
             "define": "UGUI"
-        },
-        {
-            "name": "com.tuyoogame.yooasset",
-            "expression": "3.0.0",
-            "define": "YooAsset_3_0_0"
         }
     ],
     "noEngineReferences": false

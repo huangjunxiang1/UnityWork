@@ -81,7 +81,7 @@ public abstract class SBaseNet
             _working = false;
             this.DisConnect();
         }
-        Loger.Error($"网络错误 error={ex} \n stack={Loger.GetStackTrace()}");
+        Loger.Error($"网络错误 error={ex}");
         onError.Invoke(error);
     }
     protected void ReceiveMessage(IMessage message)

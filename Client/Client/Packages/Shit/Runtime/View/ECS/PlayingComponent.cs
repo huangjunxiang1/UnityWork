@@ -399,14 +399,14 @@ public class PlayingComponent : SComponent
                 get
                 {
                     if (animation == null) return 0;
-                    var track = ani.AnimationState.GetCurrent(0);
+                    var track = ani.AnimationState.GetTrack(0);
                     if (track != null)
                         return track.TrackTime;
                     return 0;
                 }
                 set
                 {
-                    var track = ani.AnimationState.GetCurrent(0);
+                    var track = ani.AnimationState.GetTrack(0);
                     if (track != null)
                         track.TrackTime = value;
                 }
@@ -415,14 +415,14 @@ public class PlayingComponent : SComponent
             {
                 get
                 {
-                    var track = ani.AnimationState.GetCurrent(0);
+                    var track = ani.AnimationState.GetTrack(0);
                     if (track != null)
                         return track.TrackTime / length;
                     return 0;
                 }
                 set
                 {
-                    var track = ani.AnimationState.GetCurrent(0);
+                    var track = ani.AnimationState.GetTrack(0);
                     if (track != null)
                         track.TrackTime = value * length;
                 }

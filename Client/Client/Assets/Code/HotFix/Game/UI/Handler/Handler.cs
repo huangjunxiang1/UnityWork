@@ -23,11 +23,11 @@ static class Handler
         SSetting.ViewSetting.LoadingUrl = G_Connecting.URL;
         GRoot.inst.SetContentScaleFactor(1334, 750);
 
-        /*FairyGUI.UIConfig.defaultFont = "UIFont";
-        TMPFont font = new() { };
-        font.name = "UIFont";
-        font.fontAsset = await SAsset.LoadAsync<TMPro.TMP_FontAsset>("UI_UIFont");
-        FontManager.RegisterFont(font);*/
+        //FairyGUI.UIConfig.defaultFont = "UIFont";
+        //TMPFont font = new() { };
+        //font.name = "UIFont";
+        //font.fontAsset = await Game.Loader.LoadAsync<TMPro.TMP_FontAsset>("UI_UIFont");
+        //FontManager.RegisterFont(font);
 
         DBuffer buffM_ST = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM_ST)}")));
         if (buffM_ST.ReadHeaderInfo())

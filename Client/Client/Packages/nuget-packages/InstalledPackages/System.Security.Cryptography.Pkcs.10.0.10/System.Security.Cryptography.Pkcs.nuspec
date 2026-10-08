@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>System.Security.Cryptography.Pkcs</id>
+    <version>10.0.10</version>
+    <authors>Microsoft</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>Icon.png</icon>
+    <projectUrl>https://dot.net/</projectUrl>
+    <description>Provides support for PKCS and CMS algorithms.
+
+Commonly Used Types:
+System.Security.Cryptography.Pkcs.EnvelopedCms</description>
+    <releaseNotes>https://go.microsoft.com/fwlink/?LinkID=799421</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <serviceable>true</serviceable>
+    <repository type="git" url="https://github.com/dotnet/dotnet" commit="f7d90799ce4ef09a0bb257852a57248d2a8fb8dd" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.2">
+        <dependency id="Microsoft.Bcl.Cryptography" version="10.0.10" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Bcl.Cryptography" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net9.0">
+        <dependency id="Microsoft.Bcl.Cryptography" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net10.0" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Microsoft.Bcl.Cryptography" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Buffers" version="4.6.1" exclude="Build,Analyzers" />
+        <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.CompilerServices.Unsafe" version="6.1.2" exclude="Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Cng" version="5.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Microsoft.Bcl.Cryptography" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Formats.Asn1" version="10.0.10" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.CompilerServices.Unsafe" version="6.1.2" exclude="Build,Analyzers" />
+        <dependency id="System.Security.Cryptography.Cng" version="5.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.Security" targetFramework=".NETFramework4.6.2" />
+    </frameworkAssemblies>
+  </metadata>
+</package>

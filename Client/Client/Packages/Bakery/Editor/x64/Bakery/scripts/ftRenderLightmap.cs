@@ -173,8 +173,8 @@ public class ftRenderLightmap : EditorWindow//ScriptableWizard
 #endif
 
 #if UNITY_2017_3_OR_NEWER
-    const LightmapEditorSettings.Lightmapper BUILTIN_RADIOSITY = LightmapEditorSettings.Lightmapper.ProgressiveCPU;
-    const LightmapEditorSettings.Lightmapper BUILTIN_PT = LightmapEditorSettings.Lightmapper.ProgressiveCPU;
+    const LightmapEditorSettings.Lightmapper BUILTIN_RADIOSITY = LightmapEditorSettings.Lightmapper.ProgressiveGPU;
+    const LightmapEditorSettings.Lightmapper BUILTIN_PT = LightmapEditorSettings.Lightmapper.ProgressiveGPU;
 #else
     #if UNITY_2017_2_OR_NEWER
         const LightmapEditorSettings.Lightmapper BUILTIN_RADIOSITY = LightmapEditorSettings.Lightmapper.Radiosity;

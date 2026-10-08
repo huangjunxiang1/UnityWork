@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Threading;
-using Core;
 using System;
 using System.Reflection;
 using YooAsset;

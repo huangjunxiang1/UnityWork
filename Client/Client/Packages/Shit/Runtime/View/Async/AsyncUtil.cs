@@ -12,10 +12,6 @@ using DG.Tweening;
 using FairyGUI;
 #endif
 
-#if Yooasset
-using YooAsset;
-#endif
-
 public static partial class AsyncUtil
 {
     public static STask AsTask(this AsyncOperation op)

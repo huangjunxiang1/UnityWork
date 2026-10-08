@@ -12,22 +12,22 @@ public static class Program
         Game.Initialize(types);
 
         long tick2 = DateTime.Now.Ticks;
-        UnityEngine.Debug.Log("框架初始化成功");
-        UnityEngine.Debug.Log($"耗时:{(tick2 - tick) / 10000}ms");
+        Loger.Info("框架初始化成功");
+        Loger.Info($"耗时:{(tick2 - tick) / 10000}ms");
 
         await Game.Event.RunEventAsync(new EC_GameStart());
 
         long tick3 = DateTime.Now.Ticks;
-        UnityEngine.Debug.Log("游戏初始化成功");
-        UnityEngine.Debug.Log($"耗时:{(tick3 - tick2) / 10000}ms");
+        Loger.Info("游戏初始化成功");
+        Loger.Info($"耗时:{(tick3 - tick2) / 10000}ms");
 
         //先运行单元测试
         if (GameStart.Inst.Debug)
         {
             long tick4 = DateTime.Now.Ticks;
             Game.Event.RunEvent(new EC_ModuleTest());
-            UnityEngine.Debug.Log("单元测试完成");
-            UnityEngine.Debug.Log($"耗时:{(tick4 - tick3) / 10000}ms");
+            Loger.Info("单元测试完成");
+            Loger.Info($"耗时:{(tick4 - tick3) / 10000}ms");
         }
 
         await Game.InScene<LoginScene>();

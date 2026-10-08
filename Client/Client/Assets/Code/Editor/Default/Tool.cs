@@ -992,7 +992,7 @@ public class Tool
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
 
-#if ENABLE_IL2CPP
+#if !ENABLE_CORECLR
     [MenuItem("Tools/AOT_Copy")]
     static void copyAotDll()
     {
@@ -1011,6 +1011,7 @@ public class Tool
         }
         AssetDatabase.Refresh();
     }
+#endif
 
     [MenuItem("Tools/Code_Copy")]
     static void copyCode()
@@ -1022,7 +1023,6 @@ public class Tool
         File.WriteAllBytes($"{dstDir}/code.bytes", bs);
         AssetDatabase.Refresh();
     }
-#endif
 
     [MenuItem("Tools/Gen_ToLanxString")]
     static void GenForLanString()
