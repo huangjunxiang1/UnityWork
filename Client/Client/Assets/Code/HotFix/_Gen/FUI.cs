@@ -287,7 +287,7 @@ partial class G_Tips : GComponent
 }
 partial class FUI3DHeader : FUI3D
 {
-    public sealed override string url => "UI_FUI3DHeader";
+    public sealed override string url => AssetsID.Res.UI.FUI3DHeader;
     public GTextField _title { get; private set; }
 
     protected sealed override void Binding()

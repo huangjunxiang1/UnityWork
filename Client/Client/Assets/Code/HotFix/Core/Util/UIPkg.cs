@@ -20,15 +20,15 @@ public class UIPkg
     static async STask Init(EC_GameStart e)
     {
         FUIBinder.Binding();
-        UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw("raw_ComPkg_fui"), "ComPkg", fguiLoader);
-        UIPkg.ResPkg = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>("UI_ResPkg_fui")).bytes, "ResPkg", fguiLoader);
-        UIPkg.Items = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>("UI_Items_fui")).bytes, "Items", fguiLoader);
+        UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw(AssetsID.Raw.raw.ComPkg_fui), "ComPkg", fguiLoader);
+        UIPkg.ResPkg = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>(AssetsID.Res.UI.ResPkg_fui)).bytes, "ResPkg", fguiLoader);
+        UIPkg.Items = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>(AssetsID.Res.UI.Items_fui)).bytes, "Items", fguiLoader);
         SSetting.ViewSetting.isTouchUI += UIHelper.IsOnTouchFUI;
 
-        if (Game.Loader.package.IsLocationValid("UI_Items"))
-            uui_items = await Game.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>("UI_Items");
-        if (Game.Loader.package.IsLocationValid("UI_UIAtlas"))
-            uui_res = await Game.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>("UI_UIAtlas");
+        if (Game.Loader.package.IsLocationValid(AssetsID.Res.UI.Items))
+            uui_items = await Game.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>(AssetsID.Res.UI.Items);
+        if (Game.Loader.package.IsLocationValid(AssetsID.Res.UI.UIAtlas))
+            uui_res = await Game.Loader.LoadAsync<UnityEngine.U2D.SpriteAtlas>(AssetsID.Res.UI.UIAtlas);
     }
     static async void fguiLoader(string name, string extension, System.Type type, PackageItem item)
     {

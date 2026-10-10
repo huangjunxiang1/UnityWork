@@ -31,33 +31,33 @@ class WorldScene : Scene
 
         player = new() { ActorId = 1 };
         Game.Scene.AddChild(player);
-        player.GameObject.SetGameObject("model_chan");
+        player.GameObject.SetGameObject(AssetsID.Res.model.chan);
         player.AddComponent<PlayerComponent>().scene = this;
         player.AddComponent<MoveComponent>();
         var kv = player.AddComponent<KVComponent>();
         kv.Set((int)KType.MoveSpeed, 5);
         kv.Set((int)KType.RotateSpeed, 20);
 
-        hex = this.Loader.LoadGameObject("model_hex");
+        hex = this.Loader.LoadGameObject(AssetsID.Res.model.hex);
 
-        wall_render = new GPUInstanceRender(new List<GameObject>() { Game.Scene.Loader.LoadGameObject("model_hex2") }, viewEnable: true, maxInstance: ((Hex.Hex_GridCount - 1) / 32 + 1) * 32 * 9);
+        wall_render = new GPUInstanceRender(new List<GameObject>() { Game.Scene.Loader.LoadGameObject(AssetsID.Res.model.hex2) }, viewEnable: true, maxInstance: ((Hex.Hex_GridCount - 1) / 32 + 1) * 32 * 9);
         this.AddChild(wall_render);
         gridCulling = new();
         gridCulling.Culling_wall_args = wall_render.ArgsBuffer;
         gridCulling.Culling_wall_Visible = wall_render.VisibleBuffer;
-        gridCulling.Culling_wall_datas = wall_render.GetOrCreateBuffer<float2>("wall_datas");
+        gridCulling.Culling_wall_datas = wall_render.GetOrCreateBuffer<float2>(ShaderProperties.vertex.PT_wall_datas);
 
         List<GameObject> lst = new();
         for (int i = 0; i < GPUConstDefine.Tree_TypeCount; i++)
         {
             for (int j = 0; j < GPUConstDefine.Tree_StyleCount; j++)
-                lst.Add(Game.Scene.Loader.LoadGameObject($"model_Tree_{i + 1}_{j + 1}"));
+                lst.Add(Game.Scene.Loader.LoadGameObject(AssetsID.Res.model.FMT_Tree($"{i + 1}_{j + 1}")));
         }
         //单位格子最多3个树
         tree_render = new GPUInstanceRender(lst, viewEnable: true, maxInstance: ((Hex.Hex_GridCount * 3 - 1) / 32 + 1) * 32 * 9);
         gridCulling.Culling_tree_args = tree_render.ArgsBuffer;
         gridCulling.Culling_tree_Visible = tree_render.VisibleBuffer;
-        gridCulling.Culling_tree_datas = tree_render.GetOrCreateBuffer<float2>("tree_datas");
+        gridCulling.Culling_tree_datas = tree_render.GetOrCreateBuffer<float2>(ShaderProperties.vertex.PT_tree_datas);
         this.AddChild(tree_render);
 
         gridCulling.maxBatchInstance = tree_render.MaxInstance;

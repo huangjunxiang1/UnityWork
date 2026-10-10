@@ -36,6 +36,8 @@ public class Tool
     [MenuItem("Shit/生成UGUI代码", false, int.MaxValue - 100)]
     static void CreateUUICode()
     {
+        YooAssetLocationGenerator.Generate();
+
         StringBuilder code = new StringBuilder(100000);
 
         Dictionary<Type, Type> typeMap = new();
@@ -115,7 +117,7 @@ public class Tool
                     code.AppendLine($"partial class {go.name} : UUI3D");
 
                 code.AppendLine(@"{");
-                code.AppendLine($"    public sealed override string url => \"UI_{go.name}\";");
+                code.AppendLine($"    public sealed override string url => AssetsID.Res.UI.{go.name.TrimStart('_')};");
                 code.Append(fieldCode.ToString());
                 code.AppendLine(@"");
                 code.AppendLine(@"    protected sealed override void Binding()");
@@ -175,7 +177,7 @@ public class Tool
                     code.Append(getUICode.ToString());
                     code.AppendLine($"        this.Enter();");
                     code.AppendLine($"    }}");
-                    code.AppendLine($"    public U{go.name}(ReleaseMode mode = ReleaseMode.Destroy) : this(Game.Loader.LoadGameObject(\"{go.name}\", mode).transform) {{ }}");
+                    code.AppendLine($"    public U{go.name}(ReleaseMode mode = ReleaseMode.Destroy) : this(Game.Loader.LoadGameObject(AssetsID.Res.UI.{go.name.TrimStart('_')}, mode).transform) {{ }}");
                     code.AppendLine($"    partial void Enter();");
                     code.AppendLine($"    public void Dispose()");
                     code.AppendLine($"    {{");
@@ -284,6 +286,8 @@ public class Tool
     [MenuItem("Shit/生成FGUI代码", false, int.MaxValue - 100)]
     static void CreateFUICode()
     {
+        YooAssetLocationGenerator.Generate();
+
         UIObjectFactory.Clear();
         UIPackage.RemoveAllPackages();
         FontManager.Clear();
@@ -530,7 +534,7 @@ public class Tool
 
             code.AppendLine($"partial class {g.name} : FUI3D");
             code.AppendLine("{");
-            code.AppendLine($"    public sealed override string url => \"UI_{g.name}\";");
+            code.AppendLine($"    public sealed override string url => AssetsID.Res.UI.{g.name};");
             code.AppendLine(fieldCode.ToString());
 
             code.AppendLine($"    protected sealed override void Binding()");
@@ -553,6 +557,8 @@ public class Tool
     [MenuItem("Shit/生成Config代码", false, int.MaxValue - 100)]
     static void CreateConfigCode()
     {
+        YooAssetLocationGenerator.Generate();
+
         {
             StringBuilder so = new StringBuilder();
             so.AppendLine("using UnityEngine;");
@@ -564,7 +570,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Main/", so, input);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Main/", so, input,false);
 
             so.AppendLine("}");
             so.Append(input);
@@ -585,7 +591,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Hotfix/", so, input);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Hotfix/", so, input,true);
 
             so.AppendLine("}");
             so.Append(input);
@@ -600,11 +606,11 @@ public class Tool
         if (tips)
             EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
-    static void appendConfigWithDirectory(string path, StringBuilder soCode, StringBuilder inputCode)
+    static void appendConfigWithDirectory(string path, StringBuilder soCode, StringBuilder inputCode,bool isHotfix)
     {
         foreach (var d in Directory.GetDirectories(path))
         {
-            appendConfigWithDirectory(d, soCode, inputCode);
+            appendConfigWithDirectory(d, soCode, inputCode,isHotfix);
         }
 
         foreach (var f in Directory.GetFiles(path))
@@ -615,28 +621,34 @@ public class Tool
             var o = AssetDatabase.LoadMainAssetAtPath(ff);
 #if ENABLE_INPUT_SYSTEM
             if (o is UnityEngine.InputSystem.InputActionAsset input)
-                appendInputSystemCode(input, inputCode);
+                appendInputSystemCode(input, inputCode, isHotfix);
             else
 #endif
             if (o is ScriptableObject so)
-                appendScriptObjectCode(so, soCode);
+                appendScriptObjectCode(so, soCode, isHotfix);
         }
     }
-    static void appendScriptObjectCode(ScriptableObject so, StringBuilder code)
+    static void appendScriptObjectCode(ScriptableObject so, StringBuilder code, bool isHotfix)
     {
         string type = so.GetType().FullName;
         code.AppendLine($"\tstatic {type} _{so.name};");
-        code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})Game.Loader.Load<ScriptableObject>(\"config_{so.name}\");");
+        if (isHotfix)
+            code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})Game.Loader.Load<ScriptableObject>(AssetsID.Res.config.{so.name});");
+        else
+            code.AppendLine($"\tpublic static {type} {so.name} => _{so.name} ??= ({type})Game.Loader.Load<ScriptableObject>(\"config_{so.name}\");");
     }
 
 #if ENABLE_INPUT_SYSTEM
-    static void appendInputSystemCode(UnityEngine.InputSystem.InputActionAsset input, StringBuilder str)
+    static void appendInputSystemCode(UnityEngine.InputSystem.InputActionAsset input, StringBuilder str, bool isHotfix)
     {
         str.AppendLine($"public class {input.name}");
         str.AppendLine("{");
         str.AppendLine($"    public {input.name}()");
         str.AppendLine("    {");
-        str.AppendLine($"        this.Asset = Game.Loader.Load<UnityEngine.InputSystem.InputActionAsset>(\"config_{input.name}\");");
+        if (isHotfix)
+            str.AppendLine($"        this.Asset = Game.Loader.Load<UnityEngine.InputSystem.InputActionAsset>(AssetsID.Res.config.{input.name});");
+        else
+            str.AppendLine($"        this.Asset = Game.Loader.Load<UnityEngine.InputSystem.InputActionAsset>(\"config_{input.name}\");");
         str.AppendLine("        this.Asset.Enable();");
 
         foreach (var item in input.actionMaps)
@@ -681,6 +693,8 @@ public class Tool
     [MenuItem("Shit/生成ComputerShader代码")]
     static void gen_computerCode()
     {
+        YooAssetLocationGenerator.Generate();
+
         StringBuilder code = new(10000);
         code.AppendLine("using UnityEngine;");
         code.AppendLine("using Unity.Mathematics;");
@@ -695,7 +709,7 @@ public class Tool
             code.AppendLine($"{{");
             code.AppendLine($"    public ComputeShader_{fileName}()");
             code.AppendLine($"    {{");
-            code.AppendLine($"        this.Shader = Game.Loader.Load<ComputeShader>(\"shader_{fileName}\");");
+            code.AppendLine($"        this.Shader = Game.Loader.Load<ComputeShader>(AssetsID.Res.shader.{fileName});");
 
             var codes = File.ReadAllLines(path.ToFullPath()).ToList();
             for (int i = 0; i < codes.Count; i++)
@@ -976,6 +990,8 @@ public class Tool
             CreateFUICode();
 #endif
             CreateConfigCode();
+            ShaderPropertyGenerator.Generate();
+            YooAssetLocationGenerator.Generate();
             GenTabs();
             GenPB();
             gen_computerCode();

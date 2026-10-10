@@ -1,16 +1,8 @@
 ﻿using Core;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-static class GPUConstDefine
-{
-    public const float Define_World_Scale = 0.02f;
-
-    public const int Tree_TypeCount = 3;
-    public const int Tree_StyleCount = 2;
-}
 class GPUInstanceRender : SObject
 {
     public GPUInstanceRender(IEnumerable<GameObject> target, bool viewEnable = true, int maxInstance = 2048)
@@ -38,16 +30,16 @@ class GPUInstanceRender : SObject
             arg.baseVertexIndex = (uint)mesh.GetBaseVertex(0);
             args[i] = arg;
             this.mesh.Add(mesh);
-            mat.EnableKeyword("INSTANCE_ON");
-            mat.SetInt("offsetIndex", maxInstance * i);
+            mat.EnableKeyword(ShaderProperties.Shader_Graphs_HexLit.KW_INSTANCE_ON);
+            mat.SetInt(ShaderProperties.vertex.PT_offsetIndex, maxInstance * i);
             this.RenderParams[i] = new(mat);
-            this.RenderParams[i].worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);
+            this.RenderParams[i].worldBounds = new Bounds(Vector3.zero, Vector3.one * float.MaxValue);
         }
         ArgsBuffer.SetData(args);
     }
 
     List<Mesh> mesh = new();
-    Dictionary<string, GraphicsBuffer> bufferMap = new();
+    Dictionary<int, GraphicsBuffer> bufferMap = new();
 
     public bool ViewEnable { get; set; } = true;
     public GraphicsBuffer ArgsBuffer { get; private set; }
@@ -67,6 +59,10 @@ class GPUInstanceRender : SObject
     }
 
     public unsafe GraphicsBuffer GetOrCreateBuffer<T>(string name) where T : unmanaged
+    {
+        return GetOrCreateBuffer<T>(Shader.PropertyToID(name));
+    }
+    public unsafe GraphicsBuffer GetOrCreateBuffer<T>(int name) where T : unmanaged
     {
         if (!bufferMap.TryGetValue(name, out var buffer))
         {

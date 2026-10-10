@@ -1,13 +1,6 @@
-﻿using Core;
-using Event;
+﻿using Event;
 using FairyGUI;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Cinemachine;
 using UnityEngine;
 
 static class Handler
@@ -29,15 +22,15 @@ static class Handler
         //font.fontAsset = await Game.Loader.LoadAsync<TMPro.TMP_FontAsset>("UI_UIFont");
         //FontManager.RegisterFont(font);
 
-        DBuffer buffM_ST = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM_ST)}")));
+        DBuffer buffM_ST = new(new MemoryStream(Pkg.LoadRaw(AssetsID.Raw.raw.TabM_ST)));
         if (buffM_ST.ReadHeaderInfo())
             TabM_ST.Init(buffM_ST);
 
-        DBuffer buffM = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabM)}")));
+        DBuffer buffM = new(new MemoryStream(Pkg.LoadRaw(AssetsID.Raw.raw.TabM)));
         if (buffM.ReadHeaderInfo())
             TabM.Init(buffM, SSetting.CoreSetting.Debug);
 
-        DBuffer buffL = new(new MemoryStream(Pkg.LoadRaw($"raw_{nameof(TabL)}")));
+        DBuffer buffL = new(new MemoryStream(Pkg.LoadRaw(AssetsID.Raw.raw.TabL)));
         if (buffL.ReadHeaderInfo())
             TabL.Init(buffL, SSetting.CoreSetting.Debug);
     }
