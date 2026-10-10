@@ -16,7 +16,6 @@ using System.Diagnostics;
 using System;
 using Core;
 using Debug = UnityEngine.Debug;
-using HybridCLR.Editor;
 
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -996,7 +995,7 @@ public class Tool
     [MenuItem("Tools/AOT_Copy")]
     static void copyAotDll()
     {
-        string srcDir = SettingsUtil.GetAssembliesPostIl2CppStripDir(EditorUserBuildSettings.activeBuildTarget);
+        string srcDir = HybridCLR.SettingsUtil.GetAssembliesPostIl2CppStripDir(EditorUserBuildSettings.activeBuildTarget);
         var dstDir = $"{Application.dataPath}/Resources/AOT";
         if (!Directory.Exists(dstDir))
             Directory.CreateDirectory(dstDir);

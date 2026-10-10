@@ -17,7 +17,7 @@ public class TMPFontAssetCleaner : AssetModificationProcessor
             if (font == null) continue;
 
             // 如果是动态字体，则清除其动态生成的纹理数据
-            if (font.atlasPopulationMode == AtlasPopulationMode.Dynamic)
+            if (font.atlasPopulationMode != AtlasPopulationMode.Static)
             {
                 // 参数 'true' 表示强制清除所有动态添加的数据
                 font.ClearFontAssetData(true);
