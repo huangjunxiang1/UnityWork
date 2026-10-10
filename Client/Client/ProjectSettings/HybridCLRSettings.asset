@@ -21,10 +21,8 @@ MonoBehaviour:
   - {fileID: 5897886265953266890, guid: 7ef9c974359be7b44bcafceb3f5e282c, type: 3}
   hotUpdateAssemblies: []
   preserveHotUpdateAssemblies: []
-  hotUpdateDllCompileOutputRootDir: HybridCLRData/HotUpdateDlls
   externalHotUpdateAssembliyDirs: []
-  strippedAOTDllOutputRootDir: HybridCLRData/AssembliesPostIl2CppStrip
-  patchAOTAssemblies: []
+  linkPreserveLevel: 0
   outputLinkFile: Code/Main/HybridCLRGenerate/link.xml
   outputAOTGenericReferenceFile: Code/Main/HybridCLRGenerate/AOTGenericReferences.cs
   maxGenericReferenceIteration: 10

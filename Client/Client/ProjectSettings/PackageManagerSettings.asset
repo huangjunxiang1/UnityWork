@@ -1,3 +1,4 @@
+%UNITY 7.0
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &1
@@ -17,7 +18,7 @@ MonoBehaviour:
   m_ScopedRegistriesSettingsExpanded: 1
   m_SeeAllPackageVersions: 0
   m_DismissPreviewPackagesInUse: 0
-  oneTimeWarningShown: 0
+  oneTimeWarningShown: 1
   oneTimePackageErrorsPopUpShown: 0
   m_MainRegistry:
     m_Id: main
@@ -38,7 +39,7 @@ MonoBehaviour:
     m_Modified: 0
     m_ErrorMessage: 
     m_UserModificationsEntityId:
-      m_Data: -928
+      m_rawData: 1099511640249
     m_OriginalEntityId:
-      m_Data: -930
+      m_rawData: 1099511640248
   m_LoadAssets: 0
