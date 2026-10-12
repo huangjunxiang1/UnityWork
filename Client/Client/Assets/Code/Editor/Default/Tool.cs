@@ -559,27 +559,27 @@ public class Tool
     {
         YooAssetLocationGenerator.Generate();
 
-        {
-            StringBuilder so = new StringBuilder();
-            so.AppendLine("using UnityEngine;");
-            so.AppendLine("using System;");
-            so.AppendLine("");
-            so.AppendLine("public static partial class SettingM");
-            so.AppendLine("{");
+        //{
+        //    StringBuilder so = new StringBuilder();
+        //    so.AppendLine("using UnityEngine;");
+        //    so.AppendLine("using System;");
+        //    so.AppendLine("");
+        //    so.AppendLine("public static partial class SettingM");
+        //    so.AppendLine("{");
 
-            StringBuilder input = new StringBuilder();
-            input.AppendLine(@"");
+        //    StringBuilder input = new StringBuilder();
+        //    input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Main/", so, input,false);
+        //    appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Main/", so, input,false);
 
-            so.AppendLine("}");
-            so.Append(input);
+        //    so.AppendLine("}");
+        //    so.Append(input);
 
-            if (!Directory.Exists(Application.dataPath + "/Code/Main/_Gen"))
-                Directory.CreateDirectory(Application.dataPath + "/Code/Main/_Gen");
+        //    if (!Directory.Exists(Application.dataPath + "/Code/Main/_Gen"))
+        //        Directory.CreateDirectory(Application.dataPath + "/Code/Main/_Gen");
 
-            File.WriteAllText(Application.dataPath + $"/Code/Main/_Gen/Config.cs", so.ToString());
-        }
+        //    File.WriteAllText(Application.dataPath + $"/Code/Main/_Gen/Config.cs", so.ToString());
+        //}
         {
             StringBuilder so = new StringBuilder();
             so.AppendLine("using UnityEngine;");
@@ -591,7 +591,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/Hotfix/", so, input,true);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/", so, input,true);
 
             so.AppendLine("}");
             so.Append(input);

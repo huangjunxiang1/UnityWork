@@ -51,7 +51,7 @@ class WorldScene : Scene
         for (int i = 0; i < GPUConstDefine.Tree_TypeCount; i++)
         {
             for (int j = 0; j < GPUConstDefine.Tree_StyleCount; j++)
-                lst.Add(Game.Scene.Loader.LoadGameObject(AssetsID.Res.model.FMT_Tree($"{i + 1}_{j + 1}")));
+                lst.Add(Game.Scene.Loader.LoadGameObject(AssetsID.Res.model.fmt_Tree($"{i + 1}_{j + 1}")));
         }
         //单位格子最多3个树
         tree_render = new GPUInstanceRender(lst, viewEnable: true, maxInstance: ((Hex.Hex_GridCount * 3 - 1) / 32 + 1) * 32 * 9);

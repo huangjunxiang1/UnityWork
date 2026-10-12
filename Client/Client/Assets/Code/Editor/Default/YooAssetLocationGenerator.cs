@@ -19,7 +19,7 @@ public static class YooAssetLocationGenerator
     private const string OutputPath = "Assets/Code/HotFix/_Gen/AssetsID.cs";
     private const string MenuPath = "Tools/YooAsset Location Generator";
     private const string TopClassName = "AssetsID";
-    private const string FormatPrefix = "FMT_";
+    private const string FormatPrefix = "fmt_";
 
     /// <summary>打开后会在 Console 输出每一步的扫描详情。</summary>
     private const bool VerboseLog = true;

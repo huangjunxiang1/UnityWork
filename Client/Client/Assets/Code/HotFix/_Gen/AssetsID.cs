@@ -75,7 +75,7 @@ public static class AssetsID
             public const string wall = "model_wall";
 
             /// <summary>model_Tree_&lt;suffix&gt;</summary>
-            public static string FMT_Tree(object suffix) => $"model_Tree_{suffix}";
+            public static string fmt_Tree(object suffix) => $"model_Tree_{suffix}";
         }
 
         /// <summary>Group: config</summary>
