@@ -44,7 +44,7 @@ class FreedomCamera : BaseCamera
         var m = Camera.main;
         if (!m) return;
         var v3 = Target.transform.position;
-        v3.y = Math.Clamp(Target.transform.position.y, SettingM.FreedomCameraSetting.yMin, SettingM.FreedomCameraSetting.yMax);
+        v3.y = Math.Clamp(Target.transform.position.y, SettingL.FreedomCameraSetting.yMin, SettingL.FreedomCameraSetting.yMax);
         Target.transform.position = v3;
     }
     public override void Dispose()
@@ -100,7 +100,7 @@ class FreedomCamera : BaseCamera
         if (!Mouse.current.leftButton.isPressed)
             return;
         var v2 = -e.ReadValue<Vector2>();
-        Target.transform.position += new Vector3(v2.x, 0, v2.y) * SettingM.FreedomCameraSetting.moveSpeed;
+        Target.transform.position += new Vector3(v2.x, 0, v2.y) * SettingL.FreedomCameraSetting.moveSpeed;
     }
     void editorWheel(InputAction.CallbackContext e)
     {
@@ -112,8 +112,8 @@ class FreedomCamera : BaseCamera
             return;
 
         CinemachineCamera cvc = (CinemachineCamera)Brain.ActiveVirtualCamera;
-        cvc.Lens.FieldOfView += _wheel * SettingM.FreedomCameraSetting.wheelSpeed;
-        cvc.Lens.FieldOfView = Mathf.Clamp(cvc.Lens.FieldOfView, SettingM.FreedomCameraSetting.yMin, SettingM.FreedomCameraSetting.yMax);
+        cvc.Lens.FieldOfView += _wheel * SettingL.FreedomCameraSetting.wheelSpeed;
+        cvc.Lens.FieldOfView = Mathf.Clamp(cvc.Lens.FieldOfView, SettingL.FreedomCameraSetting.yMin, SettingL.FreedomCameraSetting.yMax);
     }
     void mobileMove()
     {
@@ -196,20 +196,20 @@ class FreedomCamera : BaseCamera
 
                     if (_wheel > 0)
                     {
-                        if (Target.transform.position.y > SettingM.FreedomCameraSetting.yMin)
-                            Target.transform.position += _wheel * SettingM.FreedomCameraSetting.wheelSpeed * m.transform.forward;
+                        if (Target.transform.position.y > SettingL.FreedomCameraSetting.yMin)
+                            Target.transform.position += _wheel * SettingL.FreedomCameraSetting.wheelSpeed * m.transform.forward;
                     }
                     else
                     {
-                        if (Target.transform.position.y < SettingM.FreedomCameraSetting.yMax)
-                            Target.transform.position += _wheel * SettingM.FreedomCameraSetting.wheelSpeed * m.transform.forward;
+                        if (Target.transform.position.y < SettingL.FreedomCameraSetting.yMax)
+                            Target.transform.position += _wheel * SettingL.FreedomCameraSetting.wheelSpeed * m.transform.forward;
                     }
                 }
             }
             else
             {
                 var v2 = -cmMoveDelta;
-                Target.transform.position += new Vector3(v2.x, 0, v2.y) * SettingM.FreedomCameraSetting.moveSpeed;
+                Target.transform.position += new Vector3(v2.x, 0, v2.y) * SettingL.FreedomCameraSetting.moveSpeed;
             }
         }
     }
