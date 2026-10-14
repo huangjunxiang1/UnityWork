@@ -81,7 +81,7 @@ public class Tool
                 continue;
             uis.Add(go);
         }
-      
+
         foreach (var go in uis)
         {
             StringBuilder fieldCode = new StringBuilder();
@@ -188,7 +188,7 @@ public class Tool
             }
         }
     }
-    static void Filter(List<Component> coms,bool isRoot)
+    static void Filter(List<Component> coms, bool isRoot)
     {
         if (isRoot)
         {
@@ -591,7 +591,7 @@ public class Tool
             StringBuilder input = new StringBuilder();
             input.AppendLine(@"");
 
-            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/", so, input,true);
+            appendConfigWithDirectory(Application.dataPath + "/Res/Config/res/SO/", so, input, true);
 
             so.AppendLine("}");
             so.Append(input);
@@ -606,11 +606,11 @@ public class Tool
         if (tips)
             EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
-    static void appendConfigWithDirectory(string path, StringBuilder soCode, StringBuilder inputCode,bool isHotfix)
+    static void appendConfigWithDirectory(string path, StringBuilder soCode, StringBuilder inputCode, bool isHotfix)
     {
         foreach (var d in Directory.GetDirectories(path))
         {
-            appendConfigWithDirectory(d, soCode, inputCode,isHotfix);
+            appendConfigWithDirectory(d, soCode, inputCode, isHotfix);
         }
 
         foreach (var f in Directory.GetFiles(path))
@@ -624,8 +624,8 @@ public class Tool
                 appendInputSystemCode(input, inputCode, isHotfix);
             else
 #endif
-            if (o is ScriptableObject so)
-                appendScriptObjectCode(so, soCode, isHotfix);
+                if (o is ScriptableObject so)
+                    appendScriptObjectCode(so, soCode, isHotfix);
         }
     }
     static void appendScriptObjectCode(ScriptableObject so, StringBuilder code, bool isHotfix)
@@ -758,6 +758,18 @@ public class Tool
                 }
             }
 
+            // ============================================================
+            // 收集所有 kernel 用到的唯一 buffer / texture 名字
+            // ============================================================
+            HashSet<string> allBuffNames = new HashSet<string>();
+            HashSet<string> allTextureNames = new HashSet<string>();
+            foreach (var key in map.Values)
+            {
+                foreach (var b in key.buffs) allBuffNames.Add(b);
+                foreach (var t in key.textures) allTextureNames.Add(t);
+            }
+
+            // 构造函数里 FindKernel
             foreach (var key in map.Values)
                 code.AppendLine($"        {key.kernel}_kernel = Shader.FindKernel(\"{key.kernel}\");");
             code.AppendLine($"    }}");
@@ -765,6 +777,9 @@ public class Tool
             code.AppendLine($"    public ComputeShader Shader {{ get; private set; }}");
             code.AppendLine();
 
+            // ============================================================
+            // 普通字段（int / float / bool 等）
+            // ============================================================
             for (int i = 0; i < codes.Count; i++)
             {
                 var line = codes[i];
@@ -802,7 +817,7 @@ public class Tool
                     {
                         var s = ps[0].Replace("int", null).Replace("float", null).Replace("bool", null).Split('x');
                         code.Append($"            Shader.Set{apiName}s(\"{ps[1]}\"");
-                        if (s.Length==1)
+                        if (s.Length == 1)
                         {
                             int len = int.Parse(s[0]);
                             for (int k = 0; k < len; k++)
@@ -830,56 +845,92 @@ public class Tool
                 }
             }
 
+            // ============================================================
+            // Kernel 索引字段（每个 kernel 一个）
+            // ============================================================
             foreach (var key in map.Values)
-            {
                 code.AppendLine($"    public int {key.kernel}_kernel {{ get; private set; }}");
-                foreach (var item in key.buffs)
-                {
-                    code.AppendLine();
-                    code.AppendLine($"    GraphicsBuffer _{key.kernel}_{item};");
-                    code.AppendLine($"    public GraphicsBuffer {key.kernel}_{item}");
-                    code.AppendLine($"    {{");
-                    code.AppendLine($"        get => _{key.kernel}_{item};");
-                    code.AppendLine($"        set");
-                    code.AppendLine($"        {{");
-                    code.AppendLine($"            if (_{key.kernel}_{item} != null && _{key.kernel}_{item}.IsValid())");
-                    code.AppendLine($"                _{key.kernel}_{item}.Dispose();");
-                    code.AppendLine($"            _{key.kernel}_{item} = value;");
-                    code.AppendLine($"            if (value != null && value.IsValid())");
-                    code.AppendLine($"                Shader.SetBuffer({key.kernel}_kernel, \"{item}\", value);");
-                    code.AppendLine($"        }}");
-                    code.AppendLine($"    }}");
-                    code.AppendLine();
-                }
 
-                foreach (var item in key.textures)
+            // ============================================================
+            // Buffer 字段（每个 buffer 唯一一份，setter 自动绑定所有引用的 kernel）
+            // ============================================================
+            foreach (var item in allBuffNames)
+            {
+                code.AppendLine();
+                code.AppendLine($"    GraphicsBuffer _{item};");
+                code.AppendLine($"    public GraphicsBuffer {item}");
+                code.AppendLine($"    {{");
+                code.AppendLine($"        get => _{item};");
+                code.AppendLine($"        set");
+                code.AppendLine($"        {{");
+                code.AppendLine($"            if (_{item} == value) return;");
+                code.AppendLine($"            if (_{item} != null && _{item}.IsValid())");
+                code.AppendLine($"                _{item}.Dispose();");
+                code.AppendLine($"            _{item} = value;");
+                code.AppendLine($"            if (value != null && value.IsValid())");
+                code.AppendLine($"            {{");
+                foreach (var key in map.Values)
                 {
-                    code.AppendLine();
-                    code.AppendLine($"    Texture _{key.kernel}_{item};");
-                    code.AppendLine($"    public Texture {key.kernel}_{item}");
-                    code.AppendLine($"    {{");
-                    code.AppendLine($"        get => _{key.kernel}_{item};");
-                    code.AppendLine($"        set");
-                    code.AppendLine($"        {{");
-                    code.AppendLine($"            _{key.kernel}_{item} = value;");
-                    code.AppendLine($"            Shader.SetTexture({key.kernel}_kernel, \"{item}\", value);");
-                    code.AppendLine($"        }}");
-                    code.AppendLine($"    }}");
-                    code.AppendLine();
+                    if (key.buffs.Contains(item))
+                        code.AppendLine($"                Shader.SetBuffer({key.kernel}_kernel, \"{item}\", value);");
                 }
-                code.AppendLine($"    public void {key.kernel}_Dispatch(int threadx = {key.threadX}, int thready = {key.threadY}, int threadz = {key.threadZ}) => Shader.Dispatch({key.kernel}_kernel, threadx, thready, threadz);");
+                code.AppendLine($"            }}");
+                code.AppendLine($"        }}");
+                code.AppendLine($"    }}");
                 code.AppendLine();
             }
 
-            code.AppendLine("    public void Dispose()");
-            code.AppendLine("    {");
+            // ============================================================
+            // Texture 字段（每个 texture 唯一一份，setter 自动绑定所有引用的 kernel）
+            // ============================================================
+            foreach (var item in allTextureNames)
+            {
+                code.AppendLine();
+                code.AppendLine($"    Texture _{item};");
+                code.AppendLine($"    public Texture {item}");
+                code.AppendLine($"    {{");
+                code.AppendLine($"        get => _{item};");
+                code.AppendLine($"        set");
+                code.AppendLine($"        {{");
+                code.AppendLine($"            _{item} = value;");
+                code.AppendLine($"            if (value == null) return;");
+                foreach (var key in map.Values)
+                {
+                    if (key.textures.Contains(item))
+                        code.AppendLine($"            Shader.SetTexture({key.kernel}_kernel, \"{item}\", value);");
+                }
+                code.AppendLine($"        }}");
+                code.AppendLine($"    }}");
+                code.AppendLine();
+            }
+
+            // ============================================================
+            // 每个 kernel 的 Dispatch 方法
+            // ============================================================
             foreach (var key in map.Values)
             {
-                foreach (var item in key.buffs)
-                {
-                    code.AppendLine($"        if (_{key.kernel}_{item} != null && _{key.kernel}_{item}.IsValid())");
-                    code.AppendLine($"            _{key.kernel}_{item}.Dispose();");
-                }
+                code.AppendLine($"    public void {key.kernel}_Dispatch(int2 dispatch_xy) => {key.kernel}_Dispatch(dispatch_xy.x, dispatch_xy.y);");
+                code.AppendLine($"    public void {key.kernel}_Dispatch(int3 dispatch_xyz) => {key.kernel}_Dispatch(dispatch_xyz.x, dispatch_xyz.y, dispatch_xyz.z);");
+                code.AppendLine($"    public void {key.kernel}_Dispatch(int dispatch_x = 1, int dispatch_y = 1, int dispatch_z = 1)");
+                code.AppendLine("    {");
+                code.AppendLine($"        dispatch_x = (dispatch_x - 1) / {key.threadX} + 1;");
+                code.AppendLine($"        dispatch_y = (dispatch_y - 1) / {key.threadY} + 1;");
+                code.AppendLine($"        dispatch_z = (dispatch_z - 1) / {key.threadZ} + 1;");
+                code.AppendLine($"        {key.kernel}_DispatchThreadXYZ(dispatch_x, dispatch_y, dispatch_z);");
+                code.AppendLine("    }");
+                code.AppendLine($"    public void {key.kernel}_DispatchThreadXYZ(int threadx = 1, int thready = 1, int threadz = 1) => Shader.Dispatch({key.kernel}_kernel, threadx, thready, threadz);");
+                code.AppendLine();
+            }
+
+            // ============================================================
+            // Dispose
+            // ============================================================
+            code.AppendLine("    public void Dispose()");
+            code.AppendLine("    {");
+            foreach (var item in allBuffNames)
+            {
+                code.AppendLine($"        if (_{item} != null && _{item}.IsValid())");
+                code.AppendLine($"            _{item}.Dispose();");
             }
             code.AppendLine("    }");
 
@@ -889,20 +940,20 @@ public class Tool
         File.WriteAllText(Application.dataPath + $"/Code/Hotfix/_Gen/ComputerShaderCode.cs", code.ToString());
         AssetDatabase.Refresh();
     }
-    static void parseKernel(List<string> codes, int startIndex, KernelParse kp,HashSet<string> buffNames, HashSet<string> textureNames)
+    static void parseKernel(List<string> codes, int startIndex, KernelParse kp, HashSet<string> buffNames, HashSet<string> textureNames)
     {
         for (int i = startIndex; i < codes.Count; i++)
         {
             var line = codes[i];
             if (line.StartsWith($"void {kp.kernel}"))
             {
-                //var numthreads = codes[i - 1].Split(new char[] { ',', ' ', '(', ')', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                kp.threadX = 1;// int.Parse(numthreads[1]);
-                kp.threadY = 1;// int.Parse(numthreads[2]);
-                kp.threadZ = 1;// int.Parse(numthreads[3]);
+                var numthreads = codes[i - 1].Split(new char[] { ',', ' ', '(', ')', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                kp.threadX = int.Parse(numthreads[1]);
+                kp.threadY = int.Parse(numthreads[2]);
+                kp.threadZ = int.Parse(numthreads[3]);
 
                 string combine = "";
-                for (int j = i+2; j < codes.Count; j++)
+                for (int j = i + 2; j < codes.Count; j++)
                 {
                     if (codes[j].StartsWith("}"))
                         break;
@@ -1066,7 +1117,7 @@ public class Tool
             addTypes(arr[i]);
         types.RemoveAll(t => t.FullName == nameof(LanguageUtil));
 
-        Dictionary<string,string> ret = new(10000);
+        Dictionary<string, string> ret = new(10000);
         for (int i = 0; i < types.Count; i++)
         {
             var type = types[i];
@@ -1148,7 +1199,7 @@ public class Tool
                 (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(item.Value);
             }
         }
-       
+
 
         using (FileStream fs2 = new FileStream(fi.FullName, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
         {

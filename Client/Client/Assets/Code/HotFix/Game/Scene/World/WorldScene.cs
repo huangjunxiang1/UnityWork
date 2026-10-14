@@ -43,9 +43,9 @@ class WorldScene : Scene
         wall_render = new GPUInstanceRender(new List<GameObject>() { Game.Scene.Loader.LoadGameObject(AssetsID.Res.model.hex2) }, viewEnable: true, maxInstance: ((Hex.Hex_GridCount - 1) / 32 + 1) * 32 * 9);
         this.AddChild(wall_render);
         gridCulling = new();
-        gridCulling.Culling_wall_args = wall_render.ArgsBuffer;
-        gridCulling.Culling_wall_Visible = wall_render.VisibleBuffer;
-        gridCulling.Culling_wall_datas = wall_render.GetOrCreateBuffer<float2>(ShaderProperties.vertex.PT_wall_datas);
+        gridCulling.wall_args = wall_render.ArgsBuffer;
+        gridCulling.wall_Visible = wall_render.VisibleBuffer;
+        gridCulling.wall_datas = wall_render.GetOrCreateBuffer<float2>(ShaderProperties.vertex.PT_wall_datas);
 
         List<GameObject> lst = new();
         for (int i = 0; i < GPUConstDefine.Tree_TypeCount; i++)
@@ -55,9 +55,9 @@ class WorldScene : Scene
         }
         //单位格子最多3个树
         tree_render = new GPUInstanceRender(lst, viewEnable: true, maxInstance: ((Hex.Hex_GridCount * 3 - 1) / 32 + 1) * 32 * 9);
-        gridCulling.Culling_tree_args = tree_render.ArgsBuffer;
-        gridCulling.Culling_tree_Visible = tree_render.VisibleBuffer;
-        gridCulling.Culling_tree_datas = tree_render.GetOrCreateBuffer<float2>(ShaderProperties.vertex.PT_tree_datas);
+        gridCulling.tree_args = tree_render.ArgsBuffer;
+        gridCulling.tree_Visible = tree_render.VisibleBuffer;
+        gridCulling.tree_datas = tree_render.GetOrCreateBuffer<float2>(ShaderProperties.vertex.PT_tree_datas);
         this.AddChild(tree_render);
 
         gridCulling.maxBatchInstance = tree_render.MaxInstance;
@@ -92,7 +92,7 @@ class WorldScene : Scene
     public void GridChange(int2 xy)
     {
         gridCulling.playerPos_xy = xy;
-        gridCulling.Culling_Dispatch();
+        gridCulling.Culling_DispatchThreadXYZ();
         hex.transform.position = Hex.GetPositon(xy);
     }
     public void Logging(int2 xy)
@@ -102,13 +102,13 @@ class WorldScene : Scene
         if (!WorldData.Inst.Logging(xy))
             return;
         WorldData.Inst.CopyTreeVisibleToGraphicsBuffer(tree_render.VisibleBuffer, xy);
-        gridCulling.Culling_Dispatch();
+        gridCulling.Culling_DispatchThreadXYZ();
     }
     public void SetWall(int2 xy, bool visible)
     {
         if (!WorldData.Inst.SetWall(xy, visible))
             return;
         WorldData.Inst.CopyWallVisibleToGraphicsBuffer(wall_render.VisibleBuffer, xy);
-        gridCulling.Culling_Dispatch();
+        gridCulling.Culling_DispatchThreadXYZ();
     }
 }

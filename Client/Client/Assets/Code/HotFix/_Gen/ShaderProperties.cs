@@ -8445,6 +8445,25 @@ public static class ShaderProperties
         public const string KW_TRANSPARENT_WRITES_MOTION_VEC = "_TRANSPARENT_WRITES_MOTION_VEC";
     }
 
+    /// <summary>Shader: Shader Graphs/EmergeView</summary>
+    public static class Shader_Graphs_EmergeView
+    {
+        /// <summary>Texture  (unity_Lightmaps)</summary>
+        public static readonly int PT_unity_Lightmaps = Shader.PropertyToID("unity_Lightmaps");
+        /// <summary>Texture  (unity_LightmapsInd)</summary>
+        public static readonly int PT_unity_LightmapsInd = Shader.PropertyToID("unity_LightmapsInd");
+        /// <summary>Texture  (unity_ShadowMasks)</summary>
+        public static readonly int PT_unity_ShadowMasks = Shader.PropertyToID("unity_ShadowMasks");
+        /// <summary>Keyword  (STEREO_CUBEMAP_RENDER_ON)</summary>
+        public const string KW_STEREO_CUBEMAP_RENDER_ON = "STEREO_CUBEMAP_RENDER_ON";
+        /// <summary>Keyword  (STEREO_INSTANCING_ON)</summary>
+        public const string KW_STEREO_INSTANCING_ON = "STEREO_INSTANCING_ON";
+        /// <summary>Keyword  (STEREO_MULTIVIEW_ON)</summary>
+        public const string KW_STEREO_MULTIVIEW_ON = "STEREO_MULTIVIEW_ON";
+        /// <summary>Keyword  (UNITY_SINGLE_PASS_STEREO)</summary>
+        public const string KW_UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
+    }
+
     /// <summary>Shader: Shader Graphs/Hex2Lit</summary>
     public static class Shader_Graphs_Hex2Lit
     {
@@ -9463,12 +9482,26 @@ public static class ShaderProperties
     /// <summary>Shader: Shader Graphs/Water</summary>
     public static class Shader_Graphs_Water
     {
-        /// <summary>Texture  (Texture2D_0afb1bd5f0a046f2b2ce389bc3576ea2)</summary>
-        public static readonly int PT_Texture2D_0afb1bd5f0a046f2b2ce389bc3576ea2 = Shader.PropertyToID("Texture2D_0afb1bd5f0a046f2b2ce389bc3576ea2");
-        /// <summary>Float  (Vector1_ecdf87ddac2d42e187c4a5b8a2380964)</summary>
-        public static readonly int PT_Vector1_ecdf87ddac2d42e187c4a5b8a2380964 = Shader.PropertyToID("Vector1_ecdf87ddac2d42e187c4a5b8a2380964");
-        /// <summary>Color  (Color_20a3acdbc6cb482081ab52eafec428ed)</summary>
-        public static readonly int PT_Color_20a3acdbc6cb482081ab52eafec428ed = Shader.PropertyToID("Color_20a3acdbc6cb482081ab52eafec428ed");
+        /// <summary>Color  (_Color)</summary>
+        public static readonly int PT_Color = Shader.PropertyToID("_Color");
+        /// <summary>Color  (_DeepColor)</summary>
+        public static readonly int PT_DeepColor = Shader.PropertyToID("_DeepColor");
+        /// <summary>Float  (_DeepDistance)</summary>
+        public static readonly int PT_DeepDistance = Shader.PropertyToID("_DeepDistance");
+        /// <summary>Float  (_DeepPower)</summary>
+        public static readonly int PT_DeepPower = Shader.PropertyToID("_DeepPower");
+        /// <summary>Range  (_Metallic)</summary>
+        public static readonly int PT_Metallic = Shader.PropertyToID("_Metallic");
+        /// <summary>Range  (_Smoothness)</summary>
+        public static readonly int PT_Smoothness = Shader.PropertyToID("_Smoothness");
+        /// <summary>Range  (_AO)</summary>
+        public static readonly int PT_AO = Shader.PropertyToID("_AO");
+        /// <summary>Vector  (_WaveSpeed)</summary>
+        public static readonly int PT_WaveSpeed = Shader.PropertyToID("_WaveSpeed");
+        /// <summary>Float  (_WaveHeight)</summary>
+        public static readonly int PT_WaveHeight = Shader.PropertyToID("_WaveHeight");
+        /// <summary>Float  (_WaveInterval)</summary>
+        public static readonly int PT_WaveInterval = Shader.PropertyToID("_WaveInterval");
         /// <summary>Color  (_EmissionColor)</summary>
         public static readonly int PT_EmissionColor = Shader.PropertyToID("_EmissionColor");
         /// <summary>Float  (_RenderQueueType)</summary>
@@ -17259,6 +17292,21 @@ public static class ShaderProperties
         public const string KW_TRANSPARENT_REFRACTIVE_SORT = "_TRANSPARENT_REFRACTIVE_SORT";
         /// <summary>Keyword  (_TRANSPARENT_WRITES_MOTION_VEC)</summary>
         public const string KW_TRANSPARENT_WRITES_MOTION_VEC = "_TRANSPARENT_WRITES_MOTION_VEC";
+    }
+
+    /// <summary>HLSL: Assets/Res/Shader/Emerge/Emerge.hlsl</summary>
+    public static class Emerge
+    {
+        /// <summary>RWStructuredBuffer  (kingLand)</summary>
+        public static readonly int PT_kingLand = Shader.PropertyToID("kingLand");
+        /// <summary>RWStructuredBuffer  (unitLand)</summary>
+        public static readonly int PT_unitLand = Shader.PropertyToID("unitLand");
+        /// <summary>RWStructuredBuffer  (unitCenter)</summary>
+        public static readonly int PT_unitCenter = Shader.PropertyToID("unitCenter");
+        /// <summary>RWStructuredBuffer  (unitDir)</summary>
+        public static readonly int PT_unitDir = Shader.PropertyToID("unitDir");
+        /// <summary>RWStructuredBuffer  (pheromoneLand)</summary>
+        public static readonly int PT_pheromoneLand = Shader.PropertyToID("pheromoneLand");
     }
 
     /// <summary>HLSL: Assets/Res/Shader/common/vertex.hlsl</summary>

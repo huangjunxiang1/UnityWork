@@ -91,14 +91,14 @@ partial class FUIFighting4
         }
         Game.Timer.Add(0, -1, draw);
 
-        mat.SetBuffer(Shader.PropertyToID("_pCb"), pCb);
+        //mat.SetBuffer(ShaderProperties.Shader_Graphs_ECSLit.pt, pCb);
 
         finding.size = size;
         roadCb.SetData(road);
-        finding.CSMain_road = roadCb;
-        finding.CSMain_mark = mark;
-        finding.CSMain_mvs = mvs;
-        finding.CSMain_temp = temp;
+        finding.road = roadCb;
+        finding.mark = mark;
+        finding.mvs = mvs;
+        finding.temp = temp;
 
         Bounds bs = new Bounds(Vector3.zero, Vector3.one * 100);
         rp = new RenderParams(mat);
@@ -146,7 +146,7 @@ partial class FUIFighting4
 
             pCb.SetData(ps);
             ps.Dispose();
-            finding.CSMain_ps = pCb;
+            finding.ps = pCb;
         }
 
         {
@@ -188,7 +188,7 @@ partial class FUIFighting4
 
             targetP.SetData(targets);
             targets.Dispose();
-            finding.CSMain_targetP = targetP;
+            finding.targetP = targetP;
         }
     }
 

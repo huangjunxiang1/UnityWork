@@ -96,6 +96,8 @@ public static class AssetsID
         /// <summary>Group: scene</summary>
         public static class scene
         {
+            /// <summary>scene_Emerge</summary>
+            public const string Emerge = "scene_Emerge";
             /// <summary>scene_Game</summary>
             public const string Game = "scene_Game";
             /// <summary>scene_Login</summary>
@@ -116,6 +118,10 @@ public static class AssetsID
             public const string Define = "shader_Define";
             /// <summary>shader_ECSLit</summary>
             public const string ECSLit = "shader_ECSLit";
+            /// <summary>shader_Emerge</summary>
+            public const string Emerge = "shader_Emerge";
+            /// <summary>shader_EmergeView</summary>
+            public const string EmergeView = "shader_EmergeView";
             /// <summary>shader_GridCulling</summary>
             public const string GridCulling = "shader_GridCulling";
             /// <summary>shader_PathFinding</summary>

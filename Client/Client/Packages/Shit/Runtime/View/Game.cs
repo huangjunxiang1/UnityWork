@@ -81,16 +81,17 @@ public sealed class Game : SCore<Game>
         if (string.IsNullOrEmpty(attr.name))
             throw new Exception($"Scene {typeof(T).FullName} SceneAttribute name is null or empty");
 
-        var old = Scene;
-        Scene = new T() { _paramObjects = os };
-        Game.World.AddChild(Scene);
-        old?.Dispose();
+        Scene?.Dispose();
+        Scene = null;
         Game.UI.CloseUI();
         await Game.Event.RunEventAsync(new EC_OutScene { });
 
         await Game.Loader.LoadSceneAsync($"scene_{attr.name}");
         await Task.Delay(100);
 
+        //不能提前初始化并注册Scene  否则 scene的timer之类的自动注册运行逻辑 会在没有执行onEnter的时候运行  会有问题
+        Scene = new T() { _paramObjects = os };
+        Game.World.AddChild(Scene);
         Scene.OnEnter();
 
         await Game.Event.RunEventAsync(new EC_InScene { });

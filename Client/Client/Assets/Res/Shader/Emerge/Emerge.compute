@@ -1,0 +1,509 @@
+#pragma kernel kn_mapReSize
+#pragma kernel kn_unitAction
+#pragma kernel kn_spawnUnit
+
+#define EMERGE_COMPUTE
+#include "Emerge.hlsl"
+
+// ============ C# 传入 ============
+int _RandomSeed;
+int _SpawnSeed;
+float _ExpandChance;
+float _SpawnChance;
+float _GeneralRate;
+
+// ============ 单位尺寸 ============
+static const int UNIT_HALF_SOLDIER = 3; // 小兵 7x7
+static const int UNIT_HALF_GENERAL = 9; // 将军 19x19
+
+// ============ 移动步长 ============
+static const int MOVE_STEP_SOLDIER = 1;
+static const int MOVE_STEP_GENERAL = 1;
+
+// ============ 可调参数 ============
+static const float PHEROMONE_DECAY = 0.995f;
+static const int PHEROMONE_MAX = 255;
+static const int PHEROMONE_GENERAL = 30;
+static const int PHEROMONE_SOLDIER = 12;
+static const int PHEROMONE_WEIGHT = 20;
+static const int WANDER_RANDOM = 250;
+
+// ============ 转向代价 ============
+static const int TURN_PENALTY_PER_STEP = 120;
+
+// ============ 工具 ============
+uint Hash(uint x)
+{
+    x = ((x >> 16) ^ x) * 0x45d9f3bu;
+    x = ((x >> 16) ^ x) * 0x45d9f3bu;
+    x = (x >> 16) ^ x;
+    return x;
+}
+
+float Rand01(uint seed)
+{
+    return Hash(seed) / 4294967295.0;
+}
+
+int IntAbs(int v)
+{
+    return v < 0 ? -v : v;
+}
+
+int GetUnitHalf(int type)
+{
+    return (type == 2) ? UNIT_HALF_GENERAL : UNIT_HALF_SOLDIER;
+}
+
+int GetMoveStep(int type)
+{
+    return (type == 2) ? MOVE_STEP_GENERAL : MOVE_STEP_SOLDIER;
+}
+
+bool InOwnArea(int2 nc, int2 coord, int h)
+{
+    return IntAbs(nc.x - coord.x) <= h && IntAbs(nc.y - coord.y) <= h;
+}
+
+bool InBounds(int2 c)
+{
+    return c.x >= 0 && c.x < Emerge_SceneSize.x &&
+           c.y >= 0 && c.y < Emerge_SceneSize.y;
+}
+
+// ============ 方向数组（顺时针，相邻下标 = 相邻 45°） ============
+//   0 = 右   (1, 0)
+//   1 = 右下 (1, 1)
+//   2 = 下   (0, 1)
+//   3 = 左下 (-1, 1)
+//   4 = 左   (-1, 0)
+//   5 = 左上 (-1,-1)
+//   6 = 上   (0,-1)
+//   7 = 右上 (1,-1)
+static const int2 UnitDirs[8] =
+{
+    { 1, 0 },
+    { 1, 1 },
+    { 0, 1 },
+    { -1, 1 },
+    { -1, 0 },
+    { -1, -1 },
+    { 0, -1 },
+    { 1, -1 }
+};
+
+int TurnDistance(int from, int to)
+{
+    int d = IntAbs(to - from);
+    if (d > 4)
+        d = 8 - d;
+    return d;
+}
+
+static const int2 LandDirs[4] =
+{
+    { 0, 1 },
+    { 0, -1 },
+    { 1, 0 },
+    { -1, 0 }
+};
+
+// ===================================================================
+// Kernel 1: 领地扩张（1 秒一次）
+// ===================================================================
+[numthreads(32, 32, 1)]
+void kn_mapReSize(uint3 id : SV_DispatchThreadID)
+{
+    int2 coord = int2(id.x, id.y);
+    if (coord.x >= Emerge_SceneSize.x || coord.y >= Emerge_SceneSize.y)
+        return;
+
+    int index = coord.x + coord.y * Emerge_SceneSize.x;
+
+    if (kingLand[index] != 0)
+        return;
+
+    uint cellSeed = (uint) coord.x * 73856093u
+                  ^ (uint) coord.y * 19349663u
+                  ^ (uint) _RandomSeed;
+
+    if (Rand01(cellSeed) > _ExpandChance)
+        return;
+
+    int candidates[4];
+    int count = 0;
+
+    for (int i = 0; i < 4; i++)
+    {
+        int2 nCoord = coord + LandDirs[i];
+        if (!InBounds(nCoord))
+            continue;
+
+        int nIndex = nCoord.x + nCoord.y * Emerge_SceneSize.x;
+        int nKing = kingLand[nIndex];
+        if (nKing == 0)
+            continue;
+
+        candidates[count] = nKing;
+        count++;
+    }
+
+    if (count > 0)
+    {
+        uint pickSeed = cellSeed + 99991u;
+        int pick = (int) (Hash(pickSeed) % (uint) count);
+        kingLand[index] = candidates[pick];
+    }
+}
+
+// ===================================================================
+// Kernel 2: 单位行动
+// ===================================================================
+[numthreads(32, 32, 1)]
+void kn_unitAction(uint3 id : SV_DispatchThreadID)
+{
+    int2 coord = int2(id.x, id.y);
+    if (coord.x >= Emerge_SceneSize.x || coord.y >= Emerge_SceneSize.y)
+        return;
+
+    int index = coord.x + coord.y * Emerge_SceneSize.x;
+
+    // ---------- 信息素衰减 ----------
+    pheromoneLand[index] = (int) (pheromoneLand[index] * PHEROMONE_DECAY);
+
+    // ---------- 孤儿单位清理 ----------
+    int ut = unitLand[index];
+    if (ut != 0)
+    {
+        int h = GetUnitHalf(ut);
+        int myK = kingLand[index];
+        bool hasCenter = false;
+
+        for (int dy = -h; dy <= h && !hasCenter; dy++)
+        {
+            for (int dx = -h; dx <= h; dx++)
+            {
+                int2 nc = coord + int2(dx, dy);
+                if (!InBounds(nc))
+                    continue;
+
+                int ni = nc.x + nc.y * Emerge_SceneSize.x;
+                if (unitCenter[ni] == ut && kingLand[ni] == myK)
+                {
+                    hasCenter = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasCenter)
+            unitLand[index] = 0;
+    }
+
+    // ---------- 只有中心格子做决策 ----------
+    int centerType = unitCenter[index];
+    if (centerType == 0)
+        return;
+
+    int myKing = kingLand[index];
+    if (myKing == 0)
+        return;
+
+    int h = GetUnitHalf(centerType);
+    int step = GetMoveStep(centerType);
+    int curDir = unitDir[index];
+
+    uint seed = (uint) coord.x * 73856093u
+              ^ (uint) coord.y * 19349663u
+              ^ (uint) _RandomSeed;
+
+    // ---------------- 8 方向打分 ----------------
+    int2 bestDir = int2(0, 0);
+    int bestScore = -999999;
+    int bestDirIdx = curDir;
+
+    for (int i = 0; i < 8; i++)
+    {
+        // ========== 硬禁掉头 ==========
+        int turnDelta = TurnDistance(curDir, i);
+        if (turnDelta == 4)
+            continue;
+
+        int2 nCoord = coord + UnitDirs[i] * step;
+
+        // 目标区域边界检查
+        if (nCoord.x - h < 0 || nCoord.x + h >= Emerge_SceneSize.x ||
+            nCoord.y - h < 0 || nCoord.y + h >= Emerge_SceneSize.y)
+            continue;
+
+        // ===== 预判目标区域 =====
+        bool blocked = false;
+        int enemyType = 0;
+
+        for (int dy = -h; dy <= h && !blocked; dy++)
+        {
+            for (int dx = -h; dx <= h; dx++)
+            {
+                int2 tc = nCoord + int2(dx, dy);
+                if (InOwnArea(tc, coord, h))
+                    continue;
+
+                int ti = tc.x + tc.y * Emerge_SceneSize.x;
+                int tu = unitLand[ti];
+                if (tu == 0)
+                    continue;
+
+                int tk = kingLand[ti];
+
+                if (tk == myKing)
+                {
+                    // 己方：等级 >= 自己才阻挡
+                    if (tu >= centerType)
+                    {
+                        blocked = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    // 敌方：等级 >= 自己才算敌人
+                    if (tu >= centerType)
+                    {
+                        if (tu > enemyType)
+                            enemyType = tu;
+                    }
+                }
+            }
+        }
+
+        if (blocked)
+            continue;
+
+        // ===== 打分 =====
+        int nIndex = nCoord.x + nCoord.y * Emerge_SceneSize.x;
+        int nk = kingLand[nIndex];
+        int np = pheromoneLand[nIndex];
+
+        int score = 0;
+
+        // 1. 战斗优先
+        if (enemyType > 0)
+        {
+            if (centerType == 2)
+                score = 3000;
+            else if (enemyType == 1)
+                score = 2500;
+            else
+                score = 200;
+        }
+        // 2. 敌方领土
+        else if (nk != 0 && nk != myKing)
+        {
+            score = (centerType == 2) ? 500 : 450;
+        }
+        // 3. 己方领土
+        else if (nk == myKing)
+        {
+            score = (centerType == 1) ? 200 : 150;
+        }
+        // 4. 无主空地
+        else
+        {
+            score = (centerType == 2) ? 180 : 200;
+        }
+
+        // 5. 信息素加成
+        if (np > 0)
+        {
+            int weight = (centerType == 1) ? PHEROMONE_WEIGHT : (PHEROMONE_WEIGHT * 2);
+            score += np / max(weight, 1);
+        }
+
+        // 6. 随机扰动
+        score += (int) (Hash(seed + (uint) i * 7919u) % WANDER_RANDOM);
+
+        // 7. 转向惩罚
+        score -= turnDelta * TURN_PENALTY_PER_STEP;
+
+        if (score > bestScore)
+        {
+            bestScore = score;
+            bestDir = UnitDirs[i];
+            bestDirIdx = i;
+        }
+    }
+
+    // 没有任何方向可用 —— 原地随机换向，下一 tick 就能动
+    if (bestScore == -999999)
+    {
+        unitDir[index] = (int) (Hash(seed + 777u) % 8u);
+        return;
+    }
+
+    if (bestDir.x == 0 && bestDir.y == 0)
+        return;
+
+    int2 targetCenter = coord + bestDir * step;
+    int targetIndex = targetCenter.x + targetCenter.y * Emerge_SceneSize.x;
+
+    // ========== 再次确认目标区域，判断是否需要战斗 ==========
+    int enemyTypeFinal = 0;
+    for (int dy = -h; dy <= h; dy++)
+    {
+        for (int dx = -h; dx <= h; dx++)
+        {
+            int2 tc = targetCenter + int2(dx, dy);
+            if (InOwnArea(tc, coord, h))
+                continue;
+
+            int ti = tc.x + tc.y * Emerge_SceneSize.x;
+            int tu = unitLand[ti];
+            if (tu == 0)
+                continue;
+
+            int tk = kingLand[ti];
+            if (tk != myKing && tu >= centerType && tu > enemyTypeFinal)
+                enemyTypeFinal = tu;
+        }
+    }
+
+    // ========== 战斗 ==========
+    if (enemyTypeFinal > 0)
+    {
+        bool win;
+        if (centerType > enemyTypeFinal)
+            win = true;
+        else if (centerType < enemyTypeFinal)
+            win = false;
+        else
+            win = (Hash(seed + 31337u) & 1u) == 0u;
+
+        if (!win)
+        {
+            for (int dy = -h; dy <= h; dy++)
+            {
+                for (int dx = -h; dx <= h; dx++)
+                {
+                    int2 nc = coord + int2(dx, dy);
+                    if (!InBounds(nc))
+                        continue;
+
+                    int ni = nc.x + nc.y * Emerge_SceneSize.x;
+                    unitLand[ni] = 0;
+                    unitCenter[ni] = 0;
+                    unitDir[ni] = 0;
+                }
+            }
+            return;
+        }
+    }
+
+    // ========== 执行移动 ==========
+    // 1. 清空旧区域
+    for (int dy = -h; dy <= h; dy++)
+    {
+        for (int dx = -h; dx <= h; dx++)
+        {
+            int2 nc = coord + int2(dx, dy);
+            if (!InBounds(nc))
+                continue;
+
+            int ni = nc.x + nc.y * Emerge_SceneSize.x;
+            unitLand[ni] = 0;
+            unitCenter[ni] = 0;
+            unitDir[ni] = 0;
+        }
+    }
+
+    // 2. 清空目标区域残留的 center/dir（可能包含被碾过的低等级单位）
+    for (int dy = -h; dy <= h; dy++)
+    {
+        for (int dx = -h; dx <= h; dx++)
+        {
+            int2 nc = targetCenter + int2(dx, dy);
+            int ni = nc.x + nc.y * Emerge_SceneSize.x;
+            unitCenter[ni] = 0;
+            unitDir[ni] = 0;
+        }
+    }
+
+    // 3. 写入新区域
+    for (int dy = -h; dy <= h; dy++)
+    {
+        for (int dx = -h; dx <= h; dx++)
+        {
+            int2 nc = targetCenter + int2(dx, dy);
+            int ni = nc.x + nc.y * Emerge_SceneSize.x;
+            unitLand[ni] = centerType;
+        }
+    }
+
+    // 4. 标记新中心 + 更新方向
+    unitCenter[targetIndex] = centerType;
+    unitDir[targetIndex] = bestDirIdx;
+
+    // 5. 信息素：只在新位置留下，旧位置打折
+    int deposit = (centerType == 2) ? PHEROMONE_GENERAL : PHEROMONE_SOLDIER;
+    pheromoneLand[targetIndex] = min(pheromoneLand[targetIndex] + deposit, PHEROMONE_MAX);
+    pheromoneLand[index] = pheromoneLand[index] / 4;
+}
+
+// ===================================================================
+// Kernel 3: 随机生成单位
+// ===================================================================
+[numthreads(32, 32, 1)]
+void kn_spawnUnit(uint3 id : SV_DispatchThreadID)
+{
+    int2 coord = int2(id.x, id.y);
+    if (coord.x >= Emerge_SceneSize.x || coord.y >= Emerge_SceneSize.y)
+        return;
+
+    int index = coord.x + coord.y * Emerge_SceneSize.x;
+
+    int myKing = kingLand[index];
+    if (myKing == 0)
+        return;
+
+    if (unitCenter[index] != 0)
+        return;
+    if (unitLand[index] != 0)
+        return;
+
+    uint seed = (uint) coord.x * 73856093u
+              ^ (uint) coord.y * 19349663u
+              ^ (uint) _SpawnSeed;
+
+    if (Rand01(seed) > _SpawnChance)
+        return;
+
+    int type = (Rand01(seed + 111u) < _GeneralRate) ? 2 : 1;
+    int h = GetUnitHalf(type);
+
+    if (coord.x - h < 0 || coord.x + h >= Emerge_SceneSize.x ||
+        coord.y - h < 0 || coord.y + h >= Emerge_SceneSize.y)
+        return;
+
+    for (int dy = -h; dy <= h; dy++)
+    {
+        for (int dx = -h; dx <= h; dx++)
+        {
+            int2 nc = coord + int2(dx, dy);
+            int ni = nc.x + nc.y * Emerge_SceneSize.x;
+            if (unitLand[ni] != 0 || unitCenter[ni] != 0)
+                return;
+        }
+    }
+
+    for (int dy = -h; dy <= h; dy++)
+    {
+        for (int dx = -h; dx <= h; dx++)
+        {
+            int2 nc = coord + int2(dx, dy);
+            int ni = nc.x + nc.y * Emerge_SceneSize.x;
+            unitLand[ni] = type;
+        }
+    }
+
+    unitCenter[index] = type;
+    unitDir[index] = (int) (Hash(seed + 222u) % 8u);
+}
