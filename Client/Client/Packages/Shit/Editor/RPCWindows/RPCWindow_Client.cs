@@ -647,7 +647,7 @@ partial class RPCWindow
             }
             async void ReceiveLoop(TcpClient tcp)
             {
-                byte[] buffer = new byte[2048];
+                byte[] buffer = new byte[ushort.MaxValue];
                 while (tcp.Connected)
                 {
                     try
@@ -675,9 +675,9 @@ partial class RPCWindow
                             return;
                         }
                         int byteCnt = buffer[0];
-                        byteCnt |= buffer[1] << 8;
-                        byteCnt |= buffer[2] << 16;
-                        byteCnt |= buffer[3] << 32;
+                        byteCnt |= (((int)buffer[1]) << 8);
+                        byteCnt |= (((int)buffer[2]) << 16);
+                        byteCnt |= (((int)buffer[3]) << 32);
                         await tcp.GetStream().ReadAsync(buffer, 0, byteCnt);
                         var json = Encoding.UTF8.GetString(buffer, 0, byteCnt);
                         try

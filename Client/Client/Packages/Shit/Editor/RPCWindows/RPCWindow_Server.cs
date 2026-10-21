@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
@@ -143,16 +144,41 @@ partial class RPCWindow
             catch (Exception e)
             { AppendLog("重启状态失败 e=" + e); }
         }
-        async void getHostIP()
+        void getHostIP()
         {
             try
             {
-                var host = await Dns.GetHostEntryAsync(Dns.GetHostName());
-                foreach (var ip in host.AddressList)
-                    if (ip.AddressFamily == AddressFamily.InterNetwork)
-                        localIP = ip.ToString();
+                foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus != OperationalStatus.Up) continue;
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel) continue;
+
+                    var props = ni.GetIPProperties();
+                    // 有默认网关，通常说明是真实联网网卡
+                    bool hasGateway = false;
+                    foreach (var gw in props.GatewayAddresses)
+                        if (gw.Address.AddressFamily == AddressFamily.InterNetwork &&
+                            !gw.Address.Equals(IPAddress.Any))
+                        { hasGateway = true; break; }
+
+                    if (!hasGateway) continue;
+
+                    foreach (var addr in props.UnicastAddresses)
+                    {
+                        if (addr.Address.AddressFamily == AddressFamily.InterNetwork &&
+                            !IPAddress.IsLoopback(addr.Address))
+                        {
+                            localIP = addr.Address.ToString();
+                            return;
+                        }
+                    }
+                }
             }
-            catch { }
+            catch (Exception)
+            {
+
+            }
         }
         private void AppendLog(string msg, LogType type = LogType.Log)
         {
@@ -604,6 +630,11 @@ partial class RPCWindow
             GUI.enabled = true;
             if (GUILayout.Button("复制", GUILayout.Width(60)))
                 GUIUtility.systemCopyBuffer = localIP;
+            GUI.enabled = false;
+            EditorGUILayout.TextField(Application.dataPath, GUILayout.ExpandWidth(true));
+            GUI.enabled = true;
+            if (GUILayout.Button("复制", GUILayout.Width(60)))
+                GUIUtility.systemCopyBuffer = Application.dataPath;
             EditorGUILayout.EndHorizontal();
             GUILayout.Space(10);
 

@@ -190,6 +190,7 @@ partial class FUILogin : FUI
     public GButton _btnLogin { get; private set; }
     public GLabel _acc { get; private set; }
     public GLabel _pw { get; private set; }
+    public GComboBox _scenes { get; private set; }
 
     protected sealed override void Binding()
     {
@@ -197,6 +198,7 @@ partial class FUILogin : FUI
         _btnLogin = (GButton)ui.GetChildAt(1);
         _acc = (GLabel)ui.GetChildAt(2);
         _pw = (GLabel)ui.GetChildAt(3);
+        _scenes = (GComboBox)ui.GetChildAt(5);
     }
     public override void Dispose()
     {

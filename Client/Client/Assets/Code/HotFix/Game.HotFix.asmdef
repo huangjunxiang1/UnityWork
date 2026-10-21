@@ -15,7 +15,8 @@
         "Unity.Burst",
         "Game.Main",
         "YooAsset",
-        "Unity.RenderPipelines.HighDefinition.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor"

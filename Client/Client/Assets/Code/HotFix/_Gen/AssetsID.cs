@@ -102,6 +102,8 @@ public static class AssetsID
             public const string Game = "scene_Game";
             /// <summary>scene_Login</summary>
             public const string Login = "scene_Login";
+            /// <summary>scene_Virus</summary>
+            public const string Virus = "scene_Virus";
             /// <summary>scene_World</summary>
             public const string World = "scene_World";
         }

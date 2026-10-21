@@ -1,14 +1,17 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using Event;
 using FairyGUI;
-using System.Threading.Tasks;
-using System;
-using Event;
 using main;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using UnityEngine;
 
 partial class FUILogin
 {
+    List<Type> _sceneTypes;
     protected override void OnEnter()
     {
         _acc.text = SettingL.Account;
@@ -16,6 +19,21 @@ partial class FUILogin
         _pw.text = SettingL.Password;
         _pw.GetTextField().asTextInput.onChanged.Add(pw);
         _btnLogin.onClick.Add(login);
+
+        var baseType = typeof(Scene);
+        _sceneTypes = this.GetType().Assembly.GetTypes().Where(t => t != null
+                        && t.IsClass
+                        && !t.IsAbstract
+                        && t != baseType
+                        && baseType.IsAssignableFrom(t)
+                        && t != typeof(LoginScene))
+            .ToList();
+        _scenes.items = _sceneTypes.Select(t => t.Name).ToArray();
+        _scenes.selectedIndex = PlayerPrefs.GetInt("_sceneTypes");
+        _scenes.onChanged.Add(() =>
+        {
+            PlayerPrefs.SetInt("_sceneTypes", _scenes.selectedIndex);
+        });
     }
 
     void acc() => SettingL.Account = _acc.text;
@@ -23,6 +41,12 @@ partial class FUILogin
 
     async void login()
     {
-        await Game.InScene<EmergeScene>();
+        var type = _sceneTypes[_scenes.selectedIndex];
+
+        var method = typeof(Game)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .First(m => m.Name == nameof(Game.InScene));
+
+        await (STask)method.MakeGenericMethod(type).Invoke(null, new object[] { new object[0] });
     }
 }

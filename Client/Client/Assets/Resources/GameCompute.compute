@@ -1,0 +1,156 @@
+// ============================================================
+//  GameCompute — 塔防
+// ============================================================
+
+#pragma kernel TowerUpdateEnemies
+#pragma kernel TowerUpdateBullets
+
+
+struct TowerEnemy
+{
+    float2 pos;
+    float2 vel;
+    float hp;
+    float maxHp;
+    float speed;
+    float slowTimer;
+    uint kind;
+    uint alive;
+    float _pad0;
+    float _pad1;
+};
+
+struct TowerBullet
+{
+    float2 pos;
+    float2 vel;
+    float damage;
+    float life;
+    float splash;
+    float slowAmount;
+    uint kind;
+    uint _pad;
+};
+
+
+StructuredBuffer<TowerEnemy> _EnemiesRead;
+RWStructuredBuffer<TowerEnemy> _EnemiesWrite;
+
+StructuredBuffer<TowerBullet> _BulletsRead;
+RWStructuredBuffer<TowerBullet> _BulletsWrite;
+
+RWStructuredBuffer<uint> _TowerFlags; // [0]=到达基地数量 [1]=击杀数
+
+float _TDt;
+float2 _TWorldHalf;
+float _TEndX;
+uint _TEnemyCount;
+uint _TBulletCount;
+
+
+[numthreads(64, 1, 1)]
+void TowerUpdateEnemies(uint3 id : SV_DispatchThreadID)
+{
+    uint i = id.x;
+    if (i >= _TEnemyCount)
+        return;
+
+    TowerEnemy e = _EnemiesRead[i];
+    if (e.alive == 0)
+    {
+        _EnemiesWrite[i] = e;
+        return;
+    }
+
+    if (e.slowTimer > 0)
+        e.slowTimer -= _TDt;
+    float spd = e.speed * (e.slowTimer > 0 ? 0.4 : 1.0);
+
+    e.pos.x += spd * _TDt;
+
+    if (e.pos.x > _TEndX)
+    {
+        e.alive = 0;
+        InterlockedAdd(_TowerFlags[0], 1u);
+    }
+
+    _EnemiesWrite[i] = e;
+}
+
+
+[numthreads(64, 1, 1)]
+void TowerUpdateBullets(uint3 id : SV_DispatchThreadID)
+{
+    uint i = id.x;
+    if (i >= _TBulletCount)
+        return;
+
+    TowerBullet b = _BulletsRead[i];
+    if (b.life <= 0)
+    {
+        _BulletsWrite[i] = b;
+        return;
+    }
+
+    b.pos += b.vel * _TDt;
+    b.life -= _TDt;
+
+    if (b.life <= 0)
+    {
+        _BulletsWrite[i] = b;
+        return;
+    }
+
+    for (uint j = 0; j < _TEnemyCount; j++)
+    {
+        TowerEnemy e = _EnemiesRead[j];
+        if (e.alive == 0)
+            continue;
+
+        float2 d = b.pos - e.pos;
+        float r = 0.45;
+        if (dot(d, d) < r * r)
+        {
+            TowerEnemy ne = e;
+            ne.hp -= b.damage;
+            if (b.slowAmount > 0)
+                ne.slowTimer = 1.5;
+
+            if (ne.hp <= 0)
+            {
+                ne.alive = 0;
+                InterlockedAdd(_TowerFlags[1], 1u);
+            }
+            _EnemiesWrite[j] = ne;
+
+            if (b.splash > 0)
+            {
+                for (uint k = 0; k < _TEnemyCount; k++)
+                {
+                    if (k == j)
+                        continue;
+                    TowerEnemy e2 = _EnemiesRead[k];
+                    if (e2.alive == 0)
+                        continue;
+                    float2 d2 = b.pos - e2.pos;
+                    if (dot(d2, d2) < b.splash * b.splash)
+                    {
+                        TowerEnemy ne2 = e2;
+                        ne2.hp -= b.damage * 0.6;
+                        if (ne2.hp <= 0)
+                        {
+                            ne2.alive = 0;
+                            InterlockedAdd(_TowerFlags[1], 1u);
+                        }
+                        _EnemiesWrite[k] = ne2;
+                    }
+                }
+            }
+
+            b.life = 0;
+            break;
+        }
+    }
+
+    _BulletsWrite[i] = b;
+}

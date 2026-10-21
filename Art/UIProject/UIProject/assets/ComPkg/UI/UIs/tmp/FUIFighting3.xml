@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component size="1334,750" opaque="false">
   <displayList>
-    <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/btnBack.xml" xy="1071,50" size="210,65">
+    <component id="n2_n68q" name="_btnBack" src="n68q9" fileName="Common/btn/Close.xml" xy="1071,50" size="210,65">
       <relation target="" sidePair="right-right,top-top"/>
     </component>
     <component id="n4_omwm" name="_rangeRoad" src="qgu27" fileName="Common/btn/btn.xml" xy="36,57" size="113,43">
@@ -12,7 +12,7 @@
       <relation target="" sidePair="left-left,top-top"/>
       <Button title="播放"/>
     </component>
-    <component id="n6_l0o3" name="_findStyle" src="qgu25" fileName="Common/comBox/CB.xml" xy="253,77" size="137,20">
+    <component id="n6_l0o3" name="_findStyle" src="qgu25" fileName="Common/comBox/CB.xml" xy="210,44" size="348,76">
       <ComboBox visibleItemCount="10">
         <item title="job+burst寻路"/>
         <item title="ComputeShader寻路"/>

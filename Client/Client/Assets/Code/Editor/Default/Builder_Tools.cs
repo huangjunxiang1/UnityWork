@@ -163,8 +163,6 @@ static class Builder_Tools
         var PipelineName = BundleBuilderSetting.GetPackageBuildPipeline(PackageName);
         
         var fileNameStyle = BundleBuilderSetting.GetPackageFileNameStyle(PackageName, PipelineName);
-        var bundledCopyOption = BundleBuilderSetting.GetPackageBundledCopyOption(PackageName, PipelineName);
-        var bundledCopyParams = BundleBuilderSetting.GetPackageBundledCopyParams(PackageName, PipelineName);
         var clearBuildCache = BundleBuilderSetting.GetPackageClearBuildCache(PackageName, PipelineName);
         var useAssetDependencyDB = BundleBuilderSetting.GetPackageUseAssetDependencyDB(PackageName, PipelineName);
 
@@ -179,8 +177,6 @@ static class Builder_Tools
         buildParameters.PackageVersion = string.IsNullOrEmpty(vs) ? vsStr : vs;
         buildParameters.VerifyBuildingResult = true;
         buildParameters.FileNameStyle = fileNameStyle;
-        buildParameters.BundledCopyOption = bundledCopyOption;
-        buildParameters.BundledCopyParams = bundledCopyParams;
         buildParameters.ClearBuildCacheFiles = clearBuildCache;
         buildParameters.UseAssetDependencyDB = useAssetDependencyDB;
         buildParameters.BundleEncryptor = CreateBundleEncryptorInstance(PackageName);
@@ -211,8 +207,6 @@ static class Builder_Tools
         var PipelineName = BundleBuilderSetting.GetPackageBuildPipeline(PackageName);
 
         var fileNameStyle = BundleBuilderSetting.GetPackageFileNameStyle(PackageName, PipelineName);
-        var bundledCopyOption = BundleBuilderSetting.GetPackageBundledCopyOption(PackageName, PipelineName);
-        var bundledCopyParams = BundleBuilderSetting.GetPackageBundledCopyParams(PackageName, PipelineName);
         var compressOption = BundleBuilderSetting.GetPackageCompressOption(PackageName, PipelineName);
         var clearBuildCache = BundleBuilderSetting.GetPackageClearBuildCache(PackageName, PipelineName);
         var useAssetDependencyDB = BundleBuilderSetting.GetPackageUseAssetDependencyDB(PackageName, PipelineName);
@@ -229,8 +223,6 @@ static class Builder_Tools
         buildParameters.EnableSharePackRule = true;
         buildParameters.VerifyBuildingResult = true;
         buildParameters.FileNameStyle = fileNameStyle;
-        buildParameters.BundledCopyOption = bundledCopyOption;
-        buildParameters.BundledCopyParams = bundledCopyParams;
         buildParameters.CompressOption = compressOption;
         buildParameters.ClearBuildCacheFiles = clearBuildCache;
         buildParameters.UseAssetDependencyDB = useAssetDependencyDB;
@@ -347,6 +339,14 @@ static class Builder_Tools
         else
             yield return "不支持非ftp或ssh上传";
     }
+    // 辅助：把字节数格式化成可读字符串
+    static string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:0.0} KB";
+        if (bytes < 1024L * 1024 * 1024) return $"{bytes / (1024.0 * 1024):0.0} MB";
+        return $"{bytes / (1024.0 * 1024 * 1024):0.00} GB";
+    }
 
     // ============================================================
     // FTP 上传
@@ -364,29 +364,69 @@ static class Builder_Tools
         // 确保 url 以 '/' 结尾，方便拼接文件名
         string baseUrl = url.TrimEnd('/') + "/";
 
-        // 尝试创建目标目录（如果不存在）
-        try
+        // 局部函数：创建单级目录（已存在则跳过，失败抛出）
+        void EnsureOneDir(string dirUrl)
         {
-            FtpWebRequest mkdirReq = (FtpWebRequest)WebRequest.Create(baseUrl);
-            mkdirReq.Method = WebRequestMethods.Ftp.MakeDirectory;
-            mkdirReq.Credentials = new NetworkCredential(username, password);
-            mkdirReq.UsePassive = true;
-            using (FtpWebResponse resp = (FtpWebResponse)mkdirReq.GetResponse()) { }
-            UnityEngine.Debug.Log($"FTP 目录已创建: {baseUrl}");
-        }
-        catch (WebException ex)
-        {
-            // 如果目录已存在（状态码 550）则忽略，否则抛出
-            if (ex.Response is FtpWebResponse resp)
+            try
             {
-                if (resp.StatusCode != FtpStatusCode.ActionNotTakenFileUnavailable)
+                FtpWebRequest mkdirReq = (FtpWebRequest)WebRequest.Create(dirUrl);
+                mkdirReq.Method = WebRequestMethods.Ftp.MakeDirectory;
+                mkdirReq.Credentials = new NetworkCredential(username, password);
+                mkdirReq.UsePassive = true;
+                mkdirReq.Timeout = 10000;            // 问题3：连接/响应超时
+                mkdirReq.ReadWriteTimeout = 10000;   // 问题3：读写超时
+                                                     // 服务器要求 FTPS 时启用：
+                                                     // mkdirReq.EnableSsl = true;
+
+                using (FtpWebResponse resp = (FtpWebResponse)mkdirReq.GetResponse()) { }
+                UnityEngine.Debug.Log($"FTP 目录已创建: {dirUrl}");
+            }
+            catch (WebException ex)
+            {
+                // 问题2：把 Response 取出来用 using 释放，避免连接泄漏
+                var ftpResp = ex.Response as FtpWebResponse;
+                if (ftpResp == null)
+                {
+                    // 非 FTP 响应（DNS 失败、连接被拒等），必须抛出
                     throw;
-            }
-            else
-            {
-                throw; // 非 FTP 响应，重新抛出
+                }
+
+                using (ftpResp)
+                {
+                    // 550 = 目录已存在 或 无权限
+                    if (ftpResp.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+                    {
+                        UnityEngine.Debug.Log($"FTP 目录已存在或无权限，跳过: {dirUrl}，状态: {ftpResp.StatusDescription.Trim()}");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
         }
+
+        // 问题1：逐级创建，父目录必须先存在
+        var uri = new Uri(baseUrl);
+        string hostRoot = $"{uri.Scheme}://{uri.Host}:{uri.Port}";
+        string[] segments = uri.AbsolutePath.Trim('/')
+            .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+        string currentPath = hostRoot;
+        foreach (var seg in segments)
+        {
+            currentPath += "/" + seg;
+            EnsureOneDir(currentPath + "/");
+        }
+
+        // 上传前先算总大小（可选，用于显示总进度）
+        long totalBytes = 0;
+        for (int i = 0; i < files.Count; i++)
+        {
+            if (File.Exists(files[i]))
+                totalBytes += new FileInfo(files[i]).Length;
+        }
+        long uploadedBytes = 0;
 
         // 上传每个文件
         for (int i = 0; i < files.Count; i++)
@@ -406,6 +446,8 @@ static class Builder_Tools
             req.Credentials = new NetworkCredential(username, password);
             req.UsePassive = true;
             req.UseBinary = true;
+            req.Timeout = 10000;
+            req.ReadWriteTimeout = 10000;
 
             byte[] data = File.ReadAllBytes(localFile);
             req.ContentLength = data.Length;
@@ -415,9 +457,12 @@ static class Builder_Tools
 
             using (FtpWebResponse resp = (FtpWebResponse)req.GetResponse())
             {
-
             }
-            yield return $"上传成功={i + 1}/{files.Count} ->{fileName}";
+
+            uploadedBytes += data.Length;
+
+            // 显示：序号/总数 -> 文件名 (当前大小) [累计/总大小 百分比]
+            yield return $"上传成功={i + 1}/{files.Count} ({FormatSize(data.Length)}) [{FormatSize(uploadedBytes)}/{FormatSize(totalBytes)} {(totalBytes > 0 ? uploadedBytes * 100.0 / totalBytes : 0):0}%] -> {fileName}";
         }
     }
 
@@ -496,6 +541,15 @@ static class Builder_Tools
                 UnityEngine.Debug.Log($"切换到远程目录: {path}");
             }
 
+            // 上传前算总大小（可选，用于显示总进度）
+            long totalBytes = 0;
+            for (int i = 0; i < files.Count; i++)
+            {
+                if (File.Exists(files[i]))
+                    totalBytes += new FileInfo(files[i]).Length;
+            }
+            long uploadedBytes = 0;
+
             for (int i = 0; i < files.Count; i++)
             {
                 string filePath = files[i];
@@ -503,9 +557,14 @@ static class Builder_Tools
                     continue;
 
                 string fileName = Path.GetFileName(filePath);
+                long fileSize = new FileInfo(filePath).Length;   // 上传前读大小即可
+
                 using (var fileStream = File.OpenRead(filePath))
                     await client.UploadFileAsync(fileStream, fileName);
-                yield return $"上传成功={i + 1}/{files.Count} ->{fileName}";
+
+                uploadedBytes += fileSize;
+
+                yield return $"上传成功={i + 1}/{files.Count} ({FormatSize(fileSize)}) [{FormatSize(uploadedBytes)}/{FormatSize(totalBytes)} {(totalBytes > 0 ? uploadedBytes * 100.0 / totalBytes : 0):0}%] -> {fileName}";
             }
 
             if (client.IsConnected)

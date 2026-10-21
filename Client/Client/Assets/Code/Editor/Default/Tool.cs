@@ -1058,7 +1058,7 @@ public class Tool
         EditorUtility.DisplayDialog("成功", "成功", "OK", "取消");
     }
 
-#if !ENABLE_CORECLR
+#if HybridCLR
     [MenuItem("Tools/AOT_Copy")]
     static void copyAotDll()
     {

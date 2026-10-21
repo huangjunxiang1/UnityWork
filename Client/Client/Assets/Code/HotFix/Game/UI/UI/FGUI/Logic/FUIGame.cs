@@ -1,7 +1,7 @@
 ﻿using main;
 using System.Diagnostics;
 using Unity.Collections;
-//using Unity.Entities;
+using Unity.Entities;
 using Unity.Mathematics;
 //using Unity.Transforms;
 using UnityEngine;
@@ -10,7 +10,7 @@ using static UnityEngine.InputSystem.InputAction;
 
 partial class FUIGame
 {
-    //NativeList<Entity> es = new NativeList<Entity>(10000, AllocatorManager.Persistent);
+    NativeList<Entity> es = new NativeList<Entity>(10000, AllocatorManager.Persistent);
     CMInput input = new();
     protected override void OnEnter()
     {
@@ -28,12 +28,12 @@ partial class FUIGame
     protected override void OnExit()
     {
         base.OnExit();
-        //var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
-        //if (es.IsCreated)
-        //{
-        //    em.DestroyEntity(es.AsArray());
-        //    es.Dispose();
-        //}
+        var em = Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager;
+        if (es.IsCreated)
+        {
+            em.DestroyEntity(es.AsArray());
+            es.Dispose();
+        }
         input.Dispose();
     }
     async void onClose()

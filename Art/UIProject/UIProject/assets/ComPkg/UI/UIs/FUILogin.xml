@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component size="1334,750" designImage="ui://zvziziwikx1d0">
   <displayList>
-    <graph id="n13_pivy" name="n13" xy="0,0" size="1334,750" type="rect" lineSize="0" fillColor="#ff666666">
+    <graph id="n13_pivy" name="n13" xy="1,0" size="1334,750" type="rect" lineSize="0" fillColor="#ff666666">
       <relation target="" sidePair="width-width,height-height"/>
     </graph>
     <component id="n2_qgu2" name="_btnLogin" src="qgu27" fileName="Common/btn/btn.xml" xy="538,456" size="257,62" group="n8_xbva">
@@ -16,5 +16,12 @@
     <group id="n8_xbva" name="n8" xy="538,232" size="257,286" advanced="true">
       <relation target="" sidePair="center-center,middle-middle"/>
     </group>
+    <component id="n14_baz5" name="_scenes" src="qgu25" fileName="Common/comBox/CB.xml" xy="975,34" size="333,74">
+      <relation target="" sidePair="right-right"/>
+      <ComboBox visibleItemCount="10" autoClearItems="true">
+        <item title="111"/>
+        <item title="222"/>
+      </ComboBox>
+    </component>
   </displayList>
 </component>
