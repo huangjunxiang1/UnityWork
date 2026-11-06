@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using static ShaderProperties;
 
-[Scene("Emerge")]
+[Scene(AssetsID.Res.scene.Emerge)]
 public class EmergeScene : Scene
 {
     ComputeShader_Emerge emerge = new();

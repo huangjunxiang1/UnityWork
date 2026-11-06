@@ -272,7 +272,7 @@ class CinemachineHelper
 
 #region ---------------- 场景 ----------------
 
-[Scene("Virus")]
+[Scene(AssetsID.Res.scene.Virus)]
 class KingdomScene : Scene
 {
     const int MAP_HALF = 500;

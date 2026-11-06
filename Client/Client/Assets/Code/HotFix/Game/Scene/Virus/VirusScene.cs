@@ -10,7 +10,7 @@ enum LevelMod { None, Swarm, Hardened, Swift, GlassCannon, BloodMoon }
 enum MapKind { Obstacle, Portal, EnergyPillar, Mine }
 enum WeaponKind { MultiArrow = 0, Shotgun = 1, Boomerang = 2, Explosive = 3 }
 
-[Scene("Virus")]
+[Scene(AssetsID.Res.scene.Virus)]
 class VirusScene : Scene
 {
     const float WORLD_H = 30f;

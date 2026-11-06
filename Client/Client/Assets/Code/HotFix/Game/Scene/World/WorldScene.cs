@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[Scene("World")]
+[Scene(AssetsID.Res.scene.World)]
 class WorldScene : Scene
 {
     public GameObject hex;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-[Scene(name: "Login")]
+[Scene(AssetsID.Res.scene.Login)]
 class LoginScene : Scene
 {
     public override async void OnEnter()

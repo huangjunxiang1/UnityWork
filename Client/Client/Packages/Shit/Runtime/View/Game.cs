@@ -78,7 +78,7 @@ public sealed class Game : SCore<Game>
     public static async STask InScene<T>(params object[] os) where T : Scene, new()
     {
         var attr = typeof(T).GetCustomAttributes(typeof(SceneAttribute), true).FirstOrDefault() as SceneAttribute ?? throw new Exception($"Scene {typeof(T).FullName} need SceneAttribute");
-        if (string.IsNullOrEmpty(attr.name))
+        if (string.IsNullOrEmpty(attr.AssetPath))
             throw new Exception($"Scene {typeof(T).FullName} SceneAttribute name is null or empty");
 
         Scene?.Dispose();
@@ -86,7 +86,7 @@ public sealed class Game : SCore<Game>
         Game.UI.CloseUI();
         await Game.Event.RunEventAsync(new EC_OutScene { });
 
-        await Game.Loader.LoadSceneAsync($"scene_{attr.name}");
+        await Game.Loader.LoadSceneAsync(attr.AssetPath);
         await Task.Delay(100);
 
         //不能提前初始化并注册Scene  否则 scene的timer之类的自动注册运行逻辑 会在没有执行onEnter的时候运行  会有问题

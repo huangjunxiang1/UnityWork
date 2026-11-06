@@ -3,9 +3,9 @@
 [AttributeUsage(AttributeTargets.Class)]
 public class SceneAttribute : SAttribute
 {
-    public string name { get; }
-    public SceneAttribute(string name)
+    public string AssetPath { get; }
+    public SceneAttribute(string AssetPath)
     {
-        this.name = name;
+        this.AssetPath = AssetPath;
     }
 }
