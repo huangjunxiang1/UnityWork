@@ -2,6 +2,7 @@
 [Tt]emp/
 [Oo]bj/
 [Ll]ogs/
+[Bb]in
 Assets/AssetStoreTools*
 Client/Client/*.csproj
 Client/Client/*.sln

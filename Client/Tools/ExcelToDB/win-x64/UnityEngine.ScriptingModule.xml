@@ -4,9 +4,66 @@
     <assembly>
       <name>UnityEngine.ScriptingModule</name>
     </assembly>
+    <member name="T:UnityEngine.RuntimeInitializeLoadType">
+      <summary>
+        <para>Specifies when to get a callback during the startup of the runtime or when entering play mode in the Editor. Used with RuntimeInitializeOnLoadMethodAttribute.</para>
+      </summary>
+    </member>
+    <member name="F:UnityEngine.RuntimeInitializeLoadType.AfterAssembliesLoaded">
+      <summary>
+        <para>Callback invoked when all assemblies are loaded and preloaded assets are initialized. At this time the objects of the first scene have not been loaded yet.</para>
+      </summary>
+    </member>
+    <member name="F:UnityEngine.RuntimeInitializeLoadType.AfterSceneLoad">
+      <summary>
+        <para>Callback invoked when the first scene's objects are loaded into memory and after Awake has been called.</para>
+      </summary>
+    </member>
+    <member name="F:UnityEngine.RuntimeInitializeLoadType.BeforeSceneLoad">
+      <summary>
+        <para>Callback invoked when the first scene's objects are loaded into memory but before Awake has been called.</para>
+      </summary>
+    </member>
+    <member name="F:UnityEngine.RuntimeInitializeLoadType.BeforeSplashScreen">
+      <summary>
+        <para>Callback invoked before the splash screen is shown. At this time the objects of the first scene have not been loaded yet.</para>
+      </summary>
+    </member>
+    <member name="F:UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration">
+      <summary>
+        <para>Callback invoked when starting up the runtime. Called before the first scene is loaded.</para>
+      </summary>
+    </member>
+    <member name="T:UnityEngine.RuntimeInitializeOnLoadMethodAttribute">
+      <summary>
+        <para>Use this attribute to get a callback when the runtime is starting up and loading the first scene.</para>
+      </summary>
+    </member>
+    <member name="P:UnityEngine.RuntimeInitializeOnLoadMethodAttribute.loadType">
+      <summary>
+        <para>Controling the callback invocation time.</para>
+      </summary>
+    </member>
+    <member name="M:UnityEngine.RuntimeInitializeOnLoadMethodAttribute.#ctor">
+      <summary>
+        <para>Use the RuntimeInitializeLoadType to control when the callback is invoked.</para>
+      </summary>
+      <param name="loadType">Specifies when the callback is invoked during the start up of the runtime.</param>
+    </member>
+    <member name="M:UnityEngine.RuntimeInitializeOnLoadMethodAttribute.#ctor(UnityEngine.RuntimeInitializeLoadType)">
+      <summary>
+        <para>Use the RuntimeInitializeLoadType to control when the callback is invoked.</para>
+      </summary>
+      <param name="loadType">Specifies when the callback is invoked during the start up of the runtime.</param>
+    </member>
     <member name="T:UnityEngine.Scripting.PreserveAttribute">
       <summary>
-        <para>PreserveAttribute prevents byte code stripping from removing a class, method, field, or property.</para>
+        <para>Prevents byte code stripping from removing a class, method, field, or property.</para>
+      </summary>
+    </member>
+    <member name="T:UnityEngine.SerializeField">
+      <summary>
+        <para>Force Unity to serialize a private field.</para>
       </summary>
     </member>
     <member name="T:Unity.Burst.BurstAuthorizedExternalMethodAttribute">
@@ -19,14 +76,126 @@
         <para>Use this attribute to exclude a method or property from being compiled to native code by the Burst compiler.</para>
       </summary>
     </member>
+    <member name="T:Unity.Collections.DeallocateOnJobCompletionAttribute">
+      <summary>
+        <para>Automatically deallocates a native container when a job is finished.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeContainerAttribute">
+      <summary>
+        <para>Allows you to create your own custom native container.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeContainerIsAtomicWriteOnlyAttribute">
+      <summary>
+        <para>Indicates that the native container only allows writing, and can only be written to in safe, parallel contexts.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeContainerIsReadOnlyAttribute">
+      <summary>
+        <para>Marks a native container type as read only.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeContainerSupportsDeallocateOnJobCompletionAttribute">
+      <summary>
+        <para>Indicates that a NativeContainer can be automatically deallocated when a job is complete.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeContainerSupportsDeferredConvertListToArray">
+      <summary>
+        <para>Indicates that the native container type can be passed to the Schedule method of an IJobParallelForDefer job.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeContainerSupportsMinMaxWriteRestrictionAttribute">
+      <summary>
+        <para>Indicates that a native container type can restrict its writable ranges to be between a min and a max index.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestrictionAttribute">
+      <summary>
+        <para>Explicitly disable the safety system for a NativeContainer.</para>
+      </summary>
+    </member>
     <member name="T:Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestrictionAttribute">
       <summary>
         <para>Enable the use of unsafe pointers in jobs.</para>
       </summary>
     </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeSetClassTypeToNullOnScheduleAttribute">
+      <summary>
+        <para>Sets the managed reference to a class to null on a copy of the job struct that is passed to a job.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.NativeSetThreadIndexAttribute">
+      <summary>
+        <para>Inject a worker thread index into an int on the job struct.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.LowLevel.Unsafe.WriteAccessRequiredAttribute">
+      <summary>
+        <para>Specify which struct method and property requires write access to be invoked.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.NativeDisableParallelForRestrictionAttribute">
+      <summary>
+        <para>Indicates that multiple jobs can safely access the same NativeContainer at the same time.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.NativeFixedLengthAttribute">
+      <summary>
+        <para>Indicates that a native container has a size that will never change.</para>
+      </summary>
+    </member>
+    <member name="M:Unity.Collections.NativeFixedLengthAttribute.#ctor(System.Int32)">
+      <summary>
+        <para>Initializes and returns an instance of Unity.Collections.NativeFixedLengthAttribute.</para>
+      </summary>
+      <param name="fixedLength">The fixed number of elements in the native container.</param>
+    </member>
+    <member name="F:Unity.Collections.NativeFixedLengthAttribute.FixedLength">
+      <summary>
+        <para>Represents the fixed number of elements in a native container.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.ReadOnlyAttribute">
+      <summary>
+        <para>Marks a member of a struct used in a job as read-only.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.ReadOnlyAttribute">
+      <summary>
+        <para>Marks a member of a struct used in a job as read-only.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Collections.WriteOnlyAttribute">
+      <summary>
+        <para>Marks a member of a struct used in a job as write-only.</para>
+      </summary>
+    </member>
     <member name="T:Unity.Profiling.IgnoredByDeepProfilerAttribute">
       <summary>
         <para>IgnoredByDeepProfilerAttribute prevents Unity Profiler from capturing method calls.</para>
+      </summary>
+    </member>
+    <member name="T:Unity.Properties.CreatePropertyAttribute">
+      <summary>
+        <para>
+ Use this attribute to have a property generated for the member.
+ </para>
+      </summary>
+    </member>
+    <member name="P:Unity.Properties.CreatePropertyAttribute.ReadOnly">
+      <summary>
+        <para>
+ Indicates if the property should generate a setter.
+ </para>
+      </summary>
+    </member>
+    <member name="T:Unity.Properties.DontCreatePropertyAttribute">
+      <summary>
+        <para>
+ Use this attribute to prevent have a property from being automatically generated on a public field.
+ </para>
       </summary>
     </member>
   </members>
