@@ -14,18 +14,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Util\SSetting.cs" Link="excelToDB\SSetting.cs" />
-    <Compile Include="..\..\Client\Packages\Shit\Runtime\Game\Serialized\DBuffer.cs" Link="excelToDB\DBuffer.cs" />
+    <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Util\SSetting.cs" Link="Refrence\SSetting.cs" />
+    <Compile Include="..\..\Client\Packages\Shit\Runtime\Game\Serialized\DBuffer.cs" Link="Refrence\DBuffer.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NPOI" Version="2.7.5" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="UnityEngine.MathematicsModule">
-      <HintPath>..\..\..\..\..\unity\7000.0.0a16\Editor\Data\Managed\UnityEngine\UnityEngine.MathematicsModule.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
