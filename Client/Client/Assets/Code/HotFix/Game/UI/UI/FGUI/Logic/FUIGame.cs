@@ -1,5 +1,4 @@
-﻿using main;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -38,7 +37,6 @@ partial class FUIGame
     }
     async void onClose()
     {
-        Game.Socket.Send(new C2S_PlayerQuit());
         Game.Socket.Dispose();
         await Game.InScene<LoginScene>();
     }

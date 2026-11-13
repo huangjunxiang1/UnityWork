@@ -20,7 +20,9 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
-        "Mono.Cecil.dll"
+        "Mono.Cecil.dll",
+        "protobuf-net.dll",
+        "protobuf-net.Core.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [],

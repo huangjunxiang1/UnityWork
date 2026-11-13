@@ -20,7 +20,9 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "DOTween.dll",
-        "Newtonsoft.Json.dll"
+        "Newtonsoft.Json.dll",
+        "protobuf-net.dll",
+        "protobuf-net.Core.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -17,7 +17,7 @@ public static class MessageParser
         {
             Type type = types[i];
 
-            if (typeof(IMessage).IsAssignableFrom(type))
+            if (typeof(Message).IsAssignableFrom(type))
             {
                 var m = type.GetCustomAttribute<MessageAttribute>();
                 if (m != null)

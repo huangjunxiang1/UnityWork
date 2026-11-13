@@ -33,7 +33,7 @@ public abstract class SBaseNet
 
     bool _working = false;
 
-    protected ConcurrentQueue<IMessage> sendQueues = new();
+    protected ConcurrentQueue<Message> sendQueues = new();
 
     protected byte[] _sBuffer = new byte[ushort.MaxValue];
     protected byte[] _rBuffer = new byte[ushort.MaxValue];
@@ -44,12 +44,12 @@ public abstract class SBaseNet
     public NetStates states { get; protected set; }
     public abstract ServerType serverType { get; }
     public Action<NetError> onError;
-    public Action<IMessage> onMessage;
+    public Action<Message> onMessage;
     public Action onDisconnect;
 
     public abstract Task<bool> Connect();
     public abstract void DisConnect();
-    public void Send(IMessage message)
+    public void Send(Message message)
     {
         sendQueues.Enqueue(message);
     }
@@ -84,7 +84,7 @@ public abstract class SBaseNet
         Loger.Error($"网络错误 error={ex}");
         onError.Invoke(error);
     }
-    protected void ReceiveMessage(IMessage message)
+    protected void ReceiveMessage(Message message)
     {
         this.onMessage.Invoke(message);
     }

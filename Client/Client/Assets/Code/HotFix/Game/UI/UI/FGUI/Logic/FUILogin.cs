@@ -1,6 +1,5 @@
 ﻿using Event;
 using FairyGUI;
-using main;
 using System;
 using System.Collections;
 using System.Collections.Generic;

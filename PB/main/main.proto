@@ -1,240 +1,120 @@
+syntax = "proto3";
+package main;
 
-// 枚举类型定义
-enum UserRole {
-  ROLE_UNSPECIFIED = 0;  // 必须包含0值
-  ROLE_USER = 1;
-  ROLE_ADMIN = 2;
-  ROLE_MODERATOR = 3;
-  ROLE_GUEST = 4;
-}
-// 嵌套消息定义
-message GeoLocation {
-  double latitude = 1;
-  double longitude = 2;
-  optional float altitude = 3;  // 可选的海拔
-  optional float altitude4 = 4;  // 可选的海拔
-    optional float altitude5 = 5;  // 可选的海拔
-	optional float altitude6 = 6;  // 可选的海拔
-	optional float altitude7 = 7;  // 可选的海拔
-	optional float altitude8 = 8;  // 可选的海拔
-	optional float altitude9 = 9;  // 可选的海拔
-	optional float altitude10 = 10;  // 可选的海拔
-	optional float altitude11 = 11;  // 可选的海拔
-	optional float altitude12 = 12;  // 可选的海拔
-	optional float altitude13 = 13;  // 可选的海拔
-	optional float altitude14 = 14;  // 可选的海拔
-	optional float altitude15 = 15;  // 可选的海拔
-	optional float altitude16 = 16;  // 可选的海拔
-	optional float altitude17 = 17;  // 可选的海拔
-	optional float altitude18 = 18;  // 可选的海拔
-	optional float altitude19 = 19;  // 可选的海拔
-	optional float altitude20 = 20;  // 可选的海拔
-	optional float altitude21 = 21;  // 可选的海拔
-	optional float altitude22 = 22;  // 可选的海拔
-	optional float altitude23 = 23;  // 可选的海拔
-	optional float altitude24 = 24;  // 可选的海拔
-	optional float altitude25 = 25;  // 可选的海拔
-	optional float altitude26 = 26;  // 可选的海拔
-	optional float altitude27 = 27;  // 可选的海拔
-	optional float altitude28 = 28;  // 可选的海拔
-	optional float altitude29 = 29;  // 可选的海拔
-	optional float altitude30 = 30;  // 可选的海拔
-	optional float altitude31 = 31;  // 可选的海拔
-	optional float altitude32 = 32;  // 可选的海拔
-	optional float altitude33 = 33;  // 可选的海拔
-	optional float altitude34 = 34;  // 可选的海拔
-	optional float altitude35 = 35;  // 可选的海拔
-	optional float altitude36 = 36;  // 可选的海拔
-	optional float altitude37 = 37;  // 可选的海拔
-	optional float altitude38 = 38;  // 可选的海拔
-	optional float altitude39 = 39;  // 可选的海拔
-	optional float altitude40 = 40;  // 可选的海拔
+// ==========================================
+// 辅助定义：枚举、空消息、基础子消息、递归消息
+// ==========================================
+
+enum Status {
+  STATUS_UNKNOWN = 0;
+  STATUS_ACTIVE = 1;
+  STATUS_INACTIVE = 2;
 }
 
-message Address {
-  string street = 1;
-  string city = 2;
-  string country = 3;
-  string postal_code = 4;
-  optional GeoLocation location = 5;  // 可选的坐标
+message c2s_aaa{}
+message s2c_aaa{}
+message C2s_aaaa{}
+message S2c_aaaa{}
+
+// 空消息
+message Empty {}
+
+// 基础子消息（用于数组、字典、联合体）
+message ChildMessage {
+  int32 id = 1;
+  string name = 2;
 }
 
-// 主消息定义 - 包含所有基础类型和特性
-message ComprehensiveMessage {
-  // ========== 基础数值类型 ==========
-  double double_field = 1;           // 双精度浮点数
-  optional double optional_double_field = 2;  // 可选的双精度浮点数
+// 消息自引用（树形递归结构）
+message TreeNode {
+  int32 id = 1;
+  TreeNode left = 2;
+  TreeNode right = 3;
+}
+
+// ==========================================
+// 终极全覆盖测试协议
+// ==========================================
+message AllTypesMessage {
   
-  float float_field = 3;             // 单精度浮点数
-  optional float optional_float_field = 4;    // 可选的单精度浮点数
+  // --- 1. 穷尽所有 15 种基础标量类型 ---
+  double double_f = 1;
+  float float_f = 2;
+  int32 int32_f = 3;
+  int64 int64_f = 4;
+  uint32 uint32_f = 5;
+  uint64 uint64_f = 6;
+  sint32 sint32_f = 7;
+  sint64 sint64_f = 8;
+  fixed32 fixed32_f = 9;
+  fixed64 fixed64_f = 10;
+  sfixed32 sfixed32_f = 11;
+  sfixed64 sfixed64_f = 12;
+  bool bool_f = 13;
+  string string_f = 14;
+  bytes bytes_f = 15;
+
+  // --- 2. Optional 可选修饰（涵盖标量、bytes、枚举、消息） ---
+  optional int32 opt_int32 = 16;
+  optional string opt_string = 17;
+  optional bytes opt_bytes = 18;
+  optional bool opt_bool = 19;
+  optional Status opt_enum = 20;
+  optional ChildMessage opt_msg = 21;
+
+  // --- 3. Repeated 数组组合（涵盖所有可用作数组的类型） ---
+  repeated double rep_double = 22;
+  repeated float rep_float = 23;
+  repeated int32 rep_int32 = 24;
+  repeated uint64 rep_uint64 = 25;
+  repeated bool rep_bool = 26;
+  repeated string rep_string = 27;
+  repeated bytes rep_bytes = 28;
+  repeated Status rep_enum = 29;
+  repeated ChildMessage rep_msg = 30;
+
+  // --- 4. Map 字典组合（极其穷尽） ---
+  // 4.1 穷尽所有 12 种合法的 Map Key 类型 (10种整型 + bool + string)
+  map<int32, string> map_k_i32 = 31;
+  map<int64, double> map_k_i64 = 32;
+  map<uint32, float> map_k_u32 = 33;
+  map<uint64, bool> map_k_u64 = 34;
+  map<sint32, int32> map_k_si32 = 35;
+  map<sint64, int64> map_k_si64 = 36;
+  map<fixed32, uint32> map_k_f32 = 37;
+  map<fixed64, uint64> map_k_f64 = 38;
+  map<sfixed32, sint32> map_k_sf32 = 39;
+  map<sfixed64, sint64> map_k_sf64 = 40;
+  map<bool, string> map_k_bool = 41;
+  map<string, bytes> map_k_str = 42;
   
-  int32 int32_field = 5;             // 32位有符号整数
-  optional int32 optional_int32_field = 6;    // 可选的32位有符号整数
-  
-  int64 int64_field = 7;             // 64位有符号整数
-  optional int64 optional_int64_field = 8;    // 可选的64位有符号整数
-  
-  uint32 uint32_field = 9;           // 32位无符号整数
-  optional uint32 optional_uint32_field = 10; // 可选的32位无符号整数
-  
-  uint64 uint64_field = 11;          // 64位无符号整数
-  optional uint64 optional_uint64_field = 12; // 可选的64位无符号整数
-  
-  sint32 sint32_field = 13;          // 有符号32位整数（对负数编码更高效）
-  optional sint32 optional_sint32_field = 14; // 可选的有符号32位整数
-  
-  sint64 sint64_field = 15;          // 有符号64位整数（对负数编码更高效）
-  optional sint64 optional_sint64_field = 16; // 可选的有符号64位整数
-  
-  fixed32 fixed32_field = 17;        // 固定32位无符号整数
-  optional fixed32 optional_fixed32_field = 18; // 可选的固定32位无符号整数
-  
-  fixed64 fixed64_field = 19;        // 固定64位无符号整数
-  optional fixed64 optional_fixed64_field = 20; // 可选的固定64位无符号整数
-  
-  //sfixed32 sfixed32_field = 21;      // 固定32位有符号整数
-  //optional sfixed32 optional_sfixed32_field = 22; // 可选的固定32位有符号整数
-  //
-  //sfixed64 sfixed64_field = 23;      // 固定64位有符号整数
-  //optional sfixed64 optional_sfixed64_field = 24; // 可选的固定64位有符号整数
+  // 4.2 Map 的值涵盖枚举和消息
+  map<string, Status> map_v_enum = 43;
+  map<string, ChildMessage> map_v_msg = 44;
 
-  // ========== 布尔和字符串类型 ==========
-  bool bool_field = 25;              // 布尔值
-  optional bool optional_bool_field = 26;       // 可选的布尔值
-  
-  string string_field = 27;          // 字符串
-  optional string optional_string_field = 28;   // 可选的字符串
+  // --- 5. OneOf 联合体（涵盖标量、bytes、枚举、消息） ---
+  // 注意：oneof 内部不能包含 repeated 或 map
+  oneof my_union {
+    int32 union_int = 45;
+    string union_str = 46;
+    bytes union_bytes = 47;
+    Status union_enum = 48;
+    ChildMessage union_msg = 49;
+  }
 
-  // ========== Bytes类型 ==========
-  bytes bytes_field = 29;            // 二进制数据
-  optional bytes optional_bytes_field = 30;     // 可选的二进制数据
+  // --- 6. 深度嵌套定义（Message 内部定义 Message） ---
+  InnerNested nested_data = 50;
+  message InnerNested {
+    int32 deep_id = 1;
+    message Deepest {
+      string data = 1;
+    }
+    Deepest deepest = 2;
+  }
 
-  // ========== 枚举类型 ==========
-  UserRole enum_field = 31;          // 枚举字段
-  optional UserRole optional_enum_field = 32;   // 可选的枚举字段
+  // --- 7. 递归/自引用结构 ---
+  TreeNode tree_root = 51;
 
-  // ========== 嵌套消息类型 ==========
-  Address address_field = 33;        // 嵌套消息
-  optional Address optional_address_field = 34; // 可选的嵌套消息
-
-  // ========== Repeated字段（数组/列表） ==========
-  repeated string tags = 35;                           // 字符串数组
-  repeated int32 scores = 36;                          // 整数数组
-  repeated UserRole role_history = 37;                 // 枚举数组
-  repeated Address addresses = 38;                     // 消息对象数组
-  repeated bytes binary_chunks = 39;                   // bytes数组
-  
-  // 可选的repeated字段（proto3中不常用，但语法支持）
-  repeated double optional_double_list = 40;
-
-  // ========== Map字段（键值对） ==========
-  map<string, string> string_map = 41;                 // string → string 映射
-  map<int32, string> id_to_name_map = 42;              // int → string 映射
-  map<string, Address> location_map = 43;              // string → 消息对象 映射
-  map<string, UserRole> role_assignments = 44;         // string → 枚举 映射
-  map<string, bytes> resource_map = 45;                // string → bytes 映射
-  map<UserRole, fixed32> resource_map2 = 46;                // string → bytes 映射
-  
-  int2 xy=47;
-  repeated int2 lstxy=48;
-  map<int32,int2> mapxy=49;
-  optional int2 optional_xy=50;
-
-  float2 f2=51;
-  repeated float2 lstf2=52;
-  map<int32,float2> mapf2=53;
-  optional float2 optional_f2=54;
-}
-
-//测试空行 跳行不被认为是注释
-message C2S_Login{
-	string acc=1;
-	string pw=2;
-}
-message S2C_Login{
-	fixed64 token=1;
-	string ip=2;
-	int32 port=3;
-}
-message C2S_LoginGame{
- fixed64 token=1;
-}
-message S2C_LoginGame{
-}
-
-message RoomInfo
-{
-  int64 id=1;
-  string name=2;
-  repeated UnitInfo infos= 3;//玩家
-  map<int32,RoomLinkItem> link=4;
-}
-message UnitInfo{
-	int64 id=1;
-	string name=2;
-}
-message UnitInfo2{
-	int64 id=1;
-	demo.S2C_SyncTransform t=2;
-	map<int32,int64> attribute=3;
-}
-message UnitAttribute{
-	int32 id=1;
-	int64 v=2;
-}
-message RoomLinkItem
-{
-    int32 index=1;//唯一下标
-    int2 xy=2;//room xy
-    int32 dir=3;//0=左 1=下 2=右  3=上
-
-    int32 link=4;//链接对象
-	int32 colorIndex=5;
-}
-
-//表明我是udp链接
-message C2S_UDPConnect{}
-message C2S_RoomList
-{
-
-}
-message S2C_RoomList
-{
-   repeated RoomInfo lst=1;
-}
-
-message C2S_CreateRoom
-{
-	string name=1;
-}
-message S2C_CreateRoom{
-	RoomInfo info=1;
-}
-
-message C2S_JoinRoom
-{
-	int64 id=1;
-}
-message S2C_JoinRoom{
-	RoomInfo info=1;
-	repeated UnitInfo2 units=2;
-	int64 myid=3;
-}
-message S2C_PlayerJoinRoom{
-	UnitInfo2 info=1;
-}
-
-message C2S_DisRoom
-{
-	int64 id=1;
-}
-message S2C_DisRoom
-{
-	int64 id=1;
-}
-message C2S_PlayerQuit{
-	
-}
-message S2C_PlayerQuit{
-	int64 id=1;
+  // --- 8. 空消息引用（常用于无参 RPC 或占位） ---
+  Empty empty_data = 52;
 }

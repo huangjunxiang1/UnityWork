@@ -13,19 +13,19 @@ public class SocketManager
 
     public SBaseNet Session { get; private set; }
 
-    Dictionary<Type, STask<IMessage>> reqWaiter = new();
-    Dictionary<long, STask<IMessage>> rpcWaiter = new();
+    Dictionary<Type, STask<Message>> reqWaiter = new();
+    Dictionary<long, STask<Message>> rpcWaiter = new();
 
     void _onError(NetError code)
     {
         Game.ThreadSync.Post(s => Game.Event.RunEvent(new EC_NetError { code = (int)code }), null);
     }
-    void _onResponse(IMessage message)
+    void _onResponse(Message message)
     {
         Game.ThreadSync.Post(s =>
         {
             Game.Data.Add(s);
-            var message = (IMessage)s;
+            var message = (Message)s;
             Game.Event.RunEvent(new EC_AcceptedMessage { message = message });
 
             if (string.IsNullOrEmpty(message.error))
@@ -80,12 +80,12 @@ public class SocketManager
         return session;
     }
 
-    public void Send(IMessage message)
+    public void Send(Message message)
     {
         Game.Event.RunEvent(new EC_SendMesssage { message = message });
         Session.Send(message);
     }
-    public STask<IMessage> SendAsync(IMessage message, bool ignoreError = true)
+    public STask<Message> SendAsync(Message message, bool ignoreError = true)
     {
         Type k = message.GetType();
         var v = MessageParser.GetResponseType(k);
@@ -98,21 +98,21 @@ public class SocketManager
         Send(message);
         return ret;
     }
-    public STask<IMessage> Wait<T>() where T : IMessage => Wait(typeof(T));
-    public STask<IMessage> Wait(Type type)
+    public STask<Message> Wait<T>() where T : Message => Wait(typeof(T));
+    public STask<Message> Wait(Type type)
     {
         if (!reqWaiter.TryGetValue(type, out var v))
             reqWaiter[type] = v = new();
         return v;
     }
-    public void SendRpc(IMessage message)
+    public void SendRpc(Message message)
     {
         if (message.rpc == 0)
             message.rpc = ++rpc;
         Game.Event.RunEvent(new EC_SendMesssage { message = message });
         Session.Send(message);
     }
-    public STask<IMessage> SendRpcAsync(IMessage message)
+    public STask<Message> SendRpcAsync(Message message)
     {
         Type k = message.GetType();
         var v = MessageParser.GetResponseType(k);

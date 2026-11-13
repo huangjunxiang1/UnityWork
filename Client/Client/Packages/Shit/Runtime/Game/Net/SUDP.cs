@@ -1,4 +1,5 @@
-﻿using PB;
+﻿using ProtoBuf;
+using ProtoBuf.Meta;
 using System;
 using System.IO;
 using System.Net;
@@ -46,7 +47,7 @@ public class SUDP : SBaseNet
 
     protected async override void ReceiveBuffer()
     {
-        PBReader reader = new(new MemoryStream(_rBuffer, 0, _rBuffer.Length), 0, _rBuffer.Length);
+        var ms = new MemoryStream(_rBuffer, 0, _rBuffer.Length);
         var segment = new ArraySegment<byte>(_rBuffer);
 
         while (states != NetStates.None)
@@ -81,10 +82,7 @@ public class SUDP : SBaseNet
                     continue;
                 }
 
-                reader.SetMax(len);
-                reader.Seek(3);
-                int cmd = reader.Readfixed32();
-
+                int cmd = BitConverter.ToInt16(_rBuffer, 3);
                 byte checkCode = _rBuffer[2];
                 for (int i = 3; i < len; i++)
                     checkCode += _rBuffer[i];
@@ -98,11 +96,13 @@ public class SUDP : SBaseNet
                 try
                 {
                     Type t = MessageParser.GetCMDType(cmd);
-                    var message = (PB.PBMessage)Activator.CreateInstance(t);
-                    message.rpc = reader.Readint64();
-                    message.actorId = reader.Readint64();
-                    message.error = reader.Readstring();
-                    message.Read(reader);
+                    var message = (Message)Activator.CreateInstance(t);
+                    message.rpc = BitConverter.ToInt64(_rBuffer, 5);
+                    message.actorId = BitConverter.ToInt64(_rBuffer, 13);
+                    int strLen = BitConverter.ToInt16(_rBuffer, 21);
+                    message.error = BitConverter.ToString(_rBuffer, 23, strLen);
+                    ms.Seek(23 + strLen, SeekOrigin.Begin);
+                    Serializer.NonGeneric.Serialize(ms, message);
 
                     this.ReceiveMessage(message);
                 }
@@ -121,7 +121,7 @@ public class SUDP : SBaseNet
 
     protected override async void SendBuffer()
     {
-        PBWriter writer = new(new MemoryStream(_sBuffer, 0, _sBuffer.Length, true, true));
+        var ms = new MemoryStream(_sBuffer, 0, _sBuffer.Length, true, true);
 
         while (states != NetStates.None)
         {
@@ -130,15 +130,34 @@ public class SUDP : SBaseNet
                 try
                 {
                     int cmd = MessageParser.GetCMDCode(message.GetType());
-                    writer.Seek(3);
-                    writer.Writefixed32(cmd);
-                    writer.Writeint64(message.rpc);
-                    writer.Writeint64(message.actorId);
-                    writer.Writestring(message.error);
+
+                    _sBuffer[3] = (byte)cmd;
+                    _sBuffer[4] = (byte)(cmd >> 8);
+
+                    _sBuffer[5] = (byte)message.rpc;
+                    _sBuffer[6] = (byte)(message.rpc >> 8);
+                    _sBuffer[7] = (byte)(message.rpc >> 16);
+                    _sBuffer[8] = (byte)(message.rpc >> 24);
+                    _sBuffer[9] = (byte)(message.rpc >> 32);
+                    _sBuffer[10] = (byte)(message.rpc >> 40);
+                    _sBuffer[11] = (byte)(message.rpc >> 48);
+                    _sBuffer[12] = (byte)(message.rpc >> 56);
+
+                    _sBuffer[13] = (byte)message.actorId;
+                    _sBuffer[14] = (byte)(message.actorId >> 8);
+                    _sBuffer[15] = (byte)(message.actorId >> 16);
+                    _sBuffer[16] = (byte)(message.actorId >> 24);
+                    _sBuffer[17] = (byte)(message.actorId >> 32);
+                    _sBuffer[18] = (byte)(message.actorId >> 40);
+                    _sBuffer[19] = (byte)(message.actorId >> 48);
+                    _sBuffer[20] = (byte)(message.actorId >> 56);
+
+                    _sBuffer[21] = _sBuffer[22] = 0;
 
                     try
                     {
-                        message.Write(writer);
+                        ms.Seek(23, SeekOrigin.Begin);
+                        Serializer.NonGeneric.Deserialize(message.GetType(), ms, message);
                     }
                     catch (Exception e)
                     {
@@ -146,7 +165,7 @@ public class SUDP : SBaseNet
                         continue;
                     }
 
-                    int len = writer.Position;
+                    var len = ms.Position;
                     if (len > ushort.MaxValue)
                     {
                         Loger.Error($"数据过大 len={len}  class={message.GetType().FullName}");
@@ -161,7 +180,7 @@ public class SUDP : SBaseNet
                         checkCode += _sBuffer[i];
                     _sBuffer[2] = (byte)(~checkCode + 1);
 
-                    var sendSegment = new ArraySegment<byte>(_sBuffer, 0, len);
+                    var sendSegment = new ArraySegment<byte>(_sBuffer, 0, (int)len);
                     await _socket.SendAsync(sendSegment, SocketFlags.None).ConfigureAwait(false);
                 }
                 catch (ObjectDisposedException) { return; }

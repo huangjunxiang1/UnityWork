@@ -1,3 +1,6 @@
+syntax = "proto3";
+package hot;
+
 message TestPBhot
 {
   sint32 test =1;

@@ -7,10 +7,10 @@ namespace Event
     public class EC_ServerLanucher { }
     public class EC_SendMesssage
     {
-        public IMessage message;
+        public Message message;
     }
     public class EC_AcceptedMessage
     {
-        public IMessage message;
+        public Message message;
     }
 }
