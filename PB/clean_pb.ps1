@@ -6,17 +6,30 @@ if (-not (Test-Path $TargetDir)) {
     exit 0
 }
 
+function Get-StableClassHash {
+    param([string]$Text)
+
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
+        $hashBytes = $sha256.ComputeHash($bytes)
+        $val = [System.BitConverter]::ToInt32($hashBytes, 0) -band 0x7FFFFFFF
+        return $val
+    } finally {
+        $sha256.Dispose()
+    }
+}
+
 $files = Get-ChildItem -Path $TargetDir -Filter *.cs
 $protoMap = @{}
+$s2cClasses = New-Object System.Collections.Generic.HashSet[string]
 
 Write-Host "`n=== 1. Start Scanning Code ==="
 
 # ==========================================
-# 阶段一：预扫描，收集所有的 C2S 和 S2C 配对关系
+# 阶段一：预扫描，收集所有的 C2S 和 S2C 协议
 # ==========================================
 foreach ($file in $files) {
-    if ($file.Name -eq "PBMessageMeta.cs") { continue }
-
     $content = [System.IO.File]::ReadAllText($file.FullName)
     
     $regex = '\[(?:global::ProtoBuf\.)?ProtoContract(?:\(Name\s*=\s*@"(.*?)"\))?\][\s\S]*?public\s+partial\s+class\s+(\w+)'
@@ -26,6 +39,10 @@ foreach ($file in $files) {
             $protoName = $m.Groups[1].Value.ToLower()
             $className = $m.Groups[2].Value
             $protoMap[$protoName] = $className
+
+            if ($protoName -match '^s2c_') {
+                [void]$s2cClasses.Add($className)
+            }
         }
     }
 }
@@ -48,8 +65,6 @@ foreach ($key in $protoMap.Keys) {
 Write-Host "=== 2. Start Cleaning and Injecting ==="
 
 foreach ($file in $files) {
-    if ($file.Name -eq "PBMessageMeta.cs") { continue }
-
     $content = [System.IO.File]::ReadAllText($file.FullName)
     
     # 1. 清理 global:: 前缀及括号
@@ -81,16 +96,28 @@ foreach ($file in $files) {
     $content = $content -replace '(?s)\r?\n[ \t]*private\s+IExtension\s+__pbn__extensionData;\s*IExtension\s+IExtensible\.GetExtensionObject\(bool\s+createIfMissing\)\s*=>\s*Extensible\.GetExtensionObject\(ref\s+__pbn__extensionData,\s*createIfMissing\);(\r?\n)*', "`r`n"
 
     # ==========================================
-    # 5. 【核心注入】消息标签
+    # 5. 【核心注入】消息标签（C2S 带 ResponseType，S2C 不带）
     # ==========================================
     foreach ($c2sClass in $injectList.Keys) {
         $s2cClass = $injectList[$c2sClass]
+        $msgId = Get-StableClassHash -Text $c2sClass
         $pattern = "(?m)^([ \t]*)(public\s+partial\s+class\s+$c2sClass\b)"
-        $replacement = "`$1[Message(0, typeof($s2cClass))]`r`n`$1`$2"
+        $replacement = "`$1[Message($msgId, typeof($s2cClass))]`r`n`$1`$2"
         $oldContent = $content
         $content = $content -replace $pattern, $replacement
         if ($oldContent -ne $content) {
-            Write-Host "  Injected: [Message] -> $c2sClass" -ForegroundColor Green
+            Write-Host "  Injected: [Message($msgId, typeof($s2cClass))] -> $c2sClass" -ForegroundColor Green
+        }
+    }
+
+    foreach ($s2cClass in $s2cClasses) {
+        $msgId = Get-StableClassHash -Text $s2cClass
+        $pattern = "(?m)^([ \t]*)(public\s+partial\s+class\s+$s2cClass\b)"
+        $replacement = "`$1[Message($msgId)]`r`n`$1`$2"
+        $oldContent = $content
+        $content = $content -replace $pattern, $replacement
+        if ($oldContent -ne $content) {
+            Write-Host "  Injected: [Message($msgId)] -> $s2cClass" -ForegroundColor Green
         }
     }
 

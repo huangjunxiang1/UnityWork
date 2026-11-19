@@ -15,23 +15,25 @@ namespace Main
 {
 
     [ProtoContract(Name = @"c2s_aaa")]
-    [Message(0, typeof(S2cAaa))]
+    [Message(1323192946, typeof(S2cAaa))]
     public partial class C2sAaa : Message
     {
     }
 
     [ProtoContract(Name = @"s2c_aaa")]
+    [Message(1621296364)]
     public partial class S2cAaa : Message
     {
     }
 
     [ProtoContract(Name = @"C2s_aaaa")]
-    [Message(0, typeof(S2caaaa))]
+    [Message(235741895, typeof(S2caaaa))]
     public partial class C2saaaa : Message
     {
     }
 
     [ProtoContract(Name = @"S2c_aaaa")]
+    [Message(1795686769)]
     public partial class S2caaaa : Message
     {
     }
