@@ -14,12 +14,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\Client\Assets\Code\Editor\Default\ConverTabs\CombineLanguage.cs" Link="CombineLanguage\CombineLanguage.cs" />
+    <Compile Include="..\..\Client\Assets\Code\Editor\Default\ConverTabs\ExcelHelper.cs" Link="Refrence\ExcelHelper.cs" />
+    <Compile Include="..\..\Client\Assets\Code\Editor\Default\ConverTabs\LubanTabToLanguage.cs" Link="LubanTabToLanguage\LubanTabToLanguage.cs" />
     <Compile Include="..\..\Client\Packages\Shit\Runtime\Core\Util\SSetting.cs" Link="Refrence\SSetting.cs" />
     <Compile Include="..\..\Client\Packages\Shit\Runtime\Game\Serialized\DBuffer.cs" Link="Refrence\DBuffer.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NPOI" Version="2.7.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CombineLanguage\" />
+    <Folder Include="LubanTabToLanguage\" />
   </ItemGroup>
 
 </Project>

@@ -512,56 +512,14 @@ public static class ShaderProperties
         public static readonly int PT_MainTex = Shader.PropertyToID("_MainTex");
         /// <summary>Texture  (_AlphaMask)</summary>
         public static readonly int PT_AlphaMask = Shader.PropertyToID("_AlphaMask");
-        /// <summary>Keyword  (DIRECTIONAL)</summary>
-        public const string KW_DIRECTIONAL = "DIRECTIONAL";
-        /// <summary>Keyword  (DIRECTIONAL_COOKIE)</summary>
-        public const string KW_DIRECTIONAL_COOKIE = "DIRECTIONAL_COOKIE";
-        /// <summary>Keyword  (DIRLIGHTMAP_COMBINED)</summary>
-        public const string KW_DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
-        /// <summary>Keyword  (DYNAMICLIGHTMAP_ON)</summary>
-        public const string KW_DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
-        /// <summary>Keyword  (EDITOR_VISUALIZATION)</summary>
-        public const string KW_EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
-        /// <summary>Keyword  (FOG_EXP)</summary>
-        public const string KW_FOG_EXP = "FOG_EXP";
-        /// <summary>Keyword  (FOG_EXP2)</summary>
-        public const string KW_FOG_EXP2 = "FOG_EXP2";
-        /// <summary>Keyword  (FOG_LINEAR)</summary>
-        public const string KW_FOG_LINEAR = "FOG_LINEAR";
-        /// <summary>Keyword  (INSTANCING_ON)</summary>
-        public const string KW_INSTANCING_ON = "INSTANCING_ON";
-        /// <summary>Keyword  (LIGHTMAP_ON)</summary>
-        public const string KW_LIGHTMAP_ON = "LIGHTMAP_ON";
-        /// <summary>Keyword  (LIGHTMAP_SHADOW_MIXING)</summary>
-        public const string KW_LIGHTMAP_SHADOW_MIXING = "LIGHTMAP_SHADOW_MIXING";
-        /// <summary>Keyword  (LIGHTPROBE_SH)</summary>
-        public const string KW_LIGHTPROBE_SH = "LIGHTPROBE_SH";
-        /// <summary>Keyword  (POINT)</summary>
-        public const string KW_POINT = "POINT";
-        /// <summary>Keyword  (POINT_COOKIE)</summary>
-        public const string KW_POINT_COOKIE = "POINT_COOKIE";
-        /// <summary>Keyword  (SHADOWS_CUBE)</summary>
-        public const string KW_SHADOWS_CUBE = "SHADOWS_CUBE";
-        /// <summary>Keyword  (SHADOWS_DEPTH)</summary>
-        public const string KW_SHADOWS_DEPTH = "SHADOWS_DEPTH";
-        /// <summary>Keyword  (SHADOWS_SCREEN)</summary>
-        public const string KW_SHADOWS_SCREEN = "SHADOWS_SCREEN";
-        /// <summary>Keyword  (SHADOWS_SHADOWMASK)</summary>
-        public const string KW_SHADOWS_SHADOWMASK = "SHADOWS_SHADOWMASK";
-        /// <summary>Keyword  (SPOT)</summary>
-        public const string KW_SPOT = "SPOT";
         /// <summary>Keyword  (STEREO_CUBEMAP_RENDER_ON)</summary>
         public const string KW_STEREO_CUBEMAP_RENDER_ON = "STEREO_CUBEMAP_RENDER_ON";
         /// <summary>Keyword  (STEREO_INSTANCING_ON)</summary>
         public const string KW_STEREO_INSTANCING_ON = "STEREO_INSTANCING_ON";
         /// <summary>Keyword  (STEREO_MULTIVIEW_ON)</summary>
         public const string KW_STEREO_MULTIVIEW_ON = "STEREO_MULTIVIEW_ON";
-        /// <summary>Keyword  (UNITY_HDR_ON)</summary>
-        public const string KW_UNITY_HDR_ON = "UNITY_HDR_ON";
         /// <summary>Keyword  (UNITY_SINGLE_PASS_STEREO)</summary>
         public const string KW_UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
-        /// <summary>Keyword  (VERTEXLIGHT_ON)</summary>
-        public const string KW_VERTEXLIGHT_ON = "VERTEXLIGHT_ON";
     }
 
     /// <summary>Shader: Editor/AStar</summary>
@@ -904,6 +862,23 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_ALPHACLIP = "UNITY_UI_ALPHACLIP";
         /// <summary>Keyword  (UNITY_UI_CLIP_RECT)</summary>
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
+    }
+
+    /// <summary>Shader: Game/Unlit</summary>
+    public static class Game_Unlit
+    {
+        /// <summary>Color  (_Color)</summary>
+        public static readonly int PT_Color = Shader.PropertyToID("_Color");
+        /// <summary>Keyword  (INSTANCING_ON)</summary>
+        public const string KW_INSTANCING_ON = "INSTANCING_ON";
+        /// <summary>Keyword  (STEREO_CUBEMAP_RENDER_ON)</summary>
+        public const string KW_STEREO_CUBEMAP_RENDER_ON = "STEREO_CUBEMAP_RENDER_ON";
+        /// <summary>Keyword  (STEREO_INSTANCING_ON)</summary>
+        public const string KW_STEREO_INSTANCING_ON = "STEREO_INSTANCING_ON";
+        /// <summary>Keyword  (STEREO_MULTIVIEW_ON)</summary>
+        public const string KW_STEREO_MULTIVIEW_ON = "STEREO_MULTIVIEW_ON";
+        /// <summary>Keyword  (UNITY_SINGLE_PASS_STEREO)</summary>
+        public const string KW_UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
     }
 
     /// <summary>Shader: HDRP/3DSMaxPhysicalMaterial/PhysicalMaterial3DsMax</summary>
@@ -9482,26 +9457,12 @@ public static class ShaderProperties
     /// <summary>Shader: Shader Graphs/Water</summary>
     public static class Shader_Graphs_Water
     {
-        /// <summary>Color  (_Color)</summary>
-        public static readonly int PT_Color = Shader.PropertyToID("_Color");
-        /// <summary>Color  (_DeepColor)</summary>
-        public static readonly int PT_DeepColor = Shader.PropertyToID("_DeepColor");
-        /// <summary>Float  (_DeepDistance)</summary>
-        public static readonly int PT_DeepDistance = Shader.PropertyToID("_DeepDistance");
-        /// <summary>Float  (_DeepPower)</summary>
-        public static readonly int PT_DeepPower = Shader.PropertyToID("_DeepPower");
-        /// <summary>Range  (_Metallic)</summary>
-        public static readonly int PT_Metallic = Shader.PropertyToID("_Metallic");
-        /// <summary>Range  (_Smoothness)</summary>
-        public static readonly int PT_Smoothness = Shader.PropertyToID("_Smoothness");
-        /// <summary>Range  (_AO)</summary>
-        public static readonly int PT_AO = Shader.PropertyToID("_AO");
-        /// <summary>Vector  (_WaveSpeed)</summary>
-        public static readonly int PT_WaveSpeed = Shader.PropertyToID("_WaveSpeed");
-        /// <summary>Float  (_WaveHeight)</summary>
-        public static readonly int PT_WaveHeight = Shader.PropertyToID("_WaveHeight");
-        /// <summary>Float  (_WaveInterval)</summary>
-        public static readonly int PT_WaveInterval = Shader.PropertyToID("_WaveInterval");
+        /// <summary>Texture  (Texture2D_0afb1bd5f0a046f2b2ce389bc3576ea2)</summary>
+        public static readonly int PT_Texture2D_0afb1bd5f0a046f2b2ce389bc3576ea2 = Shader.PropertyToID("Texture2D_0afb1bd5f0a046f2b2ce389bc3576ea2");
+        /// <summary>Float  (Vector1_ecdf87ddac2d42e187c4a5b8a2380964)</summary>
+        public static readonly int PT_Vector1_ecdf87ddac2d42e187c4a5b8a2380964 = Shader.PropertyToID("Vector1_ecdf87ddac2d42e187c4a5b8a2380964");
+        /// <summary>Color  (Color_20a3acdbc6cb482081ab52eafec428ed)</summary>
+        public static readonly int PT_Color_20a3acdbc6cb482081ab52eafec428ed = Shader.PropertyToID("Color_20a3acdbc6cb482081ab52eafec428ed");
         /// <summary>Color  (_EmissionColor)</summary>
         public static readonly int PT_EmissionColor = Shader.PropertyToID("_EmissionColor");
         /// <summary>Float  (_RenderQueueType)</summary>
@@ -13705,8 +13666,8 @@ public static class ShaderProperties
         public const string KW_TINT_BLACK_ON = "_TINT_BLACK_ON";
     }
 
-    /// <summary>Shader: TextMeshPro/Bitmap</summary>
-    public static class TextMeshPro_Bitmap
+    /// <summary>Shader: TextMeshPro/Default/Bitmap</summary>
+    public static class TextMeshPro_Default_Bitmap
     {
         /// <summary>Texture  (_MainTex)</summary>
         public static readonly int PT_MainTex = Shader.PropertyToID("_MainTex");
@@ -13752,8 +13713,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Bitmap Custom Atlas</summary>
-    public static class TextMeshPro_Bitmap_Custom_Atlas
+    /// <summary>Shader: TextMeshPro/Default/Bitmap Custom Atlas</summary>
+    public static class TextMeshPro_Default_Bitmap_Custom_Atlas
     {
         /// <summary>Texture  (_MainTex)</summary>
         public static readonly int PT_MainTex = Shader.PropertyToID("_MainTex");
@@ -13801,8 +13762,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Distance Field</summary>
-    public static class TextMeshPro_Distance_Field
+    /// <summary>Shader: TextMeshPro/Default/Distance Field</summary>
+    public static class TextMeshPro_Default_Distance_Field
     {
         /// <summary>Texture  (_FaceTex)</summary>
         public static readonly int PT_FaceTex = Shader.PropertyToID("_FaceTex");
@@ -13960,145 +13921,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Distance Field (Surface)</summary>
-    public static class TextMeshPro_Distance_Field_Surface
-    {
-        /// <summary>Texture  (_FaceTex)</summary>
-        public static readonly int PT_FaceTex = Shader.PropertyToID("_FaceTex");
-        /// <summary>Range  (_FaceUVSpeedX)</summary>
-        public static readonly int PT_FaceUVSpeedX = Shader.PropertyToID("_FaceUVSpeedX");
-        /// <summary>Range  (_FaceUVSpeedY)</summary>
-        public static readonly int PT_FaceUVSpeedY = Shader.PropertyToID("_FaceUVSpeedY");
-        /// <summary>Color  (_FaceColor)</summary>
-        public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
-        /// <summary>Range  (_FaceDilate)</summary>
-        public static readonly int PT_FaceDilate = Shader.PropertyToID("_FaceDilate");
-        /// <summary>Color  (_OutlineColor)</summary>
-        public static readonly int PT_OutlineColor = Shader.PropertyToID("_OutlineColor");
-        /// <summary>Texture  (_OutlineTex)</summary>
-        public static readonly int PT_OutlineTex = Shader.PropertyToID("_OutlineTex");
-        /// <summary>Range  (_OutlineUVSpeedX)</summary>
-        public static readonly int PT_OutlineUVSpeedX = Shader.PropertyToID("_OutlineUVSpeedX");
-        /// <summary>Range  (_OutlineUVSpeedY)</summary>
-        public static readonly int PT_OutlineUVSpeedY = Shader.PropertyToID("_OutlineUVSpeedY");
-        /// <summary>Range  (_OutlineWidth)</summary>
-        public static readonly int PT_OutlineWidth = Shader.PropertyToID("_OutlineWidth");
-        /// <summary>Range  (_OutlineSoftness)</summary>
-        public static readonly int PT_OutlineSoftness = Shader.PropertyToID("_OutlineSoftness");
-        /// <summary>Range  (_Bevel)</summary>
-        public static readonly int PT_Bevel = Shader.PropertyToID("_Bevel");
-        /// <summary>Range  (_BevelOffset)</summary>
-        public static readonly int PT_BevelOffset = Shader.PropertyToID("_BevelOffset");
-        /// <summary>Range  (_BevelWidth)</summary>
-        public static readonly int PT_BevelWidth = Shader.PropertyToID("_BevelWidth");
-        /// <summary>Range  (_BevelClamp)</summary>
-        public static readonly int PT_BevelClamp = Shader.PropertyToID("_BevelClamp");
-        /// <summary>Range  (_BevelRoundness)</summary>
-        public static readonly int PT_BevelRoundness = Shader.PropertyToID("_BevelRoundness");
-        /// <summary>Texture  (_BumpMap)</summary>
-        public static readonly int PT_BumpMap = Shader.PropertyToID("_BumpMap");
-        /// <summary>Range  (_BumpOutline)</summary>
-        public static readonly int PT_BumpOutline = Shader.PropertyToID("_BumpOutline");
-        /// <summary>Range  (_BumpFace)</summary>
-        public static readonly int PT_BumpFace = Shader.PropertyToID("_BumpFace");
-        /// <summary>Color  (_ReflectFaceColor)</summary>
-        public static readonly int PT_ReflectFaceColor = Shader.PropertyToID("_ReflectFaceColor");
-        /// <summary>Color  (_ReflectOutlineColor)</summary>
-        public static readonly int PT_ReflectOutlineColor = Shader.PropertyToID("_ReflectOutlineColor");
-        /// <summary>Texture  (_Cube)</summary>
-        public static readonly int PT_Cube = Shader.PropertyToID("_Cube");
-        /// <summary>Vector  (_EnvMatrixRotation)</summary>
-        public static readonly int PT_EnvMatrixRotation = Shader.PropertyToID("_EnvMatrixRotation");
-        /// <summary>Color  (_SpecColor)</summary>
-        public static readonly int PT_SpecColor = Shader.PropertyToID("_SpecColor");
-        /// <summary>Range  (_FaceShininess)</summary>
-        public static readonly int PT_FaceShininess = Shader.PropertyToID("_FaceShininess");
-        /// <summary>Range  (_OutlineShininess)</summary>
-        public static readonly int PT_OutlineShininess = Shader.PropertyToID("_OutlineShininess");
-        /// <summary>Color  (_GlowColor)</summary>
-        public static readonly int PT_GlowColor = Shader.PropertyToID("_GlowColor");
-        /// <summary>Range  (_GlowOffset)</summary>
-        public static readonly int PT_GlowOffset = Shader.PropertyToID("_GlowOffset");
-        /// <summary>Range  (_GlowInner)</summary>
-        public static readonly int PT_GlowInner = Shader.PropertyToID("_GlowInner");
-        /// <summary>Range  (_GlowOuter)</summary>
-        public static readonly int PT_GlowOuter = Shader.PropertyToID("_GlowOuter");
-        /// <summary>Range  (_GlowPower)</summary>
-        public static readonly int PT_GlowPower = Shader.PropertyToID("_GlowPower");
-        /// <summary>Float  (_WeightNormal)</summary>
-        public static readonly int PT_WeightNormal = Shader.PropertyToID("_WeightNormal");
-        /// <summary>Float  (_WeightBold)</summary>
-        public static readonly int PT_WeightBold = Shader.PropertyToID("_WeightBold");
-        /// <summary>Float  (_ShaderFlags)</summary>
-        public static readonly int PT_ShaderFlags = Shader.PropertyToID("_ShaderFlags");
-        /// <summary>Float  (_ScaleRatioA)</summary>
-        public static readonly int PT_ScaleRatioA = Shader.PropertyToID("_ScaleRatioA");
-        /// <summary>Float  (_ScaleRatioB)</summary>
-        public static readonly int PT_ScaleRatioB = Shader.PropertyToID("_ScaleRatioB");
-        /// <summary>Float  (_ScaleRatioC)</summary>
-        public static readonly int PT_ScaleRatioC = Shader.PropertyToID("_ScaleRatioC");
-        /// <summary>Texture  (_MainTex)</summary>
-        public static readonly int PT_MainTex = Shader.PropertyToID("_MainTex");
-        /// <summary>Float  (_TextureWidth)</summary>
-        public static readonly int PT_TextureWidth = Shader.PropertyToID("_TextureWidth");
-        /// <summary>Float  (_TextureHeight)</summary>
-        public static readonly int PT_TextureHeight = Shader.PropertyToID("_TextureHeight");
-        /// <summary>Float  (_GradientScale)</summary>
-        public static readonly int PT_GradientScale = Shader.PropertyToID("_GradientScale");
-        /// <summary>Float  (_ScaleX)</summary>
-        public static readonly int PT_ScaleX = Shader.PropertyToID("_ScaleX");
-        /// <summary>Float  (_ScaleY)</summary>
-        public static readonly int PT_ScaleY = Shader.PropertyToID("_ScaleY");
-        /// <summary>Range  (_PerspectiveFilter)</summary>
-        public static readonly int PT_PerspectiveFilter = Shader.PropertyToID("_PerspectiveFilter");
-        /// <summary>Range  (_Sharpness)</summary>
-        public static readonly int PT_Sharpness = Shader.PropertyToID("_Sharpness");
-        /// <summary>Float  (_VertexOffsetX)</summary>
-        public static readonly int PT_VertexOffsetX = Shader.PropertyToID("_VertexOffsetX");
-        /// <summary>Float  (_VertexOffsetY)</summary>
-        public static readonly int PT_VertexOffsetY = Shader.PropertyToID("_VertexOffsetY");
-        /// <summary>Float  (_CullMode)</summary>
-        public static readonly int PT_CullMode = Shader.PropertyToID("_CullMode");
-        /// <summary>Keyword  (DIRECTIONAL)</summary>
-        public const string KW_DIRECTIONAL = "DIRECTIONAL";
-        /// <summary>Keyword  (DIRECTIONAL_COOKIE)</summary>
-        public const string KW_DIRECTIONAL_COOKIE = "DIRECTIONAL_COOKIE";
-        /// <summary>Keyword  (FOG_EXP)</summary>
-        public const string KW_FOG_EXP = "FOG_EXP";
-        /// <summary>Keyword  (FOG_EXP2)</summary>
-        public const string KW_FOG_EXP2 = "FOG_EXP2";
-        /// <summary>Keyword  (FOG_LINEAR)</summary>
-        public const string KW_FOG_LINEAR = "FOG_LINEAR";
-        /// <summary>Keyword  (GLOW_ON)</summary>
-        public const string KW_GLOW_ON = "GLOW_ON";
-        /// <summary>Keyword  (INSTANCING_ON)</summary>
-        public const string KW_INSTANCING_ON = "INSTANCING_ON";
-        /// <summary>Keyword  (LIGHTPROBE_SH)</summary>
-        public const string KW_LIGHTPROBE_SH = "LIGHTPROBE_SH";
-        /// <summary>Keyword  (POINT)</summary>
-        public const string KW_POINT = "POINT";
-        /// <summary>Keyword  (POINT_COOKIE)</summary>
-        public const string KW_POINT_COOKIE = "POINT_COOKIE";
-        /// <summary>Keyword  (SHADOWS_CUBE)</summary>
-        public const string KW_SHADOWS_CUBE = "SHADOWS_CUBE";
-        /// <summary>Keyword  (SHADOWS_DEPTH)</summary>
-        public const string KW_SHADOWS_DEPTH = "SHADOWS_DEPTH";
-        /// <summary>Keyword  (SPOT)</summary>
-        public const string KW_SPOT = "SPOT";
-        /// <summary>Keyword  (STEREO_CUBEMAP_RENDER_ON)</summary>
-        public const string KW_STEREO_CUBEMAP_RENDER_ON = "STEREO_CUBEMAP_RENDER_ON";
-        /// <summary>Keyword  (STEREO_INSTANCING_ON)</summary>
-        public const string KW_STEREO_INSTANCING_ON = "STEREO_INSTANCING_ON";
-        /// <summary>Keyword  (STEREO_MULTIVIEW_ON)</summary>
-        public const string KW_STEREO_MULTIVIEW_ON = "STEREO_MULTIVIEW_ON";
-        /// <summary>Keyword  (UNITY_SINGLE_PASS_STEREO)</summary>
-        public const string KW_UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
-        /// <summary>Keyword  (VERTEXLIGHT_ON)</summary>
-        public const string KW_VERTEXLIGHT_ON = "VERTEXLIGHT_ON";
-    }
-
-    /// <summary>Shader: TextMeshPro/Distance Field - SpaceWarp</summary>
-    public static class TextMeshPro_Distance_Field_SpaceWarp
+    /// <summary>Shader: TextMeshPro/Default/Distance Field - SpaceWarp</summary>
+    public static class TextMeshPro_Default_Distance_Field_SpaceWarp
     {
         /// <summary>Texture  (_FaceTex)</summary>
         public static readonly int PT_FaceTex = Shader.PropertyToID("_FaceTex");
@@ -14258,8 +14082,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Distance Field Overlay</summary>
-    public static class TextMeshPro_Distance_Field_Overlay
+    /// <summary>Shader: TextMeshPro/Default/Distance Field Overlay</summary>
+    public static class TextMeshPro_Default_Distance_Field_Overlay
     {
         /// <summary>Texture  (_FaceTex)</summary>
         public static readonly int PT_FaceTex = Shader.PropertyToID("_FaceTex");
@@ -14417,8 +14241,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Distance Field SSD</summary>
-    public static class TextMeshPro_Distance_Field_SSD
+    /// <summary>Shader: TextMeshPro/Default/Distance Field SSD</summary>
+    public static class TextMeshPro_Default_Distance_Field_SSD
     {
         /// <summary>Texture  (_FaceTex)</summary>
         public static readonly int PT_FaceTex = Shader.PropertyToID("_FaceTex");
@@ -14578,8 +14402,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Distance Field SSD - SpaceWarp</summary>
-    public static class TextMeshPro_Distance_Field_SSD_SpaceWarp
+    /// <summary>Shader: TextMeshPro/Default/Distance Field SSD - SpaceWarp</summary>
+    public static class TextMeshPro_Default_Distance_Field_SSD_SpaceWarp
     {
         /// <summary>Texture  (_FaceTex)</summary>
         public static readonly int PT_FaceTex = Shader.PropertyToID("_FaceTex");
@@ -14741,8 +14565,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Bitmap</summary>
-    public static class TextMeshPro_Mobile_Bitmap
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Bitmap</summary>
+    public static class TextMeshPro_Default_Mobile_Bitmap
     {
         /// <summary>Texture  (_MainTex)</summary>
         public static readonly int PT_MainTex = Shader.PropertyToID("_MainTex");
@@ -14788,8 +14612,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field</summary>
-    public static class TextMeshPro_Mobile_Distance_Field
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Distance Field</summary>
+    public static class TextMeshPro_Default_Mobile_Distance_Field
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -14883,99 +14707,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field (Surface)</summary>
-    public static class TextMeshPro_Mobile_Distance_Field_Surface
-    {
-        /// <summary>Texture  (_FaceTex)</summary>
-        public static readonly int PT_FaceTex = Shader.PropertyToID("_FaceTex");
-        /// <summary>Color  (_FaceColor)</summary>
-        public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
-        /// <summary>Range  (_FaceDilate)</summary>
-        public static readonly int PT_FaceDilate = Shader.PropertyToID("_FaceDilate");
-        /// <summary>Color  (_OutlineColor)</summary>
-        public static readonly int PT_OutlineColor = Shader.PropertyToID("_OutlineColor");
-        /// <summary>Texture  (_OutlineTex)</summary>
-        public static readonly int PT_OutlineTex = Shader.PropertyToID("_OutlineTex");
-        /// <summary>Range  (_OutlineWidth)</summary>
-        public static readonly int PT_OutlineWidth = Shader.PropertyToID("_OutlineWidth");
-        /// <summary>Range  (_OutlineSoftness)</summary>
-        public static readonly int PT_OutlineSoftness = Shader.PropertyToID("_OutlineSoftness");
-        /// <summary>Color  (_GlowColor)</summary>
-        public static readonly int PT_GlowColor = Shader.PropertyToID("_GlowColor");
-        /// <summary>Range  (_GlowOffset)</summary>
-        public static readonly int PT_GlowOffset = Shader.PropertyToID("_GlowOffset");
-        /// <summary>Range  (_GlowInner)</summary>
-        public static readonly int PT_GlowInner = Shader.PropertyToID("_GlowInner");
-        /// <summary>Range  (_GlowOuter)</summary>
-        public static readonly int PT_GlowOuter = Shader.PropertyToID("_GlowOuter");
-        /// <summary>Range  (_GlowPower)</summary>
-        public static readonly int PT_GlowPower = Shader.PropertyToID("_GlowPower");
-        /// <summary>Float  (_WeightNormal)</summary>
-        public static readonly int PT_WeightNormal = Shader.PropertyToID("_WeightNormal");
-        /// <summary>Float  (_WeightBold)</summary>
-        public static readonly int PT_WeightBold = Shader.PropertyToID("_WeightBold");
-        /// <summary>Float  (_ShaderFlags)</summary>
-        public static readonly int PT_ShaderFlags = Shader.PropertyToID("_ShaderFlags");
-        /// <summary>Float  (_ScaleRatioA)</summary>
-        public static readonly int PT_ScaleRatioA = Shader.PropertyToID("_ScaleRatioA");
-        /// <summary>Float  (_ScaleRatioB)</summary>
-        public static readonly int PT_ScaleRatioB = Shader.PropertyToID("_ScaleRatioB");
-        /// <summary>Float  (_ScaleRatioC)</summary>
-        public static readonly int PT_ScaleRatioC = Shader.PropertyToID("_ScaleRatioC");
-        /// <summary>Texture  (_MainTex)</summary>
-        public static readonly int PT_MainTex = Shader.PropertyToID("_MainTex");
-        /// <summary>Float  (_TextureWidth)</summary>
-        public static readonly int PT_TextureWidth = Shader.PropertyToID("_TextureWidth");
-        /// <summary>Float  (_TextureHeight)</summary>
-        public static readonly int PT_TextureHeight = Shader.PropertyToID("_TextureHeight");
-        /// <summary>Float  (_GradientScale)</summary>
-        public static readonly int PT_GradientScale = Shader.PropertyToID("_GradientScale");
-        /// <summary>Float  (_ScaleX)</summary>
-        public static readonly int PT_ScaleX = Shader.PropertyToID("_ScaleX");
-        /// <summary>Float  (_ScaleY)</summary>
-        public static readonly int PT_ScaleY = Shader.PropertyToID("_ScaleY");
-        /// <summary>Range  (_PerspectiveFilter)</summary>
-        public static readonly int PT_PerspectiveFilter = Shader.PropertyToID("_PerspectiveFilter");
-        /// <summary>Range  (_Sharpness)</summary>
-        public static readonly int PT_Sharpness = Shader.PropertyToID("_Sharpness");
-        /// <summary>Float  (_VertexOffsetX)</summary>
-        public static readonly int PT_VertexOffsetX = Shader.PropertyToID("_VertexOffsetX");
-        /// <summary>Float  (_VertexOffsetY)</summary>
-        public static readonly int PT_VertexOffsetY = Shader.PropertyToID("_VertexOffsetY");
-        /// <summary>Float  (_CullMode)</summary>
-        public static readonly int PT_CullMode = Shader.PropertyToID("_CullMode");
-        /// <summary>Keyword  (DIRECTIONAL)</summary>
-        public const string KW_DIRECTIONAL = "DIRECTIONAL";
-        /// <summary>Keyword  (FOG_EXP)</summary>
-        public const string KW_FOG_EXP = "FOG_EXP";
-        /// <summary>Keyword  (FOG_EXP2)</summary>
-        public const string KW_FOG_EXP2 = "FOG_EXP2";
-        /// <summary>Keyword  (FOG_LINEAR)</summary>
-        public const string KW_FOG_LINEAR = "FOG_LINEAR";
-        /// <summary>Keyword  (GLOW_ON)</summary>
-        public const string KW_GLOW_ON = "GLOW_ON";
-        /// <summary>Keyword  (INSTANCING_ON)</summary>
-        public const string KW_INSTANCING_ON = "INSTANCING_ON";
-        /// <summary>Keyword  (LIGHTPROBE_SH)</summary>
-        public const string KW_LIGHTPROBE_SH = "LIGHTPROBE_SH";
-        /// <summary>Keyword  (SHADOWS_CUBE)</summary>
-        public const string KW_SHADOWS_CUBE = "SHADOWS_CUBE";
-        /// <summary>Keyword  (SHADOWS_DEPTH)</summary>
-        public const string KW_SHADOWS_DEPTH = "SHADOWS_DEPTH";
-        /// <summary>Keyword  (STEREO_CUBEMAP_RENDER_ON)</summary>
-        public const string KW_STEREO_CUBEMAP_RENDER_ON = "STEREO_CUBEMAP_RENDER_ON";
-        /// <summary>Keyword  (STEREO_INSTANCING_ON)</summary>
-        public const string KW_STEREO_INSTANCING_ON = "STEREO_INSTANCING_ON";
-        /// <summary>Keyword  (STEREO_MULTIVIEW_ON)</summary>
-        public const string KW_STEREO_MULTIVIEW_ON = "STEREO_MULTIVIEW_ON";
-        /// <summary>Keyword  (UNITY_SINGLE_PASS_STEREO)</summary>
-        public const string KW_UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
-        /// <summary>Keyword  (VERTEXLIGHT_ON)</summary>
-        public const string KW_VERTEXLIGHT_ON = "VERTEXLIGHT_ON";
-    }
-
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field - 2 Pass</summary>
-    public static class TextMeshPro_Mobile_Distance_Field_2_Pass
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Distance Field - 2 Pass</summary>
+    public static class TextMeshPro_Default_Mobile_Distance_Field_2_Pass
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -15069,8 +14802,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field - Masking</summary>
-    public static class TextMeshPro_Mobile_Distance_Field_Masking
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Distance Field - Masking</summary>
+    public static class TextMeshPro_Default_Mobile_Distance_Field_Masking
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -15174,8 +14907,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field - SpaceWarp</summary>
-    public static class TextMeshPro_Mobile_Distance_Field_SpaceWarp
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Distance Field - SpaceWarp</summary>
+    public static class TextMeshPro_Default_Mobile_Distance_Field_SpaceWarp
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -15271,8 +15004,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field Overlay</summary>
-    public static class TextMeshPro_Mobile_Distance_Field_Overlay
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Distance Field Overlay</summary>
+    public static class TextMeshPro_Default_Mobile_Distance_Field_Overlay
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -15366,8 +15099,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field SSD</summary>
-    public static class TextMeshPro_Mobile_Distance_Field_SSD
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Distance Field SSD</summary>
+    public static class TextMeshPro_Default_Mobile_Distance_Field_SSD
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -15471,8 +15204,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/Mobile/Distance Field SSD - SpaceWarp</summary>
-    public static class TextMeshPro_Mobile_Distance_Field_SSD_SpaceWarp
+    /// <summary>Shader: TextMeshPro/Default/Mobile/Distance Field SSD - SpaceWarp</summary>
+    public static class TextMeshPro_Default_Mobile_Distance_Field_SSD_SpaceWarp
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -15578,8 +15311,8 @@ public static class ShaderProperties
         public const string KW_UNITY_UI_CLIP_RECT = "UNITY_UI_CLIP_RECT";
     }
 
-    /// <summary>Shader: TextMeshPro/SRP/TMP_SDF-HDRP LIT</summary>
-    public static class TextMeshPro_SRP_TMP_SDF_HDRP_LIT
+    /// <summary>Shader: TextMeshPro/Default/SRP/TMP_SDF-HDRP LIT</summary>
+    public static class TextMeshPro_Default_SRP_TMP_SDF_HDRP_LIT
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -15889,8 +15622,8 @@ public static class ShaderProperties
         public const string KW_TRANSPARENT_WRITES_MOTION_VEC = "_TRANSPARENT_WRITES_MOTION_VEC";
     }
 
-    /// <summary>Shader: TextMeshPro/SRP/TMP_SDF-HDRP UNLIT</summary>
-    public static class TextMeshPro_SRP_TMP_SDF_HDRP_UNLIT
+    /// <summary>Shader: TextMeshPro/Default/SRP/TMP_SDF-HDRP UNLIT</summary>
+    public static class TextMeshPro_Default_SRP_TMP_SDF_HDRP_UNLIT
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -16088,8 +15821,8 @@ public static class ShaderProperties
         public const string KW_TRANSPARENT_WRITES_MOTION_VEC = "_TRANSPARENT_WRITES_MOTION_VEC";
     }
 
-    /// <summary>Shader: TextMeshPro/SRP/TMP_SDF-URP Lit</summary>
-    public static class TextMeshPro_SRP_TMP_SDF_URP_Lit
+    /// <summary>Shader: TextMeshPro/Default/SRP/TMP_SDF-URP Lit</summary>
+    public static class TextMeshPro_Default_SRP_TMP_SDF_URP_Lit
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -16171,8 +15904,8 @@ public static class ShaderProperties
         public const string KW_UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
     }
 
-    /// <summary>Shader: TextMeshPro/SRP/TMP_SDF-URP Unlit</summary>
-    public static class TextMeshPro_SRP_TMP_SDF_URP_Unlit
+    /// <summary>Shader: TextMeshPro/Default/SRP/TMP_SDF-URP Unlit</summary>
+    public static class TextMeshPro_Default_SRP_TMP_SDF_URP_Unlit
     {
         /// <summary>Color  (_FaceColor)</summary>
         public static readonly int PT_FaceColor = Shader.PropertyToID("_FaceColor");
@@ -16254,8 +15987,8 @@ public static class ShaderProperties
         public const string KW_UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
     }
 
-    /// <summary>Shader: TextMeshPro/Sprite</summary>
-    public static class TextMeshPro_Sprite
+    /// <summary>Shader: TextMeshPro/Default/Sprite</summary>
+    public static class TextMeshPro_Default_Sprite
     {
         /// <summary>Texture  (_MainTex)</summary>
         public static readonly int PT_MainTex = Shader.PropertyToID("_MainTex");

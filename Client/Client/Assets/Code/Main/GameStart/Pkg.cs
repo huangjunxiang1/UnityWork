@@ -45,7 +45,7 @@ public static class Pkg
         }
         else
         {
-            var dll = Pkg.LoadRaw("raw_code");
+            var dll = Pkg.LoadRaw("raw_Code_code");
             assembly = CurrentAssemblies.LoadFromBytes(dll);
         }
         assembly

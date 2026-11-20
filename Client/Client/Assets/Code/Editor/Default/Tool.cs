@@ -33,7 +33,7 @@ public class Tool
     static bool tips = true;
 
 #if UGUI
-    [MenuItem("Shit/生成UGUI代码", false, int.MaxValue - 100)]
+    [MenuItem("Tools/生成UGUI代码", false, int.MaxValue - 100)]
     static void CreateUUICode()
     {
         YooAssetLocationGenerator.Generate();
@@ -283,7 +283,7 @@ public class Tool
 #endif
 
 #if FairyGUI
-    [MenuItem("Shit/生成FGUI代码", false, int.MaxValue - 100)]
+    [MenuItem("Tools/生成FGUI代码", false, int.MaxValue - 100)]
     static void CreateFUICode()
     {
         YooAssetLocationGenerator.Generate();
@@ -554,7 +554,7 @@ public class Tool
     }
 #endif
 
-    [MenuItem("Shit/生成Config代码", false, int.MaxValue - 100)]
+    [MenuItem("Tools/生成Config代码", false, int.MaxValue - 100)]
     static void CreateConfigCode()
     {
         YooAssetLocationGenerator.Generate();
@@ -690,7 +690,7 @@ public class Tool
 #endif
 
 
-    [MenuItem("Shit/生成ComputerShader代码")]
+    [MenuItem("Tools/生成ComputerShader代码")]
     static void gen_computerCode()
     {
         YooAssetLocationGenerator.Generate();
@@ -985,50 +985,14 @@ public class Tool
         public HashSet<string> textures = new();
     }
 
-    static void calBat(string path, bool throwEx = false)
-    {
-        // 创建一个Process对象
-        Process process = new Process();
-        // 设置要执行的批处理文件路径
-        process.StartInfo.FileName = path;
-        // 设置为不使用Shell执行
-        process.StartInfo.UseShellExecute = false;
-        // 重定向标准输出流和标准错误流，以便读取批处理文件的输出和错误信息
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
-        // 启动批处理文件
-        process.Start();
-        // 读取批处理文件的输出和错误信息
-        string output = process.StandardOutput.ReadToEnd();
-        string error = process.StandardError.ReadToEnd();
-        // 等待批处理文件执行完毕
-        process.WaitForExit();
-        // 关闭Process对象
-        process.Close();
-
-        if (!string.IsNullOrEmpty(error))
-        {
-            EditorUtility.DisplayDialog("失败", error, "OK", "取消");
-            if (throwEx)
-                throw new System.Exception(error);
-        }
-        else if (tips)
-            EditorUtility.DisplayDialog("成功", output, "OK", "取消");
-    }
-    [MenuItem("Shit/生成配置表", false, int.MaxValue - 10)]
-    static void GenTabs()
-    {
-        calBat(Application.dataPath + "/../../../Excel/ExcelToDB.bat");
-    }
-
-    [MenuItem("Shit/生成pb", false, int.MaxValue - 10)]
+    [MenuItem("Tools/生成pb", false, int.MaxValue - 10)]
     static void GenPB()
     {
-        calBat(Application.dataPath + "/../../../PB/pb_cs.bat");
+        ProcessHelper.Execute(Application.dataPath + "/../../../PB/pb_cs.bat");
     }
 
 
-    [MenuItem("Shit/全部事项生成")]
+    [MenuItem("Tools/全部事项生成")]
     static void GenAll()
     {
         tips = false;
@@ -1041,11 +1005,13 @@ public class Tool
             CreateFUICode();
 #endif
             CreateConfigCode();
+            gen_computerCode();
+
             ShaderPropertyGenerator.Generate();
             YooAssetLocationGenerator.Generate();
-            GenTabs();
+
+            ToTabs();
             GenPB();
-            gen_computerCode();
         }
         catch (System.Exception)
         {
@@ -1090,7 +1056,15 @@ public class Tool
         AssetDatabase.Refresh();
     }
 
-    [MenuItem("Tools/Gen_ToLanxString")]
+    [MenuItem("Tools/生成表数据")]
+    static void ToTabs()
+    {
+        CombineLanguage.Excute($"{Application.dataPath}/../../../Excel/l10n");
+        LubanTabToLanguage.Excute($"{Application.dataPath}/../../../Excel/l10n", $"{Application.dataPath}/Res/Config/raw/Tabs/Lan");
+        ProcessHelper.Execute($"{Application.dataPath}/../../../Excel/Client_luban.bat");
+    }
+
+    [MenuItem("Tools/导出代码直译语言包")]
     static void GenForLanString()
     {
         if (!File.Exists($"{Application.dataPath}/../Library/ScriptAssemblies/Game.HotFix.dll"))
@@ -1169,7 +1143,7 @@ public class Tool
             }
         }
 
-        FileInfo fi = new FileInfo($"{Application.dataPath}/../../../Excel/Language/#genFromCode.xlsx");
+        FileInfo fi = new FileInfo($"{Application.dataPath}/../../../Excel/l10n/genFromCode.xlsx");
 
         IWorkbook workbook;
         using (var fs = new FileStream(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -1177,16 +1151,16 @@ public class Tool
             workbook = new XSSFWorkbook(fs);
             ISheet sheet = workbook.GetSheetAt(0);
             HashSet<string> keys = new();
-            for (int row = 2; row <= sheet.LastRowNum; row++)
+            for (int row = 3; row <= sheet.LastRowNum; row++)
             {
                 var rowInst = sheet.GetRow(row);
                 if (rowInst != null) //null is when the row only contains empty cells
                 {
-                    var key = rowInst.GetCell(0)?.ToString();
+                    var key = rowInst.GetCell(1)?.ToString();
                     if (key != null && ret.TryGetValue(key, out var method))
-                        (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(method);
+                        (rowInst.GetCell(2) ?? rowInst.CreateCell(2)).SetCellValue(method);
                     else
-                        (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue("");
+                        (rowInst.GetCell(2) ?? rowInst.CreateCell(2)).SetCellValue("");
                     ret.Remove(key);
                 }
             }
@@ -1195,8 +1169,8 @@ public class Tool
             {
                 int index = ++len;
                 var rowInst = sheet.CreateRow(index);
-                (rowInst.GetCell(0) ?? rowInst.CreateCell(0)).SetCellValue(item.Key);
-                (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(item.Value);
+                (rowInst.GetCell(1) ?? rowInst.CreateCell(1)).SetCellValue(item.Key);
+                (rowInst.GetCell(2) ?? rowInst.CreateCell(2)).SetCellValue(item.Value);
             }
         }
 

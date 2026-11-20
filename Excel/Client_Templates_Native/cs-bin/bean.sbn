@@ -1,0 +1,243 @@
+﻿using Luban;
+{{
+    parent_def_type = __bean.parent_def_type
+    export_fields = __bean.export_fields
+    hierarchy_export_fields = __bean.hierarchy_export_fields
+}}
+
+{{namespace_with_grace_begin __namespace_with_top_module}}
+{{~if __bean.comment != '' ~}}
+/// <summary>
+/// {{escape_comment __bean.comment}}
+/// </summary>
+{{~end~}}
+{{~
+func get_ref_name 
+    ret (format_property_name __code_style $0.name) + '_Ref'
+end
+
+func get_index_var_name
+    ret (format_property_name __code_style $0.name) + '_Index'
+end
+
+func is_unsafe_container_type
+    tname = $0.type_name
+    ret tname == 'list' || tname == 'set' || tname == 'array' || tname == 'map'
+end
+
+func is_excluded_math_type
+    if $0 == null
+        ret false
+    end
+    tname = $0.type_name
+    dname = declaring_type_name $0
+    excluded = ['float2', 'float3', 'float4', 'int2', 'int3', 'int4', 'vector2', 'vector3', 'vector4', 'Unity.Mathematics.float2', 'Unity.Mathematics.float3', 'Unity.Mathematics.float4', 'Unity.Mathematics.int2', 'Unity.Mathematics.int3', 'Unity.Mathematics.int4']
+    ret (array.contains excluded tname) || (array.contains excluded dname)
+end
+
+func is_primitive_or_basic_type
+    if $0 == null
+        ret true
+    end
+    tname = $0.type_name
+    basics = ['bool', 'byte', 'short', 'int', 'long', 'float', 'double', 'string', 'datetime', 'bytes', 'text']
+    ret array.contains basics tname
+end
+
+func get_elem_type
+    if $0.element_ttype != null
+        ret $0.element_ttype
+    end
+    if $0.element_type != null
+        ret $0.element_type
+    end
+    if $0.item_ttype != null
+        ret $0.item_ttype
+    end
+    if $0.item_type != null
+        ret $0.item_type
+    end
+    if $0.value_ttype != null
+        ret $0.value_ttype
+    end
+    if $0.value_type != null
+        ret $0.value_type
+    end
+    ret null
+end
+
+func should_dispose_elem
+    if $0 == null
+        ret false
+    end
+    if is_excluded_math_type $0
+        ret false
+    end
+    if is_primitive_or_basic_type $0
+        ret false
+    end
+    ret true
+end
+
+func generate_resolve_field_ref
+    field = $0
+    fieldName = format_property_name __code_style field.name
+    refTable = get_ref_table field
+    if can_generate_ref field
+        tableName = format_property_name __code_style refTable.name
+        if field.is_nullable
+            ret (get_ref_name field) + ' = ' + fieldName + '!= null ? tables.' + tableName + '.GetOrDefault(' + (get_value_of_nullable_type field.ctype fieldName) + ') : null;'
+        else
+            ret (get_ref_name field) + ' = tables.' + tableName + '.GetOrDefault(' + fieldName + ');'
+        end
+    else if can_generate_collection_ref field
+        collection_ref_table = get_collection_ref_table field
+        tableName = format_property_name __code_style collection_ref_table.name
+        if field.ctype.type_name == 'list' || field.ctype.type_name == 'set'
+            line1 = (get_ref_name field) + ' = new ' + (declaring_collection_ref_name field.ctype) + '();' + '\n'
+            line2 = 'foreach (var _v in ' + fieldName + ') { ' + (get_ref_name field) + '.Add(tables.' + tableName + '.GetOrDefault(_v)); }' + '\n'
+            ret line1 + line2
+        else if field.ctype.type_name == 'array'
+            line1 = (get_ref_name field) + ' = new ' + (declaring_type_name collection_ref_table.value_ttype) + '[' + fieldName + '.Length];' + '\n'
+            line2 = 'for (int _i = 0; _i < ' + fieldName + '.Length; _i++) { ' + (get_ref_name field) + '[_i] = tables.' + tableName + '.GetOrDefault(' + fieldName + '[_i]); }' + '\n'
+            ret line1 + line2
+        else if field.ctype.type_name == 'map'
+            line1 = (get_ref_name field) + ' = new ' + (declaring_collection_ref_name field.ctype) + '();' + '\n'
+            line2 = 'foreach (var kvp in ' + fieldName + ') { ' + (get_ref_name field) + '.Add(kvp.Key, tables.' + tableName + '.GetOrDefault(kvp.Value)); }' + '\n'
+            ret line1 + line2
+        else
+            ret ''
+        end
+    else
+        if (is_field_bean_need_resolve_ref field)
+            ret fieldName + '.ResolveRef(tables);'
+        else if (is_field_array_like_need_resolve_ref field)
+            ret 'foreach (var _e in ' + fieldName + ') { _e.ResolveRef(tables); }'
+        else if (is_field_map_need_resolve_ref field)
+            ret 'foreach (var _e in ' + fieldName + '.Values) { _e.ResolveRef(tables); }'
+        else
+            ret ''
+        end
+    end
+end
+~}}
+{{~if __bean.is_value_type~}}
+public partial struct {{__name}}
+{{~else~}}
+public readonly partial struct {{__name}} 
+{{~end~}}
+{
+    public {{__name}}(ByteBuf _buf) {{if parent_def_type}} : base(_buf) {{end}}
+    {
+        {{~ for field in export_fields
+            fieldName = format_property_name __code_style field.name
+         ~}}
+        {{deserialize '_buf' fieldName field.ctype}}
+            {{~if can_generate_ref field~}}
+        {{get_ref_name field}} = null;
+            {{~end~}}
+            {{~if has_index field~}}
+        foreach(var _v in {{fieldName}})
+        { 
+            {{get_index_var_name field}}.Add(_v.{{format_property_name __code_style (get_index_field field).name}}, _v);
+        }
+            {{~end~}}
+        {{~end~}}
+    }
+
+    public static {{__name}} Deserialize{{__name}}(ByteBuf _buf)
+    {
+    {{~if __bean.is_abstract_type~}}
+        switch (_buf.ReadInt())
+        {
+        {{~for child in __bean.hierarchy_not_abstract_children~}}
+            case {{child.full_name}}.__ID__: return new {{child.full_name}}(_buf);
+        {{~end~}}
+            default: throw new SerializationException();
+        }
+    {{~else~}}
+        return new {{__bean.full_name}}(_buf);
+    {{~end~}}
+    }
+
+    {{~ for field in export_fields ~}}
+{{~if field.comment != '' ~}}
+    /// <summary>
+    /// {{escape_comment field.comment}}
+    /// </summary>
+{{~end~}}
+    public readonly {{declaring_type_name field.ctype}} {{format_property_name __code_style field.name}};
+    {{~if can_generate_ref field~}}
+    public {{declaring_type_name (get_ref_type field)}} {{get_ref_name field}};
+    {{~else if can_generate_collection_ref field~}}
+    public {{declaring_collection_ref_name field.ctype}} {{get_ref_name field}};
+    {{~end~}}
+   {{~if has_index field
+        indexMapType = get_index_map_type field
+   ~}}
+    public readonly {{declaring_type_name indexMapType}} {{get_index_var_name field}} = new {{declaring_type_name indexMapType}}();
+   {{~end~}}
+   {{~end~}}
+   
+    public readonly{{if (method_modifier __bean) != ''}} {{method_modifier __bean}}{{end}} void ResolveRef({{__manager_name}} tables)
+    {
+        {{~if parent_def_type~}}
+        base.ResolveRef(tables);
+        {{~end~}}
+        {{~for field in export_fields~}}
+            {{~ line = generate_resolve_field_ref field ~}}
+                {{~ if line != ''~}}
+        {{line}}
+                {{~end~}}
+        {{~end~}}
+    }
+
+    public readonly void Dispose()
+    {
+        {{~if parent_def_type~}}
+        base.Dispose();
+        {{~end~}}
+        {{~for field in export_fields
+            fieldName = format_property_name __code_style field.name
+            ctype = field.ctype
+            tname = ctype.type_name
+            elemType = get_elem_type ctype
+         ~}}
+            {{~if is_unsafe_container_type ctype~}}
+                {{~if (tname == 'list' || tname == 'set' || tname == 'array') && elemType != null && (should_dispose_elem elemType)~}}
+        if ({{fieldName}}.IsCreated)
+        {
+            for (int i = 0; i < {{fieldName}}.Length; i++) {{fieldName}}[i].Dispose();
+            {{fieldName}}.Dispose();
+        }
+                {{~else if tname == 'map' && ctype.value_ttype != null && (should_dispose_elem ctype.value_ttype)~}}
+        if ({{fieldName}}.IsCreated)
+        {
+            foreach (var _v in {{fieldName}}.Values) _v.Dispose();
+            {{fieldName}}.Dispose();
+        }
+                {{~else~}}
+        if ({{fieldName}}.IsCreated) {{fieldName}}.Dispose();
+                {{~end~}}
+            {{~else if should_dispose_elem ctype~}}
+        {{fieldName}}.Dispose();
+            {{~end~}}
+            {{~if can_generate_collection_ref field~}}
+        if ({{get_ref_name field}}.IsCreated) {{get_ref_name field}}.Dispose();
+            {{~end~}}
+            {{~if has_index field~}}
+        if ({{get_index_var_name field}}.IsCreated) {{get_index_var_name field}}.Dispose();
+            {{~end~}}
+        {{~end~}}
+    }
+
+    public override string ToString()
+    {
+        return "{{full_name}}{ "
+    {{~for field in hierarchy_export_fields ~}}
+        + "{{format_field_name __code_style field.name}}:" + {{to_pretty_string (format_property_name __code_style field.name) field.ctype}} + ","
+    {{~end~}}
+        + "}";
+    }
+}
+{{namespace_with_grace_end __namespace_with_top_module}}

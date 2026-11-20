@@ -14,7 +14,8 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Runtime.Shared",
         "HybridCLR.Runtime",
-        "FairyGUI"
+        "FairyGUI",
+        "Luban.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

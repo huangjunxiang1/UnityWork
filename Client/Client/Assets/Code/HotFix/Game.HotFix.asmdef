@@ -16,7 +16,8 @@
         "Game.Main",
         "YooAsset",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Luban.Runtime"
     ],
     "includePlatforms": [
         "Editor"

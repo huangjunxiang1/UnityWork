@@ -19,18 +19,9 @@ static class Other
     {
         if (!Application.isPlaying) return;
 
-        {
-            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabM)}.bytes")));
-            if (!buff.ReadHeaderInfo())
-                throw new System.Exception("数据错误");
-            TabM.Init(buff, SSetting.CoreSetting.Debug);
-        }
-        {
-            var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/{nameof(TabL)}.bytes")));
-            if (!buff.ReadHeaderInfo())
-                throw new System.Exception("数据错误");
-            TabL.Init(buff, SSetting.CoreSetting.Debug);
-        }
+        TabL.Init(new cfg.Tables(s => new Luban.ByteBuf(File.ReadAllBytes($"{Application.dataPath}/Res/Config/raw/Tabs/bin/{s}.bytes"))));
+        TabM.Init(new Native.Tables(s => new Luban.ByteBuf(File.ReadAllBytes($"{Application.dataPath}/Res/Config/raw/Tabs/Native/{s}.bytes"))));
+
         {
             var buff = new DBuffer(new MemoryStream(File.ReadAllBytes(Application.dataPath + $"/Res/Config/raw/Tabs/Language_{SettingL.LanguageType}.bytes")));
             if (!buff.ReadHeaderInfo())

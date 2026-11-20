@@ -148,26 +148,28 @@ public static class AssetsID
         /// <summary>Group: raw</summary>
         public static class raw
         {
-            /// <summary>raw_ComPkg_fui</summary>
-            public const string ComPkg_fui = "raw_ComPkg_fui";
-            /// <summary>raw_Game</summary>
-            public const string Game = "raw_Game";
-            /// <summary>raw_Language_Chinese</summary>
-            public const string Language_Chinese = "raw_Language_Chinese";
-            /// <summary>raw_Language_English</summary>
-            public const string Language_English = "raw_Language_English";
-            /// <summary>raw_Language_UIText_Chinese</summary>
-            public const string Language_UIText_Chinese = "raw_Language_UIText_Chinese";
-            /// <summary>raw_Language_UIText_English</summary>
-            public const string Language_UIText_English = "raw_Language_UIText_English";
-            /// <summary>raw_TabL</summary>
-            public const string TabL = "raw_TabL";
-            /// <summary>raw_TabM</summary>
-            public const string TabM = "raw_TabM";
-            /// <summary>raw_TabM_ST</summary>
-            public const string TabM_ST = "raw_TabM_ST";
-            /// <summary>raw_code</summary>
-            public const string code = "raw_code";
+            /// <summary>raw_AStarData_Game</summary>
+            public const string AStarData_Game = "raw_AStarData_Game";
+            /// <summary>raw_Code_code</summary>
+            public const string Code_code = "raw_Code_code";
+            /// <summary>raw_ComPkg_ComPkg_fui</summary>
+            public const string ComPkg_ComPkg_fui = "raw_ComPkg_ComPkg_fui";
+            /// <summary>raw_Lan_Chinese</summary>
+            public const string Lan_Chinese = "raw_Lan_Chinese";
+            /// <summary>raw_Lan_English</summary>
+            public const string Lan_English = "raw_Lan_English";
+            /// <summary>raw_Native_tbtest</summary>
+            public const string Native_tbtest = "raw_Native_tbtest";
+            /// <summary>raw_Native_tbtest2</summary>
+            public const string Native_tbtest2 = "raw_Native_tbtest2";
+            /// <summary>raw_Native_tbtest3</summary>
+            public const string Native_tbtest3 = "raw_Native_tbtest3";
+            /// <summary>raw_bin_tbtest</summary>
+            public const string bin_tbtest = "raw_bin_tbtest";
+            /// <summary>raw_bin_tbtest2</summary>
+            public const string bin_tbtest2 = "raw_bin_tbtest2";
+            /// <summary>raw_bin_tbtest3</summary>
+            public const string bin_tbtest3 = "raw_bin_tbtest3";
         }
 
     }

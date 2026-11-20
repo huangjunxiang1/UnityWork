@@ -20,7 +20,7 @@ public class UIPkg
     static async STask Init(EC_GameStart e)
     {
         FUIBinder.Binding();
-        UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw(AssetsID.Raw.raw.ComPkg_fui), "ComPkg", fguiLoader);
+        UIPkg.ComPkg = UIPackage.AddPackage(Pkg.LoadRaw(AssetsID.Raw.raw.ComPkg_ComPkg_fui), "ComPkg", fguiLoader);
         UIPkg.ResPkg = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>(AssetsID.Res.UI.ResPkg_fui)).bytes, "ResPkg", fguiLoader);
         UIPkg.Items = UIPackage.AddPackage((await Game.Loader.LoadAsync<TextAsset>(AssetsID.Res.UI.Items_fui)).bytes, "Items", fguiLoader);
         SSetting.ViewSetting.isTouchUI += UIHelper.IsOnTouchFUI;

@@ -22,17 +22,8 @@ static class Handler
         //font.fontAsset = await Game.Loader.LoadAsync<TMPro.TMP_FontAsset>("UI_UIFont");
         //FontManager.RegisterFont(font);
 
-        DBuffer buffM_ST = new(new MemoryStream(Pkg.LoadRaw(AssetsID.Raw.raw.TabM_ST)));
-        if (buffM_ST.ReadHeaderInfo())
-            TabM_ST.Init(buffM_ST);
-
-        DBuffer buffM = new(new MemoryStream(Pkg.LoadRaw(AssetsID.Raw.raw.TabM)));
-        if (buffM.ReadHeaderInfo())
-            TabM.Init(buffM, SSetting.CoreSetting.Debug);
-
-        DBuffer buffL = new(new MemoryStream(Pkg.LoadRaw(AssetsID.Raw.raw.TabL)));
-        if (buffL.ReadHeaderInfo())
-            TabL.Init(buffL, SSetting.CoreSetting.Debug);
+        TabL.Init(new cfg.Tables(s => new Luban.ByteBuf(Pkg.LoadRaw($"raw_bin_{s}"))));
+        TabM.Init(new Native.Tables(s => new Luban.ByteBuf(Pkg.LoadRaw($"raw_Native_{s}"))));
     }
 
     [Event]
@@ -63,7 +54,7 @@ static class Handler
     static void EC_QuitGame(EC_QuitGame e)
     {
         try { Game.Close(); } catch (System.Exception ex) { throw ex; }
-        TabM_ST.Tab.Data.Dispose();
+        TabM.Dispose();
     }
     [Event]
     static void EC_AcceptedMessage(EC_AcceptedMessage e)

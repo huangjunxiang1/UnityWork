@@ -15,7 +15,8 @@
         "Game.Test",
         "Unity.Collections",
         "Unity.TextMeshPro",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Luban.Runtime"
     ],
     "includePlatforms": [
         "Editor"

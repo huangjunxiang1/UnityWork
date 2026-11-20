@@ -1,6 +1,10 @@
-﻿using System.IO;
+﻿using Animancer;
 using Event;
+using FairyGUI;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 static partial class SettingL
 {
@@ -31,24 +35,39 @@ static partial class SettingL
         }
     }
 
-    static bool isFirst = true;
     static void loadLocationText()
     {
-        DBuffer buff = new(new MemoryStream(Pkg.LoadRaw($"raw_Language_{SettingL.LanguageType}")));
+        DBuffer buff = new(new MemoryStream(Pkg.LoadRaw($"raw_Lan_{SettingL.LanguageType}")));
 
         if (buff.ReadHeaderInfo())
-            LanguageUtil.Load((int)SettingL.LanguageType, buff, SSetting.CoreSetting.Debug);
-
-        if (!isFirst || SettingL.LanguageType != SystemLanguage.Chinese)
         {
-            var txt = Pkg.LoadText($"raw_Language_UIText_{SettingL.LanguageType}");
-            if (!string.IsNullOrEmpty(txt))
+            LanguageUtil.Load((int)SettingL.LanguageType, buff, SSetting.CoreSetting.Debug);
+            if (SettingL.LanguageType != SystemLanguage.Chinese)
             {
-                FairyGUI.Utils.XML xml = new FairyGUI.Utils.XML(txt);
-                FairyGUI.UIPackage.SetStringsSource(xml);
+                var strings = new Dictionary<string, Dictionary<string, string>>();
+                int len = buff.Readint();
+                for (int idx = 0; idx < len; idx++)
+                {
+                    var key = buff.Readstring();
+                    var text = buff.Readstring();
+                    int i = key.IndexOf("-");
+                    if (i == -1)
+                        continue;
+
+                    string key2 = key.Substring(0, i);
+                    string key3 = key.Substring(i + 1);
+                    Dictionary<string, string> col;
+                    if (!strings.TryGetValue(key2, out col))
+                    {
+                        col = new Dictionary<string, string>();
+                        strings[key2] = col;
+                    }
+                    col[key3] = text;
+                }
+
+                TranslationHelper.strings = strings;
             }
         }
-        isFirst = false;
 
         Game.Event.RunEvent(new EC_LanguageChange());
     }
